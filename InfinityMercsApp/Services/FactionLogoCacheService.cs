@@ -1,6 +1,7 @@
 using DomainFaction = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using DomainArmyImportResume = InfinityMercsApp.Domain.Models.Army.ArmyImportResume;
 using DomainResume = InfinityMercsApp.Domain.Models.Army.Resume;
+using InfinityMercsApp.Services.Logos;
 using Microsoft.Maui.Storage;
 
 namespace InfinityMercsApp.Services;
@@ -11,14 +12,22 @@ public class FactionLogoCacheService
     private const int TagCompanyFactionId = 2003;
     private const int TagCompanyUnitId = 1;
 
+    // Logical sizes each icon is actually shown at on the logo-heavy lists (see the item-template
+    // WidthRequest/HeightRequest). Rasterizing these at cache-build time means the list never pays
+    // the first-display raster cost. Other, less-common sizes fall back to lazy rasterization.
+    private static readonly int[] FactionTileSizes = { 48 };
+    private static readonly int[] UnitTileSizes = { 46, 32 };
+
     private const string PackagedCacheRoot = "SVGCache";
     private readonly HttpClient _httpClient;
+    private readonly ISvgRasterCache _svgRasterCache;
     private readonly string _localCacheDirectory;
     private readonly string _localUnitCacheDirectory;
 
-    public FactionLogoCacheService(HttpClient httpClient)
+    public FactionLogoCacheService(HttpClient httpClient, ISvgRasterCache svgRasterCache)
     {
         _httpClient = httpClient;
+        _svgRasterCache = svgRasterCache;
         _localCacheDirectory = Path.Combine(FileSystem.Current.AppDataDirectory, "svg-cache");
         _localUnitCacheDirectory = Path.Combine(_localCacheDirectory, "units");
     }
@@ -194,6 +203,20 @@ public class FactionLogoCacheService
             return EnsureResult.Reused;
         }
 
+        var result = await AcquireFactionLogoAsync(factionId, logoUrl, localPath, cancellationToken);
+
+        // The SVG is freshly on disk, so pre-render its PNGs (invalidating any stale raster first)
+        // before the list ever asks for them.
+        if (result == EnsureResult.Downloaded)
+        {
+            await WarmRastersAsync(localPath, FactionTileSizes, cancellationToken);
+        }
+
+        return result;
+    }
+
+    private async Task<EnsureResult> AcquireFactionLogoAsync(int factionId, string? logoUrl, string localPath, CancellationToken cancellationToken)
+    {
         if (IsPackagedAssetPath(logoUrl))
         {
             var copied = await TryCopyPackagedAssetAsync(logoUrl!, localPath, cancellationToken);
@@ -244,6 +267,20 @@ public class FactionLogoCacheService
             return EnsureResult.Reused;
         }
 
+        var result = await AcquireUnitLogoAsync(logoUrl, localPath, cancellationToken);
+
+        // WarmRastersAsync invalidates first, so the forced-re-download (TagCompany) path always
+        // regenerates a PNG that matches the freshly-written SVG.
+        if (result == EnsureResult.Downloaded)
+        {
+            await WarmRastersAsync(localPath, UnitTileSizes, cancellationToken);
+        }
+
+        return result;
+    }
+
+    private async Task<EnsureResult> AcquireUnitLogoAsync(string? logoUrl, string localPath, CancellationToken cancellationToken)
+    {
         if (IsPackagedAssetPath(logoUrl))
         {
             var copied = await TryCopyPackagedAssetAsync(logoUrl!, localPath, cancellationToken);
@@ -257,6 +294,32 @@ public class FactionLogoCacheService
 
         var downloaded = await TryDownloadRemoteAssetAsync(logoUrl!, localPath, cancellationToken);
         return downloaded ? EnsureResult.Downloaded : EnsureResult.NotAvailable;
+    }
+
+    /// <summary>
+    /// Pre-renders the standard-size PNGs for a freshly-written SVG. Invalidates any existing
+    /// rasters first so a re-download never leaves a PNG of the previous artwork behind. A raster
+    /// failure is swallowed — it must never fail the SVG cache result.
+    /// </summary>
+    private async Task WarmRastersAsync(string localPath, IReadOnlyList<int> logicalSizes, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _svgRasterCache.Invalidate(localPath);
+            foreach (var size in logicalSizes)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await _svgRasterCache.GetRasterPathAsync(localPath, size, size, cancellationToken);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Eager raster warm failed for '{localPath}': {ex.Message}");
+        }
     }
 
     private static bool IsPackagedAssetPath(string? url)

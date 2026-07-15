@@ -218,15 +218,16 @@ public partial class StandardCompanySelectionPage
             Console.WriteLine(
                 $"[StandardCompanySelectionPage] Loaded {Units.Count} unit(s) for active slot {_activeSlotIndex}. " +
                 $"Factions=[{string.Join(",", factions.Select(faction => faction.Id))}]");
-            BuildTeamEntriesFromMerged(
+
+            await BuildTeamEntriesFromMergedAsync(
                 merged,
                 TeamEntries,
                 includeTeam: _ => true,
                 readTeamCount: team => team.Duo,
                 buildTeamCountText: team => $"D: {team.Duo}",
-                buildTeamUnitLimitItem: (name, min, max, slug, sourceUnits) =>
+                buildTeamUnitLimitItem: (name, min, max, slug, resolver) =>
                     CompanyTeamProfilesWorkflow.BuildTeamUnitLimitItem(
-                        name, min, max, slug, sourceUnits),
+                        name, min, max, slug, resolver),
                 createTeam: (name, teamCountsText, isWildcardBucket, isExpanded, allowedProfiles) => new ArmyTeamListItem
                 {
                     Name = name,
@@ -234,7 +235,8 @@ public partial class StandardCompanySelectionPage
                     IsWildcardBucket = isWildcardBucket,
                     IsExpanded = isExpanded,
                     AllowedProfiles = allowedProfiles
-                });
+                },
+                cancellationToken);
 
             await ApplyUnitVisibilityFiltersAsync(cancellationToken);
             var visibleCount = Units.Count(x => x.IsVisible);
@@ -243,7 +245,9 @@ public partial class StandardCompanySelectionPage
                 $"[StandardCompanySelectionPage] Post-filter units: total={Units.Count}, visible={visibleCount}, " +
                 $"ShowUnitsList={ShowUnitsList}, preview=[{preview}]");
             TryAutoSelectFirstVisibleUnitAfterFactionLoad();
-            await BuildUnitFilterPopupOptionsAsync(cancellationToken);
+            // A second full merged-army-list query; only needed when the filter popup opens, so keep
+            // it off the UI thread instead of blocking the faction tap on it.
+            await Task.Run(() => BuildUnitFilterPopupOptionsAsync(cancellationToken), cancellationToken);
         }
         catch (Exception ex)
         {

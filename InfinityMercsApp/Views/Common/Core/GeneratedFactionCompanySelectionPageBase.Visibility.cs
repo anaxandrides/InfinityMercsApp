@@ -27,7 +27,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
                 SpecOpsProvider.GetSpecopsUnitsByFactionAsync,
                 cancellationToken);
 
-            ApplyUnitVisibilityCore(
+            await ApplyUnitVisibilityCoreAsync(
                 Units,
                 lookupContext,
                 _filterState.ActiveUnitFilter,

@@ -78,7 +78,16 @@ internal static class CompanySelectionUnitLoadWorkflow
         ICollection<ArmyUnitSelectionItem> unitsTarget,
         IEnumerable<ArmyUnitSelectionItem> mergedUnits)
     {
-        foreach (var unit in ArmyUnitSort.OrderByUnitTypeAndName(mergedUnits, x => x.Type, x => x.Name))
+        var ordered = ArmyUnitSort.OrderByUnitTypeAndName(mergedUnits, x => x.Type, x => x.Name);
+
+        // A single Reset lets the virtualized unit list re-lay out once instead of once per unit.
+        if (unitsTarget is ObservableRangeCollection<ArmyUnitSelectionItem> range)
+        {
+            range.ReplaceRange(ordered);
+            return;
+        }
+
+        foreach (var unit in ordered)
         {
             unitsTarget.Add(unit);
         }
@@ -86,7 +95,7 @@ internal static class CompanySelectionUnitLoadWorkflow
 
     internal static Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> BuildWildcardUnitLimits(
         IEnumerable<CompanyTeamAggregate> mergedTeams,
-        IEnumerable<ArmyUnitSelectionItem> mergedUnits)
+        TeamUnitResolver<ArmyUnitSelectionItem> resolver)
     {
         var wildcardUnitLimits = new Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)>(StringComparer.OrdinalIgnoreCase);
         foreach (var team in mergedTeams)
@@ -94,7 +103,7 @@ internal static class CompanySelectionUnitLoadWorkflow
             var isWildcardTeam = CompanyTeamMatchingWorkflow.IsWildcardTeamName(team.Name);
             var nonCharacterUnitLimits = CompanyTeamProfilesWorkflow.FilterCharacterUnitLimits(
                 team.UnitLimits,
-                mergedUnits,
+                resolver,
                 x => x.IsCharacter);
             foreach (var entry in nonCharacterUnitLimits)
             {
@@ -125,9 +134,9 @@ internal static class CompanySelectionUnitLoadWorkflow
 
     internal static void AppendWildcardTeamEntry(
         Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> wildcardUnitLimits,
-        IEnumerable<ArmyUnitSelectionItem> mergedUnits,
+        TeamUnitResolver<ArmyUnitSelectionItem> resolver,
         ICollection<ArmyTeamListItem> teamEntries,
-        Func<string, string, string, string?, IEnumerable<ArmyUnitSelectionItem>, ArmyTeamUnitLimitItem> buildTeamUnitLimitItem,
+        Func<string, string, string, string?, TeamUnitResolver<ArmyUnitSelectionItem>, ArmyTeamUnitLimitItem> buildTeamUnitLimitItem,
         Func<string, string, bool, bool, ObservableCollection<ArmyTeamUnitLimitItem>, ArmyTeamListItem> createTeam)
     {
         if (wildcardUnitLimits.Count == 0)
@@ -142,7 +151,7 @@ internal static class CompanySelectionUnitLoadWorkflow
                 x.Value.MinAsterisk ? "*" : x.Value.Min.ToString(),
                 x.Value.Max.ToString(),
                 x.Value.Slug,
-                mergedUnits))
+                resolver))
             .Where(x => !x.IsCharacter)
             .ToList();
 
@@ -159,16 +168,25 @@ internal static class CompanySelectionUnitLoadWorkflow
             new ObservableCollection<ArmyTeamUnitLimitItem>(wildcardAllowedProfiles)));
     }
 
-    internal static void BuildTeamEntriesFromMerged(
+    /// <summary>
+    /// Builds the team-entry list (matching every unit against every team's unit limits — an
+    /// O(teams × limits × units) computation). Returns plain data objects and mutates no UI-bound
+    /// collection, so callers can run it off the UI thread and add the result on it.
+    /// </summary>
+    internal static List<ArmyTeamListItem> BuildTeamEntriesFromMerged(
         IReadOnlyDictionary<string, ArmyUnitSelectionItem> unitsByKey,
         IEnumerable<CompanyTeamAggregate> mergedTeams,
-        ICollection<ArmyTeamListItem> teamEntries,
         Func<CompanyTeamAggregate, bool> includeTeam,
         Func<CompanyTeamAggregate, int> readTeamCount,
         Func<CompanyTeamAggregate, string> buildTeamCountText,
-        Func<string, string, string, string?, IEnumerable<ArmyUnitSelectionItem>, ArmyTeamUnitLimitItem> buildTeamUnitLimitItem,
+        Func<string, string, string, string?, TeamUnitResolver<ArmyUnitSelectionItem>, ArmyTeamUnitLimitItem> buildTeamUnitLimitItem,
         Func<string, string, bool, bool, ObservableCollection<ArmyTeamUnitLimitItem>, ArmyTeamListItem> createTeam)
     {
+        // Precomputed once per build (not once per team x unit-limit) so every resolve below is O(1)
+        // instead of an O(units) linear scan; see Docs/TeamMatchingOptimizationPlan.md.
+        var resolver = TeamUnitResolver<ArmyUnitSelectionItem>.Build(unitsByKey.Values, x => x.Name, x => x.Slug);
+
+        var teamEntries = new List<ArmyTeamListItem>();
         foreach (var team in mergedTeams
                      .Where(includeTeam)
                      .Where(x => readTeamCount(x) > 0)
@@ -176,12 +194,12 @@ internal static class CompanySelectionUnitLoadWorkflow
         {
             var nonCharacterUnitLimits = CompanyTeamProfilesWorkflow.FilterCharacterUnitLimits(
                 team.UnitLimits,
-                unitsByKey.Values,
+                resolver,
                 x => x.IsCharacter);
             var nonCharacterNonWildcardUnitLimits = CompanyTeamProfilesWorkflow.FilterWildcardUnitLimits(nonCharacterUnitLimits);
             var allowedProfiles = CompanyTeamProfilesWorkflow.BuildAllowedTeamProfiles(
                 nonCharacterNonWildcardUnitLimits,
-                unitsByKey.Values,
+                resolver,
                 buildTeamUnitLimitItem);
             if (allowedProfiles.Count == 0)
             {
@@ -198,12 +216,14 @@ internal static class CompanySelectionUnitLoadWorkflow
 
         var wildcardUnitLimits = BuildWildcardUnitLimits(
             mergedTeams,
-            unitsByKey.Values);
+            resolver);
         AppendWildcardTeamEntry(
             wildcardUnitLimits,
-            unitsByKey.Values,
+            resolver,
             teamEntries,
             buildTeamUnitLimitItem,
             createTeam);
+
+        return teamEntries;
     }
 }

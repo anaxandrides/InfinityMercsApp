@@ -169,6 +169,7 @@ public partial class ViewerViewModel
             var hasControllerGroups = doc.RootElement.EnumerateArray().Any(usageGroup => IsControllerGroup(doc.RootElement, usageGroup));
 
             var seenConfigurations = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var builtProfiles = new List<ViewerProfileItem>();
 
             foreach (var group in doc.RootElement.EnumerateArray())
             {
@@ -295,7 +296,7 @@ public partial class ViewerViewModel
                     var uniqueSkillsLines = BuildLinkedLines(uniqueSkillsEntries, skillsLinks);
                     var peripheralLines = BuildLinkedLines(peripheralEntries.Select(x => (x.Id, x.Name)).ToList(), peripheralLinks);
 
-                    Profiles.Add(new ViewerProfileItem
+                    builtProfiles.Add(new ViewerProfileItem
                     {
                         GroupName = groupName,
                         Name = displayName,
@@ -321,6 +322,9 @@ public partial class ViewerViewModel
                 }
             }
 
+            // One Reset instead of one notification per configuration.
+            Profiles.ReplaceAll(builtProfiles);
+
             var stableEquip = profileCount > 0 ? (IEnumerable<string>)(commonEquipNames ?? []) : [];
             var stableSkills = profileCount > 0 ? (IEnumerable<string>)(commonSkillNames ?? []) : [];
             EquipmentSummary = BuildNamedSummary("Equipment", stableEquip);
@@ -337,7 +341,7 @@ public partial class ViewerViewModel
                 skillsLookup,
                 skillsLinks,
                 Color.FromArgb("#F59E0B"));
-            ProfilesStatus = Profiles.Count == 0 ? "No configurations found for this unit." : $"{Profiles.Count} configurations loaded.";
+            ProfilesStatus = builtProfiles.Count == 0 ? "No configurations found for this unit." : $"{builtProfiles.Count} configurations loaded.";
         }
         catch (Exception ex)
         {

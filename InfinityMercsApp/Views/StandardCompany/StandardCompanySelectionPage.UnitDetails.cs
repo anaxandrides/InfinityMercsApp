@@ -30,6 +30,11 @@ public partial class StandardCompanySelectionPage
             return;
         }
 
+        // Let the unit list finish painting before building the (heavy, FormattedString-based) detail
+        // panel, so selecting a unit — or auto-selecting one on faction load — doesn't block the tap
+        // on profile JSON parsing.
+        await Task.Yield();
+
         try
         {
             await CompanyUnitDetailsWorkflowService.LoadAsync(

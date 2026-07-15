@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              x:Class="InfinityMercsApp.Views.Controls.FactionListItemView"
              x:Name="FactionListItemRoot">
 
-    <!-- Vertical tile: a centred logo above the faction name. The logo SVG is parsed off the UI
-         thread and drawn into a single SKCanvasView. Every call site uses this vertical tile, so the
-         control no longer carries the previously-hidden horizontal layout (which realised 3 extra
-         SKCanvasView GPU surfaces per item for no visible benefit). -->
+    <!-- Vertical tile: a centred logo above the faction name. The logo is a cached PNG rasterized
+         once per (icon, size) and shown via a native Image (CachedSvgImage) instead of a live
+         per-item Skia surface. Every call site uses this vertical tile. -->
     <Border x:Name="ItemBorder" Padding="0" StrokeThickness="0">
         <Border.GestureRecognizers>
             <TapGestureRecognizer Tapped="OnItemTapped" />
@@ -31,14 +30,15 @@
             MinimumHeightRequest="88"
             RowDefinitions="Auto,Auto"
             RowSpacing="6">
-            <skia:SKCanvasView
-                x:Name="LogoCanvasVertical"
+            <controls:CachedSvgImage
                 Grid.Row="0"
+                Item="{Binding .}"
                 WidthRequest="48"
                 HeightRequest="48"
+                LogicalWidth="48"
+                LogicalHeight="48"
                 HorizontalOptions="Center"
-                VerticalOptions="Center"
-                PaintSurface="OnLogoCanvasVerticalPaintSurface" />
+                VerticalOptions="Center" />
             <Grid Grid.Row="1">
                 <Label
                     x:Name="VerticalNameLabel"

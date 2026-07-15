@@ -36,12 +36,16 @@ public abstract partial class CompanySelectionPageBase
         Func<int, CancellationToken, Task<IReadOnlyList<ArmySpecopsUnitRecord>>> getSpecopsUnitsByFactionAsync,
         CancellationToken cancellationToken)
     {
-        return await CompanySelectionVisibilityWorkflow.BuildUnitVisibilityLookupContextAsync(
-            factions,
-            readFactionId,
-            getFactionSnapshot,
-            getSpecopsUnitsByFactionAsync,
-            cancellationToken);
+        // Per-faction snapshot fetch + FiltersJson parsing (skills/type/chars/equip/weapons/ammo
+        // lookups) is heavy enough to stall the faction tap; run it off the UI thread.
+        return await Task.Run(
+            () => CompanySelectionVisibilityWorkflow.BuildUnitVisibilityLookupContextAsync(
+                factions,
+                readFactionId,
+                getFactionSnapshot,
+                getSpecopsUnitsByFactionAsync,
+                cancellationToken),
+            cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -65,6 +69,40 @@ public abstract partial class CompanySelectionPageBase
             pointsRemaining,
             getUnitByFactionAndId,
             cancellationToken);
+    }
+
+    /// <summary>
+    /// Off-UI-thread variant of <see cref="ApplyUnitVisibilityCore"/>: the dominant faction-tap
+    /// cost is the per-unit DB fetch + profile JSON parse, so that computation runs on a worker
+    /// thread and only the resulting <c>IsVisible</c> writes (a bound property) happen on the UI
+    /// thread. Callers must <c>await</c> this from the UI thread so the apply resumes there.
+    /// </summary>
+    protected static async Task ApplyUnitVisibilityCoreAsync(
+        IEnumerable<ArmyUnitSelectionItem> units,
+        CompanyUnitVisibilityLookupContext lookupContext,
+        UnitFilterCriteria activeUnitFilter,
+        bool lieutenantOnlyUnits,
+        int pointsRemaining,
+        Func<int, int, CancellationToken, ArmyUnitRecord?> getUnitByFactionAndId,
+        CancellationToken cancellationToken)
+    {
+        var snapshot = units.ToList();
+
+        var decisions = await Task.Run(
+            () => CompanySelectionVisibilityWorkflow.ComputeUnitVisibility(
+                snapshot,
+                lookupContext,
+                activeUnitFilter,
+                lieutenantOnlyUnits,
+                pointsRemaining,
+                getUnitByFactionAndId,
+                cancellationToken),
+            cancellationToken);
+
+        foreach (var (unit, isVisible) in decisions)
+        {
+            unit.IsVisible = isVisible;
+        }
     }
 
     /// <summary>

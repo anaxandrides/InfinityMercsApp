@@ -118,8 +118,8 @@ public partial class ViewerViewModel : BaseViewModel
 
     public ObservableCollection<ViewerFactionItem> Factions { get; } = [];
 
-    public ObservableCollection<ViewerUnitItem> Units { get; } = [];
-    public ObservableCollection<ViewerProfileItem> Profiles { get; } = [];
+    public RangeObservableCollection<ViewerUnitItem> Units { get; } = [];
+    public RangeObservableCollection<ViewerProfileItem> Profiles { get; } = [];
     public ObservableCollection<FireteamTeamItem> Fireteams { get; } = [];
 
     public bool ShowUnitsTab

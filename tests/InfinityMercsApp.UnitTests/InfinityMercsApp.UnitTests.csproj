@@ -11,6 +11,8 @@
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="SkiaSharp" Version="3.119.1" />
+    <PackageReference Include="Svg.Skia" Version="3.0.5" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
@@ -36,6 +38,19 @@
     <Compile Include="..\..\InfinityMercsApp.Domain\Models\Perks\CompanyPerkCatalog.Empathy.cs" Link="Source\CompanyPerkCatalog.Empathy.cs" />
     <Compile Include="..\..\InfinityMercsApp.Domain\Models\Perks\CompanyPerkOwnershipResolver.cs" Link="Source\CompanyPerkOwnershipResolver.cs" />
     <Compile Include="..\..\InfinityMercsApp.Domain\Models\Perks\PerkNode.cs" Link="Source\PerkNode.cs" />
+  </ItemGroup>
+
+  <!-- SvgRasterCache core is authored to have no MAUI dependency so it can be exercised here.
+       The MAUI wiring lives in SvgRasterCache.Platform.cs and is intentionally NOT linked. -->
+  <ItemGroup>
+    <Compile Include="..\..\InfinityMercsApp\Services\Logos\ISvgRasterCache.cs" Link="Source\Logos\ISvgRasterCache.cs" />
+    <Compile Include="..\..\InfinityMercsApp\Services\Logos\SvgRasterCache.cs" Link="Source\Logos\SvgRasterCache.cs" />
+  </ItemGroup>
+
+  <!-- CompanyTeamMatchingWorkflow is generic-only (no ArmyUnitSelectionItem/MAUI reference), so it
+       links cleanly for characterization tests of the team-matching tiers and TeamUnitResolver. -->
+  <ItemGroup>
+    <Compile Include="..\..\InfinityMercsApp\Services\CompanySelection\Teams\CompanyTeamMatchingWorkflow.cs" Link="Source\CompanyTeamMatchingWorkflow.cs" />
   </ItemGroup>
 
 </Project>

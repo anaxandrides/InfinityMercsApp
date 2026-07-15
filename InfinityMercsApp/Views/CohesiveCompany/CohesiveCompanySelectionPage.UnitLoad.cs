@@ -101,15 +101,15 @@ public partial class CohesiveCompanySelectionPage
                 }
             }
 
-            BuildTeamEntriesFromMerged(
+            await BuildTeamEntriesFromMergedAsync(
                 merged,
                 TeamEntries,
                 includeTeam: team => validCoreTeamNames.Count == 0 || validCoreTeamNames.Contains(team.Name),
                 readTeamCount: team => team.Core,
                 buildTeamCountText: team => $"C: {team.Core}",
-                buildTeamUnitLimitItem: (name, min, max, slug, sourceUnits) =>
+                buildTeamUnitLimitItem: (name, min, max, slug, resolver) =>
                     CompanyTeamProfilesWorkflow.BuildTeamUnitLimitItem(
-                        name, NormalizeCohesiveDisplayedMinimum(min), max, slug, sourceUnits),
+                        name, NormalizeCohesiveDisplayedMinimum(min), max, slug, resolver),
                 createTeam: (name, teamCountsText, isWildcardBucket, isExpanded, allowedProfiles) => new ArmyTeamListItem
                 {
                     Name = name,
@@ -117,10 +117,11 @@ public partial class CohesiveCompanySelectionPage
                     IsWildcardBucket = isWildcardBucket,
                     IsExpanded = isExpanded,
                     AllowedProfiles = allowedProfiles
-                });
+                },
+                cancellationToken);
 
             await ApplyUnitVisibilityFiltersAsync(cancellationToken);
-            await BuildUnitFilterPopupOptionsAsync(cancellationToken);
+            await Task.Run(() => BuildUnitFilterPopupOptionsAsync(cancellationToken), cancellationToken);
             RestoreTrackedFireteamSelection(trackedFireteamNameToRestore);
             TryAutoSelectFirstVisibleUnitAfterFactionLoad();
             AreTeamEntriesReady = true;

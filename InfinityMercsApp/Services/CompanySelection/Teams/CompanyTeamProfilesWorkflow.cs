@@ -4,8 +4,7 @@ internal static class CompanyTeamProfilesWorkflow
 {
     internal static Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> FilterCharacterUnitLimits<TUnit>(
         Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> unitLimits,
-        IEnumerable<TUnit> sourceUnits,
-        Func<string?, string?, IEnumerable<TUnit>, TUnit?> resolveUnitForTeamEntry,
+        TeamUnitResolver<TUnit> resolver,
         Func<TUnit, bool> readIsCharacter)
         where TUnit : class
     {
@@ -13,7 +12,7 @@ internal static class CompanyTeamProfilesWorkflow
 
         foreach (var unitLimit in unitLimits)
         {
-            var matchedUnit = resolveUnitForTeamEntry(unitLimit.Key, unitLimit.Value.Slug, sourceUnits);
+            var matchedUnit = resolver.Resolve(unitLimit.Key, unitLimit.Value.Slug);
             if (matchedUnit is not null && readIsCharacter(matchedUnit))
             {
                 continue;
@@ -23,21 +22,6 @@ internal static class CompanyTeamProfilesWorkflow
         }
 
         return filtered;
-    }
-
-    internal static Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> FilterCharacterUnitLimits(
-        Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> unitLimits,
-        IEnumerable<ArmyUnitSelectionItem> sourceUnits,
-        Func<ArmyUnitSelectionItem, bool> readIsCharacter)
-    {
-        return FilterCharacterUnitLimits(
-            unitLimits,
-            sourceUnits,
-            (allowedProfileName, allowedProfileSlug, units) => CompanyTeamMatchingWorkflow.ResolveUnitForTeamEntry(
-                allowedProfileName,
-                allowedProfileSlug,
-                units),
-            readIsCharacter);
     }
 
     internal static Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> FilterWildcardUnitLimits(
@@ -60,8 +44,8 @@ internal static class CompanyTeamProfilesWorkflow
 
     internal static List<TTeamUnitLimitItem> BuildAllowedTeamProfiles<TUnit, TTeamUnitLimitItem>(
         Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> unitLimits,
-        IEnumerable<TUnit> sourceUnits,
-        Func<string, string, string, string?, IEnumerable<TUnit>, TTeamUnitLimitItem> buildTeamUnitLimitItem)
+        TeamUnitResolver<TUnit> resolver,
+        Func<string, string, string, string?, TeamUnitResolver<TUnit>, TTeamUnitLimitItem> buildTeamUnitLimitItem)
         where TUnit : class
         where TTeamUnitLimitItem : class
     {
@@ -104,7 +88,7 @@ internal static class CompanyTeamProfilesWorkflow
                 x.MinAsterisk ? "*" : x.Min.ToString(),
                 x.Max.ToString(),
                 x.Slug,
-                sourceUnits))
+                resolver))
             .ToList();
     }
 
@@ -113,13 +97,12 @@ internal static class CompanyTeamProfilesWorkflow
         string min,
         string max,
         string? slug,
-        IEnumerable<TUnit> sourceUnits,
-        Func<string?, string?, IEnumerable<TUnit>, TUnit?> resolveUnitForTeamEntry,
+        TeamUnitResolver<TUnit> resolver,
         Func<string, string, string, string?, TUnit?, TTeamUnitLimitItem> createItem)
         where TUnit : class
         where TTeamUnitLimitItem : class
     {
-        var matched = resolveUnitForTeamEntry(displayName, slug, sourceUnits);
+        var matched = resolver.Resolve(displayName, slug);
         return createItem(displayName, min, max, slug, matched);
     }
 
@@ -128,8 +111,7 @@ internal static class CompanyTeamProfilesWorkflow
         string min,
         string max,
         string? slug,
-        IEnumerable<TUnit> sourceUnits,
-        Func<string?, string?, IEnumerable<TUnit>, TUnit?> resolveUnitForTeamEntry,
+        TeamUnitResolver<TUnit> resolver,
         Func<TUnit, bool> readIsCharacter,
         Func<TUnit, string?> readCachedLogoPath,
         Func<TUnit, string?> readPackagedLogoPath,
@@ -138,7 +120,7 @@ internal static class CompanyTeamProfilesWorkflow
         Func<TUnit, int> readSourceFactionId)
         where TUnit : class
     {
-        var matched = resolveUnitForTeamEntry(displayName, slug, sourceUnits);
+        var matched = resolver.Resolve(displayName, slug);
         return new ArmyTeamUnitLimitItem
         {
             Name = displayName,
@@ -159,18 +141,14 @@ internal static class CompanyTeamProfilesWorkflow
         string min,
         string max,
         string? slug,
-        IEnumerable<ArmyUnitSelectionItem> sourceUnits)
+        TeamUnitResolver<ArmyUnitSelectionItem> resolver)
     {
         return BuildTeamUnitLimitItem<ArmyUnitSelectionItem>(
             displayName,
             min,
             max,
             slug,
-            sourceUnits,
-            (allowedProfileName, allowedProfileSlug, units) => CompanyTeamMatchingWorkflow.ResolveUnitForTeamEntry(
-                allowedProfileName,
-                allowedProfileSlug,
-                units),
+            resolver,
             x => x.IsCharacter,
             x => x.CachedLogoPath,
             x => x.PackagedLogoPath,

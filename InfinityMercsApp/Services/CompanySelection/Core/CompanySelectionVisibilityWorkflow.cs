@@ -57,50 +57,85 @@ internal static class CompanySelectionVisibilityWorkflow
         Func<int, int, CancellationToken, ArmyUnitRecord?> getUnitByFactionAndId,
         CancellationToken cancellationToken)
     {
+        foreach (var (unit, isVisible) in ComputeUnitVisibility(
+            units, lookupContext, activeUnitFilter, lieutenantOnlyUnits, pointsRemaining, getUnitByFactionAndId, cancellationToken))
+        {
+            unit.IsVisible = isVisible;
+        }
+    }
+
+    /// <summary>
+    /// Evaluates each unit's visibility (the expensive per-unit DB fetch + profile JSON parse)
+    /// without mutating any UI-bound state, so it can run off the UI thread. Callers apply the
+    /// returned <c>IsVisible</c> decisions back on the UI thread.
+    /// </summary>
+    internal static List<(ArmyUnitSelectionItem Unit, bool IsVisible)> ComputeUnitVisibility(
+        IEnumerable<ArmyUnitSelectionItem> units,
+        CompanyUnitVisibilityLookupContext lookupContext,
+        UnitFilterCriteria activeUnitFilter,
+        bool lieutenantOnlyUnits,
+        int pointsRemaining,
+        Func<int, int, CancellationToken, ArmyUnitRecord?> getUnitByFactionAndId,
+        CancellationToken cancellationToken)
+    {
+        var decisions = new List<(ArmyUnitSelectionItem, bool)>();
         foreach (var unit in units)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!lookupContext.SkillsByFactionId.TryGetValue(unit.SourceFactionId, out var skillsLookup))
-            {
-                unit.IsVisible = false;
-                continue;
-            }
-
-            lookupContext.TypeByFactionId.TryGetValue(unit.SourceFactionId, out var typeLookup);
-            lookupContext.CharsByFactionId.TryGetValue(unit.SourceFactionId, out var charsLookup);
-            lookupContext.EquipByFactionId.TryGetValue(unit.SourceFactionId, out var equipLookup);
-            lookupContext.WeaponsByFactionId.TryGetValue(unit.SourceFactionId, out var weaponsLookup);
-            lookupContext.AmmoByFactionId.TryGetValue(unit.SourceFactionId, out var ammoLookup);
-
-            if (!CompanyUnitDetailsShared.MatchesClassificationFilter(activeUnitFilter, unit.Type, typeLookup ?? new Dictionary<int, string>()))
-            {
-                unit.IsVisible = false;
-                continue;
-            }
-
-            var unitRecord = getUnitByFactionAndId(unit.SourceFactionId, unit.Id, cancellationToken);
-            var profileGroupsJson = unitRecord?.ProfileGroupsJson;
-            if (lookupContext.SpecopsByFactionId.TryGetValue(unit.SourceFactionId, out var specopsUnitsById) &&
-                specopsUnitsById.TryGetValue(unit.Id, out var specopsUnit))
-            {
-                if (unit.IsSpecOps || string.IsNullOrWhiteSpace(profileGroupsJson))
-                {
-                    profileGroupsJson = specopsUnit.ProfileGroupsJson;
-                }
-            }
-
-            unit.IsVisible = CompanyUnitFilterService.UnitHasVisibleOptionWithFilter(
-                profileGroupsJson,
-                skillsLookup,
-                charsLookup ?? new Dictionary<int, string>(),
-                equipLookup ?? new Dictionary<int, string>(),
-                weaponsLookup ?? new Dictionary<int, string>(),
-                ammoLookup ?? new Dictionary<int, string>(),
-                activeUnitFilter,
-                requireLieutenant: lieutenantOnlyUnits && !unit.IsSpecOps,
-                requireZeroSwc: true,
-                maxCost: pointsRemaining);
+            decisions.Add((unit, EvaluateUnitVisibility(
+                unit, lookupContext, activeUnitFilter, lieutenantOnlyUnits, pointsRemaining, getUnitByFactionAndId, cancellationToken)));
         }
+
+        return decisions;
+    }
+
+    private static bool EvaluateUnitVisibility(
+        ArmyUnitSelectionItem unit,
+        CompanyUnitVisibilityLookupContext lookupContext,
+        UnitFilterCriteria activeUnitFilter,
+        bool lieutenantOnlyUnits,
+        int pointsRemaining,
+        Func<int, int, CancellationToken, ArmyUnitRecord?> getUnitByFactionAndId,
+        CancellationToken cancellationToken)
+    {
+        if (!lookupContext.SkillsByFactionId.TryGetValue(unit.SourceFactionId, out var skillsLookup))
+        {
+            return false;
+        }
+
+        lookupContext.TypeByFactionId.TryGetValue(unit.SourceFactionId, out var typeLookup);
+        lookupContext.CharsByFactionId.TryGetValue(unit.SourceFactionId, out var charsLookup);
+        lookupContext.EquipByFactionId.TryGetValue(unit.SourceFactionId, out var equipLookup);
+        lookupContext.WeaponsByFactionId.TryGetValue(unit.SourceFactionId, out var weaponsLookup);
+        lookupContext.AmmoByFactionId.TryGetValue(unit.SourceFactionId, out var ammoLookup);
+
+        if (!CompanyUnitDetailsShared.MatchesClassificationFilter(activeUnitFilter, unit.Type, typeLookup ?? new Dictionary<int, string>()))
+        {
+            return false;
+        }
+
+        var unitRecord = getUnitByFactionAndId(unit.SourceFactionId, unit.Id, cancellationToken);
+        var profileGroupsJson = unitRecord?.ProfileGroupsJson;
+        if (lookupContext.SpecopsByFactionId.TryGetValue(unit.SourceFactionId, out var specopsUnitsById) &&
+            specopsUnitsById.TryGetValue(unit.Id, out var specopsUnit))
+        {
+            if (unit.IsSpecOps || string.IsNullOrWhiteSpace(profileGroupsJson))
+            {
+                profileGroupsJson = specopsUnit.ProfileGroupsJson;
+            }
+        }
+
+        return CompanyUnitFilterService.UnitHasVisibleOptionWithFilter(
+            profileGroupsJson,
+            skillsLookup,
+            charsLookup ?? new Dictionary<int, string>(),
+            equipLookup ?? new Dictionary<int, string>(),
+            weaponsLookup ?? new Dictionary<int, string>(),
+            ammoLookup ?? new Dictionary<int, string>(),
+            activeUnitFilter,
+            requireLieutenant: lieutenantOnlyUnits && !unit.IsSpecOps,
+            requireZeroSwc: true,
+            maxCost: pointsRemaining);
     }
 
     internal static ArmyUnitSelectionItem? RefreshSelectedUnitVisibility(

@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views;
 using InfinityMercsApp.Views.Season;
@@ -57,6 +58,7 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<ICompanySelectionPageFactory, CompanySelectionPageFactory>()
                 .AddSingleton<IArmyDataService, ArmyDataService>()
                 .AddSingleton<IStoreProvider, StoreProvider>()
+                .AddSingleton<ISvgRasterCache, SvgRasterCache>()
                 .AddSingleton<FactionLogoCacheService>()
                 .AddSingleton<IFeedbackService, FeedbackService>()
                 .AddSingleton<IImportService, ImportService>();

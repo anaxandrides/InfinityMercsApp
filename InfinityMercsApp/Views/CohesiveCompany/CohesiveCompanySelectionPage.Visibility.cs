@@ -28,7 +28,7 @@ public partial class CohesiveCompanySelectionPage
                 _specOpsProvider.GetSpecopsUnitsByFactionAsync,
                 cancellationToken);
 
-            ApplyUnitVisibilityCore(
+            await ApplyUnitVisibilityCoreAsync(
                 Units,
                 lookupContext,
                 _filterState.ActiveUnitFilter,

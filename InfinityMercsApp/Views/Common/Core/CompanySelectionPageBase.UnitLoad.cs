@@ -39,17 +39,23 @@ public abstract partial class CompanySelectionPageBase
         Func<int, ArmySpecopsUnitRecord, IReadOnlyDictionary<int, ArmyResumeRecord>, IReadOnlyList<ArmyResumeRecord>, IReadOnlyDictionary<int, string>, IReadOnlyDictionary<int, string>, ArmyUnitSelectionItem> createSpecopsUnit,
         CancellationToken cancellationToken)
     {
-        var merged = await CompanySelectionUnitLoadWorkflow.BuildMergedUnitsAndTeamsAsync(
-            factions,
-            readFactionId,
-            getResumeByFaction,
-            getSpecopsByFactionAsync,
-            getFactionSnapshot,
-            cacheUnitLogosAsync,
-            mergeFireteamEntries,
-            createResumeUnit,
-            createSpecopsUnit,
-            cancellationToken);
+        // The full-roster assembly — per-faction DB reads, spec-ops merge, logo caching/rasterization,
+        // and per-unit item construction — is heavy enough to freeze a faction tap for several seconds.
+        // Run it off the UI thread (the DB layer serializes access with a lock, and only plain data
+        // objects cross back), so the tap stays responsive.
+        var merged = await Task.Run(
+            () => CompanySelectionUnitLoadWorkflow.BuildMergedUnitsAndTeamsAsync(
+                factions,
+                readFactionId,
+                getResumeByFaction,
+                getSpecopsByFactionAsync,
+                getFactionSnapshot,
+                cacheUnitLogosAsync,
+                mergeFireteamEntries,
+                createResumeUnit,
+                createSpecopsUnit,
+                cancellationToken),
+            cancellationToken).ConfigureAwait(false);
 
         return new CompanyMergedUnitsAndTeams
         {
@@ -75,9 +81,9 @@ public abstract partial class CompanySelectionPageBase
     /// </summary>
     protected static Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> BuildWildcardUnitLimits(
         IEnumerable<CompanyTeamAggregate> mergedTeams,
-        IEnumerable<ArmyUnitSelectionItem> mergedUnits)
+        TeamUnitResolver<ArmyUnitSelectionItem> resolver)
     {
-        return CompanySelectionUnitLoadWorkflow.BuildWildcardUnitLimits(mergedTeams, mergedUnits);
+        return CompanySelectionUnitLoadWorkflow.BuildWildcardUnitLimits(mergedTeams, resolver);
     }
 
     /// <summary>
@@ -86,14 +92,14 @@ public abstract partial class CompanySelectionPageBase
     /// </summary>
     protected static void AppendWildcardTeamEntry(
         Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> wildcardUnitLimits,
-        IEnumerable<ArmyUnitSelectionItem> mergedUnits,
+        TeamUnitResolver<ArmyUnitSelectionItem> resolver,
         ICollection<ArmyTeamListItem> teamEntries,
-        Func<string, string, string, string?, IEnumerable<ArmyUnitSelectionItem>, ArmyTeamUnitLimitItem> buildTeamUnitLimitItem,
+        Func<string, string, string, string?, TeamUnitResolver<ArmyUnitSelectionItem>, ArmyTeamUnitLimitItem> buildTeamUnitLimitItem,
         Func<string, string, bool, bool, ObservableCollection<ArmyTeamUnitLimitItem>, ArmyTeamListItem> createTeam)
     {
         CompanySelectionUnitLoadWorkflow.AppendWildcardTeamEntry(
             wildcardUnitLimits,
-            mergedUnits,
+            resolver,
             teamEntries,
             buildTeamUnitLimitItem,
             createTeam);
@@ -104,23 +110,33 @@ public abstract partial class CompanySelectionPageBase
     /// <paramref name="teamEntries"/>. Teams are filtered and sorted according to the
     /// <paramref name="includeTeam"/> predicate and count accessors.
     /// </summary>
-    protected static void BuildTeamEntriesFromMerged(
+    protected static async Task BuildTeamEntriesFromMergedAsync(
         CompanyMergedUnitsAndTeams merged,
         ICollection<ArmyTeamListItem> teamEntries,
         Func<CompanyTeamAggregate, bool> includeTeam,
         Func<CompanyTeamAggregate, int> readTeamCount,
         Func<CompanyTeamAggregate, string> buildTeamCountText,
-        Func<string, string, string, string?, IEnumerable<ArmyUnitSelectionItem>, ArmyTeamUnitLimitItem> buildTeamUnitLimitItem,
-        Func<string, string, bool, bool, ObservableCollection<ArmyTeamUnitLimitItem>, ArmyTeamListItem> createTeam)
+        Func<string, string, string, string?, TeamUnitResolver<ArmyUnitSelectionItem>, ArmyTeamUnitLimitItem> buildTeamUnitLimitItem,
+        Func<string, string, bool, bool, ObservableCollection<ArmyTeamUnitLimitItem>, ArmyTeamListItem> createTeam,
+        CancellationToken cancellationToken = default)
     {
-        CompanySelectionUnitLoadWorkflow.BuildTeamEntriesFromMerged(
-            merged.UnitsByKey,
-            merged.TeamsByName.Values,
-            teamEntries,
-            includeTeam,
-            readTeamCount,
-            buildTeamCountText,
-            buildTeamUnitLimitItem,
-            createTeam);
+        // Matching every unit against every team's unit limits is an O(teams × limits × units)
+        // computation that was the single biggest faction-tap stall. Build the team-entry data
+        // objects on a worker thread, then add them to the UI-bound collection on the UI thread.
+        var built = await Task.Run(
+            () => CompanySelectionUnitLoadWorkflow.BuildTeamEntriesFromMerged(
+                merged.UnitsByKey,
+                merged.TeamsByName.Values,
+                includeTeam,
+                readTeamCount,
+                buildTeamCountText,
+                buildTeamUnitLimitItem,
+                createTeam),
+            cancellationToken);
+
+        foreach (var item in built)
+        {
+            teamEntries.Add(item);
+        }
     }
 }

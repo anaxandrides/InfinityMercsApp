@@ -27,7 +27,7 @@ public abstract partial class CompanySelectionPageBase
     protected readonly CompanySelectionFilterState _filterState = new();
 
     public ObservableRangeCollection<ArmyFactionSelectionItem> Factions { get; } = [];
-    public ObservableCollection<ArmyUnitSelectionItem> Units { get; } = [];
+    public ObservableRangeCollection<ArmyUnitSelectionItem> Units { get; } = [];
     public ObservableCollection<ArmyTeamListItem> TeamEntries { get; } = [];
     public ObservableCollection<ViewerProfileItem> Profiles { get; } = [];
     public ObservableCollection<MercsCompanyEntry> MercsCompanyEntries { get; } = [];

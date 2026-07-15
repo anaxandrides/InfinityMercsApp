@@ -51,24 +51,24 @@
             </Border>
         </Grid>
 
-        <ScrollView
-            x:Name="UnitSelectionScrollView"
+        <!-- CollectionView virtualizes the unit list and scrolls natively; the ItemsSource binding
+             sits on the CollectionView element (still in this control's namescope, so x:Reference
+             resolves), while the per-item command uses RelativeSource since a DataTemplate is a
+             separate namescope where x:Reference to the control root does not resolve. -->
+        <CollectionView
+            x:Name="UnitSelectionCollectionView"
             Grid.Row="1"
-            IsVisible="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=ShowUnitsList}">
-            <ScrollView.GestureRecognizers>
-                <PanGestureRecognizer PanUpdated="OnUnitSelectionScrollPanUpdated" />
-            </ScrollView.GestureRecognizers>
-            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=ItemsSource}" Spacing="0">
-                <BindableLayout.ItemTemplate>
-                    <DataTemplate>
-                        <controls:UnitSelectionListItemView
-                            ItemTappedCommand="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=ItemTappedCommand}"
-                            ItemTappedCommandParameter="{Binding .}"
-                            IsVisible="{Binding IsVisible}" />
-                    </DataTemplate>
-                </BindableLayout.ItemTemplate>
-            </VerticalStackLayout>
-        </ScrollView>
+            IsVisible="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=ShowUnitsList}"
+            ItemsSource="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=ItemsSource}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <controls:UnitSelectionListItemView
+                        ItemTappedCommand="{Binding ItemTappedCommand, Source={RelativeSource AncestorType={x:Type controls:CompanyUnitSelectionListPanelView}}}"
+                        ItemTappedCommandParameter="{Binding .}"
+                        IsVisible="{Binding IsVisible}" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
     </Grid>
 
 </ContentView>

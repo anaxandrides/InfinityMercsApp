@@ -45,33 +45,33 @@
         </Grid>
 
         <!-- Single column of full-width faction cards (Company-Style-Icon look), scrolling vertically.
-             Uses ScrollView + BindableLayout (not CollectionView) to match the working faction strip:
-             WinUI CollectionView collapses nested ContentView item heights, and x:Reference resolves
-             in this shared namescope. -->
-        <ScrollView Grid.Row="1" Orientation="Vertical">
-            <VerticalStackLayout
-                Spacing="8"
-                BindableLayout.ItemsSource="{Binding Source={x:Reference FactionSelectorOverlayRoot}, Path=EffectiveItemsSource}">
-                <BindableLayout.ItemTemplate>
-                    <DataTemplate>
-                        <Border
-                            Stroke="{StaticResource Signal}"
-                            StrokeThickness="2"
-                            BackgroundColor="{StaticResource Plate}"
-                            Padding="4"
-                            HorizontalOptions="Fill">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="4" />
-                            </Border.StrokeShape>
-                            <controls:FactionListItemView
-                                UseVerticalTileLayout="True"
-                                ItemTappedCommand="{Binding Source={x:Reference FactionSelectorOverlayRoot}, Path=ItemTappedCommand}"
-                                ItemTappedCommandParameter="{Binding .}" />
-                        </Border>
-                    </DataTemplate>
-                </BindableLayout.ItemTemplate>
-            </VerticalStackLayout>
-        </ScrollView>
+             CollectionView virtualizes the (long) faction list. Two things that previously pushed this
+             back to BindableLayout are handled explicitly: the per-item command uses RelativeSource
+             (x:Reference does not resolve across a DataTemplate namescope), and ItemSizingStrategy is
+             MeasureAllItems so WinUI measures each nested ContentView tile instead of collapsing it. -->
+        <CollectionView Grid.Row="1"
+                        ItemSizingStrategy="MeasureAllItems"
+                        ItemsSource="{Binding Source={x:Reference FactionSelectorOverlayRoot}, Path=EffectiveItemsSource}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border
+                        Stroke="{StaticResource Signal}"
+                        StrokeThickness="2"
+                        BackgroundColor="{StaticResource Plate}"
+                        Padding="4"
+                        Margin="0,0,0,8"
+                        HorizontalOptions="Fill">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="4" />
+                        </Border.StrokeShape>
+                        <controls:FactionListItemView
+                            UseVerticalTileLayout="True"
+                            ItemTappedCommand="{Binding ItemTappedCommand, Source={RelativeSource AncestorType={x:Type controls:FactionSelectorOverlayView}}}"
+                            ItemTappedCommandParameter="{Binding .}" />
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
     </Grid>
 
 </ContentView>

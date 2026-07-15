@@ -29,7 +29,7 @@ public partial class StandardCompanySelectionPage
                 _specOpsProvider.GetSpecopsUnitsByFactionAsync,
                 cancellationToken);
 
-            ApplyUnitVisibilityCore(
+            await ApplyUnitVisibilityCoreAsync(
                 Units,
                 lookupContext,
                 _filterState.ActiveUnitFilter,

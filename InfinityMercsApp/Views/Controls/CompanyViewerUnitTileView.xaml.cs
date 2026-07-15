@@ -1,7 +1,4 @@
 using InfinityMercsApp.ViewModels;
-using SkiaSharp;
-using SkiaSharp.Views.Maui;
-using Svg.Skia;
 using System.Windows.Input;
 
 namespace InfinityMercsApp.Views.Controls;
@@ -11,9 +8,6 @@ public partial class CompanyViewerUnitTileView : ContentView
     private const int TagCompanyFactionId = 2003;
     private const string TagCompanyFallbackIconPath = "SVGCache/MercsIcons/noun-battle-mech-1731140.svg";
 
-    private SKPicture? _svgPicture;
-    private SKPicture? _captainBadgePicture;
-    private SKPicture? _experienceBadgePicture;
     private int _logoLoadVersion;
     private double _panLastTotalX;
 
@@ -61,112 +55,103 @@ public partial class CompanyViewerUnitTileView : ContentView
     protected override void OnBindingContextChanged()
     {
         base.OnBindingContextChanged();
-        _ = LoadSvgFromCacheAsync();
+        _ = LoadLogosAsync();
     }
 
-    private async Task LoadSvgFromCacheAsync()
+    private async Task LoadLogosAsync()
     {
         var loadVersion = ++_logoLoadVersion;
-        _svgPicture?.Dispose();
-        _svgPicture = null;
-        _captainBadgePicture?.Dispose();
-        _captainBadgePicture = null;
-        _experienceBadgePicture?.Dispose();
-        _experienceBadgePicture = null;
 
-        var item = BindingContext as IViewerListItem;
-        if (item is null)
+        if (BindingContext is not IViewerListItem item)
         {
-            LogoCanvas.InvalidateSurface();
-            CaptainBadgeCanvas.InvalidateSurface();
-            ExperienceBadgeCanvas.InvalidateSurface();
+            ApplyPaths(loadVersion, null, null, null);
             return;
         }
 
-        try
+        var logoPath = await ResolveBestLogoPathAsync(item);
+
+        string? captainPath = null;
+        string? experiencePath = null;
+        if (item is CompanyViewerUnitListItem companyItem)
         {
-            Stream? stream = await OpenBestLogoStreamAsync(item);
-            if (stream is null)
-            {
-                if (loadVersion != _logoLoadVersion)
-                {
-                    return;
-                }
-
-                LogoCanvas.InvalidateSurface();
-                CaptainBadgeCanvas.InvalidateSurface();
-                ExperienceBadgeCanvas.InvalidateSurface();
-                return;
-            }
-
-            SKPicture? loadedPicture = null;
-            await using (stream)
-            {
-                var svg = new SKSvg();
-                loadedPicture = svg.Load(stream);
-            }
-
-            if (loadVersion != _logoLoadVersion)
-            {
-                loadedPicture?.Dispose();
-                return;
-            }
-
-            _svgPicture?.Dispose();
-            _svgPicture = loadedPicture;
-
-            if (item is CompanyViewerUnitListItem companyItem)
-            {
-                _captainBadgePicture = await LoadPictureAsync(companyItem.CaptainIconPackagedPath);
-                _experienceBadgePicture = await LoadPictureAsync(companyItem.ExperienceIconPackagedPath);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"CompanyViewerUnitTileView SVG load failed: {ex.Message}");
-            _svgPicture = null;
+            captainPath = await ResolvePackagedPathAsync(companyItem.CaptainIconPackagedPath);
+            experiencePath = await ResolvePackagedPathAsync(companyItem.ExperienceIconPackagedPath);
         }
 
-        LogoCanvas.InvalidateSurface();
-        CaptainBadgeCanvas.InvalidateSurface();
-        ExperienceBadgeCanvas.InvalidateSurface();
+        ApplyPaths(loadVersion, logoPath, captainPath, experiencePath);
     }
 
-    private static async Task<Stream?> OpenBestLogoStreamAsync(IViewerListItem item)
+    // A recycled tile rebinding quickly can complete an older resolution after a newer one; the
+    // version guard drops the stale set so the tile never shows the previous unit's icons.
+    private void ApplyPaths(int loadVersion, string? logoPath, string? captainPath, string? experiencePath)
+    {
+        if (loadVersion != _logoLoadVersion)
+        {
+            return;
+        }
+
+        MainLogoImage.SvgPath = logoPath;
+        CaptainBadgeImage.SvgPath = captainPath;
+        ExperienceBadgeImage.SvgPath = experiencePath;
+    }
+
+    private static async Task<string?> ResolveBestLogoPathAsync(IViewerListItem item)
     {
         if (!string.IsNullOrWhiteSpace(item.CachedLogoPath) && File.Exists(item.CachedLogoPath))
         {
-            return File.OpenRead(item.CachedLogoPath);
+            return item.CachedLogoPath;
         }
 
         if (!string.IsNullOrWhiteSpace(item.PackagedLogoPath))
         {
             foreach (var candidate in BuildPackagedCandidates(item.PackagedLogoPath))
             {
-                try
+                if (await AppPackageFileExistsAsync(candidate))
                 {
-                    return await FileSystem.Current.OpenAppPackageFileAsync(candidate);
-                }
-                catch
-                {
-                    // Try next candidate.
+                    return candidate;
                 }
             }
         }
 
         foreach (var fallback in BuildFallbackLogoCandidates(item))
         {
-            try
+            if (await AppPackageFileExistsAsync(fallback))
             {
-                return await FileSystem.Current.OpenAppPackageFileAsync(fallback);
-            }
-            catch
-            {
-                // Try next fallback.
+                return fallback;
             }
         }
 
         return null;
+    }
+
+    private static async Task<string?> ResolvePackagedPathAsync(string? packagedPath)
+    {
+        if (string.IsNullOrWhiteSpace(packagedPath))
+        {
+            return null;
+        }
+
+        foreach (var candidate in BuildPackagedCandidates(packagedPath))
+        {
+            if (await AppPackageFileExistsAsync(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private static async Task<bool> AppPackageFileExistsAsync(string packagedPath)
+    {
+        try
+        {
+            return await FileSystem.Current.AppPackageFileExistsAsync(packagedPath);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static IEnumerable<string> BuildPackagedCandidates(string packagedPath)
@@ -192,69 +177,6 @@ public partial class CompanyViewerUnitTileView : ContentView
         {
             yield return TagCompanyFallbackIconPath;
         }
-    }
-
-    private static async Task<SKPicture?> LoadPictureAsync(string? packagedPath)
-    {
-        if (string.IsNullOrWhiteSpace(packagedPath))
-        {
-            return null;
-        }
-
-        foreach (var candidate in BuildPackagedCandidates(packagedPath))
-        {
-            try
-            {
-                await using var stream = await FileSystem.Current.OpenAppPackageFileAsync(candidate);
-                var svg = new SKSvg();
-                return svg.Load(stream);
-            }
-            catch
-            {
-                // Try next candidate.
-            }
-        }
-
-        return null;
-    }
-
-    private void OnLogoCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        DrawPictureOnCanvas(e, _svgPicture);
-    }
-
-    private void OnCaptainBadgeCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        DrawPictureOnCanvas(e, _captainBadgePicture);
-    }
-
-    private void OnExperienceBadgeCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        DrawPictureOnCanvas(e, _experienceBadgePicture);
-    }
-
-    private static void DrawPictureOnCanvas(SKPaintSurfaceEventArgs e, SKPicture? picture)
-    {
-        var canvas = e.Surface.Canvas;
-        canvas.Clear(SKColors.Transparent);
-
-        if (picture is null)
-        {
-            return;
-        }
-
-        var bounds = picture.CullRect;
-        if (bounds.Width <= 0 || bounds.Height <= 0)
-        {
-            return;
-        }
-
-        var scale = Math.Min(e.Info.Width / bounds.Width, e.Info.Height / bounds.Height);
-        var x = (e.Info.Width - (bounds.Width * scale)) / 2f;
-        var y = (e.Info.Height - (bounds.Height * scale)) / 2f;
-        canvas.Translate(x, y);
-        canvas.Scale(scale);
-        canvas.DrawPicture(picture);
     }
 
     private void OnTilePanUpdated(object? sender, PanUpdatedEventArgs e)

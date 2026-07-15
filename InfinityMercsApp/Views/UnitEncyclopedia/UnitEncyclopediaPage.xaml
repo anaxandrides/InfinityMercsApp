@@ -39,20 +39,19 @@
                         TextColor="{StaticResource TextMuted}" />
                 </VerticalStackLayout>
 
-                <ScrollView Grid.Row="3" x:Name="FactionScrollView">
-                    <ScrollView.GestureRecognizers>
-                        <PanGestureRecognizer PanUpdated="OnFactionListPanUpdated" />
-                    </ScrollView.GestureRecognizers>
-                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Factions}" Spacing="0">
-                        <BindableLayout.ItemTemplate>
-                            <DataTemplate>
-                                <controls:ViewerListRowView
-                                    ItemTappedCommand="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext.SelectFactionCommand}"
-                                    ItemTappedCommandParameter="{Binding .}" />
-                            </DataTemplate>
-                        </BindableLayout.ItemTemplate>
-                    </VerticalStackLayout>
-                </ScrollView>
+                <!-- CollectionView virtualizes this list and scrolls natively; the previous manual
+                     pan-to-scroll workaround is unnecessary now that item cells are native Images. -->
+                <CollectionView Grid.Row="3"
+                                x:Name="FactionCollectionView"
+                                ItemsSource="{Binding Factions}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <controls:ViewerListRowView
+                                ItemTappedCommand="{Binding BindingContext.SelectFactionCommand, Source={RelativeSource AncestorType={x:Type layout:AdaptiveContentPage}}}"
+                                ItemTappedCommandParameter="{Binding .}" />
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
             </Grid>
         </Border>
 
@@ -126,20 +125,17 @@
                         </Border>
                     </Grid>
                     <Label Grid.Row="1" Text="{Binding UnitsStatus}" TextColor="{StaticResource TextMuted}" />
-                    <ScrollView Grid.Row="2" x:Name="UnitScrollView">
-                        <ScrollView.GestureRecognizers>
-                            <PanGestureRecognizer PanUpdated="OnUnitListPanUpdated" />
-                        </ScrollView.GestureRecognizers>
-                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Units}" Spacing="0">
-                        <BindableLayout.ItemTemplate>
+                    <CollectionView Grid.Row="2"
+                                    x:Name="UnitCollectionView"
+                                    ItemsSource="{Binding Units}">
+                        <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <controls:ViewerListRowView
-                                    ItemTappedCommand="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext.SelectUnitCommand}"
+                                    ItemTappedCommand="{Binding BindingContext.SelectUnitCommand, Source={RelativeSource AncestorType={x:Type layout:AdaptiveContentPage}}}"
                                     ItemTappedCommandParameter="{Binding .}" />
                             </DataTemplate>
-                        </BindableLayout.ItemTemplate>
-                    </VerticalStackLayout>
-                </ScrollView>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
             </Grid>
 
                 <Grid Grid.Row="2" RowDefinitions="Auto,Auto,Auto,*" RowSpacing="8" IsVisible="{Binding ShowFireteamsTab}">

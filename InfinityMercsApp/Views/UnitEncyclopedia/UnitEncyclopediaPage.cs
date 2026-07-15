@@ -16,8 +16,6 @@ public partial class UnitEncyclopediaPage : AdaptiveContentPage
 
 	// Compact step navigation: 0 = factions, 1 = units/fireteams, 2 = selected unit detail.
 	private int _compactStep;
-	private double _factionDragStartScrollY;
-	private double _unitDragStartScrollY;
 	private SKPicture? _regularOrderIconPicture;
 	private SKPicture? _irregularOrderIconPicture;
 	private SKPicture? _impetuousIconPicture;
@@ -367,34 +365,6 @@ public partial class UnitEncyclopediaPage : AdaptiveContentPage
 		{
 			loadedPicture?.Dispose();
 			throw;
-		}
-	}
-
-	private async void OnFactionListPanUpdated(object? sender, PanUpdatedEventArgs e)
-	{
-		switch (e.StatusType)
-		{
-			case GestureStatus.Started:
-				_factionDragStartScrollY = FactionScrollView.ScrollY;
-				break;
-			case GestureStatus.Running:
-				var targetY = Math.Max(0, _factionDragStartScrollY - e.TotalY);
-				await FactionScrollView.ScrollToAsync(0, targetY, false);
-				break;
-		}
-	}
-
-	private async void OnUnitListPanUpdated(object? sender, PanUpdatedEventArgs e)
-	{
-		switch (e.StatusType)
-		{
-			case GestureStatus.Started:
-				_unitDragStartScrollY = UnitScrollView.ScrollY;
-				break;
-			case GestureStatus.Running:
-				var targetY = Math.Max(0, _unitDragStartScrollY - e.TotalY);
-				await UnitScrollView.ScrollToAsync(0, targetY, false);
-				break;
 		}
 	}
 

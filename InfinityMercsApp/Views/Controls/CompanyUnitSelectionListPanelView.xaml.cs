@@ -7,8 +7,6 @@ namespace InfinityMercsApp.Views.Controls;
 
 public partial class CompanyUnitSelectionListPanelView : ContentView
 {
-    private double _unitSelectionPanLastTotalY;
-
     public static readonly BindableProperty ItemsSourceProperty =
         BindableProperty.Create(
             nameof(ItemsSource),
@@ -131,30 +129,5 @@ public partial class CompanyUnitSelectionListPanelView : ContentView
     private void OnFilterCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
         FilterCanvasPaintSurface?.Invoke(sender, e);
-    }
-
-    private async void OnUnitSelectionScrollPanUpdated(object? sender, PanUpdatedEventArgs e)
-    {
-        if (sender is not ScrollView scrollView)
-        {
-            return;
-        }
-
-        switch (e.StatusType)
-        {
-            case GestureStatus.Started:
-                _unitSelectionPanLastTotalY = 0d;
-                break;
-            case GestureStatus.Running:
-                var deltaY = e.TotalY - _unitSelectionPanLastTotalY;
-                _unitSelectionPanLastTotalY = e.TotalY;
-                var targetY = Math.Max(0d, scrollView.ScrollY - deltaY);
-                await scrollView.ScrollToAsync(0d, targetY, false);
-                break;
-            case GestureStatus.Completed:
-            case GestureStatus.Canceled:
-                _unitSelectionPanLastTotalY = 0d;
-                break;
-        }
     }
 }

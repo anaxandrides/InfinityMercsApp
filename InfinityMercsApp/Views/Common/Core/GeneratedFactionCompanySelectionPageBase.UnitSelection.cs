@@ -206,15 +206,15 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
                 return;
             }
 
-            BuildTeamEntriesFromMerged(
+            await BuildTeamEntriesFromMergedAsync(
                 merged,
                 TeamEntries,
                 includeTeam: _ => true,
                 readTeamCount: team => team.Duo,
                 buildTeamCountText: team => $"D: {team.Duo}",
-                buildTeamUnitLimitItem: (name, min, max, slug, sourceUnits) =>
+                buildTeamUnitLimitItem: (name, min, max, slug, resolver) =>
                     CompanyTeamProfilesWorkflow.BuildTeamUnitLimitItem(
-                        name, min, max, slug, sourceUnits),
+                        name, min, max, slug, resolver),
                 createTeam: (name, teamCountsText, isWildcardBucket, isExpanded, allowedProfiles) => new ArmyTeamListItem
                 {
                     Name = name,
@@ -222,10 +222,13 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
                     IsWildcardBucket = isWildcardBucket,
                     IsExpanded = isExpanded,
                     AllowedProfiles = allowedProfiles
-                });
+                },
+                cancellationToken);
 
             await ApplyUnitVisibilityFiltersAsync(cancellationToken);
-            await BuildUnitFilterPopupOptionsAsync(cancellationToken);
+            // A second full merged-army-list query; only needed when the filter popup opens, so keep
+            // it off the UI thread instead of blocking the faction tap on it.
+            await Task.Run(() => BuildUnitFilterPopupOptionsAsync(cancellationToken), cancellationToken);
         }
         catch (Exception ex)
         {
