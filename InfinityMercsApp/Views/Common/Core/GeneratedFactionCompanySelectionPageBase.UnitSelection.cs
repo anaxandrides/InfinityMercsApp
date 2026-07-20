@@ -12,6 +12,10 @@ namespace InfinityMercsApp.Views.Common;
 /// </summary>
 public abstract partial class GeneratedFactionCompanySelectionPageBase
 {
+    private CompanyMergedUnitsAndTeams? _teamEntriesMergedSnapshot;
+    private bool _teamEntriesBuilt;
+    private bool _teamEntriesBuildInProgress;
+
     protected void OnToggleFactionStripTapped(object? sender, TappedEventArgs e)
     {
         ToggleFactionStrip(sender);
@@ -52,6 +56,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
         }
 
         TeamsView = false;
+        EnsureTeamEntriesBuiltIfNeeded();
         SetIsUnitFilterActive(_filterState.ActiveUnitFilter.IsActive);
         CloseUnitFilterPopup(sender as UnitFilterPopupView);
         _ = ApplyUnitVisibilityFiltersAsync();
@@ -114,6 +119,8 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
         TeamEntries.Clear();
         _selectedUnit = null;
         ResetUnitDetails();
+        _teamEntriesMergedSnapshot = null;
+        _teamEntriesBuilt = false;
 
         var factions = CompanyUnitDetailsShared.BuildUnitSourceFactionsForActiveSlot(
             _activeSlotIndex,
@@ -206,6 +213,41 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
                 return;
             }
 
+            // Deferred: populating TeamEntries forces MAUI to inflate a native view (with a logo
+            // image) per unit-limit row via non-virtualized BindableLayout, even though Teams View
+            // can't currently be enabled for this company type. Only pay that cost if it's on.
+            _teamEntriesMergedSnapshot = merged;
+            if (TeamsView)
+            {
+                await BuildTeamEntriesNowAsync(merged, cancellationToken);
+            }
+
+            await ApplyUnitVisibilityFiltersAsync(cancellationToken);
+            // A second full merged-army-list query; only needed when the filter popup opens, so keep
+            // it off the UI thread instead of blocking the faction tap on it.
+            await Task.Run(() => BuildUnitFilterPopupOptionsAsync(cancellationToken), cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"GeneratedFactionCompanyPage LoadUnitsForActiveSlotAsync failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Builds and populates <see cref="CompanySelectionPageBase.TeamEntries"/> from
+    /// <paramref name="merged"/>, unless already built for it. Safe to call more than once for the
+    /// same snapshot (e.g. toggling Teams View off and back on) — the cached result is reused.
+    /// </summary>
+    private async Task BuildTeamEntriesNowAsync(CompanyMergedUnitsAndTeams merged, CancellationToken cancellationToken)
+    {
+        if (_teamEntriesBuilt || _teamEntriesBuildInProgress)
+        {
+            return;
+        }
+
+        _teamEntriesBuildInProgress = true;
+        try
+        {
             await BuildTeamEntriesFromMergedAsync(
                 merged,
                 TeamEntries,
@@ -224,15 +266,23 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
                     AllowedProfiles = allowedProfiles
                 },
                 cancellationToken);
-
-            await ApplyUnitVisibilityFiltersAsync(cancellationToken);
-            // A second full merged-army-list query; only needed when the filter popup opens, so keep
-            // it off the UI thread instead of blocking the faction tap on it.
-            await Task.Run(() => BuildUnitFilterPopupOptionsAsync(cancellationToken), cancellationToken);
+            _teamEntriesBuilt = true;
         }
-        catch (Exception ex)
+        finally
         {
-            Console.Error.WriteLine($"GeneratedFactionCompanyPage LoadUnitsForActiveSlotAsync failed: {ex.Message}");
+            _teamEntriesBuildInProgress = false;
+        }
+    }
+
+    /// <summary>
+    /// Call after anything that may have just switched <see cref="CompanySelectionPageBase.TeamsView"/>
+    /// on, so the deferred team-entries build for the current roster runs if it hasn't already.
+    /// </summary>
+    private void EnsureTeamEntriesBuiltIfNeeded()
+    {
+        if (TeamsView && !_teamEntriesBuilt && !_teamEntriesBuildInProgress && _teamEntriesMergedSnapshot is not null)
+        {
+            _ = BuildTeamEntriesNowAsync(_teamEntriesMergedSnapshot, CancellationToken.None);
         }
     }
 

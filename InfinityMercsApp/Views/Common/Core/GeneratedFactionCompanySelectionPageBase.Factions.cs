@@ -10,18 +10,26 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
     {
         try
         {
-            var filteredFactions = await LoadFilteredFactionRecordsAsync(cancellationToken);
-            var factionsWithLieutenant = await FilterFactionsWithLieutenantAsync(filteredFactions, cancellationToken);
-            var items = BuildFactionSelectionItems(
-                factionsWithLieutenant,
-                (id, parentId, name, cachedLogoPath, packagedLogoPath) => new ArmyFactionSelectionItem
-                {
-                    Id = id,
-                    ParentId = parentId,
-                    Name = name,
-                    CachedLogoPath = cachedLogoPath,
-                    PackagedLogoPath = packagedLogoPath
-                });
+            // FilterFactionsWithLieutenantAsync does a synchronous, lock-guarded DB read per
+            // candidate faction (and per unit within it) — its "async" query source has no real
+            // await in it, so none of this yields the UI thread on its own. Run the whole
+            // data-gathering step on a worker thread and only touch the UI-bound Factions
+            // collection on the continuation.
+            var items = await Task.Run(async () =>
+            {
+                var filteredFactions = await LoadFilteredFactionRecordsAsync(cancellationToken);
+                var factionsWithLieutenant = await FilterFactionsWithLieutenantAsync(filteredFactions, cancellationToken);
+                return BuildFactionSelectionItems(
+                    factionsWithLieutenant,
+                    (id, parentId, name, cachedLogoPath, packagedLogoPath) => new ArmyFactionSelectionItem
+                    {
+                        Id = id,
+                        ParentId = parentId,
+                        Name = name,
+                        CachedLogoPath = cachedLogoPath,
+                        PackagedLogoPath = packagedLogoPath
+                    });
+            }, cancellationToken);
 
             Factions.ReplaceRange(items);
         }

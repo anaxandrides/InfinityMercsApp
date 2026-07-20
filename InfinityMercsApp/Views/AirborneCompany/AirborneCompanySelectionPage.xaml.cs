@@ -80,7 +80,9 @@ public partial class AirborneCompanySelectionPage : GeneratedFactionCompanySelec
         }
 
         _loaded = true;
-        DiagnoseAirborneCompanyFaction();
+        // Reads the DB (shared lock with the background sync) purely to log diagnostics — must not
+        // run on the UI thread, or a faction-tap can block for as long as the sync's current phase.
+        _ = Task.Run(DiagnoseAirborneCompanyFaction);
         PopulateAirborneCompanySlot();
         await LoadFactionsAsync();
     }
