@@ -3,7 +3,6 @@ using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using MercsArmyListEntry = InfinityMercsApp.Domain.Models.Army.MercsArmyListEntry;
-using System.Text.Json;
 
 namespace InfinityMercsApp.Services;
 
@@ -19,7 +18,6 @@ public interface IArmyDataService
     IReadOnlyList<ArmyResumeRecord> GetResumeByFactionMercsOnly(int factionId, CancellationToken cancellationToken = default);
     ArmyUnitRecord? GetUnit(int factionId, int unitId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<MercsArmyListEntry>> GetMergedMercsArmyListAsync(IReadOnlyCollection<int> factionIds, CancellationToken cancellationToken = default);
-    (int? FirstCm, int? SecondCm, string DisplayValue) ReadMoveValue(JsonElement element);
     (int? FirstCm, int? SecondCm, string DisplayValue) ReadMoveValue(InfinityMercsApp.Domain.Models.Army.Profiles.UnitProfile profile);
     string FormatMoveValue(int? firstCm, int? secondCm);
 }

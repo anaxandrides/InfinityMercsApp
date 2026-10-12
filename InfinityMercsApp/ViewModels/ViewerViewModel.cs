@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Windows.Input;
@@ -16,7 +15,6 @@ namespace InfinityMercsApp.ViewModels;
 
 public partial class ViewerViewModel : BaseViewModel
 {
-    private readonly record struct ExtraDefinition(string Name, string Type, string? Url);
 
     private enum FactionFilterMode
     {

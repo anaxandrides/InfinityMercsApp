@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Text.Json;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Infrastructure.Json;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Windows.Input;
@@ -112,13 +113,10 @@ public partial class ViewerViewModel
                 MercsOnlyUnits,
                 allowedFireteamSlugs,
                 allowedFireteamNames);
-            var typeLookup = BuildIdNameLookup(snapshot?.FiltersJson, "type");
-            var charsLookup = BuildIdNameLookup(snapshot?.FiltersJson, "chars");
-            var categoryLookup = BuildIdNameLookup(snapshot?.FiltersJson, "category");
-            var skillsLookup = BuildIdNameLookup(snapshot?.FiltersJson, "skills");
-            var equipLookup = BuildIdNameLookup(snapshot?.FiltersJson, "equip");
-            var weaponsLookup = BuildIdNameLookup(snapshot?.FiltersJson, "weapons");
-            var ammoLookup = BuildIdNameLookup(snapshot?.FiltersJson, "ammunition");
+            var filters = ArmyJsonReader.Shared.ReadArmyFilters(snapshot?.FiltersJson);
+            var typeLookup = filters.Names(ArmyFilterSection.Type);
+            var categoryLookup = filters.Names(ArmyFilterSection.Category);
+            var filterLookups = UnitFilterLookups.From(filters);
 
             if (_factionLogoCacheService is not null)
             {
@@ -138,18 +136,14 @@ public partial class ViewerViewModel
             {
                 var unitRecord = _armyDataService.GetUnit(SelectedFaction.Id, unit.UnitId, cancellationToken);
 
-                if (!MatchesClassificationFilter(unit, typeLookup, _activeUnitFilter))
+                if (!UnitOptionFilter.MatchesClassification(_activeUnitFilter, unit.Type, typeLookup))
                 {
                     continue;
                 }
 
-                if (!UnitHasVisibleOptionWithFilter(
-                        unitRecord?.ProfileGroupsJson,
-                        skillsLookup,
-                        charsLookup,
-                        equipLookup,
-                        weaponsLookup,
-                        ammoLookup,
+                if (!UnitOptionFilter.HasVisibleOption(
+                        ArmyJsonReader.Shared.ReadProfileGroups(unitRecord?.ProfileGroupsJson),
+                        filterLookups,
                         _activeUnitFilter,
                         requireLieutenant: _activeUnitFilter.LieutenantOnlyUnits,
                         requireZeroSwc: false))

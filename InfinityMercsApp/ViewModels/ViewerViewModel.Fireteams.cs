@@ -341,63 +341,6 @@ public partial class ViewerViewModel
         return $"{typeName} - {categoryName}";
     }
 
-    private static Dictionary<int, string> BuildIdNameLookup(string? filtersJson, string sectionName)
-    {
-        var map = new Dictionary<int, string>();
-        if (string.IsNullOrWhiteSpace(filtersJson))
-        {
-            return map;
-        }
-
-        try
-        {
-            using var doc = JsonDocument.Parse(filtersJson);
-            if (!doc.RootElement.TryGetProperty(sectionName, out var section) || section.ValueKind != JsonValueKind.Array)
-            {
-                return map;
-            }
-
-            foreach (var entry in section.EnumerateArray())
-            {
-                if (!entry.TryGetProperty("id", out var idElement))
-                {
-                    continue;
-                }
-
-                int id;
-                if (idElement.ValueKind == JsonValueKind.Number && idElement.TryGetInt32(out var intId))
-                {
-                    id = intId;
-                }
-                else if (idElement.ValueKind == JsonValueKind.String && int.TryParse(idElement.GetString(), out var stringId))
-                {
-                    id = stringId;
-                }
-                else
-                {
-                    continue;
-                }
-
-                if (!entry.TryGetProperty("name", out var nameElement) || nameElement.ValueKind != JsonValueKind.String)
-                {
-                    continue;
-                }
-
-                var name = nameElement.GetString();
-                if (!string.IsNullOrWhiteSpace(name))
-                {
-                    map[id] = name;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"BuildIdNameLookup failed for section '{sectionName}': {ex.Message}");
-        }
-
-        return map;
-    }
-
     private static void CollectIdsFromArrayProperty(JsonElement container, string propertyName, HashSet<int> target)
     {
         if (!container.TryGetProperty(propertyName, out var arr) || arr.ValueKind != JsonValueKind.Array)

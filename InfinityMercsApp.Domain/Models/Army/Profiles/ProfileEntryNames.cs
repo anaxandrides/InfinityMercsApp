@@ -196,6 +196,167 @@ public sealed class ProfileEntryNames
             : common.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
     }
 
+    /// <summary>
+    /// Display names with their ids in API order (entries without an order last, then by name). Not de-duplicated.
+    /// </summary>
+    public List<(int Id, string Name)> InApiOrder(IEnumerable<ProfileEntry> entries, IReadOnlyDictionary<int, string> lookup) =>
+        entries
+            .Where(entry => entry.Id.HasValue)
+            .Select(entry => (entry.SortOrder, Id: entry.Id!.Value, Name: DisplayName(entry, lookup)!))
+            .OrderBy(x => x.SortOrder)
+            .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(x => (x.Id, x.Name))
+            .ToList();
+
+    /// <summary>
+    /// Display names with summed quantities (e.g. <c>"Drone (2)"</c>) and the id of the first entry of each,
+    /// sorted alphabetically.
+    /// </summary>
+    public List<(int Id, string Name)> CountedWithIds(IEnumerable<ProfileEntry> entries, IReadOnlyDictionary<int, string> lookup)
+    {
+        var counts = new Dictionary<string, (int Id, int Count)>(StringComparer.OrdinalIgnoreCase);
+        foreach (var entry in entries)
+        {
+            if (entry.Id is not int id || DisplayName(entry, lookup) is not { } displayName || string.IsNullOrWhiteSpace(displayName))
+            {
+                continue;
+            }
+
+            counts[displayName] = counts.TryGetValue(displayName, out var existing)
+                ? (existing.Id, existing.Count + entry.Quantity)
+                : (id, entry.Quantity);
+        }
+
+        return counts
+            .OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
+            .Select(x => (x.Value.Id, $"{x.Key} ({x.Value.Count})"))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Plain looked-up names (the id itself when unknown, no extras) with their ids, in API order.
+    /// </summary>
+    public static List<(int Id, string Name)> PlainNamesInApiOrder(IEnumerable<ProfileEntry> entries, IReadOnlyDictionary<int, string> lookup) =>
+        entries
+            .Where(entry => entry.Id.HasValue)
+            .Select(entry => (entry.SortOrder, Id: entry.Id!.Value, Name: lookup.TryGetValue(entry.Id!.Value, out var name) ? name : entry.Id!.Value.ToString()))
+            .OrderBy(x => x.SortOrder)
+            .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(x => (x.Id, x.Name))
+            .ToList();
+
     private string FormatExtra(ExtraDefinition definition) =>
         definition.IsDistance ? DistanceText.Convert(definition.Name, _showUnitsInInches) : definition.Name;
+}
+
+/// <summary>
+/// Option names as the unit viewer shows them.
+/// </summary>
+public static class ViewerOptionNames
+{
+    private static readonly string[] DetailTagTokens =
+    [
+        "forward observer", "hacker", "hacking device", "specialist", "paramedic",
+        "doctor", "engineer", "lieutenant", "nco", "chain of command"
+    ];
+
+    /// <summary>
+    /// The option name followed by its role skills/equipment not already in the name, in API order, e.g.
+    /// <c>"FUSILIER (Forward Observer, Lieutenant)"</c>.
+    /// </summary>
+    public static string WithDetailTags(
+        ProfileOption option,
+        string baseName,
+        IReadOnlyDictionary<int, string> equipNames,
+        IReadOnlyDictionary<int, string> skillNames)
+    {
+        var details = new List<string>();
+        var normalizedBase = baseName.ToLowerInvariant();
+
+        foreach (var (_, skillName) in ProfileEntryNames.PlainNamesInApiOrder(option.Skills, skillNames))
+        {
+            if (IsDetailTag(skillName) && !normalizedBase.Contains(skillName.ToLowerInvariant()))
+            {
+                details.Add(skillName);
+            }
+        }
+
+        foreach (var (_, equipName) in ProfileEntryNames.PlainNamesInApiOrder(option.Equip, equipNames))
+        {
+            if (IsDetailTag(equipName) && !normalizedBase.Contains(equipName.ToLowerInvariant()))
+            {
+                details.Add(equipName);
+            }
+        }
+
+        foreach (var order in option.Orders)
+        {
+            if (order.IsLieutenant && !normalizedBase.Contains("lieutenant"))
+            {
+                details.Add("Lieutenant");
+            }
+        }
+
+        var distinctDetails = details.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        return distinctDetails.Count == 0 ? baseName : $"{baseName} ({string.Join(", ", distinctDetails)})";
+    }
+
+    /// <summary>True for role names worth showing next to an option name (Hacker, Doctor, Lieutenant...).</summary>
+    public static bool IsDetailTag(string value) =>
+        !string.IsNullOrWhiteSpace(value) &&
+        DetailTagTokens.Any(token => value.Contains(token, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// Adds every name a unit's options (own entries, without includes) and profiles (characteristics,
+    /// skills, equipment) refer to — unknown ids as the id itself — and returns the highest option cost.
+    /// Used to populate the unit viewer's filter popup.
+    /// </summary>
+    public static int CollectAllOptionNames(
+        UnitProfileGroups groups,
+        IReadOnlyDictionary<int, string> charNames,
+        IReadOnlyDictionary<int, string> skillNames,
+        IReadOnlyDictionary<int, string> equipNames,
+        IReadOnlyDictionary<int, string> weaponNames,
+        IReadOnlyDictionary<int, string> ammoNames,
+        ISet<string> characteristics,
+        ISet<string> skills,
+        ISet<string> equipment,
+        ISet<string> weapons,
+        ISet<string> ammo)
+    {
+        var maxCost = 0;
+        foreach (var group in groups.Groups)
+        {
+            foreach (var option in group.Options)
+            {
+                maxCost = Math.Max(maxCost, groups.GetAdjustedCostValue(group, option));
+                AddPlainNames(option.Chars, charNames, characteristics);
+                AddPlainNames(option.Skills, skillNames, skills);
+                AddPlainNames(option.Equip, equipNames, equipment);
+                AddPlainNames(option.Weapons, weaponNames, weapons);
+                AddPlainNames(option.Ammunition, ammoNames, ammo);
+                AddPlainNames(option.Ammo, ammoNames, ammo);
+            }
+
+            foreach (var profile in group.Profiles)
+            {
+                AddPlainNames(profile.Chars, charNames, characteristics);
+                AddPlainNames(profile.Skills, skillNames, skills);
+                AddPlainNames(profile.Equip, equipNames, equipment);
+            }
+        }
+
+        return maxCost;
+    }
+
+    private static void AddPlainNames(IEnumerable<ProfileEntry> entries, IReadOnlyDictionary<int, string> lookup, ISet<string> target)
+    {
+        foreach (var (_, name) in ProfileEntryNames.PlainNamesInApiOrder(entries, lookup))
+        {
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                target.Add(name.Trim());
+            }
+        }
+    }
 }

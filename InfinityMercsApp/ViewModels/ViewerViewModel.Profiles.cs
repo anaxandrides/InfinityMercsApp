@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Text.Json;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Infrastructure.Json;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Windows.Input;
@@ -54,17 +55,18 @@ public partial class ViewerViewModel
             ProfilesStatus = "Loading profiles...";
             var unit = _armyDataService.GetUnit(SelectedFaction.Id, SelectedUnit.Id, cancellationToken);
             var snapshot = _armyDataService.GetFactionSnapshot(SelectedFaction.Id, cancellationToken);
-            var equipLookup = BuildIdNameLookup(snapshot?.FiltersJson, "equip");
-            var equipLinks = BuildIdLinkLookup(snapshot?.FiltersJson, "equip");
-            var skillsLookup = BuildIdNameLookup(snapshot?.FiltersJson, "skills");
-            var skillsLinks = BuildIdLinkLookup(snapshot?.FiltersJson, "skills");
-            var charsLookup = BuildIdNameLookup(snapshot?.FiltersJson, "chars");
-            var charsLinks = BuildIdLinkLookup(snapshot?.FiltersJson, "chars");
-            var weaponsLookup = BuildIdNameLookup(snapshot?.FiltersJson, "weapons");
-            var weaponsLinks = BuildIdLinkLookup(snapshot?.FiltersJson, "weapons");
-            var extrasLookup = BuildExtrasLookup(snapshot?.FiltersJson);
-            var peripheralLookup = BuildIdNameLookup(snapshot?.FiltersJson, "peripheral");
-            var peripheralLinks = BuildIdLinkLookup(snapshot?.FiltersJson, "peripheral");
+            var filters = ArmyJsonReader.Shared.ReadArmyFilters(snapshot?.FiltersJson);
+            var equipLookup = filters.Names(ArmyFilterSection.Equip);
+            var equipLinks = filters.Links(ArmyFilterSection.Equip);
+            var skillsLookup = filters.Names(ArmyFilterSection.Skills);
+            var skillsLinks = filters.Links(ArmyFilterSection.Skills);
+            var charsLookup = filters.Names(ArmyFilterSection.Chars);
+            var charsLinks = filters.Links(ArmyFilterSection.Chars);
+            var weaponsLookup = filters.Names(ArmyFilterSection.Weapons);
+            var weaponsLinks = filters.Links(ArmyFilterSection.Weapons);
+            var peripheralLookup = filters.Names(ArmyFilterSection.Peripheral);
+            var peripheralLinks = filters.Links(ArmyFilterSection.Peripheral);
+            var entryNames = new ProfileEntryNames(filters.Extras, ShowUnitsInInches);
             _currentEquipmentLookup = equipLookup;
             _currentEquipmentLinks = equipLinks;
             _currentSkillsLookup = skillsLookup;
@@ -76,15 +78,15 @@ public partial class ViewerViewModel
                 return;
             }
 
-            using var doc = JsonDocument.Parse(unit.ProfileGroupsJson);
-            if (doc.RootElement.ValueKind != JsonValueKind.Array)
+            var profileGroups = ArmyJsonReader.Shared.ReadProfileGroups(unit.ProfileGroupsJson);
+            if (profileGroups.IsEmpty)
             {
                 ProfilesStatus = "No profiles found for this unit.";
                 return;
             }
 
-            PopulateUnitStatsFromFirstProfile(doc.RootElement);
-            var orderTraits = ParseUnitOrderTraits(doc.RootElement);
+            PopulateUnitStatsFromFirstProfile(profileGroups);
+            var orderTraits = UnitTraits.ReadOrderTraits(profileGroups);
             ShowIrregularOrderIcon = orderTraits.HasIrregular;
             ShowRegularOrderIcon = !orderTraits.HasIrregular && orderTraits.HasRegular;
             ShowImpetuousIcon = orderTraits.HasImpetuous;
@@ -101,7 +103,7 @@ public partial class ViewerViewModel
                     skillsLinks,
                     name => name.Contains("tactical", StringComparison.OrdinalIgnoreCase))
                 : null;
-            var techTraits = ParseUnitTechTraits(doc.RootElement, equipLookup, skillsLookup, charsLookup);
+            var techTraits = UnitTraits.ReadTechTraits(profileGroups, equipLookup, skillsLookup, charsLookup);
             ShowCubeIcon = techTraits.HasCube;
             ShowCube2Icon = techTraits.HasCube2;
             ShowHackableIcon = techTraits.HasHackable;
@@ -166,32 +168,25 @@ public partial class ViewerViewModel
             HashSet<string>? commonEquipNames = null;
             HashSet<string>? commonSkillNames = null;
             var profileCount = 0;
-            var hasControllerGroups = doc.RootElement.EnumerateArray().Any(usageGroup => IsControllerGroup(doc.RootElement, usageGroup));
+            var hasControllerGroups = profileGroups.Groups.Any(profileGroups.IsControllerGroup);
 
             var seenConfigurations = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var group in doc.RootElement.EnumerateArray())
+            foreach (var group in profileGroups.Groups)
             {
-                if (hasControllerGroups && !IsControllerGroup(doc.RootElement, group))
+                if (hasControllerGroups && !profileGroups.IsControllerGroup(group))
                 {
                     continue;
                 }
 
-                var groupName = group.TryGetProperty("isc", out var iscElement) && iscElement.ValueKind == JsonValueKind.String
-                    ? iscElement.GetString() ?? string.Empty
-                    : string.Empty;
+                var groupName = group.Isc ?? string.Empty;
 
-                if (!group.TryGetProperty("profiles", out var profilesElement) || profilesElement.ValueKind != JsonValueKind.Array)
+                foreach (var profile in group.Profiles)
                 {
-                    continue;
-                }
-
-                foreach (var profile in profilesElement.EnumerateArray())
-                {
-                    var profileEquip = GetOrderedIdDisplayNames(profile, "equip", equipLookup, extrasLookup, ShowUnitsInInches)
+                    var profileEquip = entryNames.InApiOrder(profile.Equip, equipLookup)
                         .Select(x => x.Name)
                         .ToHashSet(StringComparer.OrdinalIgnoreCase);
-                    var profileSkills = GetOrderedIdDisplayNames(profile, "skills", skillsLookup, extrasLookup, ShowUnitsInInches)
+                    var profileSkills = entryNames.InApiOrder(profile.Skills, skillsLookup)
                         .Select(x => x.Name)
                         .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
@@ -216,69 +211,49 @@ public partial class ViewerViewModel
                     profileCount++;
                 }
 
-                if (!group.TryGetProperty("options", out var optionsElement) || optionsElement.ValueKind != JsonValueKind.Array)
+                foreach (var option in group.Options)
                 {
-                    continue;
-                }
-
-                foreach (var option in optionsElement.EnumerateArray())
-                {
-                    if (LieutenantOnlyUnits && !IsLieutenantOption(option, skillsLookup))
+                    if (LieutenantOnlyUnits && !option.IsLieutenant(skillsLookup))
                     {
                         continue;
                     }
 
-                    var optionName = option.TryGetProperty("name", out var nameElement) && nameElement.ValueKind == JsonValueKind.String
-                        ? nameElement.GetString() ?? string.Empty
-                        : string.Empty;
+                    var optionName = string.IsNullOrWhiteSpace(option.Name) ? groupName : option.Name;
 
-                    if (string.IsNullOrWhiteSpace(optionName))
-                    {
-                        optionName = groupName;
-                    }
-
-                    var displayName = BuildOptionDisplayName(option, optionName, equipLookup, skillsLookup);
-                    var optionWeapons = GetOrderedIdDisplayNamesFromEntries(
-                            GetOptionEntriesWithIncludes(doc.RootElement, option, "weapons"),
-                            weaponsLookup,
-                            extrasLookup,
-                            ShowUnitsInInches);
+                    var displayName = ViewerOptionNames.WithDetailTags(option, optionName, equipLookup, skillsLookup);
+                    var optionWeapons = entryNames.InApiOrder(
+                            profileGroups.GetEntriesWithIncludes(option, ProfileEntryKind.Weapons),
+                            weaponsLookup);
                     var rangedWeaponEntries = optionWeapons.Where(x => !IsMeleeWeaponName(x.Name)).ToList();
                     var meleeWeaponEntries = optionWeapons.Where(x => IsMeleeWeaponName(x.Name)).ToList();
                     var rangedWeapons = JoinOrDash(rangedWeaponEntries.Select(x => x.Name));
                     var meleeWeapons = JoinOrDash(meleeWeaponEntries.Select(x => x.Name));
 
-                    var uniqueEquipmentEntries = GetOrderedIdDisplayNamesFromEntries(
-                                GetOptionEntriesWithIncludes(doc.RootElement, option, "equip"),
-                                equipLookup,
-                                extrasLookup,
-                                ShowUnitsInInches)
+                    var uniqueEquipmentEntries = entryNames.InApiOrder(
+                                profileGroups.GetEntriesWithIncludes(option, ProfileEntryKind.Equip),
+                                equipLookup)
                             .ToList();
                     var uniqueEquipment = JoinOrDash(uniqueEquipmentEntries.Select(x => x.Name));
 
                     var optionSkillsEntries = BuildConfigurationSkillEntries(
-                            GetOrderedIdDisplayNamesFromEntries(
-                                GetOptionEntriesWithIncludes(doc.RootElement, option, "skills"),
-                                skillsLookup,
-                                extrasLookup,
-                                ShowUnitsInInches))
+                            entryNames.InApiOrder(
+                                profileGroups.GetEntriesWithIncludes(option, ProfileEntryKind.Skills),
+                                skillsLookup))
                         .ToList();
                     var uniqueSkillsEntries = optionSkillsEntries;
                     var uniqueSkills = JoinOrDash(uniqueSkillsEntries.Select(x => x.Name));
 
-                    var peripheralEntries = GetCountedIdDisplayNamesFromEntries(
-                                GetDisplayPeripheralEntriesForOption(doc.RootElement, group, option),
-                                peripheralLookup,
-                                extrasLookup,
-                                ShowUnitsInInches)
+                    var peripheralEntries = entryNames.CountedWithIds(
+                                profileGroups.GetDisplayPeripheralEntries(group, option),
+                                peripheralLookup)
                             .ToList();
                     var peripherals = JoinOrDash(peripheralEntries.Select(x => x.Name));
-                    var swc = ReadOptionSwc(option);
-                    var cost = ReadAdjustedOptionCost(doc.RootElement, group, option);
-                    var isLieutenant = IsLieutenantOption(option, skillsLookup);
+                    var swc = string.IsNullOrWhiteSpace(option.Swc) ? "-" : option.Swc;
+                    var cost = profileGroups.GetAdjustedCost(group, option);
+                    var isLieutenant = option.IsLieutenant(skillsLookup);
                     var profileKey = $"{groupName}|{optionName}|{cost}|{swc}|lt:{(isLieutenant ? 1 : 0)}";
 
-                    if (MercsOnlyUnits && IsPositiveSwc(swc))
+                    if (MercsOnlyUnits && ProfileValues.IsPositiveSwc(swc))
                     {
                         continue;
                     }

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Text.Json;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Infrastructure.Json;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Windows.Input;
@@ -98,13 +99,13 @@ public partial class ViewerViewModel
 
         var units = _armyDataService.GetResumeByFaction(SelectedFaction.Id, cancellationToken);
         var snapshot = _armyDataService.GetFactionSnapshot(SelectedFaction.Id, cancellationToken);
-        var filtersJson = snapshot?.FiltersJson;
-        var typeLookup = BuildIdNameLookup(filtersJson, "type");
-        var charsLookup = BuildIdNameLookup(filtersJson, "chars");
-        var skillsLookup = BuildIdNameLookup(filtersJson, "skills");
-        var equipLookup = BuildIdNameLookup(filtersJson, "equip");
-        var weaponsLookup = BuildIdNameLookup(filtersJson, "weapons");
-        var ammoLookup = BuildIdNameLookup(filtersJson, "ammunition");
+        var filters = ArmyJsonReader.Shared.ReadArmyFilters(snapshot?.FiltersJson);
+        var typeLookup = filters.Names(ArmyFilterSection.Type);
+        var charsLookup = filters.Names(ArmyFilterSection.Chars);
+        var skillsLookup = filters.Names(ArmyFilterSection.Skills);
+        var equipLookup = filters.Names(ArmyFilterSection.Equip);
+        var weaponsLookup = filters.Names(ArmyFilterSection.Weapons);
+        var ammoLookup = filters.Names(ArmyFilterSection.Ammunition);
 
         foreach (var unit in units)
         {
@@ -121,8 +122,8 @@ public partial class ViewerViewModel
                 continue;
             }
 
-            AddFilterOptionsFromProfilesAndOptions(
-                unitRecord.ProfileGroupsJson,
+            var unitMaxCost = ViewerOptionNames.CollectAllOptionNames(
+                ArmyJsonReader.Shared.ReadProfileGroups(unitRecord.ProfileGroupsJson),
                 charsLookup,
                 skillsLookup,
                 equipLookup,
@@ -132,8 +133,8 @@ public partial class ViewerViewModel
                 skills,
                 equipment,
                 weapons,
-                ammo,
-                ref maxPoints);
+                ammo);
+            maxPoints = Math.Max(maxPoints, unitMaxCost);
         }
 
         return Task.FromResult(new UnitFilterPopupOptions
