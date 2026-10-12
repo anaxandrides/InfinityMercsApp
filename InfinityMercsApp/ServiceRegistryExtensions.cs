@@ -19,7 +19,8 @@ public static class ServiceRegistryExtensions
                 .AddTransient<StandardCompanySourcePopupPageViewModel>()
                 .AddTransient<TagCompanySourcePopupPageViewModel>()
                 .AddTransient<LoneWolfCompanySourcePopupPageViewModel>()
-                .AddTransient<FeedbackBugsPageViewModel>();
+                .AddTransient<FeedbackBugsPageViewModel>()
+                .AddTransient<AboutPageViewModel>();
 
         return services;
     }
@@ -40,6 +41,7 @@ public static class ServiceRegistryExtensions
                 .AddTransient<CompanyViewerPage>()
                 .AddTransient<UnitEncyclopediaPage>()
                 .AddTransient<FeedbackBugsPage>()
+                .AddTransient<AboutPage>()
                 .AddTransient<MercsSeasonPage>()
                 .AddTransient<LoadSeasonPage>()
                 .AddTransient<SeasonPage>()
@@ -55,6 +57,7 @@ public static class ServiceRegistryExtensions
     public static IServiceCollection AddAppServices(this IServiceCollection services)
     {
         services.AddSingleton<INavigationService, MauiNavigationService>()
+                .AddSingleton(Launcher.Default)
                 .AddSingleton<ICompanySelectionPageFactory, CompanySelectionPageFactory>()
                 .AddSingleton<IArmyDataService, ArmyDataService>()
                 .AddSingleton<IStoreProvider, StoreProvider>()

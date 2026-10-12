@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<views:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:views="clr-namespace:InfinityMercsApp.Views"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
              xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              x:Class="InfinityMercsApp.Views.AboutPage"
+             x:DataType="viewModels:AboutPageViewModel"
              Title="About">
 
     <ScrollView>
@@ -39,7 +42,7 @@
                 TextColor="#2563EB"
                 TextDecorations="Underline">
                 <Label.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnEmailTapped" />
+                    <TapGestureRecognizer Command="{Binding OpenEmailCommand}" />
                 </Label.GestureRecognizers>
             </Label>
 
@@ -51,7 +54,7 @@
                 TextColor="#2563EB"
                 TextDecorations="Underline">
                 <Label.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnDiscordTapped" />
+                    <TapGestureRecognizer Command="{Binding OpenDiscordCommand}" />
                 </Label.GestureRecognizers>
             </Label>
 
@@ -164,7 +167,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://dazzleui.gumroad.com/l/dazzleiconsfree?ref=svgrepo.com" />
                         </Label.GestureRecognizers>
                     </Label>
                 </FlexLayout>
@@ -189,7 +192,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounProjectAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/arrow/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -215,7 +218,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounCircleArrowAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/circle-arrow/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -241,7 +244,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounFireAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/fire/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -267,7 +270,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounUploadAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/upload/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -293,7 +296,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounDoubleArrowsAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/double-arrows/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -319,7 +322,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounCircuitAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/circuit/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -346,7 +349,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounEditAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/edit/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -372,7 +375,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounHackAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/hack/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -398,7 +401,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounTeamAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/team/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -424,7 +427,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounLeadershipAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/leadership/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -450,7 +453,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounAirborneAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/airborne/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -476,7 +479,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounBattleMechAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/battle-mech/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -502,7 +505,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounAssassinAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/assassin/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -528,7 +531,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounMalePlayerAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/male-player/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -554,7 +557,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounDuoAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/duo/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -580,7 +583,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounCheckAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/check/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -606,7 +609,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounXAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/x/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -632,7 +635,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounOpenFileAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/open-file/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -658,7 +661,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounTrashAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/trash/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -684,7 +687,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounCaptainAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/captain/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -710,7 +713,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNoun5StarsAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/5-stars/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -736,7 +739,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounOptionsAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/options/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -762,7 +765,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounFilterAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/filter/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -788,7 +791,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounDeltaAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/delta/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -814,7 +817,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounOkAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/ok/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -840,7 +843,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounRejectAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/reject/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -866,7 +869,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounCyborgAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/cyborg/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -892,7 +895,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounFlagsAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/flags/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -918,7 +921,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounKnockedOutFaceAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/knocked-out-face/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -944,7 +947,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounMadFaceAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/mad-face/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -970,7 +973,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounSadFaceAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/sad-face/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -996,7 +999,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounSmileyFaceAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/smiley-face/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -1022,7 +1025,7 @@
                         TextColor="#2563EB"
                         TextDecorations="Underline">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnNounGravestoneAttributionTapped" />
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/gravestone/" />
                         </Label.GestureRecognizers>
                     </Label>
                     <Label Text=" (CC BY 3.0)" />
@@ -1033,4 +1036,4 @@
         </VerticalStackLayout>
     </ScrollView>
 
-</ContentPage>
+</views:ContentPageBase>

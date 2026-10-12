@@ -1,16 +1,22 @@
+using InfinityMercsApp.ViewModels;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using Svg.Skia;
 
 namespace InfinityMercsApp.Views;
 
-public partial class AboutPage : ContentPage
+/// <summary>
+/// About/attribution page. Links are opened by <see cref="AboutPageViewModel"/>; the code-behind only
+/// loads and paints the attribution icons and reflows the attribution columns.
+/// </summary>
+public partial class AboutPage : ContentPageBase
 {
     private readonly Dictionary<int, SKPicture?> _attributionPictures = new();
 
-    public AboutPage()
+    public AboutPage(AboutPageViewModel viewModel)
     {
         InitializeComponent();
+        BindingContext = viewModel;
         _ = LoadAttributionIconsAsync();
     }
 
@@ -19,65 +25,6 @@ public partial class AboutPage : ContentPage
         base.OnSizeAllocated(width, height);
         UpdateAttributionColumns(width);
     }
-
-    private static async Task OpenUriAsync(string uri)
-    {
-        await Launcher.Default.OpenAsync(uri);
-    }
-
-    private async void OnEmailTapped(object? sender, TappedEventArgs e)
-    {
-        await OpenUriAsync("mailto:jeremiahpatrick@protonmail.com");
-    }
-
-    private async void OnDiscordTapped(object? sender, TappedEventArgs e)
-    {
-        try
-        {
-            await OpenUriAsync("discord://");
-        }
-        catch
-        {
-            await OpenUriAsync("https://discord.com/app");
-        }
-    }
-
-    private async void OnAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://dazzleui.gumroad.com/l/dazzleiconsfree?ref=svgrepo.com");
-    private async void OnSvgRepoAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://www.svgrepo.com/svg/55949/cubes");
-    private async void OnArrowCircleUpAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://www.svgrepo.com/svg/491308/arrow-circle-up");
-    private async void OnNounProjectAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/arrow/");
-    private async void OnNounEditAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/edit/");
-    private async void OnNounCircleArrowAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/circle-arrow/");
-    private async void OnNounFireAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/fire/");
-    private async void OnNounUploadAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/upload/");
-    private async void OnNounDoubleArrowsAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/double-arrows/");
-    private async void OnNounCircuitAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/circuit/");
-    private async void OnNounHackAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/hack/");
-    private async void OnNounTeamAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/team/");
-    private async void OnNounLeadershipAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/leadership/");
-    private async void OnNounAirborneAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/airborne/");
-    private async void OnNounBattleMechAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/battle-mech/");
-    private async void OnNounAssassinAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/assassin/");
-    private async void OnNounMalePlayerAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/male-player/");
-    private async void OnNounDuoAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/duo/");
-    private async void OnNounCheckAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/check/");
-    private async void OnNounXAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/x/");
-    private async void OnNounOpenFileAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/open-file/");
-    private async void OnNounTrashAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/trash/");
-    private async void OnNounCaptainAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/captain/");
-    private async void OnNoun5StarsAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/5-stars/");
-    private async void OnNounOptionsAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/options/");
-    private async void OnNounFilterAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/filter/");
-    private async void OnNounOkAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/ok/");
-    private async void OnNounRejectAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/reject/");
-    private async void OnNounDeltaAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/delta/");
-    private async void OnNounCyborgAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/cyborg/");
-    private async void OnNounFlagsAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/flags/");
-    private async void OnNounKnockedOutFaceAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/knocked-out-face/");
-    private async void OnNounMadFaceAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/mad-face/");
-    private async void OnNounSadFaceAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/sad-face/");
-    private async void OnNounSmileyFaceAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/smiley-face/");
-    private async void OnNounGravestoneAttributionTapped(object? sender, TappedEventArgs e) => await OpenUriAsync("https://thenounproject.com/browse/icons/term/gravestone/");
 
     private async Task LoadAttributionIconsAsync()
     {
