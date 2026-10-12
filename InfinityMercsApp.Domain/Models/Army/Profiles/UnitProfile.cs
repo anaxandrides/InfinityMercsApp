@@ -19,6 +19,16 @@ public sealed class UnitProfile
     /// <summary>Movement as display text, e.g. <c>"10-5"</c>, or <c>"-"</c>.</summary>
     public string Move { get; init; } = "-";
 
+    /// <summary>
+    /// Movement values in centimetres as sent (<c>[10, 5]</c>), read from a <c>move</c>/<c>mov</c> array or
+    /// a <c>"10-5"</c> string. Empty when absent.
+    /// </summary>
+    public IReadOnlyList<int> MoveCm { get; init; } = [];
+
+    /// <summary>First and second movement values in cm, when the profile has at least two.</summary>
+    public (int? FirstCm, int? SecondCm) MoveFirstSecondCm =>
+        MoveCm.Count >= 2 ? (MoveCm[0], MoveCm[1]) : (null, null);
+
     public int? Cc { get; init; }
 
     public int? Bs { get; init; }
@@ -36,6 +46,14 @@ public sealed class UnitProfile
     public int? S { get; init; }
 
     public int? Ava { get; init; }
+
+    /// <summary>A numeric structure value (the API normally sends <c>str</c> as a true/false flag instead).</summary>
+    public int? StrValue { get; init; }
+
+    public int? Vita { get; init; }
+
+    /// <summary>True when the payload carries any statline field (cc, bs, ph, wip, arm, bts, w or str).</summary>
+    public bool HasStatFields { get; init; }
 
     public IReadOnlyList<ProfileEntry> Chars { get; init; } = [];
 
@@ -65,6 +83,31 @@ public sealed class UnitProfile
 
     /// <summary>A stat as statline text: the number, or <c>"-"</c> when absent.</summary>
     public static string StatText(int? value) => value?.ToString() ?? "-";
+
+    /// <summary>AVA as statline text: <c>"T"</c> for total (255), <c>"-"</c> when absent or negative.</summary>
+    public string AvaText => Ava switch
+    {
+        null => "-",
+        < 0 => "-",
+        255 => "T",
+        _ => Ava.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)
+    };
+
+    /// <summary>
+    /// The wounds column: <c>STR</c> with a numeric structure value, otherwise <c>VITA</c> with W (or VITA).
+    /// </summary>
+    public (string Header, string Value) Vitality
+    {
+        get
+        {
+            if (StrValue is int structure)
+            {
+                return ("STR", structure.ToString());
+            }
+
+            return W is int wounds ? ("VITA", wounds.ToString()) : ("VITA", StatText(Vita));
+        }
+    }
 }
 
 /// <summary>

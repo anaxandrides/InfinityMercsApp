@@ -238,6 +238,11 @@ public sealed class ArmyJsonReader : IArmyJsonReader
         W = ReadStat(dto, dto.W, "w"),
         S = ReadStat(dto, dto.S, "s"),
         Ava = ReadStat(dto, dto.Ava, "ava"),
+        StrValue = ReadStat(dto, dto.Str, "str"),
+        Vita = ReadUndeclaredStat(dto, "vita"),
+        MoveCm = ReadMoveCm(dto),
+        HasStatFields = !dto.Cc.IsMissing || !dto.Bs.IsMissing || !dto.Ph.IsMissing || !dto.Wip.IsMissing ||
+                        !dto.Arm.IsMissing || !dto.Bts.IsMissing || !dto.W.IsMissing || !dto.Str.IsMissing,
         Chars = MapEntries(dto.Chars),
         Skills = MapEntries(dto.Skills),
         Equip = MapEntries(dto.Equip),
@@ -332,9 +337,9 @@ public sealed class ArmyJsonReader : IArmyJsonReader
     /// </summary>
     private static string ReadMove(ProfileDto dto)
     {
-        if (dto.Move is not null)
+        if (dto.Move.Items is not null)
         {
-            var parts = dto.Move
+            var parts = dto.Move.Items
                 .Select(part => part.AsInt32())
                 .Where(part => part.HasValue)
                 .Select(part => part!.Value.ToString())
@@ -344,7 +349,8 @@ public sealed class ArmyJsonReader : IArmyJsonReader
                 return string.Join("-", parts);
             }
         }
-        else if (FindFlexible(dto, "move", skipDeclared: true) is { ValueKind: JsonValueKind.Array } moveElement)
+        else if (dto.Move.IsMissing &&
+                 FindFlexible(dto, "move", skipDeclared: true) is { ValueKind: JsonValueKind.Array } moveElement)
         {
             var parts = moveElement.EnumerateArray()
                 .Select(ReadIntText)
@@ -374,6 +380,76 @@ public sealed class ArmyJsonReader : IArmyJsonReader
     }
 
     /// <summary>
+    /// Movement values in cm: the <c>move</c> property (any letter case), else <c>mov</c>; an array of
+    /// numbers/numeric strings or a <c>"10-5"</c> string.
+    /// </summary>
+    private static IReadOnlyList<int> ReadMoveCm(ProfileDto dto)
+    {
+        if (!dto.Move.IsMissing)
+        {
+            if (dto.Move.Items is not null)
+            {
+                return dto.Move.Items.Select(x => x.AsInvariantInt32()).Where(x => x.HasValue).Select(x => x!.Value).ToList();
+            }
+
+            return dto.Move.Text is not null ? SplitMoveText(dto.Move.Text) : [];
+        }
+
+        var element = FindIgnoringCase(dto.ExtensionData, "move") ?? FindIgnoringCase(dto.ExtensionData, "mov");
+        if (element is not JsonElement value)
+        {
+            return [];
+        }
+
+        return value.ValueKind switch
+        {
+            JsonValueKind.String => SplitMoveText(value.GetString() ?? string.Empty),
+            JsonValueKind.Array => value.EnumerateArray()
+                .Select(item => item.ValueKind switch
+                {
+                    JsonValueKind.Number when item.TryGetInt32(out var number) => (int?)number,
+                    JsonValueKind.String when int.TryParse(item.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) => parsed,
+                    _ => null
+                })
+                .Where(x => x.HasValue)
+                .Select(x => x!.Value)
+                .ToList(),
+            _ => []
+        };
+    }
+
+    private static List<int> SplitMoveText(string text) =>
+        text.Split('-', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => int.TryParse(x, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) ? (int?)parsed : null)
+            .Where(x => x.HasValue)
+            .Select(x => x!.Value)
+            .ToList();
+
+    /// <summary>An undeclared property by exact name, else the first one whose name matches ignoring case.</summary>
+    private static JsonElement? FindIgnoringCase(Dictionary<string, JsonElement>? extension, string name)
+    {
+        if (extension is null)
+        {
+            return null;
+        }
+
+        if (extension.TryGetValue(name, out var exact))
+        {
+            return exact;
+        }
+
+        foreach (var (key, value) in extension)
+        {
+            if (string.Equals(key, name, StringComparison.OrdinalIgnoreCase))
+            {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// A stat as an integer: the profile's own property when present (number, or numeric string), otherwise
     /// the upper/title-case spelling, otherwise the same names inside a nested stats container.
     /// </summary>
@@ -384,7 +460,13 @@ public sealed class ArmyJsonReader : IArmyJsonReader
             return declared.AsInt32();
         }
 
-        if (FindFlexible(dto, name, skipDeclared: true) is JsonElement element)
+        return ReadUndeclaredStat(dto, name, skipDeclared: true);
+    }
+
+    /// <summary>A stat the DTO does not declare (e.g. <c>vita</c>), looked up flexibly.</summary>
+    private static int? ReadUndeclaredStat(ProfileDto dto, string name, bool skipDeclared = false)
+    {
+        if (FindFlexible(dto, name, skipDeclared) is JsonElement element)
         {
             return element.ValueKind switch
             {

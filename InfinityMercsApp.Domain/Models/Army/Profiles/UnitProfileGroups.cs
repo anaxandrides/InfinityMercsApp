@@ -143,6 +143,112 @@ public sealed class UnitProfileGroups
     public bool HasLieutenantOption(IReadOnlyDictionary<int, string> skillNames) =>
         AllOptions().Any(x => x.Option.IsLieutenant(skillNames));
 
+    /// <summary>
+    /// The statline of a peripheral fielded by this unit, matched by name ignoring case and punctuation:
+    /// a profile with that name (or any profile of a group with that ISC), else the first profile with stats
+    /// in a group that has an option with that name.
+    /// </summary>
+    public UnitProfile? FindPeripheralProfile(string peripheralName)
+    {
+        var expected = NormalizeComparisonToken(peripheralName);
+        if (string.IsNullOrWhiteSpace(expected))
+        {
+            return null;
+        }
+
+        foreach (var group in Groups)
+        {
+            var normalizedGroupIsc = NormalizeComparisonToken(group.Isc);
+            foreach (var profile in group.Profiles)
+            {
+                if (NormalizeComparisonToken(profile.Name) == expected || normalizedGroupIsc == expected)
+                {
+                    return profile;
+                }
+            }
+
+            foreach (var option in group.Options)
+            {
+                if (NormalizeComparisonToken(option.Name) != expected)
+                {
+                    continue;
+                }
+
+                var profileWithStats = group.Profiles.FirstOrDefault(profile => profile.HasStatFields);
+                if (profileWithStats is not null)
+                {
+                    return profileWithStats;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// The first peripheral (name and statline) of the first option visible to the company: controller groups
+    /// only when the unit has any, no positive SWC, and Lieutenant options only when the list is restricted
+    /// to Lieutenants (unless the Lieutenant role is forced).
+    /// </summary>
+    public (string Name, UnitProfile Profile)? FindFirstVisiblePeripheral(
+        IReadOnlyDictionary<int, string> peripheralNames,
+        IReadOnlyDictionary<int, string> skillNames,
+        bool forceLieutenant,
+        bool lieutenantOnlyUnits)
+    {
+        var hasControllerGroups = Groups.Any(IsControllerGroup);
+        foreach (var group in Groups)
+        {
+            if (hasControllerGroups && !IsControllerGroup(group))
+            {
+                continue;
+            }
+
+            foreach (var option in group.Options)
+            {
+                if (option.HasPositiveSwc)
+                {
+                    continue;
+                }
+
+                if (!forceLieutenant && lieutenantOnlyUnits && !option.IsLieutenant(skillNames))
+                {
+                    continue;
+                }
+
+                foreach (var entry in GetDisplayPeripheralEntries(group, option))
+                {
+                    if (entry.Id is not int peripheralId)
+                    {
+                        continue;
+                    }
+
+                    var name = peripheralNames.TryGetValue(peripheralId, out var resolvedName)
+                        ? resolvedName
+                        : peripheralId.ToString(CultureInfo.InvariantCulture);
+                    if (FindPeripheralProfile(name) is { } profile)
+                    {
+                        return (name, profile);
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static string NormalizeComparisonToken(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        return System.Text.RegularExpressions.Regex
+            .Replace(value, "[^a-z0-9]", string.Empty, System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+            .ToLowerInvariant();
+    }
+
     private static HashSet<int> ControllerPeripheralIds(ProfileGroup group)
     {
         var ids = new HashSet<int>();

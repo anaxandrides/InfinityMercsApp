@@ -4,57 +4,8 @@ namespace InfinityMercsApp.Views.Common;
 
 internal static partial class CompanySelectionSharedUtilities
 {
-    internal static string ConvertDistanceText(string distanceText, bool showUnitsInInches)
-    {
-        if (string.IsNullOrWhiteSpace(distanceText))
-        {
-            return distanceText;
-        }
-
-        var match = Regex.Match(
-            distanceText,
-            @"([+-]?)(\d+(?:\.\d+)?)(?:\s*(cm|""|in|inch|inches))?",
-            RegexOptions.IgnoreCase);
-        if (!match.Success)
-        {
-            return distanceText;
-        }
-
-        var sign = match.Groups[1].Value;
-        var numberText = match.Groups[2].Value;
-        if (!double.TryParse(
-                numberText,
-                System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.InvariantCulture,
-                out var parsedValue))
-        {
-            return distanceText;
-        }
-
-        var unitToken = match.Groups[3].Success
-            ? match.Groups[3].Value.Trim().ToLowerInvariant()
-            : string.Empty;
-        var valueInCm = unitToken is "\"" or "in" or "inch" or "inches"
-            ? parsedValue * 2.5
-            : parsedValue;
-
-        string replacement;
-        if (showUnitsInInches)
-        {
-            var inches = (int)Math.Round(valueInCm / 2.5, MidpointRounding.AwayFromZero);
-            replacement = $"{sign}{inches}\"";
-        }
-        else
-        {
-            var roundedCm = Math.Round(valueInCm, 2, MidpointRounding.AwayFromZero);
-            var cmText = Math.Abs(roundedCm - Math.Round(roundedCm)) < 0.001
-                ? ((int)Math.Round(roundedCm)).ToString(System.Globalization.CultureInfo.InvariantCulture)
-                : roundedCm.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
-            replacement = $"{sign}{cmText}cm";
-        }
-
-        return distanceText.Remove(match.Index, match.Length).Insert(match.Index, replacement);
-    }
+    internal static string ConvertDistanceText(string distanceText, bool showUnitsInInches) =>
+        InfinityMercsApp.Domain.Models.Army.Profiles.DistanceText.Convert(distanceText, showUnitsInInches);
 
     internal static string ReplaceSubtitleMoveDisplay(string? subtitle, string moveDisplay)
     {

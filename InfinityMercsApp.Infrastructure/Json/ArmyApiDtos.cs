@@ -52,8 +52,7 @@ internal sealed class ProfileDto
     public JsonScalar Str { get; set; }
 
     [JsonPropertyName("move")]
-    [JsonConverter(typeof(JsonScalarListConverter))]
-    public List<JsonScalar>? Move { get; set; }
+    public MoveValueDto Move { get; set; }
 
     [JsonPropertyName("cc")]
     public JsonScalar Cc { get; set; }
@@ -116,6 +115,66 @@ internal sealed class ProfileDto
     /// </summary>
     [JsonExtensionData]
     public Dictionary<string, JsonElement>? ExtensionData { get; set; }
+}
+
+/// <summary>
+/// A profile's <c>move</c>: normally an array of centimetre values, occasionally a <c>"10-5"</c> string.
+/// </summary>
+[JsonConverter(typeof(MoveValueConverter))]
+internal readonly struct MoveValueDto
+{
+    public MoveValueDto(JsonScalarKind kind, List<JsonScalar>? items, string? text)
+    {
+        Kind = kind;
+        Items = items;
+        Text = text;
+    }
+
+    /// <summary><see cref="JsonScalarKind.Other"/> for an array (see <see cref="Items"/>); otherwise the scalar kind.</summary>
+    public JsonScalarKind Kind { get; }
+
+    /// <summary>The array items when the value was an array.</summary>
+    public List<JsonScalar>? Items { get; }
+
+    /// <summary>The string when the value was a string.</summary>
+    public string? Text { get; }
+
+    public bool IsMissing => Kind == JsonScalarKind.Missing;
+}
+
+internal sealed class MoveValueConverter : JsonConverter<MoveValueDto>
+{
+    private static readonly JsonScalarListConverter ListConverter = new();
+    private static readonly JsonScalarConverter ScalarConverter = new();
+
+    public override bool HandleNull => true;
+
+    public override MoveValueDto Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.StartArray)
+        {
+            return new MoveValueDto(JsonScalarKind.Other, ListConverter.Read(ref reader, typeof(List<JsonScalar>), options), null);
+        }
+
+        var scalar = ScalarConverter.Read(ref reader, typeof(JsonScalar), options);
+        return new MoveValueDto(scalar.Kind, null, scalar.AsString());
+    }
+
+    public override void Write(Utf8JsonWriter writer, MoveValueDto value, JsonSerializerOptions options)
+    {
+        if (value.Items is not null)
+        {
+            ListConverter.Write(writer, value.Items, options);
+        }
+        else if (value.Text is not null)
+        {
+            writer.WriteStringValue(value.Text);
+        }
+        else
+        {
+            writer.WriteNullValue();
+        }
+    }
 }
 
 /// <summary><c>units[].profileGroups[].options[]</c> — a loadout.</summary>
