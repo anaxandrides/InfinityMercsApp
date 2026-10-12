@@ -1,4 +1,5 @@
 ﻿using InfinityMercsApp.Infrastructure.API.InfinityArmy;
+using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +21,9 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<ISpecOpsProvider, SpecOpsProvider>()
                 .AddSingleton<IInspiringCompanyFactionGenerator, InspiringCompanyFactionGenerator>()
                 .AddSingleton<IAirborneCompanyFactionGenerator, AirborneCompanyFactionGenerator>()
-                .AddSingleton<ITagCompanyFactionGenerator, TagCompanyFactionGenerator>();
+                .AddSingleton<ITagCompanyFactionGenerator, TagCompanyFactionGenerator>()
+                // One reader (and one parse cache) shared with static helpers that use ArmyJsonReader.Shared.
+                .AddSingleton<IArmyJsonReader>(ArmyJsonReader.Shared);
         return services;
     }
 }
