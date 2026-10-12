@@ -2,6 +2,7 @@ using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using Svg.Skia;
+using InfinityMercsApp.Services;
 
 namespace InfinityMercsApp.Views.Season;
 
@@ -18,10 +19,8 @@ public partial class InjuriesPage : ContentPage, IQueryAttributable
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        if (query.TryGetValue("companyFilePath", out var raw))
-            _companyFilePath = Uri.UnescapeDataString(raw?.ToString() ?? string.Empty);
-        if (query.TryGetValue("seasonFilePath", out var seasonRaw))
-            _seasonFilePath = Uri.UnescapeDataString(seasonRaw?.ToString() ?? string.Empty);
+        _companyFilePath = NavigationParameters.GetString(query, NavigationParameters.CompanyFilePath) ?? _companyFilePath;
+        _seasonFilePath = NavigationParameters.GetString(query, NavigationParameters.SeasonFilePath) ?? _seasonFilePath;
     }
 
     protected override async void OnAppearing()
@@ -397,9 +396,9 @@ public partial class InjuriesPage : ContentPage, IQueryAttributable
     private async void OnContinueClicked(object sender, EventArgs e)
     {
         InjuryPageData.PendingInjuries.Clear();
-        var encodedPath = Uri.EscapeDataString(_companyFilePath);
-        var encodedSeasonPath = Uri.EscapeDataString(_seasonFilePath);
-        await Shell.Current.GoToAsync($"{nameof(MissionOutcomePage)}?companyFilePath={encodedPath}&seasonFilePath={encodedSeasonPath}");
+        await Shell.Current.GoToAsync(
+            nameof(MissionOutcomePage),
+            NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath));
     }
 }
 

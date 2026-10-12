@@ -97,14 +97,13 @@ public partial class PlayModePage : ContentPage, IQueryAttributable
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        if (query.TryGetValue("companyFilePath", out var raw))
+        if (NavigationParameters.GetString(query, NavigationParameters.CompanyFilePath) is { } companyFilePath)
         {
-            _companyFilePath = Uri.UnescapeDataString(raw?.ToString() ?? string.Empty);
+            _companyFilePath = companyFilePath;
             _loadAttempted = false;
         }
 
-        if (query.TryGetValue("seasonFilePath", out var seasonRaw))
-            _seasonFilePath = Uri.UnescapeDataString(seasonRaw?.ToString() ?? string.Empty);
+        _seasonFilePath = NavigationParameters.GetString(query, NavigationParameters.SeasonFilePath) ?? _seasonFilePath;
     }
 
     protected override async void OnAppearing()
@@ -322,13 +321,10 @@ public partial class PlayModePage : ContentPage, IQueryAttributable
             return;
         }
 
-        var encodedPath = Uri.EscapeDataString(_companyFilePath);
-        var encodedSeasonPath = Uri.EscapeDataString(_seasonFilePath);
-        var checkedIndices = string.Join(",", checkedUnits.Select(u => u.EntryIndex));
-        var encodedIndices = Uri.EscapeDataString(checkedIndices);
-        var eliteDeployment = IsEliteDeployment ? "1" : "0";
-        await Shell.Current.GoToAsync(
-            $"{nameof(GameModePage)}?companyFilePath={encodedPath}&seasonFilePath={encodedSeasonPath}&deployedIndices={encodedIndices}&eliteDeployment={eliteDeployment}");
+        var parameters = NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath);
+        parameters[NavigationParameters.DeployedIndices] = checkedUnits.Select(u => u.EntryIndex).ToArray();
+        parameters[NavigationParameters.EliteDeployment] = IsEliteDeployment;
+        await Shell.Current.GoToAsync(nameof(GameModePage), parameters);
     }
 
     // ── Resolution helpers ────────────────────────────────────────────────────

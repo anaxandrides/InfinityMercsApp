@@ -9,6 +9,7 @@ using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using Svg.Skia;
+using InfinityMercsApp.Services;
 
 namespace InfinityMercsApp.Views;
 
@@ -43,7 +44,7 @@ public partial class LoadCompanyPage : AdaptiveContentPage, IQueryAttributable
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        _seasonMode = query.ContainsKey("seasonMode");
+        _seasonMode = query.ContainsKey(NavigationParameters.SeasonMode);
     }
 
     protected override void OnLayoutModeChanged(AdaptiveLayoutMode mode) => ApplyLayout();
@@ -192,11 +193,10 @@ public partial class LoadCompanyPage : AdaptiveContentPage, IQueryAttributable
             return;
         }
 
-        var encodedPath = Uri.EscapeDataString(item.FilePath);
         var destination = _seasonMode
-            ? $"//{nameof(SeasonPage)}?companyFilePath={encodedPath}"
-            : $"//{nameof(CompanyViewerPage)}?companyFilePath={encodedPath}";
-        await Shell.Current.GoToAsync(destination);
+            ? $"//{nameof(SeasonPage)}"
+            : $"//{nameof(CompanyViewerPage)}";
+        await Shell.Current.GoToAsync(destination, NavigationParameters.ForCompany(item.FilePath));
     }
 
     private void OnRecordIconBindingContextChanged(object? sender, EventArgs e)

@@ -8,9 +8,6 @@ namespace InfinityMercsApp.ViewModels;
 /// <summary>The MERCS Season home: load a season, or start one from a saved or new company.</summary>
 public partial class MercsSeasonPageViewModel(INavigationService navigationService) : ViewModelBase(navigationService)
 {
-    /// <summary>Query parameter that tells LoadCompanyPage it was opened to start a season.</summary>
-    public const string SeasonModeParameter = "seasonMode";
-
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsShowingMainActions))]
     private bool _isChoosingNewSeason;
@@ -36,7 +33,7 @@ public partial class MercsSeasonPageViewModel(INavigationService navigationServi
     [RelayCommand]
     private Task LoadCompanyAsync() => NavigationService.NavigateToAsync(
         "//LoadCompanyPage",
-        new Dictionary<string, object> { [SeasonModeParameter] = true });
+        new Dictionary<string, object> { [NavigationParameters.SeasonMode] = true });
 
     [RelayCommand]
     private Task CreateNewTeamAsync() => NavigationService.NavigateToAsync("//CreateNewCompanyPage");

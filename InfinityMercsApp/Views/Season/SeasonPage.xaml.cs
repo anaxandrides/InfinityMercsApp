@@ -315,13 +315,13 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
             return;
         }
 
-        _companyFilePath = Uri.UnescapeDataString(companyFileValue?.ToString() ?? string.Empty);
+        _companyFilePath = companyFileValue as string ?? companyFileValue?.ToString() ?? string.Empty;
         _loadAttempted = false;
 
         // When loading an existing season the caller provides the season file path,
         // preventing a new season file from being created in LoadCompanyFromFileAsync.
         _seasonFilePath = query.TryGetValue("seasonFilePath", out var seasonFileValue)
-            ? Uri.UnescapeDataString(seasonFileValue?.ToString() ?? string.Empty)
+            ? seasonFileValue as string ?? seasonFileValue?.ToString() ?? string.Empty
             : null;
 
         await UpdateSeasonTitleBarLabelAsync();
@@ -2683,9 +2683,9 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
     private async void OnPlayRoundClicked(object? sender, EventArgs e)
     {
-        var encodedPath = Uri.EscapeDataString(_companyFilePath ?? string.Empty);
-        var encodedSeasonPath = Uri.EscapeDataString(_seasonFilePath ?? string.Empty);
-        await Shell.Current.GoToAsync($"{nameof(PlayModePage)}?companyFilePath={encodedPath}&seasonFilePath={encodedSeasonPath}");
+        await Shell.Current.GoToAsync(
+            nameof(PlayModePage),
+            NavigationParameters.ForCompany(_companyFilePath ?? string.Empty, _seasonFilePath ?? string.Empty));
     }
 
     private async Task LoadPlayRoundFlagsIconAsync()

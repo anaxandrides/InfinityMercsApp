@@ -272,8 +272,7 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
             return;
         }
 
-        var rawPath = companyFileValue?.ToString() ?? string.Empty;
-        _companyFilePath = Uri.UnescapeDataString(rawPath);
+        _companyFilePath = companyFileValue as string ?? companyFileValue?.ToString() ?? string.Empty;
         await LoadCompanyFromFileAsync(_companyFilePath);
     }
 

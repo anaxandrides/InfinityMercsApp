@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text.Json;
 using InfinityMercsApp.Views.Adaptive;
+using InfinityMercsApp.Services;
 
 namespace InfinityMercsApp.Views.Season;
 
@@ -161,10 +162,9 @@ public partial class LoadSeasonPage : AdaptiveContentPage
             return;
         }
 
-        var encodedCompanyPath = Uri.EscapeDataString(item.CompanyFilePath);
-        var encodedSeasonPath = Uri.EscapeDataString(item.SeasonFilePath);
         await Shell.Current.GoToAsync(
-            $"//{nameof(SeasonPage)}?companyFilePath={encodedCompanyPath}&seasonFilePath={encodedSeasonPath}");
+            $"//{nameof(SeasonPage)}",
+            NavigationParameters.ForCompany(item.CompanyFilePath, item.SeasonFilePath));
     }
 
     private sealed class SeasonFileHeader

@@ -121,12 +121,9 @@ public abstract partial class CompanySelectionPageBase
                     TryGetMetadataFactionName = tryGetMetadataFactionName,
                     ReadCaptainName = readCaptainName,
                     DisplayAlertAsync = (title, message, cancel) => DisplayAlert(title, message, cancel),
-                    // URI-encode the file path so it can be passed safely as a Shell query parameter.
-                    NavigateToCompanyViewerAsync = async filePath =>
-                    {
-                        var encodedPath = Uri.EscapeDataString(filePath);
-                        await Shell.Current.GoToAsync($"//{nameof(SeasonPage)}?companyFilePath={encodedPath}");
-                    }
+                    NavigateToCompanyViewerAsync = filePath => Shell.Current.GoToAsync(
+                        $"//{nameof(SeasonPage)}",
+                        NavigationParameters.ForCompany(filePath))
                 },
                 HandleFailureAsync = async ex =>
                 {

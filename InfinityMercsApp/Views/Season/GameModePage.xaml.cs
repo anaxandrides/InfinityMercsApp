@@ -85,32 +85,15 @@ public partial class GameModePage : ContentPage, IQueryAttributable
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        if (query.TryGetValue("companyFilePath", out var raw))
+        if (NavigationParameters.GetString(query, NavigationParameters.CompanyFilePath) is { } companyFilePath)
         {
-            _companyFilePath = Uri.UnescapeDataString(raw?.ToString() ?? string.Empty);
+            _companyFilePath = companyFilePath;
             _loadAttempted = false;
         }
 
-        if (query.TryGetValue("seasonFilePath", out var seasonRaw))
-            _seasonFilePath = Uri.UnescapeDataString(seasonRaw?.ToString() ?? string.Empty);
-
-        if (query.TryGetValue("deployedIndices", out var indicesRaw))
-        {
-            var decoded = Uri.UnescapeDataString(indicesRaw?.ToString() ?? string.Empty);
-            _deployedEntryIndices = decoded
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => int.TryParse(s.Trim(), out var n) ? n : (int?)null)
-                .Where(n => n.HasValue)
-                .Select(n => n!.Value)
-                .ToHashSet();
-        }
-        else
-        {
-            _deployedEntryIndices = null;
-        }
-
-        _isEliteDeployment = query.TryGetValue("eliteDeployment", out var eliteRaw) &&
-                             eliteRaw?.ToString() == "1";
+        _seasonFilePath = NavigationParameters.GetString(query, NavigationParameters.SeasonFilePath) ?? _seasonFilePath;
+        _deployedEntryIndices = NavigationParameters.GetIntSet(query, NavigationParameters.DeployedIndices);
+        _isEliteDeployment = NavigationParameters.GetFlag(query, NavigationParameters.EliteDeployment);
     }
 
     protected override async void OnAppearing()
@@ -1207,17 +1190,16 @@ public partial class GameModePage : ContentPage, IQueryAttributable
         MissionOutcomePageData.Victory = null;
         MissionOutcomePageData.PointsScored = null;
 
-        var encodedPath = Uri.EscapeDataString(_companyFilePath);
-        var encodedSeasonPath = Uri.EscapeDataString(_seasonFilePath);
+        var parameters = NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath);
 
         if (deadUnits.Count > 0)
         {
             InjuryPageData.PendingInjuries = deadUnits;
-            await Shell.Current.GoToAsync($"{nameof(InjuriesPage)}?companyFilePath={encodedPath}&seasonFilePath={encodedSeasonPath}");
+            await Shell.Current.GoToAsync(nameof(InjuriesPage), parameters);
         }
         else
         {
-            await Shell.Current.GoToAsync($"{nameof(MissionOutcomePage)}?companyFilePath={encodedPath}&seasonFilePath={encodedSeasonPath}");
+            await Shell.Current.GoToAsync(nameof(MissionOutcomePage), parameters);
         }
     }
 
