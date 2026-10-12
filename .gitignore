@@ -396,3 +396,6 @@ _temp*/
 _release_test/*
 _build_out/*
 .claude/settings.local.json
+
+# Characterization snapshot output (approved files are committed, received files are not)
+*.received.txt
