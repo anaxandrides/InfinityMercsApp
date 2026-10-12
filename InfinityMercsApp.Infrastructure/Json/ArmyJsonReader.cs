@@ -24,6 +24,9 @@ public interface IArmyJsonReader
     /// <summary>Reads a unit's <c>FactionsJson</c>: integer and numeric-string ids of a JSON array.</summary>
     IReadOnlyList<int> ReadFactionIds(string? factionsJson);
 
+    /// <summary>Reads an army's <c>FireteamChartJson</c>.</summary>
+    FireteamChart ReadFireteamChart(string? fireteamChartJson);
+
     /// <summary>
     /// Reads a stored id array such as a spec-ops choice's <c>ExtrasJson</c>: numbers, numeric strings and
     /// <c>{"id":..}</c> objects, in order; anything else is skipped.
@@ -145,6 +148,53 @@ public sealed class ArmyJsonReader : IArmyJsonReader
         }
 
         return result;
+    }
+
+    public FireteamChart ReadFireteamChart(string? fireteamChartJson)
+    {
+        if (string.IsNullOrWhiteSpace(fireteamChartJson))
+        {
+            return FireteamChart.Empty;
+        }
+
+        FireteamChartDto? dto;
+        try
+        {
+            dto = JsonSerializer.Deserialize(fireteamChartJson, ArmyJsonContext.Default.FireteamChart);
+        }
+        catch (JsonException)
+        {
+            return FireteamChart.Empty;
+        }
+
+        if (dto is null)
+        {
+            return FireteamChart.Empty;
+        }
+
+        return new FireteamChart
+        {
+            Spec = dto.Spec?.Entries.Select(entry => (entry.Key, entry.Value.AsInvariantInt32())).ToList() ?? [],
+            Teams = dto.Teams?.Select(team => new FireteamTeam
+            {
+                Name = team.Name,
+                TypeList = team.Type.Items?
+                    .Where(item => item.Kind == JsonScalarKind.String)
+                    .Select(item => item.Text ?? string.Empty)
+                    .ToList(),
+                TypeText = team.Type.Items is null ? team.Type.Text : null,
+                Units = team.Units?.Select(unit => new FireteamUnitLimit
+                {
+                    Name = unit.Name,
+                    Slug = unit.Slug,
+                    Comment = unit.Comment,
+                    Min = unit.Min.AsInvariantInt32(),
+                    Max = unit.Max.AsInvariantInt32(),
+                    MinIsAsterisk = string.Equals(unit.Min.AsString()?.Trim(), "*", StringComparison.Ordinal),
+                    Required = unit.Required.AsBool()
+                }).ToList() ?? []
+            }).ToList() ?? []
+        };
     }
 
     public IReadOnlyList<int> ReadIdList(string? idListJson)

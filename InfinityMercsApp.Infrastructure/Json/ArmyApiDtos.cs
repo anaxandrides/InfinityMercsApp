@@ -52,7 +52,7 @@ internal sealed class ProfileDto
     public JsonScalar Str { get; set; }
 
     [JsonPropertyName("move")]
-    public MoveValueDto Move { get; set; }
+    public ScalarOrArrayDto Move { get; set; }
 
     [JsonPropertyName("cc")]
     public JsonScalar Cc { get; set; }
@@ -118,12 +118,13 @@ internal sealed class ProfileDto
 }
 
 /// <summary>
-/// A profile's <c>move</c>: normally an array of centimetre values, occasionally a <c>"10-5"</c> string.
+/// A value that is normally an array of scalars but may be a single string — a profile's <c>move</c>
+/// (<c>[10, 5]</c> or <c>"10-5"</c>) or a fireteam's <c>type</c> (<c>["CORE","HARIS"]</c> or <c>"CORE"</c>).
 /// </summary>
-[JsonConverter(typeof(MoveValueConverter))]
-internal readonly struct MoveValueDto
+[JsonConverter(typeof(ScalarOrArrayConverter))]
+internal readonly struct ScalarOrArrayDto
 {
-    public MoveValueDto(JsonScalarKind kind, List<JsonScalar>? items, string? text)
+    public ScalarOrArrayDto(JsonScalarKind kind, List<JsonScalar>? items, string? text)
     {
         Kind = kind;
         Items = items;
@@ -142,25 +143,25 @@ internal readonly struct MoveValueDto
     public bool IsMissing => Kind == JsonScalarKind.Missing;
 }
 
-internal sealed class MoveValueConverter : JsonConverter<MoveValueDto>
+internal sealed class ScalarOrArrayConverter : JsonConverter<ScalarOrArrayDto>
 {
     private static readonly JsonScalarListConverter ListConverter = new();
     private static readonly JsonScalarConverter ScalarConverter = new();
 
     public override bool HandleNull => true;
 
-    public override MoveValueDto Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override ScalarOrArrayDto Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (reader.TokenType == JsonTokenType.StartArray)
         {
-            return new MoveValueDto(JsonScalarKind.Other, ListConverter.Read(ref reader, typeof(List<JsonScalar>), options), null);
+            return new ScalarOrArrayDto(JsonScalarKind.Other, ListConverter.Read(ref reader, typeof(List<JsonScalar>), options), null);
         }
 
         var scalar = ScalarConverter.Read(ref reader, typeof(JsonScalar), options);
-        return new MoveValueDto(scalar.Kind, null, scalar.AsString());
+        return new ScalarOrArrayDto(scalar.Kind, null, scalar.AsString());
     }
 
-    public override void Write(Utf8JsonWriter writer, MoveValueDto value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, ScalarOrArrayDto value, JsonSerializerOptions options)
     {
         if (value.Items is not null)
         {
@@ -339,6 +340,100 @@ internal sealed class ArmyFilterItemDto
     public string? Web { get; set; }
 }
 
+/// <summary>An army's <c>fireteamChart</c>.</summary>
+internal sealed class FireteamChartDto
+{
+    [JsonPropertyName("spec")]
+    public FireteamSpecDto? Spec { get; set; }
+
+    [JsonPropertyName("teams")]
+    [JsonConverter(typeof(LenientObjectListConverter<FireteamTeamDto>))]
+    public List<FireteamTeamDto>? Teams { get; set; }
+}
+
+/// <summary><c>fireteamChart.spec</c>: fireteam kind → allowed count, in payload order. A non-object reads as empty.</summary>
+[JsonConverter(typeof(FireteamSpecConverter))]
+internal sealed class FireteamSpecDto
+{
+    public List<(string Key, JsonScalar Value)> Entries { get; init; } = [];
+}
+
+internal sealed class FireteamSpecConverter : JsonConverter<FireteamSpecDto>
+{
+    private static readonly JsonScalarConverter ScalarConverter = new();
+
+    public override FireteamSpecDto Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var spec = new FireteamSpecDto();
+        if (reader.TokenType != JsonTokenType.StartObject)
+        {
+            reader.Skip();
+            return spec;
+        }
+
+        while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+        {
+            var key = reader.GetString() ?? string.Empty;
+            reader.Read();
+            spec.Entries.Add((key, ScalarConverter.Read(ref reader, typeof(JsonScalar), options)));
+        }
+
+        return spec;
+    }
+
+    public override void Write(Utf8JsonWriter writer, FireteamSpecDto value, JsonSerializerOptions options)
+    {
+        writer.WriteStartObject();
+        foreach (var (key, scalar) in value.Entries)
+        {
+            writer.WritePropertyName(key);
+            ScalarConverter.Write(writer, scalar, options);
+        }
+
+        writer.WriteEndObject();
+    }
+}
+
+/// <summary><c>fireteamChart.teams[]</c></summary>
+internal sealed class FireteamTeamDto
+{
+    [JsonPropertyName("name")]
+    [JsonConverter(typeof(LenientStringConverter))]
+    public string? Name { get; set; }
+
+    [JsonPropertyName("type")]
+    public ScalarOrArrayDto Type { get; set; }
+
+    [JsonPropertyName("units")]
+    [JsonConverter(typeof(LenientObjectListConverter<FireteamUnitDto>))]
+    public List<FireteamUnitDto>? Units { get; set; }
+}
+
+/// <summary><c>fireteamChart.teams[].units[]</c></summary>
+internal sealed class FireteamUnitDto
+{
+    [JsonPropertyName("name")]
+    [JsonConverter(typeof(LenientStringConverter))]
+    public string? Name { get; set; }
+
+    [JsonPropertyName("slug")]
+    [JsonConverter(typeof(LenientStringConverter))]
+    public string? Slug { get; set; }
+
+    [JsonPropertyName("comment")]
+    [JsonConverter(typeof(LenientStringConverter))]
+    public string? Comment { get; set; }
+
+    [JsonPropertyName("min")]
+    public JsonScalar Min { get; set; }
+
+    [JsonPropertyName("max")]
+    public JsonScalar Max { get; set; }
+
+    [JsonPropertyName("required")]
+    public JsonScalar Required { get; set; }
+}
+
 /// <summary>An army <c>filters</c> section; a non-array value reads as an empty section.</summary>
 [JsonConverter(typeof(ArmyFilterSectionConverter))]
 internal sealed class ArmyFilterSectionDto
@@ -365,6 +460,9 @@ internal sealed class ArmyFilterSectionConverter : JsonConverter<ArmyFilterSecti
 [JsonSerializable(typeof(List<ProfileGroupDto>), TypeInfoPropertyName = "ProfileGroups")]
 [JsonSerializable(typeof(UnitFiltersDto), TypeInfoPropertyName = "UnitFilters")]
 [JsonSerializable(typeof(Dictionary<string, ArmyFilterSectionDto>), TypeInfoPropertyName = "ArmyFilters")]
+[JsonSerializable(typeof(FireteamChartDto), TypeInfoPropertyName = "FireteamChart")]
+[JsonSerializable(typeof(FireteamTeamDto))]
+[JsonSerializable(typeof(FireteamUnitDto))]
 [JsonSerializable(typeof(ArmyFilterItemDto))]
 [JsonSerializable(typeof(ProfileDto))]
 [JsonSerializable(typeof(ProfileOptionDto))]

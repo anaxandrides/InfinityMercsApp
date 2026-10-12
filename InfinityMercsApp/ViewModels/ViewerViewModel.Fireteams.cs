@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Text.Json;
+using InfinityMercsApp.Infrastructure.Json;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Windows.Input;
@@ -27,31 +27,10 @@ public partial class ViewerViewModel
 
     private void UpdateFireteamCounts(string? fireteamChartJson)
     {
-        FireteamDuoCount = "-";
-        FireteamHarisCount = "-";
-        FireteamCoreCount = "-";
-        if (string.IsNullOrWhiteSpace(fireteamChartJson))
-        {
-            return;
-        }
-
-        try
-        {
-            using var doc = JsonDocument.Parse(fireteamChartJson);
-            if (!doc.RootElement.TryGetProperty("spec", out var specElement) ||
-                specElement.ValueKind != JsonValueKind.Object)
-            {
-                return;
-            }
-
-            FireteamDuoCount = ReadFireteamCount(specElement, "DUO");
-            FireteamHarisCount = ReadFireteamCount(specElement, "HARIS");
-            FireteamCoreCount = ReadFireteamCount(specElement, "CORE");
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"UpdateFireteamCounts failed: {ex.Message}");
-        }
+        var chart = ArmyJsonReader.Shared.ReadFireteamChart(fireteamChartJson);
+        FireteamDuoCount = chart.SpecDisplay("DUO");
+        FireteamHarisCount = chart.SpecDisplay("HARIS");
+        FireteamCoreCount = chart.SpecDisplay("CORE");
     }
 
     private void UpdateFireteamTeams(
@@ -63,132 +42,39 @@ public partial class ViewerViewModel
         Fireteams.Clear();
         FireteamsStatus = "No fireteams available.";
 
-        if (string.IsNullOrWhiteSpace(fireteamChartJson))
+        foreach (var team in ArmyJsonReader.Shared.ReadFireteamChart(fireteamChartJson).Teams)
         {
-            return;
-        }
-
-        try
-        {
-            using var doc = JsonDocument.Parse(fireteamChartJson);
-            if (!doc.RootElement.TryGetProperty("teams", out var teamsElement) ||
-                teamsElement.ValueKind != JsonValueKind.Array)
-            {
-                return;
-            }
-
-            foreach (var teamElement in teamsElement.EnumerateArray())
-            {
-                var teamName = ReadString(teamElement, "name", "Unnamed Team");
-                var teamTypes = ReadTeamTypes(teamElement);
-                var unitLimits = ReadUnitLimits(teamElement);
-                if (mercsOnlyFilterEnabled)
+            var unitLimits = team.Units
+                .Select(unit => new FireteamUnitLimitItem
                 {
-                    unitLimits = unitLimits
-                        .Where(x => IsAllowedFireteamUnit(x, allowedUnitSlugs, allowedUnitNames))
-                        .ToList();
-                    if (unitLimits.Count == 0)
-                    {
-                        continue;
-                    }
+                    Name = unit.ViewerName,
+                    Slug = unit.Slug ?? string.Empty,
+                    Min = (unit.Min ?? 0).ToString(CultureInfo.InvariantCulture),
+                    Max = (unit.Max ?? 0).ToString(CultureInfo.InvariantCulture)
+                })
+                .ToList();
+            if (mercsOnlyFilterEnabled)
+            {
+                unitLimits = unitLimits
+                    .Where(x => IsAllowedFireteamUnit(x, allowedUnitSlugs, allowedUnitNames))
+                    .ToList();
+                if (unitLimits.Count == 0)
+                {
+                    continue;
                 }
-
-                Fireteams.Add(new FireteamTeamItem
-                {
-                    Name = teamName,
-                    TeamTypes = string.IsNullOrWhiteSpace(teamTypes) ? "-" : teamTypes,
-                    UnitLimits = unitLimits
-                });
             }
 
-            FireteamsStatus = Fireteams.Count == 0
-                ? "No fireteams available."
-                : $"{Fireteams.Count} fireteams loaded.";
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"UpdateFireteamTeams failed: {ex.Message}");
-            FireteamsStatus = $"Failed to parse fireteams: {ex.Message}";
-        }
-    }
-
-    private static List<FireteamUnitLimitItem> ReadUnitLimits(JsonElement teamElement)
-    {
-        var results = new List<FireteamUnitLimitItem>();
-        if (!teamElement.TryGetProperty("units", out var unitsElement) || unitsElement.ValueKind != JsonValueKind.Array)
-        {
-            return results;
-        }
-
-        foreach (var unitElement in unitsElement.EnumerateArray())
-        {
-            var unitName = ReadString(unitElement, "name", string.Empty);
-            if (string.IsNullOrWhiteSpace(unitName))
+            Fireteams.Add(new FireteamTeamItem
             {
-                unitName = ReadString(unitElement, "slug", "Unknown");
-            }
-            var unitSlug = ReadString(unitElement, "slug", string.Empty);
-
-            var min = TryReadIntProperty(unitElement, "min", out var minValue) ? minValue : 0;
-            var max = TryReadIntProperty(unitElement, "max", out var maxValue) ? maxValue : 0;
-
-            results.Add(new FireteamUnitLimitItem
-            {
-                Name = unitName,
-                Slug = unitSlug,
-                Min = min.ToString(CultureInfo.InvariantCulture),
-                Max = max.ToString(CultureInfo.InvariantCulture)
+                Name = team.ViewerName,
+                TeamTypes = string.IsNullOrWhiteSpace(team.TypesDisplay) ? "-" : team.TypesDisplay,
+                UnitLimits = unitLimits
             });
         }
 
-        return results;
-    }
-
-    private static string ReadTeamTypes(JsonElement teamElement)
-    {
-        if (!teamElement.TryGetProperty("type", out var typeElement))
-        {
-            return string.Empty;
-        }
-
-        if (typeElement.ValueKind == JsonValueKind.Array)
-        {
-            var types = typeElement.EnumerateArray()
-                .Where(x => x.ValueKind == JsonValueKind.String)
-                .Select(x => x.GetString())
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Select(x => x!.Trim());
-
-            return string.Join(", ", types);
-        }
-
-        if (typeElement.ValueKind == JsonValueKind.String)
-        {
-            return typeElement.GetString() ?? string.Empty;
-        }
-
-        return string.Empty;
-    }
-
-    private static bool TryReadIntProperty(JsonElement element, string propertyName, out int value)
-    {
-        if (!element.TryGetProperty(propertyName, out var propertyValue))
-        {
-            value = 0;
-            return false;
-        }
-
-        return TryReadInt(propertyValue, out value);
-    }
-
-    private static string ReadString(JsonElement element, string propertyName, string fallback)
-    {
-        if (!element.TryGetProperty(propertyName, out var property) || property.ValueKind != JsonValueKind.String)
-        {
-            return fallback;
-        }
-
-        return property.GetString() ?? fallback;
+        FireteamsStatus = Fireteams.Count == 0
+            ? "No fireteams available."
+            : $"{Fireteams.Count} fireteams loaded.";
     }
 
     private static bool IsAllowedFireteamUnit(
@@ -215,43 +101,6 @@ public partial class ViewerViewModel
     private static string NormalizeFireteamUnitName(string value)
     {
         return Regex.Replace(value, @"\s+", " ").Trim().ToUpperInvariant();
-    }
-
-    private static string ReadFireteamCount(JsonElement specElement, string key)
-    {
-        foreach (var property in specElement.EnumerateObject())
-        {
-            if (!string.Equals(property.Name, key, StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            if (TryReadInt(property.Value, out var rawValue))
-            {
-                return rawValue > 5 ? "T" : rawValue.ToString(CultureInfo.InvariantCulture);
-            }
-
-            return "-";
-        }
-
-        return "-";
-    }
-
-    private static bool TryReadInt(JsonElement element, out int value)
-    {
-        if (element.ValueKind == JsonValueKind.Number && element.TryGetInt32(out value))
-        {
-            return true;
-        }
-
-        if (element.ValueKind == JsonValueKind.String &&
-            int.TryParse(element.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
-        {
-            return true;
-        }
-
-        value = 0;
-        return false;
     }
 
     private void ApplyFactionFilter()
@@ -339,50 +188,6 @@ public partial class ViewerViewModel
             : (unit.Category?.ToString() ?? "?");
 
         return $"{typeName} - {categoryName}";
-    }
-
-    private static void CollectIdsFromArrayProperty(JsonElement container, string propertyName, HashSet<int> target)
-    {
-        if (!container.TryGetProperty(propertyName, out var arr) || arr.ValueKind != JsonValueKind.Array)
-        {
-            return;
-        }
-
-        foreach (var entry in arr.EnumerateArray())
-        {
-            if (TryParseId(entry, out var id))
-            {
-                target.Add(id);
-            }
-        }
-    }
-
-    private static HashSet<int> CollectIdsFromArrayProperty(JsonElement container, string propertyName)
-    {
-        var ids = new HashSet<int>();
-        CollectIdsFromArrayProperty(container, propertyName, ids);
-        return ids;
-    }
-
-    private static bool TryParseId(JsonElement element, out int id)
-    {
-        id = 0;
-        if (element.ValueKind == JsonValueKind.Number)
-        {
-            return element.TryGetInt32(out id);
-        }
-
-        if (element.ValueKind == JsonValueKind.String)
-        {
-            return int.TryParse(element.GetString(), out id);
-        }
-
-        if (element.ValueKind == JsonValueKind.Object && element.TryGetProperty("id", out var idElement))
-        {
-            return TryParseId(idElement, out id);
-        }
-
-        return false;
     }
 
 }
