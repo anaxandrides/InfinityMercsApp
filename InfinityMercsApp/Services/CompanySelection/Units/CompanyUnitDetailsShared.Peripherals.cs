@@ -1,4 +1,5 @@
-using System.Text.Json;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Services;
 
 namespace InfinityMercsApp.Views.Common;
@@ -21,25 +22,41 @@ internal static partial class CompanyUnitDetailsShared
         return $"MOV {mov} | CC {cc} | BS {bs} | PH {ph} | WIP {wip} | ARM {arm} | BTS {bts} | {vitalityHeader} {vitality} | S {s} | AVA {ava}";
     }
 
-    internal static TPeripheral? BuildPeripheralStatBlock<TPeripheral>(
+    internal static string BuildPeripheralSubtitle(PeripheralMercsCompanyStats? stats) =>
+        stats is null
+            ? "-"
+            : BuildPeripheralSubtitle(
+                stats.Mov,
+                stats.Cc,
+                stats.Bs,
+                stats.Ph,
+                stats.Wip,
+                stats.Arm,
+                stats.Bts,
+                stats.VitalityHeader,
+                stats.Vitality,
+                stats.S,
+                stats.Ava);
+
+    /// <summary>
+    /// Builds the stat block for a peripheral statline, resolving names against the army filters JSON.
+    /// </summary>
+    internal static PeripheralMercsCompanyStats? BuildPeripheralStatBlock(
         string peripheralName,
-        JsonElement peripheralProfile,
+        UnitProfile peripheralProfile,
         string? filtersJson,
-        bool showUnitsInInches,
-        Func<JsonElement, (int? FirstCm, int? SecondCm)> readMoveCm,
-        Func<CompanyPeripheralStatBlockResult, TPeripheral> map)
+        bool showUnitsInInches)
     {
-        var peripheralMove = readMoveCm(peripheralProfile);
-        var commonResult = CompanyUnitDetailsPeripheralCommon.BuildPeripheralCore(
+        return CompanyPeripheralStatBlockService.Build(
             peripheralName,
             peripheralProfile,
-            filtersJson,
-            showUnitsInInches,
-            peripheralMove.FirstCm,
-            peripheralMove.SecondCm);
-        return commonResult is null ? default : map(commonResult);
+            ArmyJsonReader.Shared.ReadArmyFilters(filtersJson),
+            showUnitsInInches);
     }
 
+    /// <summary>
+    /// Shows the stat block of the first peripheral named by a visible profile row.
+    /// </summary>
     internal static void UpdatePeripheralStatBlockFromVisibleProfiles<TProfile>(
         string? selectedUnitProfileGroupsJson,
         IEnumerable<TProfile> profiles,
@@ -48,8 +65,7 @@ internal static partial class CompanyUnitDetailsShared
         Func<TProfile, string?> readPeripherals,
         Func<string?, string> extractFirstPeripheralName,
         Action resetPeripheralStatsOnly,
-        Action<JsonElement, string> populatePeripheralStatsFromElement,
-        Action<string> logError)
+        Action<UnitProfile, string> populatePeripheralStats)
     {
         resetPeripheralStatsOnly();
 
@@ -73,56 +89,12 @@ internal static partial class CompanyUnitDetailsShared
             return;
         }
 
-        try
+        var peripheralProfile = ArmyJsonReader.Shared
+            .ReadProfileGroups(selectedUnitProfileGroupsJson)
+            .FindPeripheralProfile(peripheralName);
+        if (peripheralProfile is not null)
         {
-            using var doc = JsonDocument.Parse(selectedUnitProfileGroupsJson);
-            if (!CompanyPeripheralProfileSelectionService.TryFindPeripheralStatElement(doc.RootElement, peripheralName, out var peripheralProfile))
-            {
-                return;
-            }
-
-            populatePeripheralStatsFromElement(peripheralProfile, peripheralName);
-        }
-        catch (Exception ex)
-        {
-            logError($"CompanySelectionPage UpdatePeripheralStatBlockFromVisibleProfiles failed: {ex.Message}");
-        }
-    }
-
-    internal static void PopulatePeripheralStatBlock(
-        JsonElement profileGroupsRoot,
-        string? filtersJson,
-        bool forceLieutenant,
-        bool lieutenantOnlyUnits,
-        IReadOnlyDictionary<int, string> skillsLookup,
-        Func<string?, string, Dictionary<int, string>> buildIdNameLookup,
-        Func<JsonElement, IReadOnlyDictionary<int, string>, bool> isLieutenantOption,
-        CompanyUnitDetailDisplayNameContext.TryParseIdDelegate tryParseId,
-        Action resetPeripheralStatsOnly,
-        Action<JsonElement, string> populatePeripheralStatsFromElement)
-    {
-        resetPeripheralStatsOnly();
-
-        if (profileGroupsRoot.ValueKind != JsonValueKind.Array)
-        {
-            return;
-        }
-
-        var peripheralLookup = buildIdNameLookup(filtersJson, "peripheral");
-        var result = CompanyPeripheralProfileSelectionService.FindFirstVisiblePeripheralProfile(
-            new CompanyPeripheralProfileSelectionRequest
-            {
-                ProfileGroupsRoot = profileGroupsRoot,
-                PeripheralLookup = peripheralLookup,
-                ForceLieutenant = forceLieutenant,
-                LieutenantOnlyUnits = lieutenantOnlyUnits,
-                SkillsLookup = skillsLookup,
-                IsLieutenantOption = isLieutenantOption,
-                TryParseId = tryParseId
-            });
-        if (result is not null)
-        {
-            populatePeripheralStatsFromElement(result.PeripheralProfile, result.PeripheralName);
+            populatePeripheralStats(peripheralProfile, peripheralName);
         }
     }
 }

@@ -1,4 +1,6 @@
-using System.Text.Json;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Infrastructure.Json;
+
 namespace InfinityMercsApp.Services;
 
 internal sealed class CompanyUnitDetailsWorkflowRequest
@@ -13,23 +15,15 @@ internal sealed class CompanyUnitDetailsWorkflowRequest
     public required Func<int, CancellationToken, InfinityMercsApp.Domain.Models.Army.Faction?> GetFactionSnapshot { get; init; }
     public required Func<int, CancellationToken, Task<IReadOnlyList<InfinityMercsApp.Domain.Models.Army.SpecopsUnit>>> GetSpecopsUnitsByFactionAsync { get; init; }
     public required Func<int, InfinityMercsApp.Domain.Models.Army.Unit?, CancellationToken, Task> ApplyUnitHeaderColorsAsync { get; init; }
-    public required Func<string?, string, Dictionary<int, string>> BuildIdNameLookup { get; init; }
-    public required CompanyUnitDetailDisplayNameContext.TryParseIdDelegate TryParseId { get; init; }
     public required Func<CancellationToken, Task> ApplyGlobalDisplayUnitsPreferenceAsync { get; init; }
-    public required Func<JsonElement, IEnumerable<JsonElement>> EnumerateOptions { get; init; }
-    public required Func<JsonElement, string> ReadOptionSwc { get; init; }
-    public required Func<string, bool> IsPositiveSwc { get; init; }
-    public required Func<JsonElement, IReadOnlyDictionary<int, string>, bool> IsLieutenantOption { get; init; }
-    public required Action<JsonElement> PopulateUnitStatsFromFirstProfile { get; init; }
-    public required Func<JsonElement, (bool HasRegular, bool HasIrregular, bool HasImpetuous, bool HasTacticalAwareness)> ParseUnitOrderTraits { get; init; }
+    public required Action<UnitProfileGroups> PopulateUnitStatsFromFirstProfile { get; init; }
     public required Action<bool, bool, bool, bool> SetOrderTraits { get; init; }
-    public required Func<JsonElement, IReadOnlyDictionary<int, string>, IReadOnlyDictionary<int, string>, IReadOnlyDictionary<int, string>, (bool HasCube, bool HasCube2, bool HasHackable)> ParseUnitTechTraits { get; init; }
     public required Action<bool, bool, bool> SetTechTraits { get; init; }
     public required Func<IEnumerable<string>, List<string>> EnsureLieutenantSkill { get; init; }
     public required Action<IReadOnlyList<string>, IReadOnlyList<string>, bool> SetCommonEquipmentSkills { get; init; }
     public required Action<string, string> SetSummaryText { get; init; }
     public required Action RefreshSummaryFormatted { get; init; }
-    public required Action<JsonElement, string?, bool> PopulateProfilesFromProfileGroups { get; init; }
+    public required Action<UnitProfileGroups, string?, bool> PopulateProfilesFromProfileGroups { get; init; }
     public required Action UpdatePeripheralStatBlockFromVisibleProfiles { get; init; }
     public required Action<string?> SetSelectedUnitProfileGroupsJson { get; init; }
     public required Action<string?> SetSelectedUnitFiltersJson { get; init; }
@@ -79,49 +73,32 @@ internal static class CompanyUnitDetailsWorkflowService
             return;
         }
 
-        var equipLookup = request.BuildIdNameLookup(snapshot?.FiltersJson, "equip");
-        var skillsLookup = request.BuildIdNameLookup(snapshot?.FiltersJson, "skills");
-        var charsLookup = request.BuildIdNameLookup(snapshot?.FiltersJson, "chars");
-        var displayNameContext = CompanyUnitDetailDisplayNameContext.Create(snapshot?.FiltersJson, request.ShowUnitsInInches, request.TryParseId);
+        var reader = ArmyJsonReader.Shared;
+        var filters = reader.ReadArmyFilters(snapshot?.FiltersJson);
+        var equipLookup = filters.Names(ArmyFilterSection.Equip);
+        var skillsLookup = filters.Names(ArmyFilterSection.Skills);
+        var charsLookup = filters.Names(ArmyFilterSection.Chars);
+        var entryNames = new ProfileEntryNames(filters.Extras, request.ShowUnitsInInches);
         request.SetSelectedUnitProfileGroupsJson(profileGroupsJson);
         request.SetSelectedUnitFiltersJson(snapshot?.FiltersJson);
         await request.ApplyGlobalDisplayUnitsPreferenceAsync(cancellationToken);
 
-        using var doc = JsonDocument.Parse(profileGroupsJson);
-        var options = request.EnumerateOptions(doc.RootElement).ToList();
-        var visibleOptions = options
-            .Where(option => !request.IsPositiveSwc(request.ReadOptionSwc(option)))
-            .Where(option => !treatAsSpecOps && request.LieutenantOnlyUnits ? request.IsLieutenantOption(option, skillsLookup) : true)
+        var profileGroups = reader.ReadProfileGroups(profileGroupsJson);
+        var visibleOptions = profileGroups.AllOptions()
+            .Select(x => x.Option)
+            .Where(option => !option.HasPositiveSwc)
+            .Where(option => !treatAsSpecOps && request.LieutenantOnlyUnits ? option.IsLieutenant(skillsLookup) : true)
             .ToList();
 
-        request.PopulateUnitStatsFromFirstProfile(doc.RootElement);
-        var orderTraits = request.ParseUnitOrderTraits(doc.RootElement);
+        request.PopulateUnitStatsFromFirstProfile(profileGroups);
+        var orderTraits = UnitTraits.ReadOrderTraits(profileGroups);
         request.SetOrderTraits(orderTraits.HasRegular, orderTraits.HasIrregular, orderTraits.HasImpetuous, orderTraits.HasTacticalAwareness);
 
-        var techTraits = request.ParseUnitTechTraits(doc.RootElement, equipLookup, skillsLookup, charsLookup);
+        var techTraits = UnitTraits.ReadTechTraits(profileGroups, equipLookup, skillsLookup, charsLookup);
         request.SetTechTraits(techTraits.HasCube, techTraits.HasCube2, techTraits.HasHackable);
 
-        var stableEquipFromProfiles = displayNameContext.ComputeCommonDisplayNamesFromProfiles(profileGroupsJson, "equip", equipLookup);
-        var stableEquipFromVisibleOptions = visibleOptions.Count > 0
-            ? displayNameContext.IntersectDisplayNamesWithIncludes(doc.RootElement, visibleOptions, "equip", equipLookup)
-            : [];
-        var stableEquip = stableEquipFromProfiles
-            .Concat(stableEquipFromVisibleOptions)
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        var stableSkillsFromProfiles = displayNameContext.ComputeCommonDisplayNamesFromProfiles(profileGroupsJson, "skills", skillsLookup);
-        var stableSkillsFromVisibleOptions = visibleOptions.Count > 0
-            ? displayNameContext.IntersectDisplayNamesWithIncludes(doc.RootElement, visibleOptions, "skills", skillsLookup)
-            : [];
-        var stableSkills = stableSkillsFromProfiles
-            .Concat(stableSkillsFromVisibleOptions)
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        var stableEquip = CommonNames(profileGroups, visibleOptions, ProfileEntryKind.Equip, equipLookup, entryNames);
+        var stableSkills = CommonNames(profileGroups, visibleOptions, ProfileEntryKind.Skills, skillsLookup, entryNames);
 
         stableSkills = treatAsSpecOps
             ? request.EnsureLieutenantSkill(stableSkills)
@@ -135,8 +112,29 @@ internal static class CompanyUnitDetailsWorkflowService
             $"Equipment: {(stableEquip.Count == 0 ? "-" : string.Join(", ", stableEquip))}",
             $"Special Skills: {(stableSkills.Count == 0 ? "-" : string.Join(", ", stableSkills))}");
         request.RefreshSummaryFormatted();
-        request.PopulateProfilesFromProfileGroups(doc.RootElement, snapshot?.FiltersJson, treatAsSpecOps);
+        request.PopulateProfilesFromProfileGroups(profileGroups, snapshot?.FiltersJson, treatAsSpecOps);
         request.UpdatePeripheralStatBlockFromVisibleProfiles();
     }
-}
 
+    /// <summary>
+    /// Names every profile shares plus names every visible option shares, distinct and sorted.
+    /// </summary>
+    internal static List<string> CommonNames(
+        UnitProfileGroups profileGroups,
+        IReadOnlyList<ProfileOption> visibleOptions,
+        ProfileEntryKind kind,
+        IReadOnlyDictionary<int, string> lookup,
+        ProfileEntryNames entryNames)
+    {
+        var fromProfiles = entryNames.CommonAcrossProfiles(profileGroups, kind, lookup);
+        var fromVisibleOptions = visibleOptions.Count > 0
+            ? entryNames.CommonAcrossOptions(profileGroups, visibleOptions, kind, lookup)
+            : [];
+        return fromProfiles
+            .Concat(fromVisibleOptions)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+}

@@ -1,4 +1,4 @@
-using System.Text.Json;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views.Controls;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
@@ -15,7 +15,7 @@ public abstract partial class CompanySelectionPageBase
         ViewerProfileItem profile,
         string? selectedUnitProfileGroupsJson,
         string? selectedUnitFiltersJson,
-        Func<string, JsonElement, string?, TPeripheralStats?> buildPeripheralStatBlock)
+        Func<string, UnitProfile, string?, TPeripheralStats?> buildPeripheralStatBlock)
         where TPeripheralStats : class
     {
         return CompanySelectionRosterWorkflow.BuildMercsCompanyPeripheralStats(

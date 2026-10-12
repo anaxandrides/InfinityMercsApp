@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
@@ -383,107 +385,32 @@ public partial class DebugPage : ContentPage
 
         var snapshot = _armyDataService.GetFactionSnapshot(factionId);
         var filtersJson = snapshot?.FiltersJson;
-        var equipLookup = CompanyUnitDetailsShared.BuildIdNameLookup(filtersJson, "equip");
-        var skillsLookup = CompanyUnitDetailsShared.BuildIdNameLookup(filtersJson, "skills");
-        var displayNameContext = CompanyUnitDetailDisplayNameContext.Create(
-            filtersJson,
-            showUnitsInInches: false,
-            CompanySelectionSharedUtilities.TryParseId);
+        var filters = ArmyJsonReader.Shared.ReadArmyFilters(filtersJson);
+        var equipLookup = filters.Names(ArmyFilterSection.Equip);
+        var skillsLookup = filters.Names(ArmyFilterSection.Skills);
+        var entryNames = new ProfileEntryNames(filters.Extras, showUnitsInInches: false);
 
-        using var doc = JsonDocument.Parse(unit.ProfileGroupsJson);
-        var profileGroupsRoot = doc.RootElement;
-        var options = CompanySelectionSharedUtilities
-            .EnumerateOptions(profileGroupsRoot)
-            .Where(option => !CompanySelectionSharedUtilities.IsPositiveSwc(CompanyProfileOptionService.ReadOptionSwc(option)))
+        var profileGroups = ArmyJsonReader.Shared.ReadProfileGroups(unit.ProfileGroupsJson);
+        var options = profileGroups.AllOptions()
+            .Select(x => x.Option)
+            .Where(option => !option.HasPositiveSwc)
             .ToList();
 
-        var stableEquipFromProfiles = displayNameContext.ComputeCommonDisplayNamesFromProfiles(unit.ProfileGroupsJson, "equip", equipLookup);
-        var stableEquipFromVisibleOptions = options.Count > 0
-            ? displayNameContext.IntersectDisplayNamesWithIncludes(profileGroupsRoot, options, "equip", equipLookup)
-            : [];
-        var stableEquip = stableEquipFromProfiles
-            .Concat(stableEquipFromVisibleOptions)
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        var stableSkillsFromProfiles = displayNameContext.ComputeCommonDisplayNamesFromProfiles(unit.ProfileGroupsJson, "skills", skillsLookup);
-        var stableSkillsFromVisibleOptions = options.Count > 0
-            ? displayNameContext.IntersectDisplayNamesWithIncludes(profileGroupsRoot, options, "skills", skillsLookup)
-            : [];
-        var stableSkills = stableSkillsFromProfiles
-            .Concat(stableSkillsFromVisibleOptions)
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        stableSkills = stableSkills
+        var stableEquip = CompanyUnitDetailsWorkflowService.CommonNames(profileGroups, options, ProfileEntryKind.Equip, equipLookup, entryNames);
+        var stableSkills = CompanyUnitDetailsWorkflowService.CommonNames(profileGroups, options, ProfileEntryKind.Skills, skillsLookup, entryNames)
             .Where(x => !x.Contains("lieutenant", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         var profiles = CompanyProfilePopulationWorkflowService.BuildProfiles(
-            new CompanyProfilePopulationRequest<PeripheralMercsCompanyStats>
+            new CompanyProfilePopulationRequest
             {
-                ProfileGroupsRoot = profileGroupsRoot,
+                ProfileGroups = profileGroups,
                 FiltersJson = filtersJson,
                 ForceLieutenant = false,
                 ShowTacticalAwarenessIcon = false,
                 ShowUnitsInInches = false,
-                TryParseId = CompanySelectionSharedUtilities.TryParseId,
-                BuildIdNameLookup = CompanyUnitDetailsShared.BuildIdNameLookup,
                 ShouldIncludeOption = (_, _, _) => true,
-                ParseCostValue = CompanyUnitFilterService.ParseCostValue,
-                TryFindPeripheralProfile = peripheralName =>
-                    CompanyPeripheralProfileSelectionService.TryFindPeripheralStatElement(profileGroupsRoot, peripheralName, out var peripheralProfile)
-                        ? peripheralProfile
-                        : (JsonElement?)null,
-                BuildPeripheralStatBlock = (peripheralName, peripheralProfile) =>
-                    BuildPeripheralStatBlock(peripheralName, peripheralProfile, filtersJson),
-                TryGetPeripheralUnitCost = peripheralName =>
-                    CompanyUnitFilterService.TryGetPeripheralUnitCost(profileGroupsRoot, peripheralName, out var peripheralCost)
-                        ? peripheralCost
-                        : (int?)null,
-                TryBuildSinglePeripheralDisplay = peripheralNames =>
-                {
-                    var success = CompanyUnitDetailsShared.TryBuildSinglePeripheralDisplay(peripheralNames, out var peripheralName, out var peripheralCount);
-                    return (success, peripheralName, peripheralCount);
-                },
-                ExtractFirstPeripheralName = CompanyUnitDetailsShared.ExtractFirstPeripheralName,
-                NormalizePeripheralNameForDedupe = CompanyUnitDetailsShared.NormalizePeripheralNameForDedupe,
-                GetPeripheralTotalCount = CompanyUnitDetailsShared.GetPeripheralTotalCount,
-                IsLieutenantOption = option => CompanySelectionSharedUtilities.IsLieutenantOption(option, skillsLookup),
-                FormatMoveValue = _armyDataService.FormatMoveValue,
-                BuildPeripheralSubtitle = stats => stats is null
-                    ? "-"
-                    : CompanyUnitDetailsShared.BuildPeripheralSubtitle(
-                        stats.Mov,
-                        stats.Cc,
-                        stats.Bs,
-                        stats.Ph,
-                        stats.Wip,
-                        stats.Arm,
-                        stats.Bts,
-                        stats.VitalityHeader,
-                        stats.Vitality,
-                        stats.S,
-                        stats.Ava),
-                ReadPeripheralNameHeading = stats => stats?.NameHeading ?? string.Empty,
-                ReadPeripheralMoveFirstCm = stats => stats?.MoveFirstCm,
-                ReadPeripheralMoveSecondCm = stats => stats?.MoveSecondCm,
-                ReadPeripheralCc = stats => stats?.Cc ?? "-",
-                ReadPeripheralBs = stats => stats?.Bs ?? "-",
-                ReadPeripheralPh = stats => stats?.Ph ?? "-",
-                ReadPeripheralWip = stats => stats?.Wip ?? "-",
-                ReadPeripheralArm = stats => stats?.Arm ?? "-",
-                ReadPeripheralBts = stats => stats?.Bts ?? "-",
-                ReadPeripheralVitalityHeader = stats => stats?.VitalityHeader ?? "VITA",
-                ReadPeripheralVitality = stats => stats?.Vitality ?? "-",
-                ReadPeripheralS = stats => stats?.S ?? "-",
-                ReadPeripheralAva = stats => stats?.Ava ?? "-",
-                ReadPeripheralEquipment = stats => stats?.Equipment ?? "-",
-                ReadPeripheralSkills = stats => stats?.Skills ?? "-"
+                FormatMoveValue = _armyDataService.FormatMoveValue
             });
 
         if (profiles.Count == 0)
@@ -541,40 +468,9 @@ public partial class DebugPage : ContentPage
         return true;
     }
 
-    private PeripheralMercsCompanyStats? BuildPeripheralStatBlock(string peripheralName, JsonElement peripheralProfile, string? filtersJson)
+    private PeripheralMercsCompanyStats? BuildPeripheralStatBlock(string peripheralName, UnitProfile peripheralProfile, string? filtersJson)
     {
-        return CompanyUnitDetailsShared.BuildPeripheralStatBlock(
-            peripheralName,
-            peripheralProfile,
-            filtersJson,
-            showUnitsInInches: false,
-            element =>
-            {
-                var move = _armyDataService.ReadMoveValue(element);
-                return (move.FirstCm, move.SecondCm);
-            },
-            commonResult => new PeripheralMercsCompanyStats
-            {
-                NameHeading = commonResult.NameHeading,
-                MoveFirstCm = commonResult.MoveFirstCm,
-                MoveSecondCm = commonResult.MoveSecondCm,
-                Mov = commonResult.Mov,
-                Cc = commonResult.Cc,
-                Bs = commonResult.Bs,
-                Ph = commonResult.Ph,
-                Wip = commonResult.Wip,
-                Arm = commonResult.Arm,
-                Bts = commonResult.Bts,
-                VitalityHeader = commonResult.VitalityHeader,
-                Vitality = commonResult.Vitality,
-                S = commonResult.S,
-                Ava = commonResult.Ava,
-                Equipment = commonResult.Equipment,
-                Skills = commonResult.Skills,
-                Characteristics = commonResult.Characteristics,
-                RangedWeapons = commonResult.RangedWeapons,
-                CcWeapons = commonResult.CcWeapons
-            });
+        return CompanyUnitDetailsShared.BuildPeripheralStatBlock(peripheralName, peripheralProfile, filtersJson, showUnitsInInches: false);
     }
 
     private static string BuildSubtitleFromBaseStats(DebugSavedEntry entry)

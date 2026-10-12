@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Text;
-using System.Text.Json;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Services;
@@ -45,8 +45,6 @@ public partial class StandardCompanySelectionPage
                     GetFactionSnapshot = GetFactionSnapshotFromProvider,
                     GetSpecopsUnitsByFactionAsync = (factionId, token) => _specOpsProvider.GetSpecopsUnitsByFactionAsync(factionId, token),
                     ApplyUnitHeaderColorsAsync = ApplyUnitHeaderColorsAsync,
-                    BuildIdNameLookup = BuildIdNameLookup,
-                    TryParseId = TryParseId,
                     ApplyGlobalDisplayUnitsPreferenceAsync = token => CompanyUnitDetailsShared.ApplyGlobalDisplayUnitsPreferenceAsync(
                         () => GetShowUnitsInInchesFromProvider(token),
                         ShowUnitsInInches,
@@ -55,12 +53,7 @@ public partial class StandardCompanySelectionPage
                         UpdatePeripheralMoveDisplay,
                         RefreshMercsCompanyEntryDistanceDisplays,
                         Console.Error.WriteLine),
-                    EnumerateOptions = EnumerateOptions,
-                    ReadOptionSwc = CompanyProfileOptionService.ReadOptionSwc,
-                    IsPositiveSwc = IsPositiveSwc,
-                    IsLieutenantOption = IsLieutenantOption,
                     PopulateUnitStatsFromFirstProfile = PopulateUnitStatsFromFirstProfile,
-                    ParseUnitOrderTraits = CompanyUnitTraitService.ParseUnitOrderTraits,
                     SetOrderTraits = (hasRegular, hasIrregular, hasImpetuous, hasTacticalAwareness) =>
                     {
                         ShowIrregularOrderIcon = hasIrregular;
@@ -68,7 +61,6 @@ public partial class StandardCompanySelectionPage
                         ShowImpetuousIcon = hasImpetuous;
                         ShowTacticalAwarenessIcon = hasTacticalAwareness;
                     },
-                    ParseUnitTechTraits = CompanyUnitTraitService.ParseUnitTechTraits,
                     SetTechTraits = (hasCube, hasCube2, hasHackable) =>
                     {
                         ShowCubeIcon = hasCube;
@@ -117,81 +109,27 @@ public partial class StandardCompanySelectionPage
             () => OpenBestUnitLogoStreamAsync(item));
     }
 
-    /// <summary>
-    /// Handles populate profiles from profile groups.
-    /// </summary>
-    private void PopulateProfilesFromProfileGroups(JsonElement profileGroupsRoot, string? filtersJson, bool forceLieutenant = false)
+    private void PopulateProfilesFromProfileGroups(UnitProfileGroups profileGroups, string? filtersJson, bool forceLieutenant = false)
     {
         Profiles.Clear();
         ProfilesStatus = "Loading profiles...";
 
-        if (profileGroupsRoot.ValueKind != JsonValueKind.Array)
+        if (profileGroups.IsEmpty)
         {
             ProfilesStatus = "No profiles found for this unit.";
             return;
         }
 
-        var skillsLookup = BuildIdNameLookup(filtersJson, "skills");
         var profiles = CompanyProfilePopulationWorkflowService.BuildProfiles(
-            new CompanyProfilePopulationRequest<PeripheralMercsCompanyStats>
+            new CompanyProfilePopulationRequest
             {
-                ProfileGroupsRoot = profileGroupsRoot,
+                ProfileGroups = profileGroups,
                 FiltersJson = filtersJson,
                 ForceLieutenant = forceLieutenant,
                 ShowTacticalAwarenessIcon = ShowTacticalAwarenessIcon,
                 ShowUnitsInInches = ShowUnitsInInches,
-                TryParseId = TryParseId,
-                BuildIdNameLookup = BuildIdNameLookup,
                 ShouldIncludeOption = (_, _, optionName) => ShouldIncludeOption(optionName),
-                ParseCostValue = CompanyUnitFilterService.ParseCostValue,
-                TryFindPeripheralProfile = peripheralName =>
-                    CompanyPeripheralProfileSelectionService.TryFindPeripheralStatElement(profileGroupsRoot, peripheralName, out var peripheralProfile)
-                        ? peripheralProfile
-                        : (JsonElement?)null,
-                BuildPeripheralStatBlock = (peripheralName, peripheralProfile) => BuildPeripheralStatBlock(peripheralName, peripheralProfile, filtersJson),
-                TryGetPeripheralUnitCost = peripheralName =>
-                    CompanyUnitFilterService.TryGetPeripheralUnitCost(profileGroupsRoot, peripheralName, out var peripheralCost)
-                        ? peripheralCost
-                        : (int?)null,
-                TryBuildSinglePeripheralDisplay = peripheralNames =>
-                {
-                    var success = TryBuildSinglePeripheralDisplay(peripheralNames, out var peripheralName, out var peripheralCount);
-                    return (success, peripheralName, peripheralCount);
-                },
-                ExtractFirstPeripheralName = ExtractFirstPeripheralName,
-                NormalizePeripheralNameForDedupe = NormalizePeripheralNameForDedupe,
-                GetPeripheralTotalCount = GetPeripheralTotalCount,
-                IsLieutenantOption = option => IsLieutenantOption(option, skillsLookup),
-                FormatMoveValue = FormatMoveValue,
-                BuildPeripheralSubtitle = stats => stats is null
-                    ? "-"
-                    : CompanyUnitDetailsShared.BuildPeripheralSubtitle(
-                        stats.Mov,
-                        stats.Cc,
-                        stats.Bs,
-                        stats.Ph,
-                        stats.Wip,
-                        stats.Arm,
-                        stats.Bts,
-                        stats.VitalityHeader,
-                        stats.Vitality,
-                        stats.S,
-                        stats.Ava),
-                ReadPeripheralNameHeading = stats => stats?.NameHeading ?? string.Empty,
-                ReadPeripheralMoveFirstCm = stats => stats?.MoveFirstCm,
-                ReadPeripheralMoveSecondCm = stats => stats?.MoveSecondCm,
-                ReadPeripheralCc = stats => stats?.Cc ?? "-",
-                ReadPeripheralBs = stats => stats?.Bs ?? "-",
-                ReadPeripheralPh = stats => stats?.Ph ?? "-",
-                ReadPeripheralWip = stats => stats?.Wip ?? "-",
-                ReadPeripheralArm = stats => stats?.Arm ?? "-",
-                ReadPeripheralBts = stats => stats?.Bts ?? "-",
-                ReadPeripheralVitalityHeader = stats => stats?.VitalityHeader ?? "VITA",
-                ReadPeripheralVitality = stats => stats?.Vitality ?? "-",
-                ReadPeripheralS = stats => stats?.S ?? "-",
-                ReadPeripheralAva = stats => stats?.Ava ?? "-",
-                ReadPeripheralEquipment = stats => stats?.Equipment ?? "-",
-                ReadPeripheralSkills = stats => stats?.Skills ?? "-"
+                FormatMoveValue = FormatMoveValue
             });
 
         foreach (var profileItem in profiles)
@@ -365,24 +303,21 @@ public partial class StandardCompanySelectionPage
     }
 
     /// <summary>
-    /// Handles populate unit stats from first profile.
+    /// Shows the statline of the unit's first profile.
     /// </summary>
-    private void PopulateUnitStatsFromFirstProfile(JsonElement profileGroupsArray)
+    private void PopulateUnitStatsFromFirstProfile(UnitProfileGroups profileGroups)
     {
-        CompanyUnitDetailsShared.PopulateUnitStatsFromFirstProfile(profileGroupsArray, ResetUnitStatsOnly, PopulateUnitStatsFromElement);
+        CompanyUnitDetailsShared.PopulateUnitStatsFromFirstProfile(profileGroups, ResetUnitStatsOnly, PopulateUnitStatsFromProfile);
     }
 
     /// <summary>
-    /// Handles populate unit stats from element.
+    /// Shows a statline in the unit stat block.
     /// </summary>
-    private void PopulateUnitStatsFromElement(JsonElement selectedElement)
+    private void PopulateUnitStatsFromProfile(UnitProfile profile)
     {
         var projection = CompanyUnitDetailsShared.BuildUnitStatProjection(
-            selectedElement,
-            _armyDataService.ReadMoveValue,
-            ReadIntAsString,
-            ReadAvaAsString,
-            ReadVitality);
+            profile,
+            _armyDataService.FormatMoveValue);
         UnitMoveFirstCm = projection.MoveFirstCm;
         UnitMoveSecondCm = projection.MoveSecondCm;
         UnitMov = projection.Mov;
@@ -423,11 +358,11 @@ public partial class StandardCompanySelectionPage
     }
 
     /// <summary>
-    /// Handles populate peripheral stats from element.
+    /// Shows the stat block of a peripheral statline.
     /// </summary>
-    private void PopulatePeripheralStatsFromElement(JsonElement selectedElement, string peripheralName)
+    private void PopulatePeripheralStatsFromProfile(UnitProfile peripheralProfile, string peripheralName)
     {
-        var peripheralStats = BuildPeripheralStatBlock(peripheralName, selectedElement, UnitDisplayConfigurationsView.SelectedUnitFiltersJson);
+        var peripheralStats = BuildPeripheralStatBlock(peripheralName, peripheralProfile, UnitDisplayConfigurationsView.SelectedUnitFiltersJson);
         if (peripheralStats is null)
         {
             return;
@@ -449,47 +384,15 @@ public partial class StandardCompanySelectionPage
             profile => profile.Peripherals,
             ExtractFirstPeripheralName,
             ResetPeripheralStatsOnly,
-            PopulatePeripheralStatsFromElement,
-            Console.Error.WriteLine);
+            PopulatePeripheralStatsFromProfile);
     }
 
     /// <summary>
-    /// Handles build peripheral stat block.
+    /// Builds the stat block for a peripheral statline.
     /// </summary>
-    private PeripheralMercsCompanyStats? BuildPeripheralStatBlock(string peripheralName, JsonElement peripheralProfile, string? filtersJson)
+    private PeripheralMercsCompanyStats? BuildPeripheralStatBlock(string peripheralName, UnitProfile peripheralProfile, string? filtersJson)
     {
-        return CompanyUnitDetailsShared.BuildPeripheralStatBlock(
-            peripheralName,
-            peripheralProfile,
-            filtersJson,
-            ShowUnitsInInches,
-            element =>
-            {
-                var move = _armyDataService.ReadMoveValue(element);
-                return (move.FirstCm, move.SecondCm);
-            },
-            commonResult => new PeripheralMercsCompanyStats
-            {
-                NameHeading = commonResult.NameHeading,
-                MoveFirstCm = commonResult.MoveFirstCm,
-                MoveSecondCm = commonResult.MoveSecondCm,
-                Mov = commonResult.Mov,
-                Cc = commonResult.Cc,
-                Bs = commonResult.Bs,
-                Ph = commonResult.Ph,
-                Wip = commonResult.Wip,
-                Arm = commonResult.Arm,
-                Bts = commonResult.Bts,
-                VitalityHeader = commonResult.VitalityHeader,
-                Vitality = commonResult.Vitality,
-                S = commonResult.S,
-                Ava = commonResult.Ava,
-                Equipment = commonResult.Equipment,
-                Skills = commonResult.Skills,
-                Characteristics = commonResult.Characteristics,
-                RangedWeapons = commonResult.RangedWeapons,
-                CcWeapons = commonResult.CcWeapons
-            });
+        return CompanyUnitDetailsShared.BuildPeripheralStatBlock(peripheralName, peripheralProfile, filtersJson, ShowUnitsInInches);
     }
 
     /// <summary>
@@ -518,27 +421,6 @@ public partial class StandardCompanySelectionPage
         HasPeripheralStatBlock = true;
     }
 
-    /// <summary>
-    /// Handles populate peripheral stat block.
-    /// </summary>
-    private void PopulatePeripheralStatBlock(
-        JsonElement profileGroupsRoot,
-        string? filtersJson,
-        bool forceLieutenant,
-        IReadOnlyDictionary<int, string> skillsLookup)
-    {
-        CompanyUnitDetailsShared.PopulatePeripheralStatBlock(
-            profileGroupsRoot,
-            filtersJson,
-            forceLieutenant,
-            LieutenantOnlyUnits,
-            skillsLookup,
-            BuildIdNameLookup,
-            IsLieutenantOption,
-            TryParseId,
-            ResetPeripheralStatsOnly,
-            PopulatePeripheralStatsFromElement);
-    }
 }
 
 

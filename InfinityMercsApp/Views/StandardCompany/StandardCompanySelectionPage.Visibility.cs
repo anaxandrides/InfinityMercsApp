@@ -1,4 +1,5 @@
-using System.Text.Json;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Common;
 
@@ -101,15 +102,6 @@ public partial class StandardCompanySelectionPage
             return false;
         }
 
-        try
-        {
-            using var doc = JsonDocument.Parse(profileGroupsJson);
-            var traits = CompanyUnitTraitService.ParseUnitOrderTraits(doc.RootElement);
-            return traits.HasRegular;
-        }
-        catch
-        {
-            return false;
-        }
+        return UnitTraits.ReadOrderTraits(ArmyJsonReader.Shared.ReadProfileGroups(profileGroupsJson)).HasRegular;
     }
 }

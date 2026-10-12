@@ -1,110 +1,54 @@
-﻿using System.Text.Json;
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Views.Common;
 
 namespace InfinityMercsApp.Services;
 
-internal sealed class CompanyPeripheralStatBlockRequest
-{
-    public required string PeripheralName { get; init; }
-    public required JsonElement PeripheralProfile { get; init; }
-    public required string? FiltersJson { get; init; }
-    public required bool ShowUnitsInInches { get; init; }
-    public required int? MoveFirstCm { get; init; }
-    public required int? MoveSecondCm { get; init; }
-    public required CompanyUnitDetailDisplayNameContext.TryParseIdDelegate TryParseId { get; init; }
-    public required Func<JsonElement, (string VitalityHeader, string VitalityValue)> ReadVitality { get; init; }
-    public required Func<JsonElement, string> ReadMoveFromProfile { get; init; }
-    public required Func<JsonElement, string, string> ReadIntAsString { get; init; }
-    public required Func<JsonElement, string> ReadAvaAsString { get; init; }
-}
-
-internal sealed class CompanyPeripheralStatBlockResult
-{
-    public string NameHeading { get; init; } = string.Empty;
-    public int? MoveFirstCm { get; init; }
-    public int? MoveSecondCm { get; init; }
-    public string Mov { get; init; } = "-";
-    public string Cc { get; init; } = "-";
-    public string Bs { get; init; } = "-";
-    public string Ph { get; init; } = "-";
-    public string Wip { get; init; } = "-";
-    public string Arm { get; init; } = "-";
-    public string Bts { get; init; } = "-";
-    public string VitalityHeader { get; init; } = "VITA";
-    public string Vitality { get; init; } = "-";
-    public string S { get; init; } = "-";
-    public string Ava { get; init; } = "-";
-    public string Equipment { get; init; } = "-";
-    public string Skills { get; init; } = "-";
-    public string Characteristics { get; init; } = "-";
-    public string RangedWeapons { get; init; } = "-";
-    public string CcWeapons { get; init; } = "-";
-}
-
 internal static class CompanyPeripheralStatBlockService
 {
     /// <summary>
-    /// Builds a peripheral stat block from profile JSON and shared display-name rules.
+    /// Builds the stat block shown for a unit's peripheral from its statline and the army filters.
     /// </summary>
-    public static CompanyPeripheralStatBlockResult? Build(CompanyPeripheralStatBlockRequest request)
+    public static PeripheralMercsCompanyStats? Build(
+        string peripheralName,
+        UnitProfile peripheralProfile,
+        ArmyFilterCatalog filters,
+        bool showUnitsInInches)
     {
-        if (string.IsNullOrWhiteSpace(request.PeripheralName))
+        if (string.IsNullOrWhiteSpace(peripheralName))
         {
             return null;
         }
 
-        var equipLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(request.FiltersJson, "equip");
-        var skillsLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(request.FiltersJson, "skills");
-        var displayNameContext = CompanyUnitDetailDisplayNameContext.Create(request.FiltersJson, request.ShowUnitsInInches, request.TryParseId);
-        var charsLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(request.FiltersJson, "chars");
-        var weaponsLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(request.FiltersJson, "weapons");
-
-        var equipmentNames = displayNameContext.GetOrderedIdDisplayNamesFromEntries(
-            CompanySelectionSharedUtilities.GetContainerEntries(request.PeripheralProfile, "equip"),
-            equipLookup);
+        var names = new ProfileEntryNames(filters.Extras, showUnitsInInches);
+        var equipmentNames = names.OrderedUnique(peripheralProfile.Equip, filters.Names(ArmyFilterSection.Equip));
         var skillNames = CompanyProfileTextService.BuildConfigurationSkillNames(
-            displayNameContext.GetOrderedIdDisplayNamesFromEntries(
-                CompanySelectionSharedUtilities.GetContainerEntries(request.PeripheralProfile, "skills"),
-                skillsLookup));
-        var characteristicNames = displayNameContext.GetOrderedIdDisplayNamesFromEntries(
-            CompanySelectionSharedUtilities.GetContainerEntries(request.PeripheralProfile, "chars"),
-            charsLookup);
-        var weaponNames = displayNameContext.GetOrderedIdDisplayNamesFromEntries(
-            CompanySelectionSharedUtilities.GetContainerEntries(request.PeripheralProfile, "weapons"),
-            weaponsLookup);
-        var rangedWeaponNames = weaponNames
-            .Where(x => !CompanyProfileTextService.IsMeleeWeaponName(x))
-            .ToList();
-        var ccWeaponNames = weaponNames
-            .Where(CompanyProfileTextService.IsMeleeWeaponName)
-            .ToList();
-        var (vitalityHeader, vitalityValue) = request.ReadVitality(request.PeripheralProfile);
+            names.OrderedUnique(peripheralProfile.Skills, filters.Names(ArmyFilterSection.Skills)));
+        var characteristicNames = names.OrderedUnique(peripheralProfile.Chars, filters.Names(ArmyFilterSection.Chars));
+        var weaponNames = names.OrderedUnique(peripheralProfile.Weapons, filters.Names(ArmyFilterSection.Weapons));
+        var (moveFirstCm, moveSecondCm) = peripheralProfile.MoveFirstSecondCm;
+        var (vitalityHeader, vitalityValue) = peripheralProfile.Vitality;
 
-        return new CompanyPeripheralStatBlockResult
+        return new PeripheralMercsCompanyStats
         {
-            NameHeading = $"Peripheral: {request.PeripheralName}",
-            MoveFirstCm = request.MoveFirstCm,
-            MoveSecondCm = request.MoveSecondCm,
-            Mov = request.ReadMoveFromProfile(request.PeripheralProfile),
-            Cc = request.ReadIntAsString(request.PeripheralProfile, "cc"),
-            Bs = request.ReadIntAsString(request.PeripheralProfile, "bs"),
-            Ph = request.ReadIntAsString(request.PeripheralProfile, "ph"),
-            Wip = request.ReadIntAsString(request.PeripheralProfile, "wip"),
-            Arm = request.ReadIntAsString(request.PeripheralProfile, "arm"),
-            Bts = request.ReadIntAsString(request.PeripheralProfile, "bts"),
+            NameHeading = $"Peripheral: {peripheralName}",
+            MoveFirstCm = moveFirstCm,
+            MoveSecondCm = moveSecondCm,
+            Mov = peripheralProfile.Move,
+            Cc = UnitProfile.StatText(peripheralProfile.Cc),
+            Bs = UnitProfile.StatText(peripheralProfile.Bs),
+            Ph = UnitProfile.StatText(peripheralProfile.Ph),
+            Wip = UnitProfile.StatText(peripheralProfile.Wip),
+            Arm = UnitProfile.StatText(peripheralProfile.Arm),
+            Bts = UnitProfile.StatText(peripheralProfile.Bts),
             VitalityHeader = vitalityHeader,
             Vitality = vitalityValue,
-            S = request.ReadIntAsString(request.PeripheralProfile, "s"),
-            Ava = request.ReadAvaAsString(request.PeripheralProfile),
+            S = UnitProfile.StatText(peripheralProfile.S),
+            Ava = peripheralProfile.AvaText,
             Equipment = CompanyProfileTextService.JoinOrDash(equipmentNames),
             Skills = CompanyProfileTextService.JoinOrDash(skillNames),
             Characteristics = CompanyProfileTextService.JoinOrDash(characteristicNames),
-            RangedWeapons = CompanyProfileTextService.JoinOrDash(rangedWeaponNames),
-            CcWeapons = CompanyProfileTextService.JoinOrDash(ccWeaponNames)
+            RangedWeapons = CompanyProfileTextService.JoinOrDash(weaponNames.Where(x => !CompanyProfileTextService.IsMeleeWeaponName(x))),
+            CcWeapons = CompanyProfileTextService.JoinOrDash(weaponNames.Where(CompanyProfileTextService.IsMeleeWeaponName))
         };
     }
 }
-
-
-

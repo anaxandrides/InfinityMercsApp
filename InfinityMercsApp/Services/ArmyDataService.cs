@@ -148,6 +148,12 @@ internal sealed class ArmyDataService(
         return (firstCm, secondCm, FormatMoveValue(firstCm, secondCm));
     }
 
+    public (int? FirstCm, int? SecondCm, string DisplayValue) ReadMoveValue(InfinityMercsApp.Domain.Models.Army.Profiles.UnitProfile profile)
+    {
+        var (firstCm, secondCm) = profile.MoveFirstSecondCm;
+        return (firstCm, secondCm, FormatMoveValue(firstCm, secondCm));
+    }
+
     public string FormatMoveValue(int? firstCm, int? secondCm)
     {
         if (firstCm is null || secondCm is null || firstCm <= 0 || secondCm <= 0)

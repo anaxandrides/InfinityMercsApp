@@ -1,4 +1,4 @@
-using System.Text.Json;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 
 namespace InfinityMercsApp.Views.Common;
 
@@ -15,72 +15,41 @@ internal static partial class CompanyUnitDetailsShared
         }
     }
 
+    /// <summary>
+    /// Shows the first profile's statline (or clears the stats when the unit has no profiles).
+    /// </summary>
     internal static void PopulateUnitStatsFromFirstProfile(
-        JsonElement profileGroupsArray,
+        UnitProfileGroups profileGroups,
         Action resetUnitStatsOnly,
-        Action<JsonElement> populateUnitStatsFromElement)
+        Action<UnitProfile> populateUnitStats)
     {
         resetUnitStatsOnly();
 
-        if (profileGroupsArray.ValueKind != JsonValueKind.Array)
+        var firstProfile = profileGroups.Groups.SelectMany(group => group.Profiles).FirstOrDefault();
+        if (firstProfile is not null)
         {
-            return;
-        }
-
-        JsonElement? firstProfile = null;
-        foreach (var group in profileGroupsArray.EnumerateArray())
-        {
-            if (!group.TryGetProperty("profiles", out var profilesElement) || profilesElement.ValueKind != JsonValueKind.Array)
-            {
-                continue;
-            }
-
-            foreach (var profile in profilesElement.EnumerateArray())
-            {
-                firstProfile = profile;
-                break;
-            }
-
-            if (firstProfile.HasValue)
-            {
-                break;
-            }
-        }
-
-        if (firstProfile.HasValue)
-        {
-            populateUnitStatsFromElement(firstProfile.Value);
-            return;
-        }
-
-        var firstOption = EnumerateOptions(profileGroupsArray).FirstOrDefault();
-        if (firstOption.ValueKind == JsonValueKind.Object)
-        {
-            populateUnitStatsFromElement(firstOption);
+            populateUnitStats(firstProfile);
         }
     }
 
     internal static CompanyUnitStatProjection BuildUnitStatProjection(
-        JsonElement selectedElement,
-        Func<JsonElement, (int? FirstCm, int? SecondCm, string DisplayValue)> readMoveValue,
-        Func<JsonElement, string, string> readIntAsString,
-        Func<JsonElement, string> readAvaAsString,
-        Func<JsonElement, (string Header, string Value)> readVitality)
+        UnitProfile profile,
+        Func<int?, int?, string> formatMoveValue)
     {
-        var unitMove = readMoveValue(selectedElement);
-        var (vitalityHeader, vitalityValue) = readVitality(selectedElement);
+        var (moveFirstCm, moveSecondCm) = profile.MoveFirstSecondCm;
+        var (vitalityHeader, vitalityValue) = profile.Vitality;
         return new CompanyUnitStatProjection(
-            unitMove.FirstCm,
-            unitMove.SecondCm,
-            unitMove.DisplayValue,
-            readIntAsString(selectedElement, "cc"),
-            readIntAsString(selectedElement, "bs"),
-            readIntAsString(selectedElement, "ph"),
-            readIntAsString(selectedElement, "wip"),
-            readIntAsString(selectedElement, "arm"),
-            readIntAsString(selectedElement, "bts"),
-            readIntAsString(selectedElement, "s"),
-            readAvaAsString(selectedElement),
+            moveFirstCm,
+            moveSecondCm,
+            formatMoveValue(moveFirstCm, moveSecondCm),
+            UnitProfile.StatText(profile.Cc),
+            UnitProfile.StatText(profile.Bs),
+            UnitProfile.StatText(profile.Ph),
+            UnitProfile.StatText(profile.Wip),
+            UnitProfile.StatText(profile.Arm),
+            UnitProfile.StatText(profile.Bts),
+            UnitProfile.StatText(profile.S),
+            profile.AvaText,
             vitalityHeader,
             vitalityValue);
     }

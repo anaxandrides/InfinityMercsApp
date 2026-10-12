@@ -20,5 +20,6 @@ public interface IArmyDataService
     ArmyUnitRecord? GetUnit(int factionId, int unitId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<MercsArmyListEntry>> GetMergedMercsArmyListAsync(IReadOnlyCollection<int> factionIds, CancellationToken cancellationToken = default);
     (int? FirstCm, int? SecondCm, string DisplayValue) ReadMoveValue(JsonElement element);
+    (int? FirstCm, int? SecondCm, string DisplayValue) ReadMoveValue(InfinityMercsApp.Domain.Models.Army.Profiles.UnitProfile profile);
     string FormatMoveValue(int? firstCm, int? secondCm);
 }

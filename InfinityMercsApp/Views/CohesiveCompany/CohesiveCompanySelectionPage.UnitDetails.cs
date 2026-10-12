@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
-using System.Text.Json;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Infrastructure.Json;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
@@ -40,8 +41,6 @@ public partial class CohesiveCompanySelectionPage
                     GetFactionSnapshot = GetFactionSnapshotFromProvider,
                     GetSpecopsUnitsByFactionAsync = (factionId, token) => _specOpsProvider.GetSpecopsUnitsByFactionAsync(factionId, token),
                     ApplyUnitHeaderColorsAsync = ApplyUnitHeaderColorsAsync,
-                    BuildIdNameLookup = BuildIdNameLookup,
-                    TryParseId = TryParseId,
                     ApplyGlobalDisplayUnitsPreferenceAsync = token => CompanyUnitDetailsShared.ApplyGlobalDisplayUnitsPreferenceAsync(
                         () => GetShowUnitsInInchesFromProvider(token),
                         ShowUnitsInInches,
@@ -50,12 +49,7 @@ public partial class CohesiveCompanySelectionPage
                         UpdatePeripheralMoveDisplay,
                         RefreshMercsCompanyEntryDistanceDisplays,
                         Console.Error.WriteLine),
-                    EnumerateOptions = EnumerateOptions,
-                    ReadOptionSwc = CompanyProfileOptionService.ReadOptionSwc,
-                    IsPositiveSwc = IsPositiveSwc,
-                    IsLieutenantOption = IsLieutenantOption,
                     PopulateUnitStatsFromFirstProfile = PopulateUnitStatsFromFirstProfile,
-                    ParseUnitOrderTraits = CompanyUnitTraitService.ParseUnitOrderTraits,
                     SetOrderTraits = (hasRegular, hasIrregular, hasImpetuous, hasTacticalAwareness) =>
                     {
                         ShowIrregularOrderIcon = hasIrregular;
@@ -63,7 +57,6 @@ public partial class CohesiveCompanySelectionPage
                         ShowImpetuousIcon = hasImpetuous;
                         ShowTacticalAwarenessIcon = hasTacticalAwareness;
                     },
-                    ParseUnitTechTraits = CompanyUnitTraitService.ParseUnitTechTraits,
                     SetTechTraits = (hasCube, hasCube2, hasHackable) =>
                     {
                         ShowCubeIcon = hasCube;
@@ -109,80 +102,29 @@ public partial class CohesiveCompanySelectionPage
             () => OpenBestUnitLogoStreamAsync(item));
     }
 
-    private void PopulateProfilesFromProfileGroups(JsonElement profileGroupsRoot, string? filtersJson, bool forceLieutenant = false)
+    private void PopulateProfilesFromProfileGroups(UnitProfileGroups profileGroups, string? filtersJson, bool forceLieutenant = false)
     {
         Profiles.Clear();
         ProfilesStatus = "Loading profiles...";
 
-        if (profileGroupsRoot.ValueKind != JsonValueKind.Array)
+        if (profileGroups.IsEmpty)
         {
             ProfilesStatus = "No profiles found for this unit.";
             return;
         }
 
-        var skillsLookup = BuildIdNameLookup(filtersJson, "skills");
         var profiles = CompanyProfilePopulationWorkflowService.BuildProfiles(
-            new CompanyProfilePopulationRequest<PeripheralMercsCompanyStats>
+            new CompanyProfilePopulationRequest
             {
-                ProfileGroupsRoot = profileGroupsRoot,
+                ProfileGroups = profileGroups,
                 FiltersJson = filtersJson,
                 ForceLieutenant = forceLieutenant,
                 ShowTacticalAwarenessIcon = ShowTacticalAwarenessIcon,
                 ShowUnitsInInches = ShowUnitsInInches,
-                TryParseId = TryParseId,
-                BuildIdNameLookup = BuildIdNameLookup,
                 ShouldIncludeOption = (_, _, optionName) => ShouldIncludeOption(optionName),
                 AdjustOptionDisplayCost = (group, option, adjustedCost) =>
-                    ApplyCohesiveTacticalAwarenessDiscount(profileGroupsRoot, skillsLookup, group, option, adjustedCost),
-                ParseCostValue = CompanyUnitFilterService.ParseCostValue,
-                TryFindPeripheralProfile = peripheralName =>
-                    CompanyPeripheralProfileSelectionService.TryFindPeripheralStatElement(profileGroupsRoot, peripheralName, out var peripheralProfile)
-                        ? peripheralProfile
-                        : (JsonElement?)null,
-                BuildPeripheralStatBlock = (peripheralName, peripheralProfile) => BuildPeripheralStatBlock(peripheralName, peripheralProfile, filtersJson),
-                TryGetPeripheralUnitCost = peripheralName =>
-                    CompanyUnitFilterService.TryGetPeripheralUnitCost(profileGroupsRoot, peripheralName, out var peripheralCost)
-                        ? peripheralCost
-                        : (int?)null,
-                TryBuildSinglePeripheralDisplay = peripheralNames =>
-                {
-                    var success = TryBuildSinglePeripheralDisplay(peripheralNames, out var peripheralName, out var peripheralCount);
-                    return (success, peripheralName, peripheralCount);
-                },
-                ExtractFirstPeripheralName = ExtractFirstPeripheralName,
-                NormalizePeripheralNameForDedupe = NormalizePeripheralNameForDedupe,
-                GetPeripheralTotalCount = GetPeripheralTotalCount,
-                IsLieutenantOption = option => IsLieutenantOption(option, skillsLookup),
-                FormatMoveValue = FormatMoveValue,
-                BuildPeripheralSubtitle = stats => stats is null
-                    ? "-"
-                    : CompanyUnitDetailsShared.BuildPeripheralSubtitle(
-                        stats.Mov,
-                        stats.Cc,
-                        stats.Bs,
-                        stats.Ph,
-                        stats.Wip,
-                        stats.Arm,
-                        stats.Bts,
-                        stats.VitalityHeader,
-                        stats.Vitality,
-                        stats.S,
-                        stats.Ava),
-                ReadPeripheralNameHeading = stats => stats?.NameHeading ?? string.Empty,
-                ReadPeripheralMoveFirstCm = stats => stats?.MoveFirstCm,
-                ReadPeripheralMoveSecondCm = stats => stats?.MoveSecondCm,
-                ReadPeripheralCc = stats => stats?.Cc ?? "-",
-                ReadPeripheralBs = stats => stats?.Bs ?? "-",
-                ReadPeripheralPh = stats => stats?.Ph ?? "-",
-                ReadPeripheralWip = stats => stats?.Wip ?? "-",
-                ReadPeripheralArm = stats => stats?.Arm ?? "-",
-                ReadPeripheralBts = stats => stats?.Bts ?? "-",
-                ReadPeripheralVitalityHeader = stats => stats?.VitalityHeader ?? "VITA",
-                ReadPeripheralVitality = stats => stats?.Vitality ?? "-",
-                ReadPeripheralS = stats => stats?.S ?? "-",
-                ReadPeripheralAva = stats => stats?.Ava ?? "-",
-                ReadPeripheralEquipment = stats => stats?.Equipment ?? "-",
-                ReadPeripheralSkills = stats => stats?.Skills ?? "-"
+                    ApplyCohesiveTacticalAwarenessDiscount(profileGroups, filtersJson, group, option, adjustedCost),
+                FormatMoveValue = FormatMoveValue
             });
 
         foreach (var profileItem in profiles)
@@ -198,11 +140,14 @@ public partial class CohesiveCompanySelectionPage
         return !_restrictSelectedUnitProfilesToFto || IsFtoLabel(optionName);
     }
 
-    private string ApplyCohesiveTacticalAwarenessDiscount(
-        JsonElement profileGroupsRoot,
-        IReadOnlyDictionary<int, string> skillsLookup,
-        JsonElement group,
-        JsonElement option,
+    /// <summary>
+    /// Cohesive companies get 3 points off any trooper with Tactical Awareness (option, its includes, or its profiles).
+    /// </summary>
+    private static string ApplyCohesiveTacticalAwarenessDiscount(
+        UnitProfileGroups profileGroups,
+        string? filtersJson,
+        ProfileGroup group,
+        ProfileOption option,
         string adjustedCost)
     {
         if (!int.TryParse(adjustedCost, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedCost))
@@ -210,7 +155,8 @@ public partial class CohesiveCompanySelectionPage
             return adjustedCost;
         }
 
-        if (!HasTacticalAwarenessInOptionOrGroup(profileGroupsRoot, skillsLookup, group, option))
+        var skillsLookup = ArmyJsonReader.Shared.ReadArmyFilters(filtersJson).Names(ArmyFilterSection.Skills);
+        if (!HasTacticalAwarenessInOptionOrGroup(profileGroups, skillsLookup, group, option))
         {
             return adjustedCost;
         }
@@ -218,77 +164,23 @@ public partial class CohesiveCompanySelectionPage
         return Math.Max(0, parsedCost - 3).ToString(CultureInfo.InvariantCulture);
     }
 
-    private bool HasTacticalAwarenessInOptionOrGroup(
-        JsonElement profileGroupsRoot,
+    private static bool HasTacticalAwarenessInOptionOrGroup(
+        UnitProfileGroups profileGroups,
         IReadOnlyDictionary<int, string> skillsLookup,
-        JsonElement group,
-        JsonElement option)
+        ProfileGroup group,
+        ProfileOption option)
     {
-        var optionSkills = CompanyProfileOptionService.GetOptionEntriesWithIncludes(profileGroupsRoot, option, "skills");
-        if (ContainsTacticalAwareness(optionSkills, skillsLookup))
-        {
-            return true;
-        }
-
-        if (group.TryGetProperty("profiles", out var profilesElement) &&
-            profilesElement.ValueKind == JsonValueKind.Array)
-        {
-            foreach (var profile in profilesElement.EnumerateArray())
-            {
-                if (profile.TryGetProperty("skills", out var profileSkills) &&
-                    profileSkills.ValueKind == JsonValueKind.Array &&
-                    ContainsTacticalAwareness(profileSkills.EnumerateArray(), skillsLookup))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return ContainsTacticalAwareness(profileGroups.GetEntriesWithIncludes(option, ProfileEntryKind.Skills), skillsLookup) ||
+               group.Profiles.Any(profile => ContainsTacticalAwareness(profile.Skills, skillsLookup));
     }
 
-    private bool ContainsTacticalAwareness(IEnumerable<JsonElement> skillEntries, IReadOnlyDictionary<int, string> skillsLookup)
+    private static bool ContainsTacticalAwareness(IEnumerable<ProfileEntry> skillEntries, IReadOnlyDictionary<int, string> skillsLookup)
     {
-        foreach (var entry in skillEntries)
-        {
-            if (TryResolveSkillName(entry, skillsLookup, out var skillName) &&
-                skillName.Contains("tactical awareness", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private bool TryResolveSkillName(JsonElement entry, IReadOnlyDictionary<int, string> skillsLookup, out string skillName)
-    {
-        skillName = string.Empty;
-
-        if (entry.ValueKind == JsonValueKind.String)
-        {
-            var text = entry.GetString();
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return false;
-            }
-
-            skillName = text.Trim();
-            return true;
-        }
-
-        if (!TryParseId(entry, out var skillId) || !skillsLookup.TryGetValue(skillId, out var lookupName))
-        {
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(lookupName))
-        {
-            return false;
-        }
-
-        skillName = lookupName;
-        return true;
+        return skillEntries.Any(entry =>
+            entry.Id is int skillId &&
+            skillsLookup.TryGetValue(skillId, out var skillName) &&
+            !string.IsNullOrWhiteSpace(skillName) &&
+            skillName.Contains("tactical awareness", StringComparison.OrdinalIgnoreCase));
     }
 
     private async Task<Stream?> OpenBestUnitLogoStreamAsync(ArmyUnitSelectionItem item)
@@ -415,19 +307,19 @@ public partial class CohesiveCompanySelectionPage
         PeripheralSkillsFormatted = CompanyProfileTextService.BuildNamedSummaryFormatted("Skills", Array.Empty<string>(), Color.FromArgb("#F59E0B"));
     }
 
-    private void PopulateUnitStatsFromFirstProfile(JsonElement profileGroupsArray)
+    /// <summary>
+    /// Shows the statline of the unit's first profile.
+    /// </summary>
+    private void PopulateUnitStatsFromFirstProfile(UnitProfileGroups profileGroups)
     {
-        CompanyUnitDetailsShared.PopulateUnitStatsFromFirstProfile(profileGroupsArray, ResetUnitStatsOnly, PopulateUnitStatsFromElement);
+        CompanyUnitDetailsShared.PopulateUnitStatsFromFirstProfile(profileGroups, ResetUnitStatsOnly, PopulateUnitStatsFromProfile);
     }
 
-    private void PopulateUnitStatsFromElement(JsonElement selectedElement)
+    private void PopulateUnitStatsFromProfile(UnitProfile profile)
     {
         var projection = CompanyUnitDetailsShared.BuildUnitStatProjection(
-            selectedElement,
-            _armyDataService.ReadMoveValue,
-            ReadIntAsString,
-            ReadAvaAsString,
-            ReadVitality);
+            profile,
+            _armyDataService.FormatMoveValue);
         UnitMoveFirstCm = projection.MoveFirstCm;
         UnitMoveSecondCm = projection.MoveSecondCm;
         UnitMov = projection.Mov;
@@ -458,9 +350,12 @@ public partial class CohesiveCompanySelectionPage
         PeripheralMov = _armyDataService.FormatMoveValue(PeripheralMoveFirstCm, PeripheralMoveSecondCm);
     }
 
-    private void PopulatePeripheralStatsFromElement(JsonElement selectedElement, string peripheralName)
+    /// <summary>
+    /// Shows the stat block of a peripheral statline.
+    /// </summary>
+    private void PopulatePeripheralStatsFromProfile(UnitProfile peripheralProfile, string peripheralName)
     {
-        var peripheralStats = BuildPeripheralStatBlock(peripheralName, selectedElement, UnitDisplayConfigurationsView.SelectedUnitFiltersJson);
+        var peripheralStats = BuildPeripheralStatBlock(peripheralName, peripheralProfile, UnitDisplayConfigurationsView.SelectedUnitFiltersJson);
         if (peripheralStats is null)
         {
             return;
@@ -479,44 +374,15 @@ public partial class CohesiveCompanySelectionPage
             profile => profile.Peripherals,
             ExtractFirstPeripheralName,
             ResetPeripheralStatsOnly,
-            PopulatePeripheralStatsFromElement,
-            Console.Error.WriteLine);
+            PopulatePeripheralStatsFromProfile);
     }
 
-    private PeripheralMercsCompanyStats? BuildPeripheralStatBlock(string peripheralName, JsonElement peripheralProfile, string? filtersJson)
+    /// <summary>
+    /// Builds the stat block for a peripheral statline.
+    /// </summary>
+    private PeripheralMercsCompanyStats? BuildPeripheralStatBlock(string peripheralName, UnitProfile peripheralProfile, string? filtersJson)
     {
-        return CompanyUnitDetailsShared.BuildPeripheralStatBlock(
-            peripheralName,
-            peripheralProfile,
-            filtersJson,
-            ShowUnitsInInches,
-            element =>
-            {
-                var move = _armyDataService.ReadMoveValue(element);
-                return (move.FirstCm, move.SecondCm);
-            },
-            commonResult => new PeripheralMercsCompanyStats
-            {
-                NameHeading = commonResult.NameHeading,
-                MoveFirstCm = commonResult.MoveFirstCm,
-                MoveSecondCm = commonResult.MoveSecondCm,
-                Mov = commonResult.Mov,
-                Cc = commonResult.Cc,
-                Bs = commonResult.Bs,
-                Ph = commonResult.Ph,
-                Wip = commonResult.Wip,
-                Arm = commonResult.Arm,
-                Bts = commonResult.Bts,
-                VitalityHeader = commonResult.VitalityHeader,
-                Vitality = commonResult.Vitality,
-                S = commonResult.S,
-                Ava = commonResult.Ava,
-                Equipment = commonResult.Equipment,
-                Skills = commonResult.Skills,
-                Characteristics = commonResult.Characteristics,
-                RangedWeapons = commonResult.RangedWeapons,
-                CcWeapons = commonResult.CcWeapons
-            });
+        return CompanyUnitDetailsShared.BuildPeripheralStatBlock(peripheralName, peripheralProfile, filtersJson, ShowUnitsInInches);
     }
 
     private void ApplyPeripheralStatBlock(PeripheralMercsCompanyStats peripheralStats)
@@ -542,24 +408,6 @@ public partial class CohesiveCompanySelectionPage
         HasPeripheralStatBlock = true;
     }
 
-    private void PopulatePeripheralStatBlock(
-        JsonElement profileGroupsRoot,
-        string? filtersJson,
-        bool forceLieutenant,
-        IReadOnlyDictionary<int, string> skillsLookup)
-    {
-        CompanyUnitDetailsShared.PopulatePeripheralStatBlock(
-            profileGroupsRoot,
-            filtersJson,
-            forceLieutenant,
-            LieutenantOnlyUnits,
-            skillsLookup,
-            BuildIdNameLookup,
-            IsLieutenantOption,
-            TryParseId,
-            ResetPeripheralStatsOnly,
-            PopulatePeripheralStatsFromElement);
-    }
 
 
 

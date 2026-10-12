@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Services;
@@ -29,56 +28,6 @@ internal static partial class CompanyUnitDetailsShared
     internal static Dictionary<int, string> BuildIdNameLookup(string? filtersJson, string sectionName)
     {
         return CompanySelectionSharedUtilities.BuildIdNameLookup(filtersJson, sectionName);
-    }
-
-    internal static bool HasAsteriskMin(JsonElement element)
-    {
-        return CompanySelectionSharedUtilities.HasAsteriskMin(element);
-    }
-
-    internal static string ReadString(JsonElement element, string propertyName, string fallback)
-    {
-        return CompanySelectionSharedUtilities.ReadString(element, propertyName, fallback);
-    }
-
-    internal static int ReadInt(JsonElement element, string propertyName, int fallback)
-    {
-        return CompanySelectionSharedUtilities.ReadInt(element, propertyName, fallback);
-    }
-
-    internal static bool ReadBool(JsonElement element, string propertyName, bool fallback)
-    {
-        return CompanySelectionSharedUtilities.ReadBool(element, propertyName, fallback);
-    }
-
-    internal static bool IsLieutenantOption(JsonElement option, IReadOnlyDictionary<int, string> skillsLookup)
-    {
-        return CompanySelectionSharedUtilities.IsLieutenantOption(option, skillsLookup);
-    }
-
-    internal static bool HasLieutenantOrder(JsonElement option)
-    {
-        return CompanySelectionSharedUtilities.HasLieutenantOrder(option);
-    }
-
-    internal static bool IsPositiveSwc(string swc)
-    {
-        return CompanySelectionSharedUtilities.IsPositiveSwc(swc);
-    }
-
-    internal static bool TryParseId(JsonElement element, out int id)
-    {
-        return CompanySelectionSharedUtilities.TryParseId(element, out id);
-    }
-
-    internal static IEnumerable<JsonElement> EnumerateOptions(JsonElement profileGroupsRoot)
-    {
-        return CompanySelectionSharedUtilities.EnumerateOptions(profileGroupsRoot);
-    }
-
-    internal static string ReadMoveFromProfile(JsonElement profile)
-    {
-        return CompanySelectionSharedUtilities.ReadMoveFromProfile(profile);
     }
 
     internal static string ReplaceSubtitleMoveDisplay(string? subtitle, string moveDisplay)
@@ -133,64 +82,6 @@ internal static partial class CompanyUnitDetailsShared
         }
 
         return peripheralCount > 0;
-    }
-
-    internal static string ReadIntAsString(JsonElement option, string propertyName)
-    {
-        return CompanySelectionSharedUtilities.ReadIntAsString(option, propertyName);
-    }
-
-    internal static (string Header, string Value) ReadVitality(JsonElement option)
-    {
-        var str = ReadIntAsString(option, "str");
-        if (str != "-")
-        {
-            return ("STR", str);
-        }
-
-        var w = ReadIntAsString(option, "w");
-        if (w != "-")
-        {
-            return ("VITA", w);
-        }
-
-        return ("VITA", ReadIntAsString(option, "vita"));
-    }
-
-    internal static string ReadAvaAsString(JsonElement option)
-    {
-        if (!TryGetPropertyFlexible(option, "ava", out var avaElement))
-        {
-            return "-";
-        }
-
-        int value;
-        if (avaElement.ValueKind == JsonValueKind.Number && avaElement.TryGetInt32(out value))
-        {
-            return value switch
-            {
-                < 0 => "-",
-                255 => "T",
-                _ => value.ToString(CultureInfo.InvariantCulture)
-            };
-        }
-
-        if (avaElement.ValueKind == JsonValueKind.String && int.TryParse(avaElement.GetString(), out value))
-        {
-            return value switch
-            {
-                < 0 => "-",
-                255 => "T",
-                _ => value.ToString(CultureInfo.InvariantCulture)
-            };
-        }
-
-        return "-";
-    }
-
-    internal static bool TryGetPropertyFlexible(JsonElement element, string propertyName, out JsonElement value)
-    {
-        return CompanySelectionSharedUtilities.TryGetPropertyFlexible(element, propertyName, out value);
     }
 
     internal static string BuildUnitSubtitle(
