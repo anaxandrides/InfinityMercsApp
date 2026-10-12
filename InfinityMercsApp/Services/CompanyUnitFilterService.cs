@@ -1,4 +1,3 @@
-using System.Text.Json;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Infrastructure.Json;
 
@@ -105,20 +104,5 @@ public static class CompanyUnitFilterService
     public static bool TryGetPeripheralUnitCost(UnitProfileGroups profileGroups, string peripheralName, out int peripheralUnitCost)
     {
         return UnitOptionFilter.TryGetPeripheralUnitCost(profileGroups, peripheralName, out peripheralUnitCost);
-    }
-
-    /// <summary>
-    /// Transitional overload for unit-detail pages that still hold a parsed <see cref="JsonElement"/>;
-    /// removed once those pages read <see cref="UnitProfileGroups"/> directly.
-    /// </summary>
-    public static bool TryGetPeripheralUnitCost(JsonElement profileGroupsRoot, string peripheralName, out int peripheralUnitCost)
-    {
-        peripheralUnitCost = 0;
-        if (profileGroupsRoot.ValueKind != JsonValueKind.Array)
-        {
-            return false;
-        }
-
-        return TryGetPeripheralUnitCost(Reader.ReadProfileGroups(profileGroupsRoot.GetRawText()), peripheralName, out peripheralUnitCost);
     }
 }

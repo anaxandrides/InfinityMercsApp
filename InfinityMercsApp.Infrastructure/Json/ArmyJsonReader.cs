@@ -23,6 +23,12 @@ public interface IArmyJsonReader
 
     /// <summary>Reads a unit's <c>FactionsJson</c>: integer and numeric-string ids of a JSON array.</summary>
     IReadOnlyList<int> ReadFactionIds(string? factionsJson);
+
+    /// <summary>
+    /// Reads a stored id array such as a spec-ops choice's <c>ExtrasJson</c>: numbers, numeric strings and
+    /// <c>{"id":..}</c> objects, in order; anything else is skipped.
+    /// </summary>
+    IReadOnlyList<int> ReadIdList(string? idListJson);
 }
 
 /// <summary>
@@ -139,6 +145,40 @@ public sealed class ArmyJsonReader : IArmyJsonReader
         }
 
         return result;
+    }
+
+    public IReadOnlyList<int> ReadIdList(string? idListJson)
+    {
+        if (string.IsNullOrWhiteSpace(idListJson))
+        {
+            return [];
+        }
+
+        try
+        {
+            var reader = new Utf8JsonReader(System.Text.Encoding.UTF8.GetBytes(idListJson));
+            if (!reader.Read() || reader.TokenType != JsonTokenType.StartArray)
+            {
+                return [];
+            }
+
+            var ids = new List<int>();
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+            {
+                if (FlexibleIdConverter.ReadId(ref reader) is int id)
+                {
+                    ids.Add(id);
+                }
+            }
+
+            // Reading past the array validates there is nothing after it.
+            reader.Read();
+            return ids;
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
     }
 
     private static UnitProfileGroups ParseProfileGroups(string json)

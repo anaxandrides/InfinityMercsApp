@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using InfinityMercsApp.Infrastructure.Json;
 using System.Text.RegularExpressions;
 
 namespace InfinityMercsApp.Views.Common;
@@ -109,60 +110,9 @@ internal static partial class CompanySelectionSharedUtilities
         }
     }
 
-    internal static Dictionary<int, string> BuildIdNameLookup(string? filtersJson, string sectionName)
-    {
-        var map = new Dictionary<int, string>();
-        if (string.IsNullOrWhiteSpace(filtersJson))
-        {
-            return map;
-        }
-
-        try
-        {
-            using var doc = JsonDocument.Parse(filtersJson);
-            if (!doc.RootElement.TryGetProperty(sectionName, out var section) || section.ValueKind != JsonValueKind.Array)
-            {
-                return map;
-            }
-
-            foreach (var entry in section.EnumerateArray())
-            {
-                if (!entry.TryGetProperty("id", out var idElement))
-                {
-                    continue;
-                }
-
-                int id;
-                if (idElement.ValueKind == JsonValueKind.Number && idElement.TryGetInt32(out var intId))
-                {
-                    id = intId;
-                }
-                else if (idElement.ValueKind == JsonValueKind.String && int.TryParse(idElement.GetString(), out var stringId))
-                {
-                    id = stringId;
-                }
-                else
-                {
-                    continue;
-                }
-
-                if (!entry.TryGetProperty("name", out var nameElement) || nameElement.ValueKind != JsonValueKind.String)
-                {
-                    continue;
-                }
-
-                var name = nameElement.GetString();
-                if (!string.IsNullOrWhiteSpace(name))
-                {
-                    map[id] = name;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"CompanySelectionPage BuildIdNameLookup failed for '{sectionName}': {ex.Message}");
-        }
-
-        return map;
-    }
+    /// <summary>
+    /// Id → name for one section of an army's filters JSON (a fresh, mutable copy of the reader's lookup).
+    /// </summary>
+    internal static Dictionary<int, string> BuildIdNameLookup(string? filtersJson, string sectionName) =>
+        new(ArmyJsonReader.Shared.ReadArmyFilters(filtersJson).Names(sectionName));
 }

@@ -1,5 +1,5 @@
 ﻿using System.Globalization;
-using System.Text.Json;
+using InfinityMercsApp.Infrastructure.Json;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Infrastructure.Providers;
@@ -145,52 +145,20 @@ internal static class CaptainPopupInputBuilder
 
     private static Dictionary<int, CaptainExtraDefinition> BuildExtrasLookup(string? filtersJson)
     {
-        var map = new Dictionary<int, CaptainExtraDefinition>();
-        if (string.IsNullOrWhiteSpace(filtersJson))
+        var filters = ArmyJsonReader.Shared.ReadArmyFilters(filtersJson);
+        var map = filters.Extras.ToDictionary(x => x.Key, x => new CaptainExtraDefinition(x.Value.Name, x.Value.Type));
+        if (map.Count > 0)
         {
             return map;
         }
 
-        try
+        // Army filters use "extras"; keep "extra" as a backward-compatible fallback.
+        foreach (var item in filters.Items("extra"))
         {
-            using var doc = JsonDocument.Parse(filtersJson);
-            // Army filters use "extras"; keep "extra" as a backward-compatible fallback.
-            if (!doc.RootElement.TryGetProperty("extras", out var section) || section.ValueKind != JsonValueKind.Array)
+            if (!string.IsNullOrWhiteSpace(item.Name))
             {
-                if (!doc.RootElement.TryGetProperty("extra", out section) || section.ValueKind != JsonValueKind.Array)
-                {
-                    return map;
-                }
+                map[item.Id] = new CaptainExtraDefinition(item.Name, item.Type ?? string.Empty);
             }
-
-            foreach (var entry in section.EnumerateArray())
-            {
-                if (!TryParseCaptainExtraId(entry, out var id))
-                {
-                    continue;
-                }
-
-                if (!entry.TryGetProperty("name", out var nameElement) || nameElement.ValueKind != JsonValueKind.String)
-                {
-                    continue;
-                }
-
-                var name = nameElement.GetString();
-                if (string.IsNullOrWhiteSpace(name))
-                {
-                    continue;
-                }
-
-                var type = entry.TryGetProperty("type", out var typeElement) && typeElement.ValueKind == JsonValueKind.String
-                    ? typeElement.GetString() ?? string.Empty
-                    : string.Empty;
-
-                map[id] = new CaptainExtraDefinition(name, type);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"CaptainPopupInputBuilder BuildExtrasLookup failed: {ex.Message}");
         }
 
         return map;
@@ -220,48 +188,15 @@ internal static class CaptainPopupInputBuilder
         IReadOnlyDictionary<int, CaptainExtraDefinition> extrasLookup,
         bool showUnitsInInches)
     {
-        if (string.IsNullOrWhiteSpace(extrasJson))
-        {
-            return string.Empty;
-        }
+        var extras = ArmyJsonReader.Shared.ReadIdList(extrasJson)
+            .Select(extraId => extrasLookup.TryGetValue(extraId, out var resolved) && !string.IsNullOrWhiteSpace(resolved.Name)
+                ? FormatExtraDisplay(resolved, showUnitsInInches)
+                : extraId.ToString(CultureInfo.InvariantCulture))
+            .ToList();
 
-        try
-        {
-            using var doc = JsonDocument.Parse(extrasJson);
-            if (doc.RootElement.ValueKind != JsonValueKind.Array)
-            {
-                return string.Empty;
-            }
-
-            var extras = new List<string>();
-            foreach (var element in doc.RootElement.EnumerateArray())
-            {
-                if (!TryParseCaptainExtraId(element, out var parsedId))
-                {
-                    continue;
-                }
-
-                if (extrasLookup.TryGetValue(parsedId, out var resolved) && !string.IsNullOrWhiteSpace(resolved.Name))
-                {
-                    extras.Add(FormatExtraDisplay(resolved, showUnitsInInches));
-                }
-                else
-                {
-                    extras.Add(parsedId.ToString(CultureInfo.InvariantCulture));
-                }
-            }
-
-            if (extras.Count == 0)
-            {
-                return string.Empty;
-            }
-
-            return $" ({string.Join(", ", extras.Distinct(StringComparer.OrdinalIgnoreCase))})";
-        }
-        catch
-        {
-            return string.Empty;
-        }
+        return extras.Count == 0
+            ? string.Empty
+            : $" ({string.Join(", ", extras.Distinct(StringComparer.OrdinalIgnoreCase))})";
     }
 
     private static string FormatExtraDisplay(CaptainExtraDefinition definition, bool showUnitsInInches)
@@ -272,30 +207,6 @@ internal static class CaptainPopupInputBuilder
         }
 
         return CompanySelectionSharedUtilities.ConvertDistanceText(definition.Name, showUnitsInInches);
-    }
-
-    private static bool TryParseCaptainExtraId(JsonElement element, out int id)
-    {
-        if (element.ValueKind == JsonValueKind.Number && element.TryGetInt32(out var numberId))
-        {
-            id = numberId;
-            return true;
-        }
-
-        if (element.ValueKind == JsonValueKind.String && int.TryParse(element.GetString(), out var stringId))
-        {
-            id = stringId;
-            return true;
-        }
-
-        if (element.ValueKind == JsonValueKind.Object &&
-            element.TryGetProperty("id", out var idElement))
-        {
-            return TryParseCaptainExtraId(idElement, out id);
-        }
-
-        id = 0;
-        return false;
     }
 
     private sealed record CaptainExtraDefinition(string Name, string Type);
