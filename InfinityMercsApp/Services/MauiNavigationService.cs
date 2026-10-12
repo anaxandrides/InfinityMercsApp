@@ -57,6 +57,18 @@ internal sealed class MauiNavigationService(IServiceProvider serviceProvider) : 
             : shell.GoToAsync(shellNavigation);
     }
 
+    /// <inheritdoc/>
+    public Task PushAsync(string route, IDictionary<string, object>? routeParameters = null)
+    {
+        var shell = GetActiveShell()
+            ?? throw new InvalidOperationException("No active Shell is available for navigation.");
+        var shellNavigation = new ShellNavigationState(route.Trim());
+
+        return routeParameters != null
+            ? shell.GoToAsync(shellNavigation, routeParameters)
+            : shell.GoToAsync(shellNavigation);
+    }
+
     private static string NormalizeRoute(string route)
     {
         if (string.IsNullOrWhiteSpace(route))

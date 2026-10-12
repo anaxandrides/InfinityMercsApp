@@ -1,3 +1,5 @@
+using InfinityMercsApp.ViewModels.Base;
+
 namespace InfinityMercsApp.Views.Adaptive;
 
 /// <summary>
@@ -60,6 +62,17 @@ public abstract class AdaptiveContentPage : ContentPage
         }
 
         LayoutMode = ResolveMode(width);
+    }
+
+    /// <summary>
+    /// Runs the page ViewModel's <see cref="IViewModelBase.InitializeAsyncCommand"/> (the
+    /// <c>ContentPageBase</c> contract). Subclasses call this from their own <c>OnAppearing</c>.
+    /// </summary>
+    protected Task InitializeViewModelAsync()
+    {
+        return BindingContext is IViewModelBase viewModel
+            ? viewModel.InitializeAsyncCommand.ExecuteAsync(null)
+            : Task.CompletedTask;
     }
 
     /// <summary>

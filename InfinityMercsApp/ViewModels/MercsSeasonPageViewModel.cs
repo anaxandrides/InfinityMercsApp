@@ -1,0 +1,45 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using InfinityMercsApp.Services;
+using InfinityMercsApp.ViewModels.Base;
+
+namespace InfinityMercsApp.ViewModels;
+
+/// <summary>The MERCS Season home: load a season, or start one from a saved or new company.</summary>
+public partial class MercsSeasonPageViewModel(INavigationService navigationService) : ViewModelBase(navigationService)
+{
+    /// <summary>Query parameter that tells LoadCompanyPage it was opened to start a season.</summary>
+    public const string SeasonModeParameter = "seasonMode";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsShowingMainActions))]
+    private bool _isChoosingNewSeason;
+
+    public bool IsShowingMainActions => !IsChoosingNewSeason;
+
+    /// <summary>Always return to the main two-button state when the page reappears.</summary>
+    public override Task InitializeAsync()
+    {
+        ShowMainActions();
+        return Task.CompletedTask;
+    }
+
+    [RelayCommand]
+    private Task LoadSeasonAsync() => NavigationService.PushAsync("LoadSeasonPage");
+
+    [RelayCommand]
+    private void StartNewSeason() => IsChoosingNewSeason = true;
+
+    [RelayCommand]
+    private void CancelNewSeason() => ShowMainActions();
+
+    [RelayCommand]
+    private Task LoadCompanyAsync() => NavigationService.NavigateToAsync(
+        "//LoadCompanyPage",
+        new Dictionary<string, object> { [SeasonModeParameter] = true });
+
+    [RelayCommand]
+    private Task CreateNewTeamAsync() => NavigationService.NavigateToAsync("//CreateNewCompanyPage");
+
+    private void ShowMainActions() => IsChoosingNewSeason = false;
+}

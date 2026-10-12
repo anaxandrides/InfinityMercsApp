@@ -1,26 +1,29 @@
+using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views.Adaptive;
 
 namespace InfinityMercsApp.Views.Season;
 
 public partial class MercsSeasonPage : AdaptiveContentPage
 {
-    public MercsSeasonPage()
+    public MercsSeasonPage(MercsSeasonPageViewModel viewModel)
     {
         InitializeComponent();
+        BindingContext = viewModel;
         ApplyLayout();
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
-        // Always return to the main two-button state when the page reappears.
-        ShowMainActions();
 
 #if WINDOWS
         // The window/Shell are fully live by the time the home page appears, so this is a
         // reliable point to wire up the Ctrl+Shift+Q/W/E/R resize shortcuts (idempotent).
         InfinityMercsApp.WinUI.App.EnsureWindowResizeShortcuts();
 #endif
+
+        // Resets the page to its main two-button state.
+        await InitializeViewModelAsync();
     }
 
     protected override void OnLayoutModeChanged(AdaptiveLayoutMode mode) => ApplyLayout();
@@ -77,37 +80,5 @@ public partial class MercsSeasonPage : AdaptiveContentPage
                 ActionArea.MaximumWidthRequest = double.PositiveInfinity;
             }
         }
-    }
-
-    private void OnLoadSeasonClicked(object sender, EventArgs e)
-    {
-        _ = Shell.Current.GoToAsync(nameof(LoadSeasonPage));
-    }
-
-    private void OnStartNewSeasonClicked(object sender, EventArgs e)
-    {
-        MainActionsPanel.IsVisible = false;
-        NewSeasonChoicePanel.IsVisible = true;
-    }
-
-    private async void OnLoadCompanyClicked(object sender, EventArgs e)
-    {
-        await Shell.Current.GoToAsync($"//{nameof(Views.LoadCompanyPage)}?seasonMode=true");
-    }
-
-    private async void OnCreateNewTeamClicked(object sender, EventArgs e)
-    {
-        await Shell.Current.GoToAsync($"//{nameof(Views.CreateNewCompanyPage)}");
-    }
-
-    private void OnCancelNewSeasonClicked(object sender, EventArgs e)
-    {
-        ShowMainActions();
-    }
-
-    private void ShowMainActions()
-    {
-        NewSeasonChoicePanel.IsVisible = false;
-        MainActionsPanel.IsVisible = true;
     }
 }

@@ -1,5 +1,4 @@
 using InfinityMercsApp.ViewModels;
-using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.Views.Adaptive;
 
 namespace InfinityMercsApp.Views;
@@ -17,10 +16,7 @@ public partial class LoneWolfCompanySourcePopupPage : AdaptiveContentPage
     {
         base.OnAppearing();
 
-        if (BindingContext is IViewModelBase ivmb)
-        {
-            await ivmb.InitializeAsyncCommand.ExecuteAsync(null);
-        }
+        await InitializeViewModelAsync();
     }
 
     protected override void OnLayoutModeChanged(AdaptiveLayoutMode mode) => ApplyLayout();

@@ -1,5 +1,4 @@
 using InfinityMercsApp.ViewModels;
-using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.Views.Adaptive;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
@@ -29,12 +28,7 @@ public partial class CreateNewCompanyPage
     {
         base.OnAppearing();
 
-        // Preserve the ContentPageBase initialization contract now that this page derives from
-        // AdaptiveContentPage directly.
-        if (BindingContext is IViewModelBase ivmb)
-        {
-            await ivmb.InitializeAsyncCommand.ExecuteAsync(null);
-        }
+        await InitializeViewModelAsync();
 
         ClearResidualNavigationStack();
     }

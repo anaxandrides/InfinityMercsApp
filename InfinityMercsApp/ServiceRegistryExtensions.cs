@@ -20,7 +20,8 @@ public static class ServiceRegistryExtensions
                 .AddTransient<TagCompanySourcePopupPageViewModel>()
                 .AddTransient<LoneWolfCompanySourcePopupPageViewModel>()
                 .AddTransient<FeedbackBugsPageViewModel>()
-                .AddTransient<AboutPageViewModel>();
+                .AddTransient<AboutPageViewModel>()
+                .AddTransient<MercsSeasonPageViewModel>();
 
         return services;
     }

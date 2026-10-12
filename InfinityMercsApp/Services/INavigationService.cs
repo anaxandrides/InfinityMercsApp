@@ -20,6 +20,14 @@ public interface INavigationService
     public Task NavigateToAsync(string route, IDictionary<string, object>? routeParameters = null);
 
     /// <summary>
+    /// Pushes a registered (non-ShellContent) route onto the current navigation stack, passing
+    /// <paramref name="routeParameters"/> to the page and its ViewModel as Shell query attributes.
+    /// </summary>
+    /// <param name="route">A route registered with <c>Routing.RegisterRoute</c>, e.g. <c>"PlayModePage"</c>.</param>
+    /// <param name="routeParameters">Navigation parameters; values are passed as objects, not URL-encoded.</param>
+    Task PushAsync(string route, IDictionary<string, object>? routeParameters = null);
+
+    /// <summary>
     /// Navigates to the previous page.
     /// </summary>
     /// <returns></returns>
