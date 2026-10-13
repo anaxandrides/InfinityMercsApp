@@ -18,6 +18,7 @@ public static class ServiceRegistryExtensions
                 .AddTransient<LoadSeasonViewModel>()
                 .AddTransient<ExperienceViewModel>()
                 .AddTransient<InjuriesViewModel>()
+                .AddTransient<MercsGlossaryViewModel>()
                 .AddTransient<ViewerViewModel>()
                 .AddTransient<CreateNewCompanyPageViewModel>()
                 .AddTransient<StandardCompanySourcePopupPageViewModel>()
@@ -33,6 +34,7 @@ public static class ServiceRegistryExtensions
     {
         services.AddTransient<AppShell>()
                 .AddTransient<ArmoryPage>()
+                .AddTransient<MercsGlossaryPage>()
                 .AddTransient<CreateNewCompanyPage>()
                 .AddTransient<StandardCompanySourcePopupPage>()
                 .AddTransient<SplashPage>()
@@ -72,7 +74,8 @@ public static class ServiceRegistryExtensions
                 .AddSingleton(_ => RecordPaths.ForAppData(FileSystem.Current.AppDataDirectory))
                 .AddSingleton<SeasonRecordCatalog>()
                 .AddSingleton<MissionDebrief>()
-                .AddSingleton<IDice, Dice>();
+                .AddSingleton<IDice, Dice>()
+                .AddSingleton<IAppPackageFiles, AppPackageFiles>();
 
         services.AddSingleton<HttpClient>(_ =>
         {
