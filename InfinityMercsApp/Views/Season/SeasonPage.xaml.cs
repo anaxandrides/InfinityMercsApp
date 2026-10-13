@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Captain;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text.Json;
@@ -483,9 +484,9 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
                 var savedCharacteristics = ResolveSavedCharacteristics(effectiveSourceFactionId, entry);
                 if (entry.IsLieutenant && captainStats.IsEnabled)
                 {
-                    savedRangedWeapons = AppendChoices(savedRangedWeapons, captainWeaponChoices);
-                    savedSkills = AppendChoices(savedSkills, captainSkillChoices);
-                    savedEquipment = AppendChoices(savedEquipment, captainEquipmentChoices);
+                    savedRangedWeapons = ProfileText.AppendDistinct(savedRangedWeapons, captainWeaponChoices);
+                    savedSkills = ProfileText.AppendDistinct(savedSkills, captainSkillChoices);
+                    savedEquipment = ProfileText.AppendDistinct(savedEquipment, captainEquipmentChoices);
                 }
 
                 var logoSourceFactionId = ResolveLogoSourceFactionId(entry);
@@ -590,14 +591,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
         if (item.IsLieutenant && _loadedCaptainStats.IsEnabled)
         {
-            _viewerViewModel.ApplyCaptainStatBonuses(
-                _loadedCaptainStats.CcBonus,
-                _loadedCaptainStats.BsBonus,
-                _loadedCaptainStats.PhBonus,
-                _loadedCaptainStats.WipBonus,
-                _loadedCaptainStats.ArmBonus,
-                _loadedCaptainStats.BtsBonus,
-                _loadedCaptainStats.VitalityBonus);
+            _viewerViewModel.ApplyCaptainStatBonuses(_loadedCaptainStats.Bonuses);
         }
 
         _viewerViewModel.Profiles.Clear();
@@ -937,8 +931,8 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
             return;
         }
 
-        var savedSkillLines = SplitProfileText(item.SavedSkills);
-        var savedCharacteristicLines = SplitProfileText(item.SavedCharacteristics);
+        var savedSkillLines = ProfileText.Lines(item.SavedSkills);
+        var savedCharacteristicLines = ProfileText.Lines(item.SavedCharacteristics);
         var hasIrregular = savedSkillLines.Any(x => x.Contains("irregular", StringComparison.OrdinalIgnoreCase)) ||
                            savedCharacteristicLines.Any(x => x.Contains("irregular", StringComparison.OrdinalIgnoreCase));
         if (!hasIrregular)
@@ -1149,7 +1143,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
     private FormattedString BuildWeaponsFormatted(string? text, Color color)
     {
         var formatted = new FormattedString();
-        var lines = SplitProfileText(text);
+        var lines = ProfileText.Lines(text);
 
         if (lines.Count == 0)
         {
@@ -1685,7 +1679,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         var dodgeExtrasSeen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var hasPlainDodge = false;
 
-        foreach (var rawLine in SplitProfileText(skillsText))
+        foreach (var rawLine in ProfileText.Lines(skillsText))
         {
             var line = rawLine.Trim();
             var dodgeMatch = Regex.Match(line, @"^\s*dodge(?:\s*\((?<extra>.+)\))?\s*$", RegexOptions.IgnoreCase);
@@ -1768,7 +1762,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
     private static string NormalizeLieutenantOrderEntries(string? skillsText)
     {
-        var lines = SplitProfileText(skillsText);
+        var lines = ProfileText.Lines(skillsText);
         if (lines.Count == 0)
         {
             return "-";
@@ -1826,44 +1820,16 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         return deduped.Count == 0 ? "-" : string.Join(Environment.NewLine, deduped);
     }
 
-    private static List<string> SplitProfileText(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return [];
-        }
-
-        return text
-            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => x.Trim())
-            .Where(x => !string.IsNullOrWhiteSpace(x) && x != "-")
-            .ToList();
-    }
 
     private static string MergeProfileSectionText(string? loadedText, string? savedText)
     {
-        var lines = SplitProfileText(loadedText);
+        var lines = ProfileText.Lines(loadedText);
         var existing = new HashSet<string>(lines, StringComparer.OrdinalIgnoreCase);
-        foreach (var savedLine in SplitProfileText(savedText))
+        foreach (var savedLine in ProfileText.Lines(savedText))
         {
             if (existing.Add(savedLine))
             {
                 lines.Add(savedLine);
-            }
-        }
-
-        return lines.Count == 0 ? "-" : string.Join(Environment.NewLine, lines);
-    }
-
-    private static string AppendChoices(string? baseText, IReadOnlyList<string> additions)
-    {
-        var lines = SplitProfileText(baseText);
-        var existing = new HashSet<string>(lines, StringComparer.OrdinalIgnoreCase);
-        foreach (var addition in additions)
-        {
-            if (existing.Add(addition))
-            {
-                lines.Add(addition);
             }
         }
 
@@ -1878,7 +1844,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         }
 
         var total = 0;
-        foreach (var line in SplitProfileText(uniqueSkills))
+        foreach (var line in ProfileText.Lines(uniqueSkills))
         {
             if (!line.Contains("lt order", StringComparison.OrdinalIgnoreCase) &&
                 !line.Contains("lieutenant order", StringComparison.OrdinalIgnoreCase) &&
@@ -2954,11 +2920,11 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
     private async Task UpdateTeamTabSectionsAsync(ViewerProfileItem mergedProfile, CompanyViewerUnitListItem item)
     {
-        var equipItems = SplitProfileText(mergedProfile.UniqueEquipment);
+        var equipItems = ProfileText.Lines(mergedProfile.UniqueEquipment);
         PopulateTwoColumnLayout(EquipmentLeftColumn, EquipmentRightColumn, equipItems,
             Color.FromArgb("#B5C0CE"));
 
-        var skillItems = SplitProfileText(mergedProfile.UniqueSkills);
+        var skillItems = ProfileText.Lines(mergedProfile.UniqueSkills);
         OrderSkillsLieutenantFirst(skillItems);
         AppendAugmentSkills(skillItems, item);
         PopulateTwoColumnLayout(SkillsLeftColumn, SkillsRightColumn, skillItems,
@@ -2973,8 +2939,8 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
     private void RefreshWeaponSections(CompanyViewerUnitListItem item, ViewerProfileItem mergedProfile)
     {
-        var rangedItems = SplitProfileText(mergedProfile.RangedWeapons);
-        var ccItems = SplitProfileText(mergedProfile.MeleeWeapons);
+        var rangedItems = ProfileText.Lines(mergedProfile.RangedWeapons);
+        var ccItems = ProfileText.Lines(mergedProfile.MeleeWeapons);
 
         // Append any gear-slot weapons that aren't already in the base lists.
         var slots = GetOrCreateGearSlots(item.EntryIndex);
@@ -3359,11 +3325,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
             item.IsLieutenant);
 
         if (item.IsLieutenant && _loadedCaptainStats.IsEnabled)
-            _viewerViewModel.ApplyCaptainStatBonuses(
-                _loadedCaptainStats.CcBonus, _loadedCaptainStats.BsBonus,
-                _loadedCaptainStats.PhBonus, _loadedCaptainStats.WipBonus,
-                _loadedCaptainStats.ArmBonus, _loadedCaptainStats.BtsBonus,
-                _loadedCaptainStats.VitalityBonus);
+            _viewerViewModel.ApplyCaptainStatBonuses(_loadedCaptainStats.Bonuses);
 
         ApplySavedOrderIconOverrides(item);
         ApplyProfileTraitIconOverrides(item, mergedProfile);
@@ -3376,7 +3338,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         ApplyAugmentStatOverrides(item);
 
         var slots = GetOrCreateGearSlots(item.EntryIndex);
-        var skillItems = SplitProfileText(mergedProfile.UniqueSkills);
+        var skillItems = ProfileText.Lines(mergedProfile.UniqueSkills);
         OrderSkillsLieutenantFirst(skillItems);
         AppendAugmentSkills(skillItems, item, slots);
         PopulateTwoColumnLayout(SkillsLeftColumn, SkillsRightColumn, skillItems, Color.FromArgb("#F59E0B"));

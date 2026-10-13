@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Captain;
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.Maui.Devices;
@@ -24,22 +25,7 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     private static readonly Color SkillsDefaultColor = Color.FromArgb("#F59E0B");
     private static readonly Color LieutenantHighlightColor = Color.FromArgb("#34D399");
 
-    /// <summary>
-    /// Defines the available upgrade tiers, bonuses, and costs for each upgradeable stat.
-    /// Hard-cap values prevent the stat from exceeding a fixed ceiling regardless of tier.
-    /// </summary>
-    private static readonly IReadOnlyDictionary<string, StatPickerDefinition> StatDefinitions = new Dictionary<string, StatPickerDefinition>(StringComparer.OrdinalIgnoreCase)
-    {
-        ["CC"] = new StatPickerDefinition([0, 2, 5, 10], [0, 2, 3, 5]),
-        ["BS"] = new StatPickerDefinition([0, 1, 2, 3], [0, 2, 3, 5]),
-        ["PH"] = new StatPickerDefinition([0, 1, 3], [0, 2, 3], 14),
-        ["WIP"] = new StatPickerDefinition([0, 1, 3, 6], [0, 2, 3, 5], 15),
-        ["ARM"] = new StatPickerDefinition([0, 1, 3], [0, 5, 5]),
-        ["BTS"] = new StatPickerDefinition([0, 3, 6, 9], [0, 2, 3, 5]),
-        ["VITA"] = new StatPickerDefinition([0, 1], [0, 10], 2),
-        ["STR"] = new StatPickerDefinition([0, 1], [0, 10], 2)
-    };
-    private const string NoneChoice = "(None)";
+    private const string NoneChoice = CaptainChoiceLabel.None;
 
     private readonly CaptainUpgradePopupContext _context;
 
@@ -672,23 +658,7 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     /// Reads the selected choice label, stripping the leading cost annotation (e.g. "(2) - ")
     /// and returning an empty string when "(None)" is selected.
     /// </summary>
-    private static string ReadChoice(Picker picker)
-    {
-        var value = picker.SelectedItem?.ToString() ?? string.Empty;
-        if (string.Equals(value, NoneChoice, StringComparison.OrdinalIgnoreCase))
-        {
-            return string.Empty;
-        }
-
-        // Strip the "(cost) - " prefix that is prepended to choice labels for display purposes.
-        var normalized = Regex.Replace(value, @"^\s*\([-+]?\d+\)\s*-\s*", string.Empty).Trim();
-        if (string.Equals(normalized, "Lt", StringComparison.OrdinalIgnoreCase))
-        {
-            return "Lieutenant";
-        }
-
-        return normalized;
-    }
+    private static string ReadChoice(Picker picker) => CaptainChoiceLabel.Name(picker.SelectedItem?.ToString());
 
     // Returns a dash placeholder for null/empty values shown in summary labels.
     private static string NormalizeText(string? value)
@@ -742,20 +712,17 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     private void UpdateProfilePreviewFromSelections()
     {
         UpdateStatlinePreview();
-        _rangedValueLabel.Text = BuildUpdatedProfileSection(
+        _rangedValueLabel.Text = ProfileText.AppendMarked(
             _context.Unit.RangedWeapons,
-            GetSelectedChoices(_weapon1Picker, _weapon2Picker, _weapon3Picker),
-            prependPlus: true);
+            GetSelectedChoices(_weapon1Picker, _weapon2Picker, _weapon3Picker));
         _ccValueLabel.Text = NormalizeText(_context.Unit.CcWeapons);
-        var updatedSkills = BuildUpdatedProfileSection(
+        var updatedSkills = ProfileText.AppendMarked(
             _context.Unit.Skills,
-            GetSelectedChoices(_skill1Picker, _skill2Picker, _skill3Picker),
-            prependPlus: true);
+            GetSelectedChoices(_skill1Picker, _skill2Picker, _skill3Picker));
         ApplyLieutenantHighlightToSkillsPreview(updatedSkills);
-        _equipmentValueLabel.Text = BuildUpdatedProfileSection(
+        _equipmentValueLabel.Text = ProfileText.AppendMarked(
             _context.Unit.Equipment,
-            GetSelectedChoices(_equipment1Picker, _equipment2Picker, _equipment3Picker),
-            prependPlus: true);
+            GetSelectedChoices(_equipment1Picker, _equipment2Picker, _equipment3Picker));
         UpdateUpgradeOptionsHeader();
     }
 
@@ -766,7 +733,7 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     private void UpdateUpgradeOptionsHeader()
     {
         // Units cost at most 28 pts; the remainder becomes the starting experience budget.
-        var baseExperience = _context.BaseExperienceOverride ?? Math.Max(0, 28 - _context.Unit.Cost);
+        var baseExperience = CaptainUpgradeRules.StartingExperience(_context.Unit.Cost, _context.BaseExperienceOverride);
         var selectedCost =
             ReadStatPoints(_ccPicker) +
             ReadStatPoints(_bsPicker) +
@@ -823,44 +790,8 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     /// Tiers are added incrementally; a hard cap stops further tiers once the stat hits its ceiling.
     /// Costs accumulate across tiers so the picker always shows the total spent.
     /// </summary>
-    private static List<StatPickerOption> BuildStatOptions(string statName, int baseValue)
-    {
-        if (!StatDefinitions.TryGetValue(statName, out var definition))
-        {
-            // Unknown stat — return a single "no upgrade" option rather than an empty list.
-            return [new StatPickerOption(statName, 0, 0, 0)];
-        }
-
-        var options = new List<StatPickerOption>
-        {
-            new(statName, 0, 0, 0)
-        };
-
-        var currentValue = baseValue;
-        var cumulativeCost = 0;
-        for (var tier = 1; tier <= definition.MaxTier; tier++)
-        {
-            // Skip remaining tiers if the stat has already reached the hard cap.
-            if (definition.HardCap.HasValue && currentValue >= definition.HardCap.Value)
-            {
-                break;
-            }
-
-            var targetValue = baseValue + definition.BonusesByTier[tier];
-            if (definition.HardCap.HasValue)
-            {
-                // Clamp the bonus so the stat cannot exceed the hard cap even if a tier would push it over.
-                targetValue = Math.Min(targetValue, definition.HardCap.Value);
-            }
-
-            var appliedBonus = Math.Max(0, targetValue - baseValue);
-            cumulativeCost += definition.CostsByTier[tier];
-            options.Add(new StatPickerOption(statName, tier, appliedBonus, cumulativeCost));
-            currentValue = targetValue;
-        }
-
-        return options;
-    }
+    private static List<StatPickerOption> BuildStatOptions(string statName, int baseValue) =>
+        CaptainUpgradeRules.StatOptions(statName, baseValue).Select(StatPickerOption.From).ToList();
 
     /// <summary>
     /// Returns the experience point cost of the currently selected stat tier, or 0 if nothing is selected.
@@ -874,31 +805,7 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     /// Parses a raw statline string (e.g. "CC 14 | BS 12 | ...") into a keyed integer dictionary.
     /// Used to seed the pickers with the correct base values for bonus calculations.
     /// </summary>
-    private static IReadOnlyDictionary<string, int> ParseBaseStats(string? statline)
-    {
-        var values = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        if (string.IsNullOrWhiteSpace(statline))
-        {
-            return values;
-        }
-
-        var matches = Regex.Matches(statline, @"\b(CC|BS|PH|WIP|ARM|BTS|VITA|STR|W)\s+(\d+)\b", RegexOptions.IgnoreCase);
-        foreach (Match match in matches)
-        {
-            if (!match.Success)
-            {
-                continue;
-            }
-
-            var key = match.Groups[1].Value.ToUpperInvariant();
-            if (int.TryParse(match.Groups[2].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
-            {
-                values[key] = parsed;
-            }
-        }
-
-        return values;
-    }
+    private static IReadOnlyDictionary<string, int> ParseBaseStats(string? statline) => Statline.NumericStats(statline);
 
     /// <summary>
     /// Constructs the stat grid shown in the left column using the parsed statline.
@@ -973,27 +880,7 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     /// Splits a pipe-delimited statline into (key, value) pairs for the stat grid.
     /// Segments that do not match the expected "KEY value" pattern are silently skipped.
     /// </summary>
-    private static List<(string Key, string Value)> ParseStatsGridEntries(string? statline)
-    {
-        var entries = new List<(string Key, string Value)>();
-        if (string.IsNullOrWhiteSpace(statline))
-        {
-            return entries;
-        }
-
-        foreach (var segment in statline.Split('|', StringSplitOptions.TrimEntries))
-        {
-            var match = Regex.Match(segment, @"^\s*([A-Za-z]+)\s+(.+)\s*$", RegexOptions.IgnoreCase);
-            if (!match.Success)
-            {
-                continue;
-            }
-
-            entries.Add((match.Groups[1].Value.ToUpperInvariant(), match.Groups[2].Value.Trim()));
-        }
-
-        return entries;
-    }
+    private static List<(string Key, string Value)> ParseStatsGridEntries(string? statline) => Statline.Entries(statline);
 
     /// <summary>
     /// Re-evaluates every stat label in the grid, applying the current picker bonus
@@ -1030,20 +917,16 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     /// Maps a stat key to the corresponding upgrade picker and returns the selected bonus.
     /// VITA, STR, and W all share the single vitality picker.
     /// </summary>
-    private int ReadStatlineBonus(string statKey)
-    {
-        return statKey switch
-        {
-            "CC" => ReadStatBonus(_ccPicker),
-            "BS" => ReadStatBonus(_bsPicker),
-            "PH" => ReadStatBonus(_phPicker),
-            "WIP" => ReadStatBonus(_wipPicker),
-            "ARM" => ReadStatBonus(_armPicker),
-            "BTS" => ReadStatBonus(_btsPicker),
-            "VITA" or "STR" or "W" => ReadStatBonus(_vitaPicker),
-            _ => 0
-        };
-    }
+    private int ReadStatlineBonus(string statKey) => SelectedBonuses().For(statKey);
+
+    private CaptainStatBonuses SelectedBonuses() => new(
+        ReadStatBonus(_ccPicker),
+        ReadStatBonus(_bsPicker),
+        ReadStatBonus(_phPicker),
+        ReadStatBonus(_wipPicker),
+        ReadStatBonus(_armPicker),
+        ReadStatBonus(_btsPicker),
+        ReadStatBonus(_vitaPicker));
 
     /// <summary>
     /// Collects the non-empty, deduplicated choice strings from an arbitrary set of pickers.
@@ -1230,26 +1113,7 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     /// Extracts the integer cost prefix from a choice picker item (e.g. "(2) - Sniper Rifle" → 2).
     /// Returns 0 if the item is "(None)" or has no cost annotation.
     /// </summary>
-    private static int ReadChoicePoints(Picker picker)
-    {
-        var rawValue = picker.SelectedItem?.ToString() ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(rawValue) ||
-            string.Equals(rawValue, NoneChoice, StringComparison.OrdinalIgnoreCase))
-        {
-            return 0;
-        }
-
-        // The cost is encoded as the first token in parentheses, e.g. "(3)".
-        var match = Regex.Match(rawValue, @"^\s*\(([-+]?\d+)\)");
-        if (!match.Success)
-        {
-            return 0;
-        }
-
-        return int.TryParse(match.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
-            ? parsed
-            : 0;
-    }
+    private static int ReadChoicePoints(Picker picker) => CaptainChoiceLabel.Cost(picker.SelectedItem?.ToString());
 
     private void ApplyLieutenantHighlightToSkillsPreview(string? skillsText)
     {
@@ -1308,41 +1172,4 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
 
         return formatted;
     }
-
-    /// <summary>
-    /// Builds the display text for a profile section (ranged weapons, skills, etc.) by combining
-    /// the unit's base text with the list of chosen additions.
-    /// </summary>
-    /// <param name="prependPlus">When <c>true</c>, additions are prefixed with "+ " to distinguish them from base entries.</param>
-    private static string BuildUpdatedProfileSection(string? baseText, IReadOnlyList<string> additions, bool prependPlus)
-    {
-        var lines = SplitProfileText(baseText);
-        foreach (var addition in additions)
-        {
-            lines.Add(prependPlus ? $"+ {addition}" : addition);
-        }
-
-        return lines.Count == 0 ? "-" : string.Join(Environment.NewLine, lines);
-    }
-
-    /// <summary>
-    /// Splits multi-line profile text into a trimmed, non-empty list of lines,
-    /// discarding bare dash placeholders that indicate an empty field.
-    /// </summary>
-    private static List<string> SplitProfileText(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return [];
-        }
-
-        return text
-            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => x.Trim())
-            .Where(x => !string.IsNullOrWhiteSpace(x) && x != "-")
-            .ToList();
-    }
-
 }
-
-

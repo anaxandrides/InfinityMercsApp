@@ -18,6 +18,11 @@ public sealed class SavedImprovedCaptainStats
     public int ArmBonus { get; init; }
     public int BtsBonus { get; init; }
     public int VitalityBonus { get; init; }
+
+    /// <summary>The bought stat bonuses as one value.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public InfinityMercsApp.Domain.Captain.CaptainStatBonuses Bonuses =>
+        new(CcBonus, BsBonus, PhBonus, WipBonus, ArmBonus, BtsBonus, VitalityBonus);
     public string WeaponChoice1 { get; init; } = string.Empty;
     public string WeaponChoice2 { get; init; } = string.Empty;
     public string WeaponChoice3 { get; init; } = string.Empty;
@@ -67,13 +72,12 @@ public sealed class CaptainUpgradePopupContext
     public int? BaseExperienceOverride { get; init; }
 }
 
-public sealed record StatPickerDefinition(IReadOnlyList<int> BonusesByTier, IReadOnlyList<int> CostsByTier, int? HardCap = null)
-{
-    public int MaxTier => Math.Min(BonusesByTier.Count, CostsByTier.Count) - 1;
-}
-
+/// <summary>A captain stat upgrade level as a picker item.</summary>
 public sealed record StatPickerOption(string Stat, int Tier, int Bonus, int Cost)
 {
     public string Label => $"{Stat.ToUpperInvariant()} +{Bonus} | {Cost}xp";
+
+    public static StatPickerOption From(InfinityMercsApp.Domain.Captain.CaptainStatOption option) =>
+        new(option.Stat, option.Tier, option.Bonus, option.Cost);
 }
 

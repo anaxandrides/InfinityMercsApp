@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views.Common;
 using InfinityMercsApp.Views.Common.UICommon;
@@ -236,7 +237,7 @@ public partial class StandardCompanySelectionPage
         var mergedSkills = MergeSelections(entry.SavedSkills, [stats.SkillChoice1, stats.SkillChoice2, stats.SkillChoice3], includeMelee: false);
         var mergedEquipment = MergeSelections(entry.SavedEquipment, [stats.EquipmentChoice1, stats.EquipmentChoice2, stats.EquipmentChoice3], includeMelee: false);
         var updatedName = string.IsNullOrWhiteSpace(stats.CaptainName) ? entry.Name : stats.CaptainName.Trim();
-        var updatedStatline = BuildAdjustedStatline(entry.Subtitle, stats);
+        var updatedStatline = stats.Bonuses.ApplyToStatline(entry.Subtitle);
 
         return new MercsCompanyEntry
         {
@@ -332,71 +333,6 @@ public partial class StandardCompanySelectionPage
         }
 
         return CompanyProfileTextService.JoinOrDash(values);
-    }
-
-    private static string BuildAdjustedStatline(string? subtitle, SavedImprovedCaptainStats stats)
-    {
-        if (string.IsNullOrWhiteSpace(subtitle))
-        {
-            return subtitle ?? string.Empty;
-        }
-
-        var statMap = ParseStatline(subtitle);
-        if (statMap.Count == 0)
-        {
-            return subtitle;
-        }
-
-        ApplyStatBonus(statMap, "CC", stats.CcBonus);
-        ApplyStatBonus(statMap, "BS", stats.BsBonus);
-        ApplyStatBonus(statMap, "PH", stats.PhBonus);
-        ApplyStatBonus(statMap, "WIP", stats.WipBonus);
-        ApplyStatBonus(statMap, "ARM", stats.ArmBonus);
-        ApplyStatBonus(statMap, "BTS", stats.BtsBonus);
-        ApplyStatBonus(statMap, "VITA", stats.VitalityBonus);
-        ApplyStatBonus(statMap, "STR", stats.VitalityBonus);
-
-        return string.Join(" | ", statMap.Select(x => $"{x.Key} {x.Value}"));
-    }
-
-    private static Dictionary<string, string> ParseStatline(string statline)
-    {
-        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var rawPart in statline.Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
-        {
-            var part = rawPart.Trim();
-            var firstSpace = part.IndexOf(' ');
-            if (firstSpace <= 0 || firstSpace >= part.Length - 1)
-            {
-                continue;
-            }
-
-            var key = part[..firstSpace].Trim();
-            var value = part[(firstSpace + 1)..].Trim();
-            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
-            {
-                continue;
-            }
-
-            map[key] = value;
-        }
-
-        return map;
-    }
-
-    private static void ApplyStatBonus(Dictionary<string, string> statMap, string key, int bonus)
-    {
-        if (bonus == 0 || !statMap.TryGetValue(key, out var currentValue))
-        {
-            return;
-        }
-
-        if (!int.TryParse(currentValue, out var parsedBase))
-        {
-            return;
-        }
-
-        statMap[key] = (parsedBase + bonus).ToString();
     }
 
     private void ReplaceMercsCompanyEntry(MercsCompanyEntry original, MercsCompanyEntry replacement)

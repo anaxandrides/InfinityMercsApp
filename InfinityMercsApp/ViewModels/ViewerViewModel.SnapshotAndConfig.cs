@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Captain;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text.Json;
@@ -167,22 +168,15 @@ public partial class ViewerViewModel
         }
     }
 
-    public void ApplyCaptainStatBonuses(
-        int ccBonus,
-        int bsBonus,
-        int phBonus,
-        int wipBonus,
-        int armBonus,
-        int btsBonus,
-        int vitalityBonus)
+    public void ApplyCaptainStatBonuses(CaptainStatBonuses bonuses)
     {
-        UnitCc = ApplyNumericBonus(UnitCc, ccBonus);
-        UnitBs = ApplyNumericBonus(UnitBs, bsBonus);
-        UnitPh = ApplyNumericBonus(UnitPh, phBonus);
-        UnitWip = ApplyNumericBonus(UnitWip, wipBonus);
-        UnitArm = ApplyNumericBonus(UnitArm, armBonus);
-        UnitBts = ApplyNumericBonus(UnitBts, btsBonus);
-        UnitVitality = ApplyNumericBonus(UnitVitality, vitalityBonus);
+        UnitCc = CaptainStatBonuses.Apply(UnitCc, bonuses.Cc);
+        UnitBs = CaptainStatBonuses.Apply(UnitBs, bonuses.Bs);
+        UnitPh = CaptainStatBonuses.Apply(UnitPh, bonuses.Ph);
+        UnitWip = CaptainStatBonuses.Apply(UnitWip, bonuses.Wip);
+        UnitArm = CaptainStatBonuses.Apply(UnitArm, bonuses.Arm);
+        UnitBts = CaptainStatBonuses.Apply(UnitBts, bonuses.Bts);
+        UnitVitality = CaptainStatBonuses.Apply(UnitVitality, bonuses.Vitality);
     }
 
     public void ApplySavedUnitSnapshot(
@@ -408,18 +402,6 @@ public partial class ViewerViewModel
 
         return CompanyProfileTextService.SplitDisplayLine(payload)
             .Where(x => !string.Equals(x, "-", StringComparison.Ordinal));
-    }
-
-    private static string ApplyNumericBonus(string value, int bonus)
-    {
-        if (bonus == 0)
-        {
-            return value;
-        }
-
-        return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
-            ? (parsed + bonus).ToString(CultureInfo.InvariantCulture)
-            : value;
     }
 
     private static bool ContainsHackableFromCurrentState(string? equipmentText, string? skillsText)

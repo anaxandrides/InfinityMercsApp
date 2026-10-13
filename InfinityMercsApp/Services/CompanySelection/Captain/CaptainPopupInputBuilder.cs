@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+using InfinityMercsApp.Domain.Captain;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Infrastructure.Providers;
@@ -173,7 +174,7 @@ internal static class CaptainPopupInputBuilder
         IReadOnlyDictionary<int, CaptainExtraDefinition> extrasLookup,
         bool showUnitsInInches)
     {
-        var prefix = $"({Math.Max(0, points)}) - ";
+        var prefix = CaptainChoiceLabel.Format(points, string.Empty);
         var extrasSuffix = BuildExtrasSuffix(extras, extrasLookup, showUnitsInInches);
         if (lookup.TryGetValue(id, out var value) && !string.IsNullOrWhiteSpace(value))
         {

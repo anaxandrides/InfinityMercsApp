@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+using InfinityMercsApp.Domain.Captain;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -360,9 +361,9 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
                 var savedCharacteristics = ResolveSavedCharacteristics(effectiveSourceFactionId, entry);
                 if (entry.IsLieutenant && captainStats.IsEnabled)
                 {
-                    savedRangedWeapons = AppendChoices(savedRangedWeapons, captainWeaponChoices);
-                    savedSkills = AppendChoices(savedSkills, captainSkillChoices);
-                    savedEquipment = AppendChoices(savedEquipment, captainEquipmentChoices);
+                    savedRangedWeapons = ProfileText.AppendDistinct(savedRangedWeapons, captainWeaponChoices);
+                    savedSkills = ProfileText.AppendDistinct(savedSkills, captainSkillChoices);
+                    savedEquipment = ProfileText.AppendDistinct(savedEquipment, captainEquipmentChoices);
                 }
 
                 var logoSourceFactionId = ResolveLogoSourceFactionId(entry);
@@ -462,14 +463,7 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
 
         if (item.IsLieutenant && _loadedCaptainStats.IsEnabled)
         {
-            _viewerViewModel.ApplyCaptainStatBonuses(
-                _loadedCaptainStats.CcBonus,
-                _loadedCaptainStats.BsBonus,
-                _loadedCaptainStats.PhBonus,
-                _loadedCaptainStats.WipBonus,
-                _loadedCaptainStats.ArmBonus,
-                _loadedCaptainStats.BtsBonus,
-                _loadedCaptainStats.VitalityBonus);
+            _viewerViewModel.ApplyCaptainStatBonuses(_loadedCaptainStats.Bonuses);
         }
 
         ViewerProfileItem? loadedProfile = null;
@@ -661,8 +655,8 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
             return;
         }
 
-        var savedSkillLines = SplitProfileText(item.SavedSkills);
-        var savedCharacteristicLines = SplitProfileText(item.SavedCharacteristics);
+        var savedSkillLines = ProfileText.Lines(item.SavedSkills);
+        var savedCharacteristicLines = ProfileText.Lines(item.SavedCharacteristics);
         var hasIrregular = savedSkillLines.Any(x => x.Contains("irregular", StringComparison.OrdinalIgnoreCase)) ||
                            savedCharacteristicLines.Any(x => x.Contains("irregular", StringComparison.OrdinalIgnoreCase));
         if (!hasIrregular)
@@ -825,7 +819,7 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
         var dodgeExtrasSeen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var hasPlainDodge = false;
 
-        foreach (var rawLine in SplitProfileText(skillsText))
+        foreach (var rawLine in ProfileText.Lines(skillsText))
         {
             var line = rawLine.Trim();
             var dodgeMatch = Regex.Match(line, @"^\s*dodge(?:\s*\((?<extra>.+)\))?\s*$", RegexOptions.IgnoreCase);
@@ -1504,26 +1498,11 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
         return Regex.Replace(trimmed, @"^\s*\([-+]?\d+\)\s*-\s*", string.Empty).Trim();
     }
 
-    private static string AppendChoices(string? baseText, IReadOnlyList<string> additions)
-    {
-        var lines = SplitProfileText(baseText);
-        var existing = new HashSet<string>(lines, StringComparer.OrdinalIgnoreCase);
-        foreach (var addition in additions)
-        {
-            if (existing.Add(addition))
-            {
-                lines.Add(addition);
-            }
-        }
-
-        return lines.Count == 0 ? "-" : string.Join(Environment.NewLine, lines);
-    }
-
     private static string MergeProfileSectionText(string? loadedText, string? savedText)
     {
-        var lines = SplitProfileText(loadedText);
+        var lines = ProfileText.Lines(loadedText);
         var existing = new HashSet<string>(lines, StringComparer.OrdinalIgnoreCase);
-        foreach (var savedLine in SplitProfileText(savedText))
+        foreach (var savedLine in ProfileText.Lines(savedText))
         {
             if (existing.Add(savedLine))
             {
@@ -1536,7 +1515,7 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
 
     private static string NormalizeLieutenantOrderEntries(string? skillsText)
     {
-        var lines = SplitProfileText(skillsText);
+        var lines = ProfileText.Lines(skillsText);
         if (lines.Count == 0)
         {
             return "-";
@@ -1595,19 +1574,6 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
     }
 
 
-    private static List<string> SplitProfileText(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return [];
-        }
-
-        return text
-            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => x.Trim())
-            .Where(x => !string.IsNullOrWhiteSpace(x) && x != "-")
-            .ToList();
-    }
 
     private static int CountBonusRegularOrders(string? uniqueSkills)
     {
@@ -1617,7 +1583,7 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
         }
 
         var total = 0;
-        foreach (var line in SplitProfileText(uniqueSkills))
+        foreach (var line in ProfileText.Lines(uniqueSkills))
         {
             if (!line.Contains("order", StringComparison.OrdinalIgnoreCase))
             {
@@ -1647,7 +1613,7 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
         }
 
         var total = 0;
-        foreach (var line in SplitProfileText(uniqueSkills))
+        foreach (var line in ProfileText.Lines(uniqueSkills))
         {
             if (!line.Contains("command token", StringComparison.OrdinalIgnoreCase))
             {
@@ -1677,7 +1643,7 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
         }
 
         var total = 0;
-        foreach (var line in SplitProfileText(uniqueSkills))
+        foreach (var line in ProfileText.Lines(uniqueSkills))
         {
             if (!line.Contains("lt order", StringComparison.OrdinalIgnoreCase) &&
                 !line.Contains("lieutenant order", StringComparison.OrdinalIgnoreCase) &&

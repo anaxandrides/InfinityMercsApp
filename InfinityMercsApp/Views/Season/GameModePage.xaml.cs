@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Captain;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Metadata;
@@ -280,12 +281,12 @@ public partial class GameModePage : ContentPage, IQueryAttributable
 
                 if (entry.IsLieutenant && captainStats.IsEnabled)
                 {
-                    rangedWeapons = AppendChoices(rangedWeapons,
+                    rangedWeapons = AppendKeepingText(rangedWeapons,
                         captainWeaponChoices.Where(w => !CompanyProfileTextService.IsMeleeWeaponName(w)).ToList());
-                    meleeWeapons = AppendChoices(meleeWeapons,
+                    meleeWeapons = AppendKeepingText(meleeWeapons,
                         captainWeaponChoices.Where(CompanyProfileTextService.IsMeleeWeaponName).ToList());
-                    skills = AppendChoices(skills, captainSkillChoices);
-                    equipment = AppendChoices(equipment, captainEquipmentChoices);
+                    skills = AppendKeepingText(skills, captainSkillChoices);
+                    equipment = AppendKeepingText(equipment, captainEquipmentChoices);
                 }
 
                 var logoFactionId = entry.LogoSourceFactionId > 0 ? entry.LogoSourceFactionId : entry.SourceFactionId;
@@ -1595,19 +1596,6 @@ public partial class GameModePage : ContentPage, IQueryAttributable
         return lines.Count == 0 ? "-" : string.Join(Environment.NewLine, lines);
     }
 
-    private static string AppendChoices(string? baseText, IReadOnlyList<string> additions)
-    {
-        if (additions.Count == 0) return baseText ?? "-";
-        var lines = (baseText ?? string.Empty)
-            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => x.Trim()).Where(x => !string.IsNullOrWhiteSpace(x) && x != "-")
-            .ToList();
-        var seen = new HashSet<string>(lines, StringComparer.OrdinalIgnoreCase);
-        foreach (var a in additions)
-            if (seen.Add(a)) lines.Add(a);
-        return lines.Count == 0 ? "-" : string.Join(Environment.NewLine, lines);
-    }
-
     private static IReadOnlyList<string> CollectCaptainChoices(params string[] choices) =>
         choices.Select(NormalizeCaptainChoice)
                .Where(x => !string.IsNullOrWhiteSpace(x))
@@ -1761,13 +1749,13 @@ public partial class GameModePage : ContentPage, IQueryAttributable
                 case "Sidearm":
                 case "Accessories":
                     if (CompanyProfileTextService.IsMeleeWeaponName(gear.ItemName))
-                        meleeWeapons = AppendChoices(meleeWeapons, [gear.ItemName]);
+                        meleeWeapons = AppendKeepingText(meleeWeapons, [gear.ItemName]);
                     else
-                        rangedWeapons = AppendChoices(rangedWeapons, [gear.ItemName]);
+                        rangedWeapons = AppendKeepingText(rangedWeapons, [gear.ItemName]);
                     break;
 
                 case "Roles":
-                    skills = AppendChoices(skills, [gear.ItemName]);
+                    skills = AppendKeepingText(skills, [gear.ItemName]);
                     break;
 
                 case "Augments":
@@ -1791,10 +1779,14 @@ public partial class GameModePage : ContentPage, IQueryAttributable
                     }
                     else
                     {
-                        skills = AppendChoices(skills, [gear.ItemName]);
+                        skills = AppendKeepingText(skills, [gear.ItemName]);
                     }
                     break;
             }
         }
     }
+
+    // Adds items to a profile section; with nothing to add, the section's text is left as it is.
+    private static string AppendKeepingText(string? baseText, IReadOnlyList<string> additions) =>
+        ProfileText.AppendDistinct(baseText, additions, keepTextWhenNothingAdded: true);
 }

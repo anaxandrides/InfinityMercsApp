@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+using InfinityMercsApp.Domain.Captain;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -370,25 +371,25 @@ internal static class CompanyStartSaveWorkflow
 
         if (entry.IsLieutenant && improvedCaptainStats.IsEnabled)
         {
-            currentCc = BuildCaptainCurrentStat(baseCc, improvedCaptainStats.CcTier, improvedCaptainStats.CcBonus);
-            currentBs = BuildCaptainCurrentStat(baseBs, improvedCaptainStats.BsTier, improvedCaptainStats.BsBonus);
-            currentPh = BuildCaptainCurrentStat(basePh, improvedCaptainStats.PhTier, improvedCaptainStats.PhBonus);
-            currentWip = BuildCaptainCurrentStat(baseWip, improvedCaptainStats.WipTier, improvedCaptainStats.WipBonus);
-            currentArm = BuildCaptainCurrentStat(baseArm, improvedCaptainStats.ArmTier, improvedCaptainStats.ArmBonus);
-            currentBts = BuildCaptainCurrentStat(baseBts, improvedCaptainStats.BtsTier, improvedCaptainStats.BtsBonus);
-            currentVitaOrStr = BuildCaptainCurrentStat(baseVitaOrStr, improvedCaptainStats.VitalityTier, improvedCaptainStats.VitalityBonus);
+            currentCc = CaptainStatBonuses.Apply(baseCc, improvedCaptainStats.CcBonus);
+            currentBs = CaptainStatBonuses.Apply(baseBs, improvedCaptainStats.BsBonus);
+            currentPh = CaptainStatBonuses.Apply(basePh, improvedCaptainStats.PhBonus);
+            currentWip = CaptainStatBonuses.Apply(baseWip, improvedCaptainStats.WipBonus);
+            currentArm = CaptainStatBonuses.Apply(baseArm, improvedCaptainStats.ArmBonus);
+            currentBts = CaptainStatBonuses.Apply(baseBts, improvedCaptainStats.BtsBonus);
+            currentVitaOrStr = CaptainStatBonuses.Apply(baseVitaOrStr, improvedCaptainStats.VitalityBonus);
 
-            currentWeaponNames = AppendChoices(
+            currentWeaponNames = ProfileText.AppendChoices(
                 currentWeaponNames,
                 improvedCaptainStats.WeaponChoice1,
                 improvedCaptainStats.WeaponChoice2,
                 improvedCaptainStats.WeaponChoice3);
-            currentSkillNames = AppendChoices(
+            currentSkillNames = ProfileText.AppendChoices(
                 currentSkillNames,
                 improvedCaptainStats.SkillChoice1,
                 improvedCaptainStats.SkillChoice2,
                 improvedCaptainStats.SkillChoice3);
-            currentEquipmentNames = AppendChoices(
+            currentEquipmentNames = ProfileText.AppendChoices(
                 currentEquipmentNames,
                 improvedCaptainStats.EquipmentChoice1,
                 improvedCaptainStats.EquipmentChoice2,
@@ -699,46 +700,6 @@ internal static class CompanyStartSaveWorkflow
             .Where(x => !string.IsNullOrWhiteSpace(x) && x != "-")
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
-    }
-
-    private static string BuildCaptainCurrentStat(string baseValue, int tier, int bonus)
-    {
-        if (!int.TryParse(baseValue, out var parsedBase))
-        {
-            return baseValue;
-        }
-
-        var adjustedValue = parsedBase + bonus;
-        return adjustedValue.ToString(CultureInfo.InvariantCulture);
-    }
-
-    private static List<string> AppendChoices(List<string> existing, params string[] choices)
-    {
-        var result = existing
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Select(x => x.Trim())
-            .ToList();
-
-        foreach (var choice in choices)
-        {
-            if (string.IsNullOrWhiteSpace(choice))
-            {
-                continue;
-            }
-
-            var normalized = choice.Trim();
-            if (normalized == "-")
-            {
-                continue;
-            }
-
-            if (!result.Any(x => string.Equals(x, normalized, StringComparison.OrdinalIgnoreCase)))
-            {
-                result.Add(normalized);
-            }
-        }
-
-        return result;
     }
 
     private static (List<CompanySavedCodeRef> Codes, List<string> CustomNames) ResolveCodes(

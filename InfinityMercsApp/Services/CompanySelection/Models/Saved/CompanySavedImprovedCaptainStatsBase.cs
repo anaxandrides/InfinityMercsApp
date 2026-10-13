@@ -18,6 +18,11 @@ public abstract class CompanySavedImprovedCaptainStatsBase
     public int ArmBonus { get; init; }
     public int BtsBonus { get; init; }
     public int VitalityBonus { get; init; }
+
+    /// <summary>The bought stat bonuses as one value.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public InfinityMercsApp.Domain.Captain.CaptainStatBonuses Bonuses =>
+        new(CcBonus, BsBonus, PhBonus, WipBonus, ArmBonus, BtsBonus, VitalityBonus);
     public string WeaponChoice1 { get; init; } = string.Empty;
     public string WeaponChoice2 { get; init; } = string.Empty;
     public string WeaponChoice3 { get; init; } = string.Empty;
