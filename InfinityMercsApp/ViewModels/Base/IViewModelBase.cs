@@ -4,7 +4,7 @@ namespace InfinityMercsApp.ViewModels.Base;
 
 /// <summary>
 /// A page ViewModel. Shell hands navigation query parameters to the page's BindingContext when it is
-/// <see cref="IQueryAttributable"/>, so ViewModels receive them via <see cref="ApplyQueryAttributes"/>.
+/// <see cref="IQueryAttributable"/>, so ViewModels receive them via <see cref="IQueryAttributable.ApplyQueryAttributes"/>.
 /// </summary>
 public interface IViewModelBase : IQueryAttributable
 {

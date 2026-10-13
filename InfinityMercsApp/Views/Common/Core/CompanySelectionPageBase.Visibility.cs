@@ -25,7 +25,7 @@ public abstract partial class CompanySelectionPageBase
     }
 
     /// <summary>
-    /// Asynchronously builds the lookup context used by <see cref="ApplyUnitVisibilityCore{TUnit}"/>,
+    /// Asynchronously builds the lookup context used by <see cref="ApplyUnitVisibilityCore"/>,
     /// pre-fetching faction snapshots and spec-ops unit lists for all active factions.
     /// The context is reused across multiple visibility passes to avoid redundant data access.
     /// </summary>

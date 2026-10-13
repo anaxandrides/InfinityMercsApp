@@ -127,7 +127,7 @@ public abstract partial class CompanySelectionPageBase
     }
 
     /// <summary>
-    /// Variant of <see cref="SetSelectedUnitCore{TUnit}"/> that also tracks a typed context value
+    /// Variant of <see cref="SetSelectedUnitCore"/> that also tracks a typed context value
     /// (e.g. fireteam slot index), updating it and triggering reload when it differs from the current context.
     /// </summary>
     protected static ArmyUnitSelectionItem SetSelectedUnitWithContextCore<TContext>(

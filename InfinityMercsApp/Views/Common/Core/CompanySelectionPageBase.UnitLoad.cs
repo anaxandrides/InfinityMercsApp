@@ -22,7 +22,7 @@ public abstract partial class CompanySelectionPageBase
 
     /// <summary>
     /// Loads and merges resume and spec-ops units from all provided factions into a single
-    /// <see cref="CompanyMergedUnitsAndTeams{TUnit}"/> result.
+    /// <see cref="CompanyMergedUnitsAndTeams"/> result.
     /// Also caches unit logos and merges fireteam chart data as side effects.
     /// </summary>
     protected static async Task<CompanyMergedUnitsAndTeams> BuildMergedUnitsAndTeamsAsync<TFaction>(
