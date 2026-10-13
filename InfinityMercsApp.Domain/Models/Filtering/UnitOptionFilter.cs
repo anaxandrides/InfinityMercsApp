@@ -224,6 +224,26 @@ public static class UnitOptionFilter
         return false;
     }
 
+    /// <summary>
+    /// The cost of an option shown with a single peripheral instead of <paramref name="peripheralCount"/>:
+    /// the cost less one per-model peripheral cost for each peripheral dropped. Unchanged when either the
+    /// cost or the peripheral's price is unknown or zero.
+    /// </summary>
+    public static string SinglePeripheralCost(UnitProfileGroups groups, string cost, string peripheralName, int peripheralCount)
+    {
+        var baseCost = ProfileValues.ParseCost(cost);
+        if (peripheralCount <= 1 ||
+            baseCost <= 0 ||
+            !TryGetPeripheralUnitCost(groups, peripheralName, out var peripheralCost) ||
+            peripheralCost <= 0)
+        {
+            return cost;
+        }
+
+        return Math.Max(0, baseCost - ((peripheralCount - 1) * peripheralCost))
+            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+    }
+
     private static bool PassesVisibility(
         UnitProfileGroups groups,
         ProfileGroup group,

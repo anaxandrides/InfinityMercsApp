@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Season;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using InfinityMercsApp.Domain.Models.Season;
@@ -97,35 +98,11 @@ internal static class SeasonFileService
     {
         var status = seasonFile.CurrentStatus;
 
-        var crEarned = 0;
-        var crSpent = 0;
-        var swcEarned = 0.0;
-        var swcBought = 0.0;
-        var swcSpent = 0.0;
         var unitXp = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var unitNotoriety = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var round in seasonFile.Rounds)
         {
-            var missionNumber = Math.Max(1, round.RoundIndex);
-            crEarned += Math.Min(10 * missionNumber, 40);
-            crEarned += 4 * round.MissionResults.OpScored;
-            crEarned += round.MissionResults.Won ? 10 : 0;
-            crEarned += round.Downtime.CrGain;
-            crSpent += round.Downtime.SpentCr;
-
-            swcEarned += 0.5;
-            swcBought += round.Downtime.SwcGain;
-
-            foreach (var tx in round.Marketplace.Transactions)
-            {
-                crSpent += tx.CostCr;
-                if (tx.CostSwc.HasValue)
-                    swcSpent += (double)tx.CostSwc.Value;
-                if (tx.SwcGrant.HasValue)
-                    swcBought += (double)tx.SwcGrant.Value;
-            }
-
             foreach (var ur in round.MissionResults.UnitResults)
             {
                 unitXp[ur.UnitName] = unitXp.GetValueOrDefault(ur.UnitName, 0) + ur.XpGained;
@@ -139,11 +116,12 @@ internal static class SeasonFileService
             }
         }
 
-        status.CrEarned = crEarned;
-        status.CrSpent = crSpent;
-        status.SwcEarned = swcEarned;
-        status.SwcBought = swcBought;
-        status.SwcSpent = swcSpent;
+        var ledger = SeasonEconomy.Ledger(seasonFile);
+        status.CrEarned = ledger.CrEarned;
+        status.CrSpent = ledger.CrSpent;
+        status.SwcEarned = ledger.SwcEarned;
+        status.SwcBought = ledger.SwcBought;
+        status.SwcSpent = ledger.SwcSpent;
 
         foreach (var (name, xp) in unitXp)
         {
@@ -174,33 +152,8 @@ internal static class SeasonFileService
 
     internal static SeasonResources ComputeAvailableResources(SeasonFile? seasonFile)
     {
-        if (seasonFile is null) return new SeasonResources(0, 0);
-
-        var cr = 0;
-        var swc = 0.0;
-        foreach (var round in seasonFile.Rounds)
-        {
-            var missionNumber = Math.Max(1, round.RoundIndex);
-            var missionCr = Math.Min(10 * missionNumber, 40);
-            var objectiveCr = 4 * round.MissionResults.OpScored;
-            var victoryCr = round.MissionResults.Won ? 10 : 0;
-
-            cr += missionCr + objectiveCr + victoryCr;
-            cr += round.Downtime.CrGain;
-            cr -= round.Downtime.SpentCr;
-
-            swc += 0.5;
-            swc += round.Downtime.SwcGain;
-
-            foreach (var tx in round.Marketplace.Transactions)
-            {
-                cr -= tx.CostCr;
-                swc -= tx.CostSwc.HasValue ? (double)tx.CostSwc.Value : 0;
-                swc += tx.SwcGrant.HasValue ? (double)tx.SwcGrant.Value : 0;
-            }
-        }
-
-        return new SeasonResources(cr, swc);
+        var ledger = SeasonEconomy.Ledger(seasonFile);
+        return new SeasonResources(ledger.CreditsBalance, ledger.SwcBalance);
     }
 
     internal static int ComputeCompanyNotoriety(SeasonFile? seasonFile)

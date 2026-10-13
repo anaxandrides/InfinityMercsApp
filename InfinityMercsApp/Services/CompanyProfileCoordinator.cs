@@ -193,17 +193,7 @@ internal sealed class CompanyProfileCoordinator
 
                     if (hasPeripheralProfile)
                     {
-                        // A statline carries no cost of its own, so an unpriced peripheral costs nothing extra.
-                        var peripheralCost = UnitOptionFilter.TryGetPeripheralUnitCost(unit, singlePeripheralName, out var unitCost)
-                            ? unitCost
-                            : 0;
-                        var baseCost = ProfileValues.ParseCost(cost);
-                        if (peripheralCost > 0 && baseCost > 0)
-                        {
-                            var removedPeripheralCount = singlePeripheralCount - 1;
-                            displayCost = Math.Max(0, baseCost - (removedPeripheralCount * peripheralCost))
-                                .ToString(System.Globalization.CultureInfo.InvariantCulture);
-                        }
+                        displayCost = UnitOptionFilter.SinglePeripheralCost(unit, cost, singlePeripheralName, singlePeripheralCount);
                     }
                 }
 

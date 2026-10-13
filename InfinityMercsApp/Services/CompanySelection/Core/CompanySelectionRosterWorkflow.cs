@@ -55,7 +55,7 @@ internal static class CompanySelectionRosterWorkflow
 
         foreach (var profile in profiles)
         {
-            var profileCost = CompanyUnitFilterService.ParseCostValue(profile.Cost);
+            var profileCost = ProfileValues.ParseCost(profile.Cost);
             var overRemainingPoints = profileCost > pointsRemaining;
             var belowMinFilterPoints = activeUnitFilter.MinPoints.HasValue && profileCost < activeUnitFilter.MinPoints.Value;
             var aboveMaxFilterPoints = activeUnitFilter.MaxPoints.HasValue && profileCost > activeUnitFilter.MaxPoints.Value;
@@ -167,7 +167,7 @@ internal static class CompanySelectionRosterWorkflow
             Subtitle = statline,
             UnitTypeCode = CompanyStartSharedState.ExtractUnitTypeCode(selectedUnit.Subtitle),
             CostDisplay = $"C {profile.Cost}",
-            CostValue = CompanyUnitFilterService.ParseCostValue(profile.Cost),
+            CostValue = ProfileValues.ParseCost(profile.Cost),
             IsLieutenant = profile.IsLieutenant,
             ProfileKey = profile.ProfileKey,
             SourceUnitId = selectedUnit.Id,

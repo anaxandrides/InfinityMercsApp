@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Season;
 using System.Globalization;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services;
@@ -79,9 +80,9 @@ public partial class MissionOutcomePage : ContentPage, IQueryAttributable
 
         var roundNumber = MissionOutcomePageData.CurrentRound;
         var points = _pointsScored ?? 0;
-        var missionCredits = Math.Min(10 * roundNumber, 40);
-        var objectivesSecured = 4 * points;
-        var victoryBonus = _victory == true ? 10 : 0;
+        var missionCredits = SeasonEconomy.MissionCredits(roundNumber);
+        var objectivesSecured = SeasonEconomy.ObjectiveCredits(points);
+        var victoryBonus = SeasonEconomy.VictoryBonus(_victory == true);
         var sum = missionCredits + objectivesSecured + victoryBonus;
 
         BreakdownStack.Children.Add(MakeRow("Round Number", roundNumber.ToString(CultureInfo.InvariantCulture)));
@@ -94,7 +95,7 @@ public partial class MissionOutcomePage : ContentPage, IQueryAttributable
         BreakdownStack.Children.Add(MakeRow("Mission Credits", missionCredits.ToString(CultureInfo.InvariantCulture)));
         BreakdownStack.Children.Add(MakeRow("Objectives Secured", objectivesSecured.ToString(CultureInfo.InvariantCulture)));
         if (_victory == true)
-            BreakdownStack.Children.Add(MakeRow("Victory", "10"));
+            BreakdownStack.Children.Add(MakeRow("Victory", SeasonEconomy.VictoryCredits.ToString(CultureInfo.InvariantCulture)));
 
         BreakdownStack.Children.Add(new BoxView
         {
@@ -163,5 +164,5 @@ public static class MissionOutcomePageData
     public static int ObjectivesSecured { get; set; }
     public static int VictoryBonus { get; set; }
     public static int CreditsTotal { get; set; }
-    public static double SwcGain { get; } = 0.5;
+    public static double SwcGain { get; } = SeasonEconomy.SwcPerMission;
 }

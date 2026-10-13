@@ -10,22 +10,6 @@ namespace InfinityMercsApp.Views.Common;
 /// </summary>
 internal static partial class CompanySelectionSharedUtilities
 {
-    internal static int ParseCostValue(string? cost)
-    {
-        if (string.IsNullOrWhiteSpace(cost))
-        {
-            return 0;
-        }
-
-        if (int.TryParse(cost, out var parsed))
-        {
-            return parsed;
-        }
-
-        var match = Regex.Match(cost, "\\d+");
-        return match.Success && int.TryParse(match.Value, out var fallback) ? fallback : 0;
-    }
-
     internal static int? ParseAvaLimit(string? ava)
     {
         if (string.IsNullOrWhiteSpace(ava))

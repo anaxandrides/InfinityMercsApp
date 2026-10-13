@@ -93,11 +93,4 @@ public static class CompanyUnitFilterService
     {
         return UnitOptionFilter.MatchesClassification(criteria, unitType, typeLookup);
     }
-
-    public static int ParseCostValue(string? cost) => ProfileValues.ParseCost(cost);
-
-    public static bool TryGetPeripheralUnitCost(UnitProfileGroups profileGroups, string peripheralName, out int peripheralUnitCost)
-    {
-        return UnitOptionFilter.TryGetPeripheralUnitCost(profileGroups, peripheralName, out peripheralUnitCost);
-    }
 }

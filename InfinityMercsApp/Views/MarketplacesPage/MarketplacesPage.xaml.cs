@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Season;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
@@ -319,7 +320,7 @@ public partial class MarketplacesPage : AdaptiveContentPage
                     Name = item.Name,
                     CostCr = item.CostCr,
                     CostSwc = item.CostSwc,
-                    CostSwcDisplay = item.CostSwc.HasValue ? item.CostSwc.Value.ToString("0.##") : "—",
+                    CostSwcDisplay = item.CostSwc.HasValue ? SeasonEconomy.SwcText(item.CostSwc.Value) : "—",
                     Category = item.Category,
                     WikiUrl = item.WikiUrl,
                     WikiSection = item.WikiSection
@@ -367,9 +368,7 @@ public partial class MarketplacesPage : AdaptiveContentPage
         PopupTitleLabel.Text = item.Name;
         PopupContentArea.Children.Clear();
 
-        AddPopupRow("Cost", item.CostSwc.HasValue
-            ? $"{item.CostCr}cr / {item.CostSwc.Value.ToString("0.##")}swc"
-            : $"{item.CostCr}cr");
+        AddPopupRow("Cost", SeasonEconomy.PriceText(item.CostCr, item.CostSwc));
         AddPopupRow("Category", item.Category);
 
         // Wiki section — placeholder container inserted before weapon cards
@@ -722,9 +721,7 @@ public partial class MarketplacesPage : AdaptiveContentPage
         public string? WikiUrl { get; init; }
         public string? WikiSection { get; init; }
 
-        public string CostDisplay => CostSwc.HasValue
-            ? $"{CostCr}cr / {CostSwc.Value.ToString("0.##")}swc"
-            : $"{CostCr}cr";
+        public string CostDisplay => SeasonEconomy.PriceText(CostCr, CostSwc);
 
         public int Quantity
         {

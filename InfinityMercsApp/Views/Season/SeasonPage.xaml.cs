@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Season;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Captain;
 using System.Collections.ObjectModel;
@@ -1229,10 +1230,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         var remainingCr = gross.CreditsBalance - cartCr;
         var remainingSwc = gross.SwcBalance - cartSwc;
 
-        var swcText = remainingSwc % 1 == 0
-            ? ((int)remainingSwc).ToString()
-            : remainingSwc.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
-        UpdateSeasonResourcesTitleBarLabel($"{remainingCr} CR - {swcText} SWC");
+        UpdateSeasonResourcesTitleBarLabel(SeasonEconomy.BalanceText(remainingCr, remainingSwc));
 
         foreach (var recolor in _marketplaceRecolorActions)
             recolor(remainingCr, remainingSwc);
@@ -2090,7 +2088,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         var key = $"{storeName}|{itemName}";
         _inventoryItemCosts[key] = (costCr, costSwc ?? 0);
 
-        var costText = costSwc.HasValue ? $"{costCr}cr / {costSwc}swc" : $"{costCr}cr";
+        var costText = SeasonEconomy.PriceText(costCr, (decimal?)costSwc);
 
         var nameLabel = new Label { Text = itemName, Style = (Style)Application.Current!.Resources["LabelBody"], TextColor = Color.FromArgb("#E6EBF2") };
         var costLabel = new Label { Text = costText, Style = (Style)Application.Current!.Resources["LabelCaption"], TextColor = Color.FromArgb("#34D399") };
@@ -2261,9 +2259,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         PopupTitleLabel.Text = item.Name;
         PopupContentArea.Children.Clear();
 
-        AddPopupRow("Cost", item.CostSwc.HasValue
-            ? $"{item.CostCr}cr / {item.CostSwc}swc"
-            : $"{item.CostCr}cr");
+        AddPopupRow("Cost", SeasonEconomy.PriceText(item.CostCr, item.CostSwc));
         AddPopupRow("Category", item.Category);
 
         AppendWeaponDetails(item.Name);
@@ -2590,7 +2586,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
             var isExchange = _inventoryItemCategories.TryGetValue(key, out var itemCat) &&
                              string.Equals(itemCat, "Exchange", StringComparison.OrdinalIgnoreCase);
-            var swcGrant = isExchange ? ParseSwcGrantFromName(itemName) : null;
+            var swcGrant = isExchange ? SeasonEconomy.SwcGrantFromItemName(itemName) : null;
 
             for (var i = 0; i < count; i++)
             {
@@ -3268,14 +3264,4 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         }
     }
 
-    private static decimal? ParseSwcGrantFromName(string itemName)
-    {
-        var match = Regex.Match(itemName,
-            @"SWC\s*\+\s*(\d+\.?\d*)|^\+\s*(\d+\.?\d*)\s*SWC",
-            RegexOptions.IgnoreCase);
-        if (!match.Success) return null;
-        var raw = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value;
-        return decimal.TryParse(raw, System.Globalization.NumberStyles.Number,
-            System.Globalization.CultureInfo.InvariantCulture, out var result) ? result : null;
-    }
 }
