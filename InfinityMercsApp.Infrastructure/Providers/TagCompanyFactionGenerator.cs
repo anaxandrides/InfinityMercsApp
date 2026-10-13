@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Models.Army;
+using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Infrastructure.Repositories;
 using DbMetadataFaction = InfinityMercsApp.Infrastructure.Models.Database.Metadata.Faction;
 
@@ -8,7 +9,8 @@ namespace InfinityMercsApp.Infrastructure.Providers;
 public sealed class TagCompanyFactionGenerator(
     ISQLiteRepository sqliteRepository,
     IFactionProvider factionProvider,
-    IArmyImportProvider armyImportProvider) : ITagCompanyFactionGenerator
+    IArmyImportProvider armyImportProvider,
+    IArmyJsonReader armyJsonReader) : ITagCompanyFactionGenerator
 {
     public const int TagCompanyFactionId = 2003;
     private const int TagCompanyUnitId = 1;
@@ -53,22 +55,15 @@ public sealed class TagCompanyFactionGenerator(
         });
     }
 
-    private static ArmyImportFaction BuildTagFaction()
+    /// <summary>The TAG company army: one unit, defined by the JSON templates below and parsed into typed models.</summary>
+    private ArmyDefinition BuildTagFaction()
     {
-        var factionsJson = """
-                           {
-                             "sourceFactionId": 2003,
-                             "sourceUnitId": 1,
-                             "sourceFactionIds": [2003]
-                           }
-                           """;
-
-        return new ArmyImportFaction
+        return new ArmyDefinition
         {
             Version = TagCompanyVersion,
             Units =
             [
-                new ArmyImportUnit
+                new ArmyUnitDefinition
                 {
                     Id = TagCompanyUnitId,
                     IdArmy = null,
@@ -77,10 +72,8 @@ public sealed class TagCompanyFactionGenerator(
                     IscAbbr = null,
                     Name = TagCompanyDefaultUnitName,
                     Slug = "repurposed-mining-equipment",
-                    ProfileGroupsJson = BuildTagProfileGroupsJson(),
-                    OptionsJson = "[]",
-                    FiltersJson = BuildTagUnitFiltersJson(),
-                    FactionsJson = factionsJson
+                    ProfileGroups = armyJsonReader.ReadProfileGroups(BuildTagProfileGroupsJson()),
+                    Filters = armyJsonReader.ReadUnitFilters(BuildTagUnitFiltersJson())
                 }
             ],
             Resume =
@@ -97,13 +90,7 @@ public sealed class TagCompanyFactionGenerator(
                     Category = 11
                 }
             ],
-            FiltersJson = BuildTagFactionFiltersJson(),
-            ReinforcementsJson = null,
-            FireteamsJson = null,
-            RelationsJson = null,
-            SpecopsJson = null,
-            FireteamChartJson = null,
-            RawJson = string.Empty
+            Filters = armyJsonReader.ReadArmyFilters(BuildTagFactionFiltersJson())
         };
     }
 

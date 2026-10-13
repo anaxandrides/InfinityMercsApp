@@ -14,7 +14,5 @@ public class CCFactionFireteamValidity
 
     public bool HasValidCoreFireteams { get; set; }
 
-    public string? ValidCoreFireteamsJson { get; set; }
-
     public long EvaluatedAtUnixSeconds { get; set; }
 }

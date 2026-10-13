@@ -1,4 +1,3 @@
-using System.Text.Json;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Controls;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
@@ -18,7 +17,7 @@ internal static class CohesiveCompanyTeamEligibilityWorkflow
     }
 
     internal static List<string> EvaluateValidCoreFireteams(
-        string? fireteamChartJson,
+        FireteamChart? fireteamChart,
         IReadOnlyList<ArmyResumeRecord> units,
         IReadOnlyDictionary<int, string> skillsLookup,
         IReadOnlyDictionary<int, string> charsLookup,
@@ -31,7 +30,7 @@ internal static class CohesiveCompanyTeamEligibilityWorkflow
         Func<string?, bool> isFtoLabel,
         Func<ArmyResumeRecord, bool> isCharacterCategory,
         Func<int, ArmyUnitRecord?> getUnitById,
-        Action<string?, Dictionary<string, CompanyTeamAggregate>> mergeFireteamEntries)
+        Action<FireteamChart?, Dictionary<string, CompanyTeamAggregate>> mergeFireteamEntries)
     {
         var sourceUnits = units.Select(unit => new EligibilitySourceUnit
             {
@@ -44,7 +43,7 @@ internal static class CohesiveCompanyTeamEligibilityWorkflow
             .ToList();
 
         var teams = new Dictionary<string, CompanyTeamAggregate>(StringComparer.OrdinalIgnoreCase);
-        mergeFireteamEntries(fireteamChartJson, teams);
+        mergeFireteamEntries(fireteamChart, teams);
 
         var validCoreFireteams = new List<string>();
         foreach (var team in teams.Values
@@ -71,14 +70,14 @@ internal static class CohesiveCompanyTeamEligibilityWorkflow
                 }
 
                 var unitRecord = getUnitById(matchedUnit.Id);
-                if (string.IsNullOrWhiteSpace(unitRecord?.ProfileGroupsJson))
+                if (unitRecord?.ProfileGroups is not { IsEmpty: false })
                 {
                     continue;
                 }
 
                 var requiresFtoProfile = isFtoLabel(unitLimit.Key);
                 var hasAnyVisibleProfile = CompanyUnitFilterService.UnitHasVisibleOptionWithFilter(
-                    unitRecord.ProfileGroupsJson,
+                    unitRecord.ProfileGroups,
                     skillsLookup,
                     charsLookup,
                     equipLookup,
@@ -95,7 +94,7 @@ internal static class CohesiveCompanyTeamEligibilityWorkflow
                 }
 
                 var hasVisibleLieutenantProfile = CompanyUnitFilterService.UnitHasVisibleOptionWithFilter(
-                    unitRecord.ProfileGroupsJson,
+                    unitRecord.ProfileGroups,
                     skillsLookup,
                     charsLookup,
                     equipLookup,
@@ -127,23 +126,7 @@ internal static class CohesiveCompanyTeamEligibilityWorkflow
             .ToList();
     }
 
-    internal static HashSet<string> ParseValidCoreFireteams(string? json)
-    {
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        }
-
-        try
-        {
-            var names = JsonSerializer.Deserialize<List<string>>(json) ?? [];
-            return new HashSet<string>(
-                names.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()),
-                StringComparer.OrdinalIgnoreCase);
-        }
-        catch
-        {
-            return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        }
-    }
+    /// <summary>The cached valid CORE fireteam names as a case-insensitive set (blank names dropped, trimmed).</summary>
+    internal static HashSet<string> ToValidCoreFireteamSet(IReadOnlyList<string> names) =>
+        new(names.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()), StringComparer.OrdinalIgnoreCase);
 }

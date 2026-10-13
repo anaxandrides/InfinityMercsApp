@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Infrastructure.Json;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Windows.Input;
@@ -97,7 +96,7 @@ public partial class ViewerViewModel
             var units = _armyDataService.GetResumeByFaction(SelectedFaction.Id, cancellationToken);
 
             var snapshot = _armyDataService.GetFactionSnapshot(SelectedFaction.Id, cancellationToken);
-            UpdateFireteamCounts(snapshot?.FireteamChartJson);
+            UpdateFireteamCounts(snapshot?.FireteamChart);
             var allowedFireteamSlugs = units
                 .Select(x => x.Slug?.Trim())
                 .Where(x => !string.IsNullOrWhiteSpace(x))
@@ -109,11 +108,11 @@ public partial class ViewerViewModel
                 .Select(x => NormalizeFireteamUnitName(x!))
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
             UpdateFireteamTeams(
-                snapshot?.FireteamChartJson,
+                snapshot?.FireteamChart,
                 MercsOnlyUnits,
                 allowedFireteamSlugs,
                 allowedFireteamNames);
-            var filters = ArmyJsonReader.Shared.ReadArmyFilters(snapshot?.FiltersJson);
+            var filters = snapshot?.Filters ?? ArmyFilterCatalog.Empty;
             var typeLookup = filters.Names(ArmyFilterSection.Type);
             var categoryLookup = filters.Names(ArmyFilterSection.Category);
             var filterLookups = UnitFilterLookups.From(filters);
@@ -142,7 +141,7 @@ public partial class ViewerViewModel
                 }
 
                 if (!UnitOptionFilter.HasVisibleOption(
-                        ArmyJsonReader.Shared.ReadProfileGroups(unitRecord?.ProfileGroupsJson),
+                        (unitRecord?.ProfileGroups ?? UnitProfileGroups.Empty),
                         filterLookups,
                         _activeUnitFilter,
                         requireLieutenant: _activeUnitFilter.LieutenantOnlyUnits,

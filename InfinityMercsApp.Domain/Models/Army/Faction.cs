@@ -1,4 +1,6 @@
-﻿namespace InfinityMercsApp.Domain.Models.Army;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+
+namespace InfinityMercsApp.Domain.Models.Army;
 
 public class Faction
 {
@@ -8,17 +10,13 @@ public class Faction
 
     public long ImportedAtUnixSeconds { get; set; }
 
-    public string? ReinforcementsJson { get; set; }
+    /// <summary>The army that provides this army's reinforcements, when it has one.</summary>
+    public int? ReinforcementsFactionId { get; set; }
 
-    public string? FiltersJson { get; set; }
+    /// <summary>The army's filters: the id → name/link tables that unit entries refer to.</summary>
+    public ArmyFilterCatalog Filters { get; set; } = ArmyFilterCatalog.Empty;
 
-    public string? FireteamsJson { get; set; }
+    public IReadOnlyList<ArmyRelation> Relations { get; set; } = [];
 
-    public string? RelationsJson { get; set; }
-
-    public string? SpecopsJson { get; set; }
-
-    public string? FireteamChartJson { get; set; }
-
-    public string RawJson { get; set; } = string.Empty;
+    public FireteamChart FireteamChart { get; set; } = FireteamChart.Empty;
 }

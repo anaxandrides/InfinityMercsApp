@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using InfinityMercsApp.Infrastructure.Json;
 using System.Text.RegularExpressions;
 
 namespace InfinityMercsApp.Views.Common;
@@ -111,8 +110,8 @@ internal static partial class CompanySelectionSharedUtilities
     }
 
     /// <summary>
-    /// Id → name for one section of an army's filters JSON (a fresh, mutable copy of the reader's lookup).
+    /// Id → name for one section of an army's filters (a fresh, mutable copy of the catalogue's lookup).
     /// </summary>
-    internal static Dictionary<int, string> BuildIdNameLookup(string? filtersJson, string sectionName) =>
-        new(ArmyJsonReader.Shared.ReadArmyFilters(filtersJson).Names(sectionName));
+    internal static Dictionary<int, string> BuildIdNameLookup(ArmyFilterCatalog? filters, string sectionName) =>
+        new((filters ?? ArmyFilterCatalog.Empty).Names(sectionName));
 }

@@ -16,7 +16,7 @@ internal static class CompanySelectionUnitLoadWorkflow
         Func<int, CancellationToken, Task<IReadOnlyList<ArmySpecopsUnitRecord>>> getSpecopsByFactionAsync,
         Func<int, CancellationToken, ArmyFactionRecord?> getFactionSnapshot,
         Func<int, IReadOnlyList<ArmyResumeRecord>, CancellationToken, Task> cacheUnitLogosAsync,
-        Action<string?, Dictionary<string, CompanyTeamAggregate>> mergeFireteamEntries,
+        Action<FireteamChart?, Dictionary<string, CompanyTeamAggregate>> mergeFireteamEntries,
         Func<int, ArmyResumeRecord, IReadOnlyDictionary<int, string>, IReadOnlyDictionary<int, string>, ArmyUnitSelectionItem> createResumeUnit,
         Func<int, ArmySpecopsUnitRecord, IReadOnlyDictionary<int, ArmyResumeRecord>, IReadOnlyList<ArmyResumeRecord>, IReadOnlyDictionary<int, string>, IReadOnlyDictionary<int, string>, ArmyUnitSelectionItem> createSpecopsUnit,
         CancellationToken cancellationToken)
@@ -33,9 +33,9 @@ internal static class CompanySelectionUnitLoadWorkflow
                 .ToDictionary(x => x.Key, x => x.First());
             var specopsUnits = await getSpecopsByFactionAsync(factionId, cancellationToken);
             var snapshot = getFactionSnapshot(factionId, cancellationToken);
-            var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "type");
-            var categoryLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "category");
-            mergeFireteamEntries(snapshot?.FireteamChartJson, mergedTeams);
+            var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "type");
+            var categoryLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "category");
+            mergeFireteamEntries(snapshot?.FireteamChart, mergedTeams);
 
             await cacheUnitLogosAsync(factionId, units, cancellationToken);
 

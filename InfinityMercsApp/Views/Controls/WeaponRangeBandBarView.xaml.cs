@@ -1,16 +1,15 @@
 using InfinityMercsApp.Domain.Models.Metadata;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
-using System.Text.Json;
 
 namespace InfinityMercsApp.Views.Controls;
 
 public partial class WeaponRangeBandBarView : ContentView
 {
-    public static readonly BindableProperty DistanceJsonProperty =
+    public static readonly BindableProperty DistanceProperty =
         BindableProperty.Create(
-            nameof(DistanceJson),
-            typeof(string),
+            nameof(Distance),
+            typeof(WeaponDistance),
             typeof(WeaponRangeBandBarView),
             null,
             propertyChanged: (bindable, _, _) => ((WeaponRangeBandBarView)bindable).Canvas.InvalidateSurface());
@@ -45,10 +44,10 @@ public partial class WeaponRangeBandBarView : ContentView
         InitializeComponent();
     }
 
-    public string? DistanceJson
+    public WeaponDistance? Distance
     {
-        get => (string?)GetValue(DistanceJsonProperty);
-        set => SetValue(DistanceJsonProperty, value);
+        get => (WeaponDistance?)GetValue(DistanceProperty);
+        set => SetValue(DistanceProperty, value);
     }
 
     public bool ShowUnitsInInches
@@ -74,7 +73,7 @@ public partial class WeaponRangeBandBarView : ContentView
         var canvas = e.Surface.Canvas;
         canvas.Clear();
 
-        var bands = ParseBands(DistanceJson);
+        var bands = Distance?.GetOrderedBands() ?? [];
         if (bands.Count == 0)
             return;
 
@@ -168,22 +167,6 @@ public partial class WeaponRangeBandBarView : ContentView
         }
 
         canvas.Restore();
-    }
-
-    private static IReadOnlyList<(string Label, int RangeStart, int RangeEnd, string Mod)> ParseBands(string? json)
-    {
-        if (string.IsNullOrWhiteSpace(json))
-            return [];
-
-        try
-        {
-            var distance = JsonSerializer.Deserialize<WeaponDistance>(json);
-            return distance?.GetOrderedBands() ?? [];
-        }
-        catch
-        {
-            return [];
-        }
     }
 
     private static string ApplyXVisorMod(string mod, bool xVisorActive)

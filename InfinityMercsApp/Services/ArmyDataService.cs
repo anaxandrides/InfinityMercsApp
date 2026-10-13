@@ -152,13 +152,10 @@ internal sealed class ArmyDataService(
             FactionId = faction.FactionId,
             Version = faction.Version,
             ImportedAtUnixSeconds = faction.ImportedAtUnixSeconds,
-            ReinforcementsJson = faction.ReinforcementsJson,
-            FiltersJson = faction.FiltersJson,
-            FireteamsJson = faction.FireteamsJson,
-            RelationsJson = faction.RelationsJson,
-            SpecopsJson = faction.SpecopsJson,
-            FireteamChartJson = faction.FireteamChartJson,
-            RawJson = faction.RawJson
+            ReinforcementsFactionId = faction.ReinforcementsFactionId,
+            Filters = faction.Filters,
+            Relations = faction.Relations,
+            FireteamChart = faction.FireteamChart
         };
     }
 
@@ -197,10 +194,10 @@ internal sealed class ArmyDataService(
             IscAbbr = unit.IscAbbr,
             Name = unit.Name,
             Slug = unit.Slug,
-            ProfileGroupsJson = unit.ProfileGroupsJson,
-            OptionsJson = unit.OptionsJson,
-            FiltersJson = unit.FiltersJson,
-            FactionsJson = unit.FactionsJson
+            ProfileGroups = unit.ProfileGroups,
+            Options = unit.Options,
+            Filters = unit.Filters,
+            FactionIds = unit.FactionIds
         };
     }
 

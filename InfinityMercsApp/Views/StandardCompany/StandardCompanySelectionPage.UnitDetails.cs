@@ -82,8 +82,8 @@ public partial class StandardCompanySelectionPage
                     RefreshSummaryFormatted = RefreshSummaryFormatted,
                     PopulateProfilesFromProfileGroups = PopulateProfilesFromProfileGroups,
                     UpdatePeripheralStatBlockFromVisibleProfiles = UpdatePeripheralStatBlockFromVisibleProfiles,
-                    SetSelectedUnitProfileGroupsJson = value => UnitDisplayConfigurationsView.SelectedUnitProfileGroupsJson = value,
-                    SetSelectedUnitFiltersJson = value => UnitDisplayConfigurationsView.SelectedUnitFiltersJson = value,
+                    SetSelectedUnitProfileGroups = value => UnitDisplayConfigurationsView.SelectedUnitProfileGroups = value,
+                    SetSelectedUnitFilters = value => UnitDisplayConfigurationsView.SelectedUnitFilters = value,
                     SetUnitNameHeading = value => UnitNameHeading = value,
                     SetSummaryHighlightLieutenant = value => _summaryHighlightLieutenant = value,
                     LogInfo = Console.WriteLine,
@@ -109,7 +109,7 @@ public partial class StandardCompanySelectionPage
             () => OpenBestUnitLogoStreamAsync(item));
     }
 
-    private void PopulateProfilesFromProfileGroups(UnitProfileGroups profileGroups, string? filtersJson, bool forceLieutenant = false)
+    private void PopulateProfilesFromProfileGroups(UnitProfileGroups profileGroups, ArmyFilterCatalog? filters, bool forceLieutenant = false)
     {
         Profiles.Clear();
         ProfilesStatus = "Loading profiles...";
@@ -124,7 +124,7 @@ public partial class StandardCompanySelectionPage
             new CompanyProfilePopulationRequest
             {
                 ProfileGroups = profileGroups,
-                FiltersJson = filtersJson,
+                Filters = filters ?? ArmyFilterCatalog.Empty,
                 ForceLieutenant = forceLieutenant,
                 ShowTacticalAwarenessIcon = ShowTacticalAwarenessIcon,
                 ShowUnitsInInches = ShowUnitsInInches,
@@ -194,10 +194,10 @@ public partial class StandardCompanySelectionPage
     /// Handles merge fireteam entries.
     /// </summary>
     private static void MergeFireteamEntries(
-        string? fireteamChartJson,
+        FireteamChart? fireteamChart,
         Dictionary<string, CompanyTeamAggregate> target)
     {
-        MergeFireteamEntriesCore(fireteamChartJson, target);
+        MergeFireteamEntriesCore(fireteamChart, target);
     }
 
     /// <summary>
@@ -235,8 +235,8 @@ public partial class StandardCompanySelectionPage
                 UnitDisplayConfigurationsView,
                 "CompanySelectionPage ResetUnitDetails: clearing selected unit logo.");
         }
-        UnitDisplayConfigurationsView.SelectedUnitProfileGroupsJson = null;
-        UnitDisplayConfigurationsView.SelectedUnitFiltersJson = null;
+        UnitDisplayConfigurationsView.SelectedUnitProfileGroups = UnitProfileGroups.Empty;
+        UnitDisplayConfigurationsView.SelectedUnitFilters = ArmyFilterCatalog.Empty;
         ResetUnitStatsOnly();
         EquipmentSummary = "Equipment: -";
         SpecialSkillsSummary = "Special Skills: -";
@@ -362,7 +362,7 @@ public partial class StandardCompanySelectionPage
     /// </summary>
     private void PopulatePeripheralStatsFromProfile(UnitProfile peripheralProfile, string peripheralName)
     {
-        var peripheralStats = BuildPeripheralStatBlock(peripheralName, peripheralProfile, UnitDisplayConfigurationsView.SelectedUnitFiltersJson);
+        var peripheralStats = BuildPeripheralStatBlock(peripheralName, peripheralProfile, UnitDisplayConfigurationsView.SelectedUnitFilters);
         if (peripheralStats is null)
         {
             return;
@@ -377,7 +377,7 @@ public partial class StandardCompanySelectionPage
     private void UpdatePeripheralStatBlockFromVisibleProfiles()
     {
         CompanyUnitDetailsShared.UpdatePeripheralStatBlockFromVisibleProfiles(
-            UnitDisplayConfigurationsView.SelectedUnitProfileGroupsJson,
+            UnitDisplayConfigurationsView.SelectedUnitProfileGroups,
             Profiles,
             profile => profile.IsVisible,
             profile => profile.HasPeripherals,
@@ -390,9 +390,9 @@ public partial class StandardCompanySelectionPage
     /// <summary>
     /// Builds the stat block for a peripheral statline.
     /// </summary>
-    private PeripheralMercsCompanyStats? BuildPeripheralStatBlock(string peripheralName, UnitProfile peripheralProfile, string? filtersJson)
+    private PeripheralMercsCompanyStats? BuildPeripheralStatBlock(string peripheralName, UnitProfile peripheralProfile, ArmyFilterCatalog? filters)
     {
-        return CompanyUnitDetailsShared.BuildPeripheralStatBlock(peripheralName, peripheralProfile, filtersJson, ShowUnitsInInches);
+        return CompanyUnitDetailsShared.BuildPeripheralStatBlock(peripheralName, peripheralProfile, filters, ShowUnitsInInches);
     }
 
     /// <summary>

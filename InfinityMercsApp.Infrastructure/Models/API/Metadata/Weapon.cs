@@ -40,6 +40,18 @@ public class Weapon
     [JsonPropertyName("properties")]
     public List<string>? Properties { get; set; }
 
+    /// <summary>Range bands by name (<c>short</c>, <c>med</c>, <c>long</c>, <c>max</c>...), in payload order.</summary>
     [JsonPropertyName("distance")]
-    public object? Distance { get; set; }
+    public Dictionary<string, WeaponDistanceBand?>? Distance { get; set; }
+}
+
+/// <summary>One band of a weapon's <c>distance</c>: <c>{"max":20,"mod":"+3"}</c>.</summary>
+public class WeaponDistanceBand
+{
+    [JsonPropertyName("max")]
+    public int Max { get; set; }
+
+    [JsonPropertyName("mod")]
+    [JsonConverter(typeof(InfinityMercsApp.Infrastructure.Json.ScalarTextConverter))]
+    public string? Mod { get; set; }
 }

@@ -32,7 +32,7 @@ public abstract partial class CompanySelectionPageBase
         Func<int, CancellationToken, Task<IReadOnlyList<ArmySpecopsUnitRecord>>> getSpecopsByFactionAsync,
         Func<int, CancellationToken, ArmyFactionRecord?> getFactionSnapshot,
         Func<int, IReadOnlyList<ArmyResumeRecord>, CancellationToken, Task> cacheUnitLogosAsync,
-        Action<string?, Dictionary<string, CompanyTeamAggregate>> mergeFireteamEntries,
+        Action<FireteamChart?, Dictionary<string, CompanyTeamAggregate>> mergeFireteamEntries,
         Func<ArmyResumeRecord, IReadOnlyDictionary<int, string>, bool> isCharacterCategory,
         Func<ArmyResumeRecord, IReadOnlyDictionary<int, string>, IReadOnlyDictionary<int, string>, string?> buildUnitSubtitle,
         Func<int, ArmyResumeRecord, IReadOnlyDictionary<int, string>, IReadOnlyDictionary<int, string>, ArmyUnitSelectionItem> createResumeUnit,

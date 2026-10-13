@@ -119,7 +119,7 @@ public partial class StandardCompanySelectionPage
             _factionSelectionState.LeftSlotFaction,
             _factionSelectionState.RightSlotFaction,
             faction => faction.Id,
-            (factionId, ct) => _armyDataService.GetFactionSnapshot(factionId, ct)?.FiltersJson,
+            (factionId, ct) => _armyDataService.GetFactionSnapshot(factionId, ct)?.Filters,
             (factionIds, ct) => _armyDataService.GetMergedMercsArmyListAsync(factionIds, ct),
             ResolveFilterPopupMaxPoints(),
             value => _filterState.PreparedUnitFilterPopupOptions = value,

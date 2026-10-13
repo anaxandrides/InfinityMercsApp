@@ -14,23 +14,23 @@ public partial class CohesiveCompanySelectionPage
     {
         var validCoreFireteams = new List<string>();
         var snapshot = GetFactionSnapshotFromProvider(faction.Id, cancellationToken);
-        if (snapshot is null || string.IsNullOrWhiteSpace(snapshot.FireteamChartJson))
+        if (snapshot is null || snapshot.FireteamChart is null)
         {
             return Task.FromResult(validCoreFireteams);
         }
 
-        var skillsLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.FiltersJson, "skills");
-        var charsLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.FiltersJson, "chars");
-        var equipLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.FiltersJson, "equip");
-        var weaponsLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.FiltersJson, "weapons");
-        var ammoLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.FiltersJson, "ammunition");
-        var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.FiltersJson, "type");
-        var categoryLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.FiltersJson, "category");
+        var skillsLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, "skills");
+        var charsLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, "chars");
+        var equipLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, "equip");
+        var weaponsLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, "weapons");
+        var ammoLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, "ammunition");
+        var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, "type");
+        var categoryLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, "category");
         var units = GetResumeByFactionMercsOnlyFromProvider(faction.Id, cancellationToken);
 
         return Task.FromResult(
             CohesiveCompanyTeamEligibilityWorkflow.EvaluateValidCoreFireteams(
-                snapshot.FireteamChartJson,
+                snapshot.FireteamChart,
                 units,
                 skillsLookup,
                 charsLookup,
@@ -44,11 +44,6 @@ public partial class CohesiveCompanySelectionPage
                 unit => IsCharacterCategory(unit, categoryLookup),
                 unitId => GetUnitFromProvider(faction.Id, unitId, cancellationToken),
                 (fireteamJson, teams) => MergeFireteamEntries(fireteamJson, teams)));
-    }
-
-    private static HashSet<string> ParseValidCoreFireteams(string? json)
-    {
-        return CohesiveCompanyTeamEligibilityWorkflow.ParseValidCoreFireteams(json);
     }
 
     private void ResetMercsCompany()

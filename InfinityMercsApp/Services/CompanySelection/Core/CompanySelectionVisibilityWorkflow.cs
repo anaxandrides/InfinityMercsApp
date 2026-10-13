@@ -32,12 +32,12 @@ internal static class CompanySelectionVisibilityWorkflow
         {
             var factionId = readFactionId(faction);
             var snapshot = getFactionSnapshot(factionId, cancellationToken);
-            context.SkillsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "skills");
-            context.TypeByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "type");
-            context.CharsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "chars");
-            context.EquipByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "equip");
-            context.WeaponsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "weapons");
-            context.AmmoByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "ammunition");
+            context.SkillsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "skills");
+            context.TypeByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "type");
+            context.CharsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "chars");
+            context.EquipByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "equip");
+            context.WeaponsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "weapons");
+            context.AmmoByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "ammunition");
 
             var specopsUnits = await getSpecopsUnitsByFactionAsync(factionId, cancellationToken);
             context.SpecopsByFactionId[factionId] = specopsUnits
@@ -79,18 +79,18 @@ internal static class CompanySelectionVisibilityWorkflow
             }
 
             var unitRecord = getUnitByFactionAndId(unit.SourceFactionId, unit.Id, cancellationToken);
-            var profileGroupsJson = unitRecord?.ProfileGroupsJson;
+            var profileGroups = unitRecord?.ProfileGroups ?? UnitProfileGroups.Empty;
             if (lookupContext.SpecopsByFactionId.TryGetValue(unit.SourceFactionId, out var specopsUnitsById) &&
                 specopsUnitsById.TryGetValue(unit.Id, out var specopsUnit))
             {
-                if (unit.IsSpecOps || string.IsNullOrWhiteSpace(profileGroupsJson))
+                if (unit.IsSpecOps || profileGroups.IsEmpty)
                 {
-                    profileGroupsJson = specopsUnit.ProfileGroupsJson;
+                    profileGroups = specopsUnit.ProfileGroups;
                 }
             }
 
             unit.IsVisible = CompanyUnitFilterService.UnitHasVisibleOptionWithFilter(
-                profileGroupsJson,
+                profileGroups,
                 skillsLookup,
                 charsLookup ?? new Dictionary<int, string>(),
                 equipLookup ?? new Dictionary<int, string>(),

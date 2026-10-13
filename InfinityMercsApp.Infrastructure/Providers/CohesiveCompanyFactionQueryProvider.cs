@@ -1,7 +1,7 @@
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using InfinityMercsApp.Domain.Models.Army;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Utilities;
+using InfinityMercsApp.Infrastructure.Data;
 
 namespace InfinityMercsApp.Infrastructure.Providers;
 
@@ -34,19 +34,18 @@ public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider faction
         foreach (var factionId in normalizedFactionIds)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var snapshot = factionProvider.GetFactionSnapshot(factionId);
-            var filtersJson = snapshot?.FiltersJson;
-            if (string.IsNullOrWhiteSpace(filtersJson))
+            var filters = factionProvider.GetFactionSnapshot(factionId)?.Filters;
+            if (filters is null)
             {
                 continue;
             }
 
-            MergeLookup(typeLookup, ArmyJsonLookup.BuildIdNameLookup(filtersJson, "type"));
-            MergeLookup(charsLookup, ArmyJsonLookup.BuildIdNameLookup(filtersJson, "chars"));
-            MergeLookup(skillsLookup, ArmyJsonLookup.BuildIdNameLookup(filtersJson, "skills"));
-            MergeLookup(equipLookup, ArmyJsonLookup.BuildIdNameLookup(filtersJson, "equip"));
-            MergeLookup(weaponsLookup, ArmyJsonLookup.BuildIdNameLookup(filtersJson, "weapons"));
-            MergeLookup(ammoLookup, ArmyJsonLookup.BuildIdNameLookup(filtersJson, "ammunition"));
+            MergeLookup(typeLookup, filters.Names(ArmyFilterSection.Type));
+            MergeLookup(charsLookup, filters.Names(ArmyFilterSection.Chars));
+            MergeLookup(skillsLookup, filters.Names(ArmyFilterSection.Skills));
+            MergeLookup(equipLookup, filters.Names(ArmyFilterSection.Equip));
+            MergeLookup(weaponsLookup, filters.Names(ArmyFilterSection.Weapons));
+            MergeLookup(ammoLookup, filters.Names(ArmyFilterSection.Ammunition));
         }
 
         var mergedEntries = GetMergedMercsArmyList(normalizedFactionIds, cancellationToken);
@@ -124,7 +123,7 @@ public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider faction
                     mergedByUnitName[key] = new MutableMercsArmyListEntry
                     {
                         Resume = CloneResume(row),
-                        ProfileGroupsJson = unitRecord?.ProfileGroupsJson,
+                        ProfileGroups = unitRecord?.ProfileGroups ?? UnitProfileGroups.Empty,
                         SourceFactionIds = new HashSet<int> { factionId }
                     };
                     continue;
@@ -133,7 +132,7 @@ public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider faction
                 merged.SourceFactionIds.Add(factionId);
 
                 var incomingUnitRecord = TryGetUnit(unitLookup, row.UnitId);
-                merged.ProfileGroupsJson = MergeProfileGroupsJson(merged.ProfileGroupsJson, incomingUnitRecord?.ProfileGroupsJson);
+                merged.ProfileGroups = MergeProfileGroups(merged.ProfileGroups, incomingUnitRecord?.ProfileGroups ?? UnitProfileGroups.Empty);
             }
         }
 
@@ -145,7 +144,7 @@ public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider faction
             .Select(x => new MercsArmyListEntry
             {
                 Resume = x.Resume,
-                ProfileGroupsJson = x.ProfileGroupsJson,
+                ProfileGroups = x.ProfileGroups,
                 SourceFactionIds = x.SourceFactionIds.OrderBy(id => id).ToArray()
             })
             .ToList();
@@ -178,175 +177,90 @@ public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider faction
         };
     }
 
-    private static string? MergeProfileGroupsJson(string? currentJson, string? incomingJson)
+    /// <summary>
+    /// Merges the same unit's profile groups from another army: groups match by id; a matched group gains the
+    /// incoming profiles it lacks (by id and name) and the incoming options it lacks (by content).
+    /// </summary>
+    private static UnitProfileGroups MergeProfileGroups(UnitProfileGroups current, UnitProfileGroups incoming)
     {
-        if (string.IsNullOrWhiteSpace(currentJson))
+        if (current.IsEmpty)
         {
-            return string.IsNullOrWhiteSpace(incomingJson) ? null : incomingJson;
+            return incoming;
         }
 
-        if (string.IsNullOrWhiteSpace(incomingJson))
+        if (incoming.IsEmpty)
         {
-            return currentJson;
+            return current;
         }
 
-        JsonArray? currentGroups;
-        JsonArray? incomingGroups;
-        try
+        var merged = current.Groups.Select(group => new MergingGroup(group)).ToList();
+        var byGroupKey = new Dictionary<string, MergingGroup>(StringComparer.OrdinalIgnoreCase);
+        foreach (var group in merged)
         {
-            currentGroups = JsonNode.Parse(currentJson) as JsonArray;
-            incomingGroups = JsonNode.Parse(incomingJson) as JsonArray;
-        }
-        catch
-        {
-            // Fall back to current payload if either JSON blob is malformed.
-            return currentJson;
+            byGroupKey[GetGroupKey(group.Source)] = group;
         }
 
-        if (currentGroups is null)
+        foreach (var incomingGroup in incoming.Groups)
         {
-            return incomingJson;
-        }
-
-        if (incomingGroups is null)
-        {
-            return currentJson;
-        }
-
-        var mergedGroups = new JsonArray();
-        var byGroupKey = new Dictionary<string, JsonObject>(StringComparer.OrdinalIgnoreCase);
-        foreach (var node in currentGroups)
-        {
-            if (node is not JsonObject group)
+            var key = GetGroupKey(incomingGroup);
+            if (!byGroupKey.TryGetValue(key, out var existing))
             {
+                var added = new MergingGroup(incomingGroup);
+                byGroupKey[key] = added;
+                merged.Add(added);
                 continue;
             }
 
-            var clone = CloneJsonObject(group);
-            var key = GetGroupKey(clone);
-            byGroupKey[key] = clone;
-            mergedGroups.Add(clone);
+            existing.AddProfilesAndOptions(incomingGroup);
         }
 
-        foreach (var node in incomingGroups)
-        {
-            if (node is not JsonObject incomingGroup)
-            {
-                continue;
-            }
-
-            var incomingClone = CloneJsonObject(incomingGroup);
-            var key = GetGroupKey(incomingClone);
-            if (!byGroupKey.TryGetValue(key, out var existingGroup))
-            {
-                byGroupKey[key] = incomingClone;
-                mergedGroups.Add(incomingClone);
-                continue;
-            }
-
-            MergeGroupProfiles(existingGroup, incomingClone);
-            MergeGroupOptions(existingGroup, incomingClone);
-        }
-
-        return mergedGroups.ToJsonString();
+        return new UnitProfileGroups(merged.Select(group => group.Build()).ToList());
     }
 
-    private static void MergeGroupProfiles(JsonObject targetGroup, JsonObject incomingGroup)
+    private static string GetGroupKey(ProfileGroup group) => $"{group.Id}:".Trim().ToLowerInvariant();
+
+    private static string GetProfileKey(UnitProfile profile) => $"{profile.Id}::{profile.Name}".Trim().ToLowerInvariant();
+
+    /// <summary>A profile group gaining another army's profiles and options.</summary>
+    private sealed class MergingGroup(ProfileGroup source)
     {
-        var targetProfiles = targetGroup["profiles"] as JsonArray ?? new JsonArray();
-        targetGroup["profiles"] = targetProfiles;
+        private readonly List<UnitProfile> _profiles = [.. source.Profiles];
+        private readonly HashSet<string> _profileKeys = new(source.Profiles.Select(GetProfileKey), StringComparer.OrdinalIgnoreCase);
+        private readonly List<ProfileOption> _options = [.. source.Options];
+        private readonly HashSet<string> _optionKeys = new(source.Options.Select(ProfileFingerprint.Of), StringComparer.OrdinalIgnoreCase);
+        private bool _changed;
 
-        var existingByKey = new Dictionary<string, JsonObject>(StringComparer.OrdinalIgnoreCase);
-        foreach (var profileNode in targetProfiles)
+        public ProfileGroup Source { get; } = source;
+
+        public void AddProfilesAndOptions(ProfileGroup incoming)
         {
-            if (profileNode is not JsonObject profile)
+            foreach (var profile in incoming.Profiles)
             {
-                continue;
+                if (_profileKeys.Add(GetProfileKey(profile)))
+                {
+                    _profiles.Add(profile);
+                    _changed = true;
+                }
             }
 
-            existingByKey[GetProfileKey(profile)] = profile;
-        }
-
-        if (incomingGroup["profiles"] is not JsonArray incomingProfiles)
-        {
-            return;
-        }
-
-        foreach (var profileNode in incomingProfiles)
-        {
-            if (profileNode is not JsonObject incomingProfile)
+            foreach (var option in incoming.Options)
             {
-                continue;
+                if (_optionKeys.Add(ProfileFingerprint.Of(option)))
+                {
+                    _options.Add(option);
+                    _changed = true;
+                }
             }
-
-            var clone = CloneJsonObject(incomingProfile);
-            var key = GetProfileKey(clone);
-            if (existingByKey.ContainsKey(key))
-            {
-                continue;
-            }
-
-            targetProfiles.Add(clone);
-            existingByKey[key] = clone;
         }
-    }
 
-    private static void MergeGroupOptions(JsonObject targetGroup, JsonObject incomingGroup)
-    {
-        var targetOptions = targetGroup["options"] as JsonArray ?? new JsonArray();
-        targetGroup["options"] = targetOptions;
-
-        var existingHashes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var optionNode in targetOptions)
+        public ProfileGroup Build() => !_changed ? Source : new ProfileGroup
         {
-            if (optionNode is null)
-            {
-                continue;
-            }
-
-            existingHashes.Add(optionNode.ToJsonString());
-        }
-
-        if (incomingGroup["options"] is not JsonArray incomingOptions)
-        {
-            return;
-        }
-
-        foreach (var optionNode in incomingOptions)
-        {
-            if (optionNode is null)
-            {
-                continue;
-            }
-
-            var serialized = optionNode.ToJsonString();
-            if (!existingHashes.Add(serialized))
-            {
-                continue;
-            }
-
-            targetOptions.Add(optionNode.DeepClone());
-        }
-    }
-
-    private static string GetGroupKey(JsonObject group)
-    {
-        var id = group["id"]?.ToString() ?? string.Empty;
-        var name = group["name"]?.ToString() ?? string.Empty;
-        return $"{id}:{name}".Trim().ToLowerInvariant();
-    }
-
-    private static string GetProfileKey(JsonObject profile)
-    {
-        var id = profile["id"]?.ToString() ?? string.Empty;
-        var idArmy = profile["idArmy"]?.ToString() ?? string.Empty;
-        var name = profile["name"]?.ToString() ?? string.Empty;
-        return $"{id}:{idArmy}:{name}".Trim().ToLowerInvariant();
-    }
-
-    private static JsonObject CloneJsonObject(JsonObject source)
-    {
-        return JsonNode.Parse(source.ToJsonString()) as JsonObject ?? new JsonObject();
+            Id = Source.Id,
+            Isc = Source.Isc,
+            Category = Source.Category,
+            Profiles = _profiles,
+            Options = _options
+        };
     }
 
     private static void MergeLookup(Dictionary<int, string> target, IReadOnlyDictionary<int, string> source)
@@ -365,81 +279,7 @@ public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider faction
     private sealed class MutableMercsArmyListEntry
     {
         public required Resume Resume { get; init; }
-        public string? ProfileGroupsJson { get; set; }
+        public required UnitProfileGroups ProfileGroups { get; set; }
         public required HashSet<int> SourceFactionIds { get; init; }
-    }
-
-    private static class ArmyJsonLookup
-    {
-        public static IReadOnlyDictionary<int, string> BuildIdNameLookup(string? filtersJson, string key)
-        {
-            if (string.IsNullOrWhiteSpace(filtersJson))
-            {
-                return new Dictionary<int, string>();
-            }
-
-            var map = new Dictionary<int, string>();
-            try
-            {
-                using var doc = JsonDocument.Parse(filtersJson);
-                if (doc.RootElement.ValueKind != JsonValueKind.Object ||
-                    !doc.RootElement.TryGetProperty(key, out var array) ||
-                    array.ValueKind != JsonValueKind.Array)
-                {
-                    return map;
-                }
-
-                foreach (var item in array.EnumerateArray())
-                {
-                    if (!TryParseId(item, out var id))
-                    {
-                        continue;
-                    }
-
-                    var name = item.TryGetProperty("name", out var nameElement)
-                        ? (nameElement.GetString() ?? string.Empty)
-                        : string.Empty;
-                    if (string.IsNullOrWhiteSpace(name))
-                    {
-                        continue;
-                    }
-
-                    map[id] = name.Trim();
-                }
-            }
-            catch
-            {
-                return new Dictionary<int, string>();
-            }
-
-            return map;
-        }
-
-        private static bool TryParseId(JsonElement element, out int id)
-        {
-            id = 0;
-            if (element.TryGetProperty("id", out var idElement))
-            {
-                return TryParseInt(idElement, out id);
-            }
-
-            return false;
-        }
-
-        private static bool TryParseInt(JsonElement element, out int value)
-        {
-            value = 0;
-            if (element.ValueKind == JsonValueKind.Number)
-            {
-                return element.TryGetInt32(out value);
-            }
-
-            if (element.ValueKind == JsonValueKind.String)
-            {
-                return int.TryParse(element.GetString(), out value);
-            }
-
-            return false;
-        }
     }
 }

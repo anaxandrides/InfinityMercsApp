@@ -1,4 +1,5 @@
 ﻿using InfinityMercsApp.Infrastructure.API.InfinityArmy;
+using InfinityMercsApp.Infrastructure.Data;
 using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Infrastructure.Repositories;
@@ -12,6 +13,7 @@ public static class ServiceRegistryExtensions
     {
         // Register all the related services here
         services.AddSingleton<ISQLiteRepository, SQLiteRepository>()
+                .AddSingleton<IArmyContentStore, ArmyContentStore>()
                 .AddSingleton<IInfinityArmyAPI, InfinityArmyAPI>()
                 .AddSingleton<IAppSettingsProvider, AppSettingsProvider>()
                 .AddSingleton<IArmyImportProvider, ArmyImportProvider>()
@@ -22,7 +24,7 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<IInspiringCompanyFactionGenerator, InspiringCompanyFactionGenerator>()
                 .AddSingleton<IAirborneCompanyFactionGenerator, AirborneCompanyFactionGenerator>()
                 .AddSingleton<ITagCompanyFactionGenerator, TagCompanyFactionGenerator>()
-                // One reader (and one parse cache) shared with static helpers that use ArmyJsonReader.Shared.
+                // Parses Army API payloads into typed models during import.
                 .AddSingleton<IArmyJsonReader>(ArmyJsonReader.Shared);
         return services;
     }

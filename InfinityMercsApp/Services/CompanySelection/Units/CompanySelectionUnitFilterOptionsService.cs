@@ -72,7 +72,7 @@ internal static class CompanySelectionUnitFilterOptionsService
         TFaction? leftSlotFaction,
         TFaction? rightSlotFaction,
         Func<TFaction, int> readFactionId,
-        Func<int, CancellationToken, string?> getFiltersJsonByFactionId,
+        Func<int, CancellationToken, ArmyFilterCatalog?> getFiltersByFactionId,
         Func<IReadOnlyCollection<int>, CancellationToken, Task<IReadOnlyList<MercsArmyListEntry>>> getMergedMercsArmyListAsync,
         int maxPoints,
         Action<UnitFilterPopupOptions> setPreparedOptions,
@@ -106,18 +106,18 @@ internal static class CompanySelectionUnitFilterOptionsService
         foreach (var factionId in sourceFactionIds)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var filtersJson = getFiltersJsonByFactionId(factionId, cancellationToken);
-            if (string.IsNullOrWhiteSpace(filtersJson))
+            var filters = getFiltersByFactionId(factionId, cancellationToken);
+            if (filters is null)
             {
                 continue;
             }
 
-            CompanySelectionSharedUtilities.MergeLookup(typeLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filtersJson, "type"));
-            CompanySelectionSharedUtilities.MergeLookup(charsLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filtersJson, "chars"));
-            CompanySelectionSharedUtilities.MergeLookup(skillsLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filtersJson, "skills"));
-            CompanySelectionSharedUtilities.MergeLookup(equipLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filtersJson, "equip"));
-            CompanySelectionSharedUtilities.MergeLookup(weaponsLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filtersJson, "weapons"));
-            CompanySelectionSharedUtilities.MergeLookup(ammoLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filtersJson, "ammunition"));
+            CompanySelectionSharedUtilities.MergeLookup(typeLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, "type"));
+            CompanySelectionSharedUtilities.MergeLookup(charsLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, "chars"));
+            CompanySelectionSharedUtilities.MergeLookup(skillsLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, "skills"));
+            CompanySelectionSharedUtilities.MergeLookup(equipLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, "equip"));
+            CompanySelectionSharedUtilities.MergeLookup(weaponsLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, "weapons"));
+            CompanySelectionSharedUtilities.MergeLookup(ammoLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, "ammunition"));
         }
 
         var mergedMercsList = await getMergedMercsArmyListAsync(sourceFactionIds, cancellationToken);
@@ -131,13 +131,13 @@ internal static class CompanySelectionUnitFilterOptionsService
                 classification.Add(typeName.Trim());
             }
 
-            if (string.IsNullOrWhiteSpace(entry.ProfileGroupsJson))
+            if (entry.ProfileGroups is not { IsEmpty: false })
             {
                 continue;
             }
 
             CompanyUnitFilterService.AddFilterOptionsFromVisibleProfilesAndOptions(
-                entry.ProfileGroupsJson,
+                entry.ProfileGroups,
                 charsLookup,
                 skillsLookup,
                 equipLookup,

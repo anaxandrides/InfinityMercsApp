@@ -25,9 +25,9 @@ internal static partial class CompanyUnitDetailsShared
         string VitalityHeader,
         string Vitality);
 
-    internal static Dictionary<int, string> BuildIdNameLookup(string? filtersJson, string sectionName)
+    internal static Dictionary<int, string> BuildIdNameLookup(ArmyFilterCatalog? filters, string sectionName)
     {
-        return CompanySelectionSharedUtilities.BuildIdNameLookup(filtersJson, sectionName);
+        return CompanySelectionSharedUtilities.BuildIdNameLookup(filters, sectionName);
     }
 
     internal static string ReplaceSubtitleMoveDisplay(string? subtitle, string moveDisplay)

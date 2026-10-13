@@ -18,9 +18,10 @@ public class HackingProgram
 
     public int? Extra { get; set; }
 
-    public string? SkillTypeJson { get; set; }
+    public IReadOnlyList<string> SkillTypes { get; set; } = [];
 
-    public string? DevicesJson { get; set; }
+    /// <summary>Ids of the hacking devices that carry the program.</summary>
+    public IReadOnlyList<int> Devices { get; set; } = [];
 
-    public string? TargetJson { get; set; }
+    public IReadOnlyList<string> Targets { get; set; } = [];
 }

@@ -1,5 +1,5 @@
 using InfinityMercsApp.Domain.Models.DataImport;
-using DomainArmyImportFaction = InfinityMercsApp.Domain.Models.Army.ArmyImportFaction;
+using DomainArmyImportFaction = InfinityMercsApp.Domain.Models.Army.ArmyDefinition;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
 using InfinityMercsApp.Infrastructure.Providers;
 using System.Globalization;

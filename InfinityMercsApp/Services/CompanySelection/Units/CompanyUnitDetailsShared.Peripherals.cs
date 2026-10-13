@@ -1,5 +1,4 @@
 using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Services;
 
 namespace InfinityMercsApp.Views.Common;
@@ -44,13 +43,13 @@ internal static partial class CompanyUnitDetailsShared
     internal static PeripheralMercsCompanyStats? BuildPeripheralStatBlock(
         string peripheralName,
         UnitProfile peripheralProfile,
-        string? filtersJson,
+        ArmyFilterCatalog? filters,
         bool showUnitsInInches)
     {
         return CompanyPeripheralStatBlockService.Build(
             peripheralName,
             peripheralProfile,
-            ArmyJsonReader.Shared.ReadArmyFilters(filtersJson),
+            (filters ?? ArmyFilterCatalog.Empty),
             showUnitsInInches);
     }
 
@@ -58,7 +57,7 @@ internal static partial class CompanyUnitDetailsShared
     /// Shows the stat block of the first peripheral named by a visible profile row.
     /// </summary>
     internal static void UpdatePeripheralStatBlockFromVisibleProfiles<TProfile>(
-        string? selectedUnitProfileGroupsJson,
+        UnitProfileGroups? selectedUnitProfileGroups,
         IEnumerable<TProfile> profiles,
         Func<TProfile, bool> isVisible,
         Func<TProfile, bool> hasPeripherals,
@@ -69,7 +68,7 @@ internal static partial class CompanyUnitDetailsShared
     {
         resetPeripheralStatsOnly();
 
-        if (string.IsNullOrWhiteSpace(selectedUnitProfileGroupsJson))
+        if (selectedUnitProfileGroups is not { IsEmpty: false })
         {
             return;
         }
@@ -89,8 +88,7 @@ internal static partial class CompanyUnitDetailsShared
             return;
         }
 
-        var peripheralProfile = ArmyJsonReader.Shared
-            .ReadProfileGroups(selectedUnitProfileGroupsJson)
+        var peripheralProfile = (selectedUnitProfileGroups ?? UnitProfileGroups.Empty)
             .FindPeripheralProfile(peripheralName);
         if (peripheralProfile is not null)
         {

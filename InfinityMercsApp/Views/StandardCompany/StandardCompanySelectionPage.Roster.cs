@@ -94,10 +94,10 @@ public partial class StandardCompanySelectionPage
     {
         return BuildMercsCompanyPeripheralStatsCore(
             profile,
-            UnitDisplayConfigurationsView.SelectedUnitProfileGroupsJson,
-            UnitDisplayConfigurationsView.SelectedUnitFiltersJson,
-            (peripheralName, peripheralProfile, selectedUnitFiltersJson) =>
-                BuildPeripheralStatBlock(peripheralName, peripheralProfile, selectedUnitFiltersJson));
+            UnitDisplayConfigurationsView.SelectedUnitProfileGroups,
+            UnitDisplayConfigurationsView.SelectedUnitFilters,
+            (peripheralName, peripheralProfile, selectedUnitFilters) =>
+                BuildPeripheralStatBlock(peripheralName, peripheralProfile, selectedUnitFilters));
     }
 
     private void RemoveMercsCompanyEntry(MercsCompanyEntry? entry)

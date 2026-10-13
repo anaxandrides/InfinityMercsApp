@@ -16,11 +16,4 @@ public class SpecopsEquipment
 
     public int Exp { get; set; }
 
-    public string? ExtrasJson { get; set; }
-
-    public string? SkillsJson { get; set; }
-
-    public string? WeaponsJson { get; set; }
-
-    public string RawJson { get; set; } = string.Empty;
 }

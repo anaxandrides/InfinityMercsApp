@@ -16,5 +16,4 @@ public class SpecopsWeapon
 
     public int Exp { get; set; }
 
-    public string RawJson { get; set; } = string.Empty;
 }

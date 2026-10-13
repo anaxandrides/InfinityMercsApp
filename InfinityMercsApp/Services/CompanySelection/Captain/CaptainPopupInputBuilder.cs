@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using InfinityMercsApp.Infrastructure.Json;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Infrastructure.Providers;
@@ -84,11 +83,11 @@ internal static class CaptainPopupInputBuilder
         try
         {
             var snapshot = armyDataService.GetFactionSnapshot(factionId, cancellationToken);
-            var filtersJson = snapshot?.FiltersJson;
-            var skillLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filtersJson, "skills");
-            var equipLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filtersJson, "equip");
-            var weaponLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filtersJson, "weapons");
-            var extrasLookup = BuildExtrasLookup(filtersJson);
+            var filters = snapshot?.Filters;
+            var skillLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, "skills");
+            var equipLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, "equip");
+            var weaponLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, "weapons");
+            var extrasLookup = BuildExtrasLookup(filters);
 
             var skillRecords = await specOpsProvider.GetSpecopsSkillsByFactionAsync(factionId, cancellationToken);
             var equipRecords = await specOpsProvider.GetSpecopsEquipsByFactionAsync(factionId, cancellationToken);
@@ -96,18 +95,19 @@ internal static class CaptainPopupInputBuilder
 
             var skills = skillRecords
                 .OrderBy(x => x.EntryOrder)
-                .Select(x => ResolveSpecopsChoiceLabel(skillLookup, x.SkillId, x.Exp, "Skill", x.ExtrasJson, extrasLookup, showUnitsInInches))
+                .Select(x => ResolveSpecopsChoiceLabel(skillLookup, x.SkillId, x.Exp, "Skill", x.Extras, extrasLookup, showUnitsInInches))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
             EnsureTagCompanyLieutenantSkillOption(factionId, skills);
             var equipment = equipRecords
                 .OrderBy(x => x.EntryOrder)
-                .Select(x => ResolveSpecopsChoiceLabel(equipLookup, x.EquipmentId, x.Exp, "Equipment", x.ExtrasJson, extrasLookup, showUnitsInInches))
+                .Select(x => ResolveSpecopsChoiceLabel(equipLookup, x.EquipmentId, x.Exp, "Equipment", x.Extras, extrasLookup, showUnitsInInches))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
             var weapons = weaponRecords
                 .OrderBy(x => x.EntryOrder)
-                .Select(x => ResolveSpecopsChoiceLabel(weaponLookup, x.WeaponId, x.Exp, "Weapon", null, extrasLookup, showUnitsInInches))
+                // Weapon choices have never shown their extras; x.Extras is available if they should.
+                .Select(x => ResolveSpecopsChoiceLabel(weaponLookup, x.WeaponId, x.Exp, "Weapon", [], extrasLookup, showUnitsInInches))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
@@ -143,9 +143,9 @@ internal static class CaptainPopupInputBuilder
         skills.Insert(0, "(0) - Lieutenant");
     }
 
-    private static Dictionary<int, CaptainExtraDefinition> BuildExtrasLookup(string? filtersJson)
+    private static Dictionary<int, CaptainExtraDefinition> BuildExtrasLookup(ArmyFilterCatalog? filters)
     {
-        var filters = ArmyJsonReader.Shared.ReadArmyFilters(filtersJson);
+        filters ??= ArmyFilterCatalog.Empty;
         var map = filters.Extras.ToDictionary(x => x.Key, x => new CaptainExtraDefinition(x.Value.Name, x.Value.Type));
         if (map.Count > 0)
         {
@@ -169,12 +169,12 @@ internal static class CaptainPopupInputBuilder
         int id,
         int points,
         string label,
-        string? extrasJson,
+        IReadOnlyList<int> extras,
         IReadOnlyDictionary<int, CaptainExtraDefinition> extrasLookup,
         bool showUnitsInInches)
     {
         var prefix = $"({Math.Max(0, points)}) - ";
-        var extrasSuffix = BuildExtrasSuffix(extrasJson, extrasLookup, showUnitsInInches);
+        var extrasSuffix = BuildExtrasSuffix(extras, extrasLookup, showUnitsInInches);
         if (lookup.TryGetValue(id, out var value) && !string.IsNullOrWhiteSpace(value))
         {
             return $"{prefix}{value.Trim()}{extrasSuffix}";
@@ -184,19 +184,19 @@ internal static class CaptainPopupInputBuilder
     }
 
     private static string BuildExtrasSuffix(
-        string? extrasJson,
+        IReadOnlyList<int> extras,
         IReadOnlyDictionary<int, CaptainExtraDefinition> extrasLookup,
         bool showUnitsInInches)
     {
-        var extras = ArmyJsonReader.Shared.ReadIdList(extrasJson)
+        var labels = extras
             .Select(extraId => extrasLookup.TryGetValue(extraId, out var resolved) && !string.IsNullOrWhiteSpace(resolved.Name)
                 ? FormatExtraDisplay(resolved, showUnitsInInches)
                 : extraId.ToString(CultureInfo.InvariantCulture))
             .ToList();
 
-        return extras.Count == 0
+        return labels.Count == 0
             ? string.Empty
-            : $" ({string.Join(", ", extras.Distinct(StringComparer.OrdinalIgnoreCase))})";
+            : $" ({string.Join(", ", labels.Distinct(StringComparer.OrdinalIgnoreCase))})";
     }
 
     private static string FormatExtraDisplay(CaptainExtraDefinition definition, bool showUnitsInInches)

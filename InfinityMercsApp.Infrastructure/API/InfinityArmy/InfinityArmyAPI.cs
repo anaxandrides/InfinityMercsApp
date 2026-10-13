@@ -1,9 +1,8 @@
 namespace InfinityMercsApp.Infrastructure.API.InfinityArmy;
 
-using DomainArmyImportFaction = InfinityMercsApp.Domain.Models.Army.ArmyImportFaction;
-using DomainArmyImportReinforcementsFaction = InfinityMercsApp.Domain.Models.Army.ArmyImportReinforcementsFaction;
-using DomainArmyImportResume = InfinityMercsApp.Domain.Models.Army.ArmyImportResume;
-using DomainArmyImportUnit = InfinityMercsApp.Domain.Models.Army.ArmyImportUnit;
+using InfinityMercsApp.Domain.Models.Army;
+using InfinityMercsApp.Domain.Models.Metadata;
+using InfinityMercsApp.Infrastructure.Json;
 using DomainMetadataAmmunition = InfinityMercsApp.Domain.Models.Metadata.Ammunition;
 using DomainMetadataBooty = InfinityMercsApp.Domain.Models.Metadata.Booty;
 using DomainMetadataDocument = InfinityMercsApp.Domain.Models.Metadata.MetadataDocument;
@@ -23,7 +22,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 /// <inheritdoc/>
-public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyAPI> logger) : IInfinityArmyAPI
+public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyAPI> logger, IArmyJsonReader armyJsonReader) : IInfinityArmyAPI
 {
     private const string ArmyUrlBase = "https://api.corvusbelli.com/army/units/en/";
     private const string MetadataUrl = "https://api.corvusbelli.com/army/infinity/en/metadata";
@@ -69,7 +68,7 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
     }
 
     /// <inheritdoc/>
-    public async Task<DomainArmyImportFaction?> GetArmyDataAsync(int factionId, CancellationToken cancellationToken = default)
+    public async Task<ArmyDefinition?> GetArmyDataAsync(int factionId, CancellationToken cancellationToken = default)
     {
         var fullUrl = $"{ArmyUrlBase}{factionId}";
         logger.LogInformation("Fetching army data from: {Url}", fullUrl);
@@ -82,38 +81,16 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
             throw new InvalidDataException($"Army response for faction {factionId} was not JSON. Dump: {dumpPath}");
         }
 
-        try
+        // The typed reader is lenient: a malformed section reads as empty instead of failing the army.
+        var army = armyJsonReader.ReadArmyPayload(payload);
+        if (army is null)
         {
-            var apiFaction = JsonSerializer.Deserialize<Models.API.Army.Faction>(payload);
-            if (apiFaction is null)
-            {
-                var dumpPath = await SaveFailedPayloadAsync($"army-{factionId}-deserialize-null", fullUrl, payload);
-                logger.LogError("Army deserialization returned null for faction {FactionId}. Dump saved to: {DumpPath}", factionId, dumpPath);
-                return null;
-            }
-
-            return MapArmyImportFaction(apiFaction, payload);
+            var dumpPath = await SaveFailedPayloadAsync($"army-{factionId}-deserialize-error", fullUrl, payload);
+            logger.LogError("Army payload for faction {FactionId} could not be read. Dump saved to: {DumpPath}", factionId, dumpPath);
+            throw new InvalidDataException($"Army payload for faction {factionId} could not be read. Dump: {dumpPath}");
         }
-        catch (JsonException ex)
-        {
-            logger.LogWarning(ex, "Primary army deserialization failed for faction {FactionId}. Attempting reinforcements fallback parser.", factionId);
 
-            try
-            {
-                var reinforcementsFaction = ParseArmyImportReinforcementsFaction(payload);
-                return MapArmyImportReinforcementsFaction(reinforcementsFaction);
-            }
-            catch (Exception fallbackEx)
-            {
-                var dumpPath = await SaveFailedPayloadAsync($"army-{factionId}-deserialize-error", fullUrl, payload);
-                logger.LogError(
-                    fallbackEx,
-                    "Army deserialization failed for faction {FactionId} with both primary and reinforcements fallback parser. Dump saved to: {DumpPath}",
-                    factionId,
-                    dumpPath);
-                throw;
-            }
-        }
+        return army;
     }
 
     private static DomainMetadataDocument MapMetadataDocument(ApiMetadataDocument source)
@@ -149,8 +126,8 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
                 Saving = x.Saving,
                 SavingNum = x.SavingNum,
                 Profile = x.Profile,
-                PropertiesJson = x.Properties is null ? null : JsonSerializer.Serialize(x.Properties),
-                DistanceJson = x.Distance is null ? null : JsonSerializer.Serialize(x.Distance)
+                Properties = x.Properties ?? [],
+                Distance = MapDistance(x.Distance)
             }).ToList(),
             Skills = source.Skills.Select(x => new DomainMetadataSkill
             {
@@ -173,9 +150,9 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
                 Attack = x.Attack,
                 Burst = x.Burst,
                 Extra = x.Extra,
-                SkillTypeJson = x.SkillType is null ? null : JsonSerializer.Serialize(x.SkillType),
-                DevicesJson = x.Devices is null ? null : JsonSerializer.Serialize(x.Devices),
-                TargetJson = x.Target is null ? null : JsonSerializer.Serialize(x.Target)
+                SkillTypes = x.SkillType ?? [],
+                Devices = x.Devices ?? [],
+                Targets = x.Target ?? []
             }).ToList(),
             MartialArts = source.MartialArts.Select(x => new DomainMetadataMartialArt
             {
@@ -200,189 +177,18 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
         };
     }
 
-    private static DomainArmyImportFaction MapArmyImportFaction(Models.API.Army.Faction source, string rawJson)
-    {
-        return new DomainArmyImportFaction
-        {
-            Version = source.Version,
-            Units = source.Units.Select(x => new DomainArmyImportUnit
-            {
-                Id = x.Id,
-                IdArmy = x.IdArmy,
-                Canonical = x.Canonical,
-                Isc = x.Isc,
-                IscAbbr = x.IscAbbr,
-                Name = x.Name,
-                Slug = x.Slug,
-                ProfileGroupsJson = ToJsonOrNull(x.ProfileGroups),
-                OptionsJson = ToJsonOrNull(x.Options),
-                FiltersJson = ToJsonOrNull(x.Filters),
-                FactionsJson = ToJsonOrNull(x.Factions)
-            }).ToList(),
-            Resume = source.Resume.Select(x => new DomainArmyImportResume
-            {
-                Id = x.Id,
-                Isc = x.Isc,
-                IdArmy = x.IdArmy,
-                Name = x.Name,
-                Slug = x.Slug,
-                Logo = x.Logo,
-                Type = x.Type,
-                Category = x.Category
-            }).ToList(),
-            ReinforcementsJson = ToJsonOrNull(source.Reinforcements),
-            FiltersJson = ToJsonOrNull(source.Filters),
-            FireteamsJson = ToJsonOrNull(source.Fireteams),
-            RelationsJson = ToJsonOrNull(source.Relations),
-            SpecopsJson = ToJsonOrNull(source.Specops),
-            FireteamChartJson = ToJsonOrNull(source.FireteamChart),
-            RawJson = rawJson
-        };
-    }
-
-    private static DomainArmyImportFaction MapArmyImportReinforcementsFaction(DomainArmyImportReinforcementsFaction source)
-    {
-        return new DomainArmyImportFaction
-        {
-            Version = source.Version,
-            Units = source.Units,
-            Resume = source.Resume,
-            ReinforcementsJson = source.ReinforcementsJson,
-            FiltersJson = source.FiltersJson,
-            FireteamsJson = source.FireteamsJson,
-            RelationsJson = source.RelationsJson,
-            SpecopsJson = source.SpecopsJson,
-            FireteamChartJson = source.FireteamChartJson,
-            RawJson = source.RawJson
-        };
-    }
-
     private static string BuildWeaponKey(ApiMetadataWeapon weapon)
     {
         return $"{weapon.Id}:{weapon.Name}:{weapon.Mode ?? string.Empty}";
     }
 
-    private static string? ToJsonOrNull(JsonElement element)
+    private static WeaponDistance? MapDistance(Dictionary<string, Models.API.Metadata.WeaponDistanceBand?>? distance)
     {
-        return element.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null
-            ? null
-            : element.GetRawText();
-    }
-
-    private static DomainArmyImportReinforcementsFaction ParseArmyImportReinforcementsFaction(string payload)
-    {
-        using var document = JsonDocument.Parse(payload);
-        var root = document.RootElement;
-
-        return new DomainArmyImportReinforcementsFaction
-        {
-            Version = ReadString(root, "version") ?? string.Empty,
-            Units = ReadArray(root, "units").Select(ParseArmyImportUnit).ToList(),
-            Resume = ReadArray(root, "resume").Select(ParseArmyImportResume).ToList(),
-            ReinforcementsJson = ReadRawJson(root, "reinforcements"),
-            FiltersJson = ReadRawJson(root, "filters"),
-            FireteamsJson = ReadRawJson(root, "fireteams"),
-            RelationsJson = ReadRawJson(root, "relations"),
-            SpecopsJson = ReadRawJson(root, "specops"),
-            FireteamChartJson = ReadRawJson(root, "fireteamChart"),
-            RawJson = payload
-        };
-    }
-
-    private static DomainArmyImportUnit ParseArmyImportUnit(JsonElement element)
-    {
-        return new DomainArmyImportUnit
-        {
-            Id = ReadInt(element, "id"),
-            IdArmy = ReadNullableInt(element, "idArmy"),
-            Canonical = ReadNullableInt(element, "canonical"),
-            Isc = ReadString(element, "isc"),
-            IscAbbr = ReadString(element, "iscAbbr"),
-            Name = ReadString(element, "name") ?? string.Empty,
-            Slug = ReadString(element, "slug"),
-            ProfileGroupsJson = ReadRawJson(element, "profileGroups"),
-            OptionsJson = ReadRawJson(element, "options"),
-            FiltersJson = ReadRawJson(element, "filters"),
-            FactionsJson = ReadRawJson(element, "factions")
-        };
-    }
-
-    private static DomainArmyImportResume ParseArmyImportResume(JsonElement element)
-    {
-        return new DomainArmyImportResume
-        {
-            Id = ReadInt(element, "id"),
-            Isc = ReadString(element, "isc"),
-            IdArmy = ReadNullableInt(element, "idArmy"),
-            Name = ReadString(element, "name") ?? string.Empty,
-            Slug = ReadString(element, "slug"),
-            Logo = ReadString(element, "logo"),
-            Type = ReadNullableInt(element, "type"),
-            Category = ReadNullableInt(element, "category")
-        };
-    }
-
-    private static IEnumerable<JsonElement> ReadArray(JsonElement element, string propertyName)
-    {
-        if (!element.TryGetProperty(propertyName, out var property) || property.ValueKind != JsonValueKind.Array)
-        {
-            return [];
-        }
-
-        return property.EnumerateArray().ToArray();
-    }
-
-    private static string? ReadString(JsonElement element, string propertyName)
-    {
-        if (!element.TryGetProperty(propertyName, out var property))
-        {
-            return null;
-        }
-
-        return property.ValueKind switch
-        {
-            JsonValueKind.String => property.GetString(),
-            JsonValueKind.Number => property.GetRawText(),
-            JsonValueKind.True => bool.TrueString,
-            JsonValueKind.False => bool.FalseString,
-            _ => null
-        };
-    }
-
-    private static string? ReadRawJson(JsonElement element, string propertyName)
-    {
-        if (!element.TryGetProperty(propertyName, out var property))
-        {
-            return null;
-        }
-
-        return ToJsonOrNull(property);
-    }
-
-    private static int ReadInt(JsonElement element, string propertyName)
-    {
-        return ReadNullableInt(element, propertyName) ?? 0;
-    }
-
-    private static int? ReadNullableInt(JsonElement element, string propertyName)
-    {
-        if (!element.TryGetProperty(propertyName, out var property))
-        {
-            return null;
-        }
-
-        if (property.ValueKind == JsonValueKind.Number && property.TryGetInt32(out var numericValue))
-        {
-            return numericValue;
-        }
-
-        if (property.ValueKind == JsonValueKind.String &&
-            int.TryParse(property.GetString(), out var stringValue))
-        {
-            return stringValue;
-        }
-
-        return null;
+        var bands = distance?
+            .Where(band => band.Value is not null)
+            .Select(band => (band.Key, new WeaponDistanceBand { Max = band.Value!.Max, Mod = band.Value.Mod ?? "0" }))
+            .ToList();
+        return bands is null || bands.Count == 0 ? null : new WeaponDistance { Bands = bands };
     }
 
     private async Task<string> GetAsync(string url, CancellationToken cancellationToken)

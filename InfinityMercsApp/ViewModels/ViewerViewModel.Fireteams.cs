@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
-using InfinityMercsApp.Infrastructure.Json;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Windows.Input;
@@ -25,16 +24,16 @@ public partial class ViewerViewModel
         FireteamsStatus = "No fireteams available.";
     }
 
-    private void UpdateFireteamCounts(string? fireteamChartJson)
+    private void UpdateFireteamCounts(FireteamChart? fireteamChart)
     {
-        var chart = ArmyJsonReader.Shared.ReadFireteamChart(fireteamChartJson);
+        var chart = fireteamChart ?? FireteamChart.Empty;
         FireteamDuoCount = chart.SpecDisplay("DUO");
         FireteamHarisCount = chart.SpecDisplay("HARIS");
         FireteamCoreCount = chart.SpecDisplay("CORE");
     }
 
     private void UpdateFireteamTeams(
-        string? fireteamChartJson,
+        FireteamChart? fireteamChart,
         bool mercsOnlyFilterEnabled,
         IReadOnlySet<string>? allowedUnitSlugs = null,
         IReadOnlySet<string>? allowedUnitNames = null)
@@ -42,7 +41,7 @@ public partial class ViewerViewModel
         Fireteams.Clear();
         FireteamsStatus = "No fireteams available.";
 
-        foreach (var team in ArmyJsonReader.Shared.ReadFireteamChart(fireteamChartJson).Teams)
+        foreach (var team in (fireteamChart ?? FireteamChart.Empty).Teams)
         {
             var unitLimits = team.Units
                 .Select(unit => new FireteamUnitLimitItem

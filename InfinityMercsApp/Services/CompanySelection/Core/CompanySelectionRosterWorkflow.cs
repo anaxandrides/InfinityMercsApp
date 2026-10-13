@@ -1,5 +1,4 @@
 using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views.Controls;
@@ -11,23 +10,22 @@ internal static class CompanySelectionRosterWorkflow
 {
     internal static TPeripheralStats? BuildMercsCompanyPeripheralStats<TPeripheralStats>(
         ViewerProfileItem profile,
-        string? selectedUnitProfileGroupsJson,
-        string? selectedUnitFiltersJson,
-        Func<string, UnitProfile, string?, TPeripheralStats?> buildPeripheralStatBlock)
+        UnitProfileGroups? selectedUnitProfileGroups,
+        ArmyFilterCatalog? selectedUnitFilters,
+        Func<string, UnitProfile, ArmyFilterCatalog?, TPeripheralStats?> buildPeripheralStatBlock)
         where TPeripheralStats : class
     {
         var peripheralName = CompanyUnitDetailsShared.ExtractFirstPeripheralName(profile.Peripherals);
-        if (string.IsNullOrWhiteSpace(peripheralName) || string.IsNullOrWhiteSpace(selectedUnitProfileGroupsJson))
+        if (string.IsNullOrWhiteSpace(peripheralName) || selectedUnitProfileGroups is not { IsEmpty: false })
         {
             return null;
         }
 
-        var peripheralProfile = ArmyJsonReader.Shared
-            .ReadProfileGroups(selectedUnitProfileGroupsJson)
+        var peripheralProfile = (selectedUnitProfileGroups ?? UnitProfileGroups.Empty)
             .FindPeripheralProfile(peripheralName);
         return peripheralProfile is null
             ? null
-            : buildPeripheralStatBlock(peripheralName, peripheralProfile, selectedUnitFiltersJson);
+            : buildPeripheralStatBlock(peripheralName, peripheralProfile, selectedUnitFilters);
     }
 
     internal static int ApplyLieutenantProfileVisibility<TEntry>(

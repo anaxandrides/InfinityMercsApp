@@ -76,7 +76,7 @@ public partial class CohesiveCompanySelectionPage
             _factionSelectionState.LeftSlotFaction,
             _factionSelectionState.RightSlotFaction,
             faction => faction.Id,
-            (factionId, ct) => GetFactionSnapshotFromProvider(factionId, ct)?.FiltersJson,
+            (factionId, ct) => GetFactionSnapshotFromProvider(factionId, ct)?.Filters,
             (factionIds, ct) => GetMergedMercsArmyListFromQueryAccessorAsync(factionIds, ct),
             ResolveFilterPopupMaxPoints(),
             value => _filterState.PreparedUnitFilterPopupOptions = value,

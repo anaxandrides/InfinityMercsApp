@@ -1,59 +1,58 @@
-using DomainArmyImportFaction = InfinityMercsApp.Domain.Models.Army.ArmyImportFaction;
-using DomainArmyImportResume = InfinityMercsApp.Domain.Models.Army.ArmyImportResume;
-using DomainArmyImportUnit = InfinityMercsApp.Domain.Models.Army.ArmyImportUnit;
-using InfinityMercsApp.Infrastructure.Models.Database.Army;
+using InfinityMercsApp.Domain.Models.Army;
+using InfinityMercsApp.Infrastructure.Data;
 using InfinityMercsApp.Infrastructure.Repositories;
-using System.Text.Json;
-using Faction = InfinityMercsApp.Infrastructure.Models.Database.Army.Faction;
-using Resume = InfinityMercsApp.Infrastructure.Models.Database.Army.Resume;
-using Unit = InfinityMercsApp.Infrastructure.Models.Database.Army.Unit;
+using DbFaction = InfinityMercsApp.Infrastructure.Models.Database.Army.Faction;
+using DbResume = InfinityMercsApp.Infrastructure.Models.Database.Army.Resume;
+using DbSpecopsEquipment = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsEquipment;
+using DbSpecopsSkill = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsSkill;
+using DbSpecopsUnit = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsUnit;
+using DbSpecopsWeapon = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsWeapon;
+using DbUnit = InfinityMercsApp.Infrastructure.Models.Database.Army.Unit;
 
 namespace InfinityMercsApp.Infrastructure.Providers;
 
 /// <inheritdoc/>
-public class ArmyImportProvider(ISQLiteRepository sqliteRepository) : IArmyImportProvider
+public class ArmyImportProvider(ISQLiteRepository sqliteRepository, IArmyContentStore contentStore) : IArmyImportProvider
 {
     private const int YuJingFactionId = 201;
-    private readonly SemaphoreSlim _specopsBackfillGate = new(1, 1);
-    private bool _specopsBackfillCompleted;
+    private const int JsaFactionId = 1101;
+    private const int JsaShindenbutaiFactionId = 1102;
+    private const int JsaObanFactionId = 1103;
 
     /// <inheritdoc/>
-    public async Task ImportAsync(int factionId, DomainArmyImportFaction apiFaction, CancellationToken cancellationToken = default)
+    public Task ImportAsync(int factionId, ArmyDefinition army, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var faction = new Faction
+        var faction = new DbFaction
         {
             FactionId = factionId,
-            Version = apiFaction.Version,
+            Version = army.Version,
             ImportedAtUnixSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            ReinforcementsJson = apiFaction.ReinforcementsJson,
-            FiltersJson = apiFaction.FiltersJson,
-            FireteamsJson = apiFaction.FireteamsJson,
-            RelationsJson = apiFaction.RelationsJson,
-            SpecopsJson = apiFaction.SpecopsJson,
-            FireteamChartJson = apiFaction.FireteamChartJson,
-            RawJson = apiFaction.RawJson
+            ReinforcementsFactionId = army.ReinforcementsFactionId
         };
 
-        var units = apiFaction.Units.Select(x => new Unit
+        var unitContent = new UnitContentRows();
+        var units = new List<DbUnit>(army.Units.Count);
+        foreach (var unit in army.Units)
         {
-            UnitKey = BuildUnitKey(factionId, x),
-            FactionId = factionId,
-            UnitId = x.Id,
-            IdArmy = x.IdArmy,
-            Canonical = x.Canonical,
-            Isc = x.Isc,
-            IscAbbr = x.IscAbbr,
-            Name = x.Name,
-            Slug = x.Slug,
-            ProfileGroupsJson = x.ProfileGroupsJson,
-            OptionsJson = x.OptionsJson,
-            FiltersJson = x.FiltersJson,
-            FactionsJson = x.FactionsJson
-        }).ToList();
+            var unitKey = BuildUnitKey(factionId, unit);
+            units.Add(new DbUnit
+            {
+                UnitKey = unitKey,
+                FactionId = factionId,
+                UnitId = unit.Id,
+                IdArmy = unit.IdArmy,
+                Canonical = unit.Canonical,
+                Isc = unit.Isc,
+                IscAbbr = unit.IscAbbr,
+                Name = unit.Name,
+                Slug = unit.Slug
+            });
+            unitContent.Add(factionId, unitKey, ContentOf(unit));
+        }
 
-        var resume = apiFaction.Resume.Select(x => new Resume
+        var resume = army.Resume.Select(x => new DbResume
         {
             ResumeKey = BuildResumeKey(factionId, x),
             FactionId = factionId,
@@ -67,27 +66,69 @@ public class ArmyImportProvider(ISQLiteRepository sqliteRepository) : IArmyImpor
             Category = x.Category
         }).ToList();
 
-        var yuJingSpecops = faction.IsJsaFaction
-            ? await TryGetFactionSpecopsRootAsync(YuJingFactionId, cancellationToken)
-            : default;
+        // JSA armies do not send their own spec-ops choices; they use Yu Jing's.
+        var fallback = IsJsaFaction(factionId) ? ReadStoredSpecops(YuJingFactionId) : SpecopsCatalog.Empty;
+        var specopsLinks = new SpecopsLinkRows();
+        var specopsSkills = BuildChoices(factionId, army.Specops.Skills ?? fallback.Skills, specopsLinks, (key, order, choice) => new DbSpecopsSkill
+        {
+            SpecopsSkillKey = key,
+            FactionId = factionId,
+            EntryOrder = order,
+            SkillId = choice.Id,
+            Exp = choice.Exp
+        });
+        var specopsEquips = BuildChoices(factionId, army.Specops.Equip ?? fallback.Equip, specopsLinks, (key, order, choice) => new DbSpecopsEquipment
+        {
+            SpecopsEquipmentKey = key,
+            FactionId = factionId,
+            EntryOrder = order,
+            EquipmentId = choice.Id,
+            Exp = choice.Exp
+        });
+        var specopsWeapons = BuildChoices(factionId, army.Specops.Weapons ?? fallback.Weapons, specopsLinks, (key, order, choice) => new DbSpecopsWeapon
+        {
+            SpecopsWeaponKey = key,
+            FactionId = factionId,
+            EntryOrder = order,
+            WeaponId = choice.Id,
+            Exp = choice.Exp
+        });
 
-        var specopsRoot = ParseJsonElement(apiFaction.SpecopsJson);
-        var specopsSkills = BuildSpecopsSkillRecords(factionId, specopsRoot, yuJingSpecops);
-        var specopsEquips = BuildSpecopsEquipRecords(factionId, specopsRoot, yuJingSpecops);
-        var specopsWeapons = BuildSpecopsWeaponRecords(factionId, specopsRoot, yuJingSpecops);
-        var specopsUnits = BuildSpecopsUnitRecords(factionId, specopsRoot);
+        var specopsUnits = new List<DbSpecopsUnit>(army.Specops.Units.Count);
+        for (var entryOrder = 0; entryOrder < army.Specops.Units.Count; entryOrder++)
+        {
+            var unit = army.Specops.Units[entryOrder];
+            var unitKey = $"{factionId}:{entryOrder}:{unit.Id}";
+            specopsUnits.Add(new DbSpecopsUnit
+            {
+                SpecopsUnitKey = unitKey,
+                FactionId = factionId,
+                EntryOrder = entryOrder,
+                UnitId = unit.Id,
+                IdArmy = unit.IdArmy,
+                Canonical = unit.Canonical,
+                Isc = unit.Isc,
+                IscAbbr = unit.IscAbbr,
+                Name = unit.Name,
+                Slug = unit.Slug
+            });
+            unitContent.Add(factionId, unitKey, ContentOf(unit));
+        }
 
-        // One transaction per faction: collapses 14 separate commits/fsyncs into one, and keeps
-        // the faction's rows atomic (no window where units are deleted but not yet re-inserted).
+        var armyContent = new ArmyContentRows();
+        armyContent.Add(factionId, new ArmyContent(army.Filters, army.Relations, army.FireteamChart));
+
+        // One transaction per faction keeps the faction's rows atomic (no window where units are deleted
+        // but not yet re-inserted) and commits once.
         sqliteRepository.RunInTransaction(() =>
         {
-            sqliteRepository.Delete<Unit>(x => x.FactionId == factionId);
-            sqliteRepository.Delete<Resume>(x => x.FactionId == factionId);
-            sqliteRepository.Delete<SpecopsSkill>(x => x.FactionId == factionId);
-            sqliteRepository.Delete<SpecopsEquipment>(x => x.FactionId == factionId);
-            sqliteRepository.Delete<SpecopsWeapon>(x => x.FactionId == factionId);
-            sqliteRepository.Delete<SpecopsUnit>(x => x.FactionId == factionId);
-            sqliteRepository.Delete<Faction>(x => x.FactionId == factionId);
+            sqliteRepository.Delete<DbUnit>(x => x.FactionId == factionId);
+            sqliteRepository.Delete<DbResume>(x => x.FactionId == factionId);
+            sqliteRepository.Delete<DbSpecopsSkill>(x => x.FactionId == factionId);
+            sqliteRepository.Delete<DbSpecopsEquipment>(x => x.FactionId == factionId);
+            sqliteRepository.Delete<DbSpecopsWeapon>(x => x.FactionId == factionId);
+            sqliteRepository.Delete<DbSpecopsUnit>(x => x.FactionId == factionId);
+            sqliteRepository.Delete<DbFaction>(x => x.FactionId == factionId);
 
             sqliteRepository.Insert([faction]);
             sqliteRepository.Insert(units);
@@ -96,367 +137,66 @@ public class ArmyImportProvider(ISQLiteRepository sqliteRepository) : IArmyImpor
             sqliteRepository.Insert(specopsEquips);
             sqliteRepository.Insert(specopsWeapons);
             sqliteRepository.Insert(specopsUnits);
+            contentStore.ReplaceFactionContent(factionId, unitContent, armyContent, specopsLinks);
         });
+
+        return Task.CompletedTask;
     }
 
-    private static string BuildUnitKey(int factionId, DomainArmyImportUnit unit)
+    /// <summary>The import's unit key: faction, unit id, army id and slug.</summary>
+    public static string BuildUnitKey(int factionId, ArmyUnitDefinition unit)
     {
         return $"{factionId}:{unit.Id}:{unit.IdArmy ?? 0}:{unit.Slug ?? string.Empty}";
     }
 
-    private static string BuildResumeKey(int factionId, DomainArmyImportResume resume)
+    private static string BuildResumeKey(int factionId, ArmyImportResume resume)
     {
         return $"{factionId}:{resume.Id}:{resume.Slug ?? string.Empty}";
     }
 
-    private static JsonElement ParseJsonElement(string? json)
+    private static bool IsJsaFaction(int factionId) =>
+        factionId is JsaFactionId or JsaShindenbutaiFactionId or JsaObanFactionId;
+
+    private static UnitContent ContentOf(ArmyUnitDefinition unit) =>
+        new(unit.ProfileGroups, unit.Options, unit.Filters, unit.FactionIds);
+
+    private static List<TRow> BuildChoices<TRow>(
+        int factionId,
+        IReadOnlyList<SpecopsChoice>? choices,
+        SpecopsLinkRows links,
+        Func<string, int, SpecopsChoice, TRow> createRow)
     {
-        if (string.IsNullOrWhiteSpace(json))
+        var rows = new List<TRow>();
+        for (var entryOrder = 0; entryOrder < (choices?.Count ?? 0); entryOrder++)
         {
-            return default;
+            var choice = choices![entryOrder];
+            var key = $"{factionId}:{entryOrder}:{choice.Id}:{choice.Exp}";
+            rows.Add(createRow(key, entryOrder, choice));
+            links.Add(factionId, key, SpecopsChoiceLinks.From(choice));
         }
 
-        try
-        {
-            using var jsonDocument = JsonDocument.Parse(json);
-            return jsonDocument.RootElement.Clone();
-        }
-        catch
-        {
-            return default;
-        }
+        return rows;
     }
 
-    private async Task EnsureSpecopsIndexedAsync(CancellationToken cancellationToken)
+    /// <summary>An army's stored spec-ops choices as a catalogue; lists are null when nothing is stored.</summary>
+    private SpecopsCatalog ReadStoredSpecops(int factionId)
     {
-        if (_specopsBackfillCompleted)
+        SpecopsChoice Choice(string key, int id, int exp)
         {
-            return;
+            var links = contentStore.GetSpecopsLinks(factionId, key);
+            return new SpecopsChoice(id, exp, links.Extras, links.Skills, links.Equip, links.Weapons);
         }
 
-        await _specopsBackfillGate.WaitAsync(cancellationToken);
-        try
+        IReadOnlyList<SpecopsChoice>? NullIfEmpty(List<SpecopsChoice> choices) => choices.Count == 0 ? null : choices;
+
+        return new SpecopsCatalog
         {
-            if (_specopsBackfillCompleted)
-            {
-                return;
-            }
-
-            var snapshots = sqliteRepository.GetAll<Faction>(x => true);
-            var yuJingSpecops = TryGetFactionSpecopsRootFromSnapshots(snapshots, YuJingFactionId);
-            foreach (var snapshot in snapshots)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (string.IsNullOrWhiteSpace(snapshot.SpecopsJson))
-                {
-                    continue;
-                }
-
-                var fid = snapshot.FactionId;
-                var hasExistingData = sqliteRepository.Exists<SpecopsSkill>(x => x.FactionId == fid)
-                    || sqliteRepository.Exists<SpecopsEquipment>(x => x.FactionId == fid)
-                    || sqliteRepository.Exists<SpecopsWeapon>(x => x.FactionId == fid)
-                    || sqliteRepository.Exists<SpecopsUnit>(x => x.FactionId == fid);
-
-                var fallbackSpecops = snapshot.IsJsaFaction ? yuJingSpecops : default;
-                var shouldForceReindexForJsa = snapshot.IsJsaFaction && HasAnySpecopsArray(fallbackSpecops);
-
-                if (hasExistingData && !shouldForceReindexForJsa)
-                {
-                    continue;
-                }
-
-                using var specopsDoc = JsonDocument.Parse(snapshot.SpecopsJson);
-                var specopsRoot = specopsDoc.RootElement;
-                var skillRows = BuildSpecopsSkillRecords(fid, specopsRoot, fallbackSpecops);
-                var equipRows = BuildSpecopsEquipRecords(fid, specopsRoot, fallbackSpecops);
-                var weaponRows = BuildSpecopsWeaponRecords(fid, specopsRoot, fallbackSpecops);
-                var unitRows = BuildSpecopsUnitRecords(fid, specopsRoot);
-
-                if (hasExistingData)
-                {
-                    sqliteRepository.Delete<SpecopsSkill>(x => x.FactionId == fid);
-                    sqliteRepository.Delete<SpecopsEquipment>(x => x.FactionId == fid);
-                    sqliteRepository.Delete<SpecopsWeapon>(x => x.FactionId == fid);
-                    sqliteRepository.Delete<SpecopsUnit>(x => x.FactionId == fid);
-                }
-
-                sqliteRepository.Insert(skillRows);
-                sqliteRepository.Insert(equipRows);
-                sqliteRepository.Insert(weaponRows);
-                sqliteRepository.Insert(unitRows);
-            }
-
-            _specopsBackfillCompleted = true;
-        }
-        finally
-        {
-            _specopsBackfillGate.Release();
-        }
-    }
-
-    private Task<JsonElement> TryGetFactionSpecopsRootAsync(int factionId, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var snapshot = sqliteRepository.GetById<Faction>(factionId);
-        if (snapshot is null || string.IsNullOrWhiteSpace(snapshot.SpecopsJson))
-        {
-            return Task.FromResult(default(JsonElement));
-        }
-
-        using var doc = JsonDocument.Parse(snapshot.SpecopsJson);
-        return Task.FromResult(doc.RootElement.Clone());
-    }
-
-    private static JsonElement TryGetFactionSpecopsRootFromSnapshots(IEnumerable<Faction> snapshots, int factionId)
-    {
-        var snapshot = snapshots.FirstOrDefault(x => x.FactionId == factionId);
-        if (snapshot is null || string.IsNullOrWhiteSpace(snapshot.SpecopsJson))
-        {
-            return default;
-        }
-
-        using var doc = JsonDocument.Parse(snapshot.SpecopsJson);
-        return doc.RootElement.Clone();
-    }
-
-    private static bool HasAnySpecopsArray(JsonElement specops)
-    {
-        return TryGetSpecopsArray(specops, "skills", out _) ||
-               TryGetSpecopsArray(specops, "equip", out _) ||
-               TryGetSpecopsArray(specops, "weapons", out _);
-    }
-
-    private static List<SpecopsSkill> BuildSpecopsSkillRecords(int factionId, JsonElement specops, JsonElement fallbackSpecops = default)
-    {
-        var records = new List<SpecopsSkill>();
-        if (!TryGetSpecopsArray(specops, fallbackSpecops, "skills", out var array))
-        {
-            return records;
-        }
-
-        var entryOrder = 0;
-        foreach (var entry in array.EnumerateArray())
-        {
-            if (!TryReadIntProperty(entry, "id", out var skillId))
-            {
-                continue;
-            }
-
-            var exp = TryReadIntProperty(entry, "exp", out var parsedExp) ? parsedExp : 0;
-            records.Add(new SpecopsSkill
-            {
-                SpecopsSkillKey = $"{factionId}:{entryOrder}:{skillId}:{exp}",
-                FactionId = factionId,
-                EntryOrder = entryOrder,
-                SkillId = skillId,
-                Exp = exp,
-                ExtrasJson = TryReadJsonProperty(entry, "extras"),
-                EquipJson = TryReadJsonProperty(entry, "equip"),
-                WeaponsJson = TryReadJsonProperty(entry, "weapons"),
-                RawJson = entry.GetRawText()
-            });
-
-            entryOrder++;
-        }
-
-        return records;
-    }
-
-    private static List<SpecopsEquipment> BuildSpecopsEquipRecords(int factionId, JsonElement specops, JsonElement fallbackSpecops = default)
-    {
-        var records = new List<SpecopsEquipment>();
-        if (!TryGetSpecopsArray(specops, fallbackSpecops, "equip", out var array))
-        {
-            return records;
-        }
-
-        var entryOrder = 0;
-        foreach (var entry in array.EnumerateArray())
-        {
-            if (!TryReadIntProperty(entry, "id", out var equipId))
-            {
-                continue;
-            }
-
-            var exp = TryReadIntProperty(entry, "exp", out var parsedExp) ? parsedExp : 0;
-            records.Add(new SpecopsEquipment
-            {
-                SpecopsEquipmentKey = $"{factionId}:{entryOrder}:{equipId}:{exp}",
-                FactionId = factionId,
-                EntryOrder = entryOrder,
-                EquipmentId = equipId,
-                Exp = exp,
-                ExtrasJson = TryReadJsonProperty(entry, "extras"),
-                SkillsJson = TryReadJsonProperty(entry, "skills"),
-                WeaponsJson = TryReadJsonProperty(entry, "weapons"),
-                RawJson = entry.GetRawText()
-            });
-
-            entryOrder++;
-        }
-
-        return records;
-    }
-
-    private static List<SpecopsWeapon> BuildSpecopsWeaponRecords(int factionId, JsonElement specops, JsonElement fallbackSpecops = default)
-    {
-        var records = new List<SpecopsWeapon>();
-        if (!TryGetSpecopsArray(specops, fallbackSpecops, "weapons", out var array))
-        {
-            return records;
-        }
-
-        var entryOrder = 0;
-        foreach (var entry in array.EnumerateArray())
-        {
-            if (!TryReadIntProperty(entry, "id", out var weaponId))
-            {
-                continue;
-            }
-
-            var exp = TryReadIntProperty(entry, "exp", out var parsedExp) ? parsedExp : 0;
-            records.Add(new SpecopsWeapon
-            {
-                SpecopsWeaponKey = $"{factionId}:{entryOrder}:{weaponId}:{exp}",
-                FactionId = factionId,
-                EntryOrder = entryOrder,
-                WeaponId = weaponId,
-                Exp = exp,
-                RawJson = entry.GetRawText()
-            });
-
-            entryOrder++;
-        }
-
-        return records;
-    }
-
-    private static List<SpecopsUnit> BuildSpecopsUnitRecords(int factionId, JsonElement specops)
-    {
-        var records = new List<SpecopsUnit>();
-        if (!TryGetSpecopsArray(specops, "units", out var array))
-        {
-            return records;
-        }
-
-        var entryOrder = 0;
-        foreach (var entry in array.EnumerateArray())
-        {
-            if (!TryReadIntProperty(entry, "id", out var unitId))
-            {
-                continue;
-            }
-
-            records.Add(new SpecopsUnit
-            {
-                SpecopsUnitKey = $"{factionId}:{entryOrder}:{unitId}",
-                FactionId = factionId,
-                EntryOrder = entryOrder,
-                UnitId = unitId,
-                IdArmy = TryReadNullableIntProperty(entry, "idArmy"),
-                Canonical = TryReadNullableIntProperty(entry, "canonical"),
-                Isc = TryReadStringProperty(entry, "isc"),
-                IscAbbr = TryReadStringProperty(entry, "iscAbbr"),
-                Name = TryReadStringProperty(entry, "name") ?? string.Empty,
-                Slug = TryReadStringProperty(entry, "slug"),
-                ProfileGroupsJson = TryReadJsonProperty(entry, "profileGroups"),
-                OptionsJson = TryReadJsonProperty(entry, "options"),
-                FiltersJson = TryReadJsonProperty(entry, "filters"),
-                FactionsJson = TryReadJsonProperty(entry, "factions"),
-                RawJson = entry.GetRawText()
-            });
-
-            entryOrder++;
-        }
-
-        return records;
-    }
-
-    private static bool TryGetSpecopsArray(JsonElement specops, string propertyName, out JsonElement array)
-    {
-        array = default;
-        return specops.ValueKind == JsonValueKind.Object &&
-               specops.TryGetProperty(propertyName, out array) &&
-               array.ValueKind == JsonValueKind.Array;
-    }
-
-    private static bool TryGetSpecopsArray(JsonElement specops, JsonElement fallbackSpecops, string propertyName, out JsonElement array)
-    {
-        if (TryGetSpecopsArray(specops, propertyName, out array))
-        {
-            return true;
-        }
-
-        return TryGetSpecopsArray(fallbackSpecops, propertyName, out array);
-    }
-
-    private static bool TryReadIntProperty(JsonElement container, string propertyName, out int value)
-    {
-        value = default;
-        if (container.ValueKind != JsonValueKind.Object ||
-            !container.TryGetProperty(propertyName, out var propertyElement))
-        {
-            return false;
-        }
-
-        return TryReadInt(propertyElement, out value);
-    }
-
-    private static int? TryReadNullableIntProperty(JsonElement container, string propertyName)
-    {
-        if (!TryReadIntProperty(container, propertyName, out var value))
-        {
-            return null;
-        }
-
-        return value;
-    }
-
-    private static bool TryReadInt(JsonElement element, out int value)
-    {
-        value = default;
-        if (element.ValueKind == JsonValueKind.Number)
-        {
-            return element.TryGetInt32(out value);
-        }
-
-        if (element.ValueKind == JsonValueKind.String)
-        {
-            return int.TryParse(element.GetString(), out value);
-        }
-
-        return false;
-    }
-
-    private static string? TryReadStringProperty(JsonElement container, string propertyName)
-    {
-        if (container.ValueKind != JsonValueKind.Object ||
-            !container.TryGetProperty(propertyName, out var propertyElement) ||
-            propertyElement.ValueKind != JsonValueKind.String)
-        {
-            return null;
-        }
-
-        return propertyElement.GetString();
-    }
-
-    private static string? TryReadJsonProperty(JsonElement container, string propertyName)
-    {
-        if (container.ValueKind != JsonValueKind.Object ||
-            !container.TryGetProperty(propertyName, out var propertyElement))
-        {
-            return null;
-        }
-
-        return ToJsonOrNull(propertyElement);
-    }
-
-    private static string? ToJsonOrNull(JsonElement element)
-    {
-        return element.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null
-            ? null
-            : element.GetRawText();
+            Skills = NullIfEmpty(sqliteRepository.GetAll<DbSpecopsSkill>(x => x.FactionId == factionId, x => x.EntryOrder)
+                .Select(row => Choice(row.SpecopsSkillKey, row.SkillId, row.Exp)).ToList()),
+            Equip = NullIfEmpty(sqliteRepository.GetAll<DbSpecopsEquipment>(x => x.FactionId == factionId, x => x.EntryOrder)
+                .Select(row => Choice(row.SpecopsEquipmentKey, row.EquipmentId, row.Exp)).ToList()),
+            Weapons = NullIfEmpty(sqliteRepository.GetAll<DbSpecopsWeapon>(x => x.FactionId == factionId, x => x.EntryOrder)
+                .Select(row => Choice(row.SpecopsWeaponKey, row.WeaponId, row.Exp)).ToList())
+        };
     }
 }

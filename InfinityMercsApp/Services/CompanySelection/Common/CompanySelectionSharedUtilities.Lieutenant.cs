@@ -1,9 +1,7 @@
-using InfinityMercsApp.Infrastructure.Json;
-
 namespace InfinityMercsApp.Views.Common;
 
 internal static partial class CompanySelectionSharedUtilities
 {
-    internal static bool UnitHasLieutenantOption(string? profileGroupsJson, IReadOnlyDictionary<int, string> skillsLookup) =>
-        ArmyJsonReader.Shared.ReadProfileGroups(profileGroupsJson).HasLieutenantOption(skillsLookup);
+    internal static bool UnitHasLieutenantOption(UnitProfileGroups profileGroups, IReadOnlyDictionary<int, string> skillsLookup) =>
+        profileGroups.HasLieutenantOption(skillsLookup);
 }

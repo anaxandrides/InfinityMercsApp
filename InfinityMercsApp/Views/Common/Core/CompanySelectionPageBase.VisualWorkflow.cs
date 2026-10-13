@@ -88,7 +88,7 @@ public abstract partial class CompanySelectionPageBase
             Mode,
             ArmyDataService,
             sourceFactionId,
-            unit?.FactionsJson,
+            unit?.FactionIds,
             cancellationToken);
         ApplyUnitHeaderColorsByVanillaFactionName(factionName);
     }

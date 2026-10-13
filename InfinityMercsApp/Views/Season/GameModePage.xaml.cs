@@ -691,7 +691,7 @@ public partial class GameModePage : ContentPage, IQueryAttributable
                 .Where(w => string.Equals(w.Name, searchName, StringComparison.OrdinalIgnoreCase))
                 .ToList();
             var weapons = exact.Count > 0 ? exact : [.. matches];
-            var hasRangeBand = weapons.Any(w => !string.IsNullOrWhiteSpace(w.DistanceJson));
+            var hasRangeBand = weapons.Any(w => w.Distance is not null);
             entries.Add(new WeaponLineEntry(line, baseName, weapons, hasRangeBand));
         }
         return entries;
@@ -894,11 +894,11 @@ public partial class GameModePage : ContentPage, IQueryAttributable
         }
 
         // Single range bar at the bottom — from the first mode that has one.
-        var firstWithRange = weapons.FirstOrDefault(w => !string.IsNullOrWhiteSpace(w.DistanceJson));
+        var firstWithRange = weapons.FirstOrDefault(w => w.Distance is not null);
         if (firstWithRange is not null)
             stack.Children.Add(new WeaponRangeBandBarView
             {
-                DistanceJson = firstWithRange.DistanceJson,
+                Distance = firstWithRange.Distance,
                 ShowUnitsInInches = _showUnitsInInches,
                 BarHeightRequest = 44,
                 XVisorActive = hasXVisor,
@@ -1563,8 +1563,8 @@ public partial class GameModePage : ContentPage, IQueryAttributable
         if (list.Count == 0) return [];
 
         var snapshot = _armyDataService?.GetFactionSnapshot(sourceFactionId);
-        var lookup   = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, section);
-        var extras   = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "extras");
+        var lookup   = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, section);
+        var extras   = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "extras");
         var resolved = new List<string>();
 
         foreach (var code in list)
@@ -1709,14 +1709,7 @@ public partial class GameModePage : ContentPage, IQueryAttributable
     // rather than BS and therefore is unaffected by BS Attack (*) modifiers.
     private static bool IsBsWipWeapon(Weapon weapon)
     {
-        if (string.IsNullOrWhiteSpace(weapon.PropertiesJson)) return false;
-        if (!weapon.PropertiesJson.Contains("WIP", StringComparison.OrdinalIgnoreCase)) return false;
-        try
-        {
-            var props = JsonSerializer.Deserialize<List<string>>(weapon.PropertiesJson) ?? [];
-            return props.Any(p => Regex.IsMatch(p, @"\bBS\s+Weapon\s*\(\s*WIP\s*\)", RegexOptions.IgnoreCase));
-        }
-        catch { return false; }
+        return weapon.Properties.Any(p => Regex.IsMatch(p, @"\bBS\s+Weapon\s*\(\s*WIP\s*\)", RegexOptions.IgnoreCase));
     }
 
     // Combines a weapon's native ammo string with a BS Attack ammo modifier.

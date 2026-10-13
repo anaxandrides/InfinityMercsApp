@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Infrastructure.Json;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Windows.Input;
@@ -55,7 +54,7 @@ public partial class ViewerViewModel
             ProfilesStatus = "Loading profiles...";
             var unit = _armyDataService.GetUnit(SelectedFaction.Id, SelectedUnit.Id, cancellationToken);
             var snapshot = _armyDataService.GetFactionSnapshot(SelectedFaction.Id, cancellationToken);
-            var filters = ArmyJsonReader.Shared.ReadArmyFilters(snapshot?.FiltersJson);
+            var filters = snapshot?.Filters ?? ArmyFilterCatalog.Empty;
             var equipLookup = filters.Names(ArmyFilterSection.Equip);
             var equipLinks = filters.Links(ArmyFilterSection.Equip);
             var skillsLookup = filters.Names(ArmyFilterSection.Skills);
@@ -72,13 +71,13 @@ public partial class ViewerViewModel
             _currentSkillsLookup = skillsLookup;
             _currentSkillsLinks = skillsLinks;
 
-            if (unit is null || string.IsNullOrWhiteSpace(unit.ProfileGroupsJson))
+            if (unit is null || unit.ProfileGroups is not { IsEmpty: false })
             {
                 ProfilesStatus = "No profiles found for this unit.";
                 return;
             }
 
-            var profileGroups = ArmyJsonReader.Shared.ReadProfileGroups(unit.ProfileGroupsJson);
+            var profileGroups = unit.ProfileGroups;
             if (profileGroups.IsEmpty)
             {
                 ProfilesStatus = "No profiles found for this unit.";

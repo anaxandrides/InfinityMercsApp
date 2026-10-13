@@ -26,13 +26,4 @@ public class SpecopsUnit
 
     public string? Slug { get; set; }
 
-    public string? ProfileGroupsJson { get; set; }
-
-    public string? OptionsJson { get; set; }
-
-    public string? FiltersJson { get; set; }
-
-    public string? FactionsJson { get; set; }
-
-    public string RawJson { get; set; } = string.Empty;
 }

@@ -2,7 +2,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
@@ -378,19 +377,19 @@ public partial class DebugPage : ContentPage
         }
 
         var unit = _armyDataService.GetUnit(factionId, sourceUnitId);
-        if (unit is null || string.IsNullOrWhiteSpace(unit.ProfileGroupsJson))
+        if (unit is null || unit.ProfileGroups is not { IsEmpty: false })
         {
             return false;
         }
 
         var snapshot = _armyDataService.GetFactionSnapshot(factionId);
-        var filtersJson = snapshot?.FiltersJson;
-        var filters = ArmyJsonReader.Shared.ReadArmyFilters(filtersJson);
+        var filters = snapshot?.Filters;
+        filters ??= ArmyFilterCatalog.Empty;
         var equipLookup = filters.Names(ArmyFilterSection.Equip);
         var skillsLookup = filters.Names(ArmyFilterSection.Skills);
         var entryNames = new ProfileEntryNames(filters.Extras, showUnitsInInches: false);
 
-        var profileGroups = ArmyJsonReader.Shared.ReadProfileGroups(unit.ProfileGroupsJson);
+        var profileGroups = unit.ProfileGroups;
         var options = profileGroups.AllOptions()
             .Select(x => x.Option)
             .Where(option => !option.HasPositiveSwc)
@@ -405,7 +404,7 @@ public partial class DebugPage : ContentPage
             new CompanyProfilePopulationRequest
             {
                 ProfileGroups = profileGroups,
-                FiltersJson = filtersJson,
+                Filters = filters ?? ArmyFilterCatalog.Empty,
                 ForceLieutenant = false,
                 ShowTacticalAwarenessIcon = false,
                 ShowUnitsInInches = false,
@@ -435,8 +434,8 @@ public partial class DebugPage : ContentPage
 
         var peripheralStats = CompanySelectionRosterWorkflow.BuildMercsCompanyPeripheralStats<PeripheralMercsCompanyStats>(
             selectedProfile,
-            unit.ProfileGroupsJson,
-            filtersJson,
+            unit.ProfileGroups,
+            filters,
             (peripheralName, peripheralProfile, selectedFiltersJson) => BuildPeripheralStatBlock(peripheralName, peripheralProfile, selectedFiltersJson));
 
         payload = new DbDerivedProfilePayload
@@ -468,9 +467,9 @@ public partial class DebugPage : ContentPage
         return true;
     }
 
-    private PeripheralMercsCompanyStats? BuildPeripheralStatBlock(string peripheralName, UnitProfile peripheralProfile, string? filtersJson)
+    private PeripheralMercsCompanyStats? BuildPeripheralStatBlock(string peripheralName, UnitProfile peripheralProfile, ArmyFilterCatalog? filters)
     {
-        return CompanyUnitDetailsShared.BuildPeripheralStatBlock(peripheralName, peripheralProfile, filtersJson, showUnitsInInches: false);
+        return CompanyUnitDetailsShared.BuildPeripheralStatBlock(peripheralName, peripheralProfile, filters, showUnitsInInches: false);
     }
 
     private static string BuildSubtitleFromBaseStats(DebugSavedEntry entry)
@@ -501,8 +500,8 @@ public partial class DebugPage : ContentPage
         }
 
         var snapshot = _armyDataService.GetFactionSnapshot(factionId);
-        var weaponLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "weapons");
-        var extrasLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "extras");
+        var weaponLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "weapons");
+        var extrasLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "extras");
 
         var resolved = new List<string>();
         foreach (var code in entry.CurrentWeaponCodes)
@@ -549,8 +548,8 @@ public partial class DebugPage : ContentPage
         }
 
         var snapshot = _armyDataService.GetFactionSnapshot(factionId);
-        var sectionLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, sectionName);
-        var extrasLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "extras");
+        var sectionLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, sectionName);
+        var extrasLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "extras");
 
         IEnumerable<CompanySavedCodeRef> codes = sectionName switch
         {

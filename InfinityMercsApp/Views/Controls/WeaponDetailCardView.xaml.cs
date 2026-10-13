@@ -1,6 +1,5 @@
 using InfinityMercsApp.Domain.Models.Metadata;
 using Microsoft.Maui.Controls.Shapes;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace InfinityMercsApp.Views.Controls;
@@ -186,7 +185,7 @@ public partial class WeaponDetailCardView : ContentView
             ContentStack.Children.Add(statsView);
 
         // Special rules — two-column grid, no bullet points
-        var properties = ParseProperties(weapon.PropertiesJson);
+        var properties = SpecialRules(weapon.Properties);
         if (properties.Count > 0)
         {
             ContentStack.Children.Add(new Label
@@ -294,11 +293,11 @@ public partial class WeaponDetailCardView : ContentView
 
     private void AddRangeBar(Weapon weapon)
     {
-        if (string.IsNullOrWhiteSpace(weapon.DistanceJson)) return;
+        if (weapon.Distance is null) return;
 
         ContentStack.Children.Add(new WeaponRangeBandBarView
         {
-            DistanceJson = weapon.DistanceJson,
+            Distance = weapon.Distance,
             ShowUnitsInInches = ShowUnitsInInches,
             BarHeightRequest = RangeBandHeightRequest,
             XVisorActive = XVisorActive,
@@ -447,16 +446,8 @@ public partial class WeaponDetailCardView : ContentView
 
     private static readonly Regex AsteriskBracketPattern = new(@"^\[\*+\]$", RegexOptions.Compiled);
 
-    private static IReadOnlyList<string> ParseProperties(string? json)
-    {
-        if (string.IsNullOrWhiteSpace(json)) return [];
-        try
-        {
-            var all = JsonSerializer.Deserialize<List<string>>(json) ?? [];
-            return all.Where(p => !AsteriskBracketPattern.IsMatch(p.Trim())).ToList();
-        }
-        catch { return []; }
-    }
+    private static IReadOnlyList<string> SpecialRules(IReadOnlyList<string> properties) =>
+        properties.Where(p => !AsteriskBracketPattern.IsMatch(p.Trim())).ToList();
 
     private static string BuildWikiUrl(string name)
     {

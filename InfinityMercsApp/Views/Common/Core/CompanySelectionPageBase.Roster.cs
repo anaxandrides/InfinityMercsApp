@@ -13,15 +13,15 @@ public abstract partial class CompanySelectionPageBase
     /// </summary>
     protected static TPeripheralStats? BuildMercsCompanyPeripheralStatsCore<TPeripheralStats>(
         ViewerProfileItem profile,
-        string? selectedUnitProfileGroupsJson,
-        string? selectedUnitFiltersJson,
-        Func<string, UnitProfile, string?, TPeripheralStats?> buildPeripheralStatBlock)
+        UnitProfileGroups? selectedUnitProfileGroups,
+        ArmyFilterCatalog? selectedUnitFilters,
+        Func<string, UnitProfile, ArmyFilterCatalog?, TPeripheralStats?> buildPeripheralStatBlock)
         where TPeripheralStats : class
     {
         return CompanySelectionRosterWorkflow.BuildMercsCompanyPeripheralStats(
             profile,
-            selectedUnitProfileGroupsJson,
-            selectedUnitFiltersJson,
+            selectedUnitProfileGroups,
+            selectedUnitFilters,
             buildPeripheralStatBlock);
     }
 

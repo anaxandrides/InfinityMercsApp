@@ -26,7 +26,8 @@ public class Weapon
 
     public string? Profile { get; set; }
 
-    public string? PropertiesJson { get; set; }
+    public IReadOnlyList<string> Properties { get; set; } = [];
 
-    public string? DistanceJson { get; set; }
+    /// <summary>The weapon's range bands; <c>null</c> when it has none (e.g. CC weapons).</summary>
+    public WeaponDistance? Distance { get; set; }
 }

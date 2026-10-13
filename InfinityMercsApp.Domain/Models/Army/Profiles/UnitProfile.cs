@@ -81,6 +81,37 @@ public sealed class UnitProfile
         _ => []
     };
 
+    /// <summary>A copy of this profile with a different AVA.</summary>
+    public UnitProfile WithAva(int? ava) => new()
+    {
+        Id = Id,
+        Name = Name,
+        Logo = Logo,
+        Type = Type,
+        Str = Str,
+        Move = Move,
+        MoveCm = MoveCm,
+        Cc = Cc,
+        Bs = Bs,
+        Ph = Ph,
+        Wip = Wip,
+        Arm = Arm,
+        Bts = Bts,
+        W = W,
+        S = S,
+        Ava = ava,
+        StrValue = StrValue,
+        Vita = Vita,
+        HasStatFields = HasStatFields,
+        Chars = Chars,
+        Skills = Skills,
+        Equip = Equip,
+        Weapons = Weapons,
+        Peripheral = Peripheral,
+        Ammunition = Ammunition,
+        Ammo = Ammo
+    };
+
     /// <summary>A stat as statline text: the number, or <c>"-"</c> when absent.</summary>
     public static string StatText(int? value) => value?.ToString() ?? "-";
 

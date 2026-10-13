@@ -49,11 +49,11 @@ public abstract partial class CompanySelectionPageBase
     /// keyed by team name. Used to build the combined fireteam list from multiple faction sources.
     /// </summary>
     protected static void MergeFireteamEntriesCore(
-        string? fireteamChartJson,
+        FireteamChart? fireteamChart,
         Dictionary<string, CompanyTeamAggregate> target)
     {
         CompanySelectionUnitDetailsWorkflow.MergeFireteamEntries(
-            fireteamChartJson,
+            fireteamChart,
             target);
     }
 

@@ -1,5 +1,4 @@
 using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Infrastructure.Json;
 
 namespace InfinityMercsApp.Services;
 
@@ -23,10 +22,10 @@ internal sealed class CompanyUnitDetailsWorkflowRequest
     public required Action<IReadOnlyList<string>, IReadOnlyList<string>, bool> SetCommonEquipmentSkills { get; init; }
     public required Action<string, string> SetSummaryText { get; init; }
     public required Action RefreshSummaryFormatted { get; init; }
-    public required Action<UnitProfileGroups, string?, bool> PopulateProfilesFromProfileGroups { get; init; }
+    public required Action<UnitProfileGroups, ArmyFilterCatalog, bool> PopulateProfilesFromProfileGroups { get; init; }
     public required Action UpdatePeripheralStatBlockFromVisibleProfiles { get; init; }
-    public required Action<string?> SetSelectedUnitProfileGroupsJson { get; init; }
-    public required Action<string?> SetSelectedUnitFiltersJson { get; init; }
+    public required Action<UnitProfileGroups> SetSelectedUnitProfileGroups { get; init; }
+    public required Action<ArmyFilterCatalog> SetSelectedUnitFilters { get; init; }
     public required Action<string> SetUnitNameHeading { get; init; }
     public required Action<bool> SetSummaryHighlightLieutenant { get; init; }
     public required Action<string> LogInfo { get; init; }
@@ -56,34 +55,32 @@ internal static class CompanyUnitDetailsWorkflowService
         var treatAsSpecOps = request.IsSpecOps || (unit is null && specopsUnit is not null);
         await request.ApplyUnitHeaderColorsAsync(request.SourceFactionId, unit, cancellationToken);
 
-        var profileGroupsJson = unit?.ProfileGroupsJson;
-        if (treatAsSpecOps && !string.IsNullOrWhiteSpace(specopsUnit?.ProfileGroupsJson))
+        var profileGroups = unit?.ProfileGroups ?? UnitProfileGroups.Empty;
+        if (treatAsSpecOps && specopsUnit is { ProfileGroups.IsEmpty: false })
         {
-            profileGroupsJson = specopsUnit.ProfileGroupsJson;
+            profileGroups = specopsUnit.ProfileGroups;
         }
-        else if (string.IsNullOrWhiteSpace(profileGroupsJson))
+        else if (profileGroups.IsEmpty)
         {
-            profileGroupsJson = specopsUnit?.ProfileGroupsJson;
+            profileGroups = specopsUnit?.ProfileGroups ?? UnitProfileGroups.Empty;
         }
 
         var snapshot = request.GetFactionSnapshot(request.SourceFactionId, cancellationToken);
-        if (string.IsNullOrWhiteSpace(profileGroupsJson))
+        if (profileGroups.IsEmpty)
         {
             request.LogError($"ArmyFactionSelectionPage: profile groups not found for faction={request.SourceFactionId}, unit={request.UnitId}.");
             return;
         }
 
-        var reader = ArmyJsonReader.Shared;
-        var filters = reader.ReadArmyFilters(snapshot?.FiltersJson);
+        var filters = snapshot?.Filters ?? ArmyFilterCatalog.Empty;
         var equipLookup = filters.Names(ArmyFilterSection.Equip);
         var skillsLookup = filters.Names(ArmyFilterSection.Skills);
         var charsLookup = filters.Names(ArmyFilterSection.Chars);
         var entryNames = new ProfileEntryNames(filters.Extras, request.ShowUnitsInInches);
-        request.SetSelectedUnitProfileGroupsJson(profileGroupsJson);
-        request.SetSelectedUnitFiltersJson(snapshot?.FiltersJson);
+        request.SetSelectedUnitProfileGroups(profileGroups);
+        request.SetSelectedUnitFilters(filters);
         await request.ApplyGlobalDisplayUnitsPreferenceAsync(cancellationToken);
 
-        var profileGroups = reader.ReadProfileGroups(profileGroupsJson);
         var visibleOptions = profileGroups.AllOptions()
             .Select(x => x.Option)
             .Where(option => !option.HasPositiveSwc)
@@ -112,7 +109,7 @@ internal static class CompanyUnitDetailsWorkflowService
             $"Equipment: {(stableEquip.Count == 0 ? "-" : string.Join(", ", stableEquip))}",
             $"Special Skills: {(stableSkills.Count == 0 ? "-" : string.Join(", ", stableSkills))}");
         request.RefreshSummaryFormatted();
-        request.PopulateProfilesFromProfileGroups(profileGroups, snapshot?.FiltersJson, treatAsSpecOps);
+        request.PopulateProfilesFromProfileGroups(profileGroups, filters, treatAsSpecOps);
         request.UpdatePeripheralStatBlockFromVisibleProfiles();
     }
 

@@ -12,5 +12,14 @@ public class SpecopsWeapon
 
     public int Exp { get; set; }
 
-    public string RawJson { get; set; } = string.Empty;
+    public IReadOnlyList<int> Extras { get; set; } = [];
+
+    /// <summary>Skills the choice grants alongside it.</summary>
+    public IReadOnlyList<SpecopsLink> Skills { get; set; } = [];
+
+    /// <summary>Equipment the choice grants alongside it.</summary>
+    public IReadOnlyList<SpecopsLink> Equip { get; set; } = [];
+
+    /// <summary>Weapons the choice grants alongside it.</summary>
+    public IReadOnlyList<SpecopsLink> Weapons { get; set; } = [];
 }

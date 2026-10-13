@@ -1,21 +1,16 @@
 using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Infrastructure.Json;
 
 namespace InfinityMercsApp.Services;
 
 /// <summary>
-/// Unit-list filtering entry points for pages and workflows that still hold raw <c>ProfileGroupsJson</c>.
-/// The rules live in <see cref="UnitOptionFilter"/>; this class only reads the JSON through the shared
-/// <see cref="ArmyJsonReader"/> (which caches parsed units).
+/// Unit-list filtering entry points for pages and workflows. The rules live in <see cref="UnitOptionFilter"/>.
 /// </summary>
 public static class CompanyUnitFilterService
 {
     private static readonly IReadOnlyDictionary<int, string> EmptyLookup = new Dictionary<int, string>();
 
-    private static IArmyJsonReader Reader => ArmyJsonReader.Shared;
-
     public static void AddFilterOptionsFromVisibleProfilesAndOptions(
-        string profileGroupsJson,
+        UnitProfileGroups profileGroups,
         IReadOnlyDictionary<int, string> charsLookup,
         IReadOnlyDictionary<int, string> skillsLookup,
         IReadOnlyDictionary<int, string> equipLookup,
@@ -32,7 +27,7 @@ public static class CompanyUnitFilterService
         HashSet<string> ammo)
     {
         UnitOptionFilter.CollectFilterOptions(
-            Reader.ReadProfileGroups(profileGroupsJson),
+            profileGroups,
             new UnitFilterLookups(charsLookup, skillsLookup, equipLookup, weaponsLookup, ammoLookup),
             requireLieutenant,
             requireZeroSwc,
@@ -42,7 +37,7 @@ public static class CompanyUnitFilterService
     }
 
     public static bool UnitHasVisibleOptionWithFilter(
-        string? profileGroupsJson,
+        UnitProfileGroups profileGroups,
         IReadOnlyDictionary<int, string> skillsLookup,
         IReadOnlyDictionary<int, string> charsLookup,
         IReadOnlyDictionary<int, string> equipLookup,
@@ -55,7 +50,7 @@ public static class CompanyUnitFilterService
         Func<string?, bool>? optionNamePredicate = null)
     {
         return UnitOptionFilter.HasVisibleOption(
-            Reader.ReadProfileGroups(profileGroupsJson),
+            profileGroups,
             new UnitFilterLookups(charsLookup, skillsLookup, equipLookup, weaponsLookup, ammoLookup),
             criteria,
             requireLieutenant,
@@ -65,14 +60,14 @@ public static class CompanyUnitFilterService
     }
 
     public static bool UnitHasVisibleOption(
-        string? profileGroupsJson,
+        UnitProfileGroups profileGroups,
         IReadOnlyDictionary<int, string> skillsLookup,
         bool requireLieutenant,
         bool requireZeroSwc,
         int? maxCost = null)
     {
         return UnitHasVisibleOptionWithFilter(
-            profileGroupsJson,
+            profileGroups,
             skillsLookup,
             EmptyLookup,
             EmptyLookup,
@@ -85,10 +80,10 @@ public static class CompanyUnitFilterService
     }
 
     public static bool UnitHasLieutenantOption(
-        string? profileGroupsJson,
+        UnitProfileGroups profileGroups,
         IReadOnlyDictionary<int, string> skillsLookup)
     {
-        return Reader.ReadProfileGroups(profileGroupsJson).HasLieutenantOption(skillsLookup);
+        return profileGroups.HasLieutenantOption(skillsLookup);
     }
 
     public static bool MatchesClassificationFilter(

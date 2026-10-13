@@ -914,7 +914,7 @@ internal static class CompanyStartSaveWorkflow
         }
 
         var snapshot = armyDataService.GetFactionSnapshot(factionId);
-        var idToName = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, section);
+        var idToName = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, section);
         var nameToId = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         foreach (var (id, name) in idToName)
         {
@@ -942,7 +942,7 @@ internal static class CompanyStartSaveWorkflow
         }
 
         var snapshot = armyDataService.GetFactionSnapshot(factionId);
-        var idToName = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "extras");
+        var idToName = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "extras");
         var nameToId = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         foreach (var (id, name) in idToName)
         {
@@ -1107,7 +1107,7 @@ internal static class CompanyStartSaveWorkflow
         }
 
         var snapshot = armyDataService.GetFactionSnapshot(entry.SourceFactionId);
-        var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "type");
+        var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "type");
         if (!typeLookup.TryGetValue(resumeType, out var typeName) || string.IsNullOrWhiteSpace(typeName))
         {
             return string.Empty;

@@ -39,11 +39,11 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
         foreach (var faction in factions)
         {
             var snapshot = ArmyDataService.GetFactionSnapshot(faction.Id, cancellationToken);
-            var skillsLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(snapshot?.FiltersJson, "skills");
+            var skillsLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(snapshot?.Filters, "skills");
             var mercsEntries = await ArmyDataService.GetMergedMercsArmyListAsync([faction.Id], cancellationToken);
 
             var hasLieutenant = mercsEntries.Any(entry =>
-                CompanySelectionSharedUtilities.UnitHasLieutenantOption(entry.ProfileGroupsJson, skillsLookup));
+                CompanySelectionSharedUtilities.UnitHasLieutenantOption(entry.ProfileGroups, skillsLookup));
 
             if (hasLieutenant)
             {

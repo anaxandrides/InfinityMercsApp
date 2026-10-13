@@ -13,7 +13,7 @@ internal static class CompanySelectionVisualThemeWorkflow
         ArmySourceSelectionMode mode,
         IArmyDataService armyDataService,
         int sourceFactionId,
-        string? unitFactionsJson,
+        IReadOnlyList<int>? unitFactionIds,
         CancellationToken cancellationToken)
     {
         if (mode == ArmySourceSelectionMode.Sectorials)
@@ -21,16 +21,16 @@ internal static class CompanySelectionVisualThemeWorkflow
             return await ResolveVanillaFactionNameAsync(armyDataService, sourceFactionId, cancellationToken);
         }
 
-        return await ResolveUnitVanillaFactionNameAsync(armyDataService, sourceFactionId, unitFactionsJson, cancellationToken);
+        return await ResolveUnitVanillaFactionNameAsync(armyDataService, sourceFactionId, unitFactionIds, cancellationToken);
     }
 
     internal static async Task<string?> ResolveUnitVanillaFactionNameAsync(
         IArmyDataService armyDataService,
         int sourceFactionId,
-        string? unitFactionsJson,
+        IReadOnlyList<int>? unitFactionIds,
         CancellationToken cancellationToken)
     {
-        foreach (var factionId in CompanySelectionSharedUtilities.ParseFactionIds(unitFactionsJson))
+        foreach (var factionId in unitFactionIds ?? [])
         {
             var candidateName = await ResolveVanillaFactionNameAsync(armyDataService, factionId, cancellationToken);
             if (CompanySelectionSharedUtilities.IsThemeFactionName(candidateName))

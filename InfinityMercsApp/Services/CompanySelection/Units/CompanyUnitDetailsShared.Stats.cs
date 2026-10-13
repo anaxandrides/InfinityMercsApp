@@ -5,11 +5,11 @@ namespace InfinityMercsApp.Views.Common;
 internal static partial class CompanyUnitDetailsShared
 {
     internal static void MergeFireteamEntries(
-        string? fireteamChartJson,
+        FireteamChart? fireteamChart,
         Action<CompanyFireteamChartEntry> mergeEntry,
         Action<string>? logError = null)
     {
-        foreach (var entry in CompanyUnitDetailsFireteamCommon.ParseEntries(fireteamChartJson, logError))
+        foreach (var entry in CompanyUnitDetailsFireteamCommon.ParseEntries(fireteamChart, logError))
         {
             mergeEntry(entry);
         }

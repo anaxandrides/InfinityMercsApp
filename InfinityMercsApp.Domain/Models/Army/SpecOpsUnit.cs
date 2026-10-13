@@ -1,4 +1,6 @@
-﻿namespace InfinityMercsApp.Domain.Models.Army;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+
+namespace InfinityMercsApp.Domain.Models.Army;
 
 public class SpecopsUnit
 {
@@ -22,13 +24,13 @@ public class SpecopsUnit
 
     public string? Slug { get; set; }
 
-    public string? ProfileGroupsJson { get; set; }
+    public UnitProfileGroups ProfileGroups { get; set; } = UnitProfileGroups.Empty;
 
-    public string? OptionsJson { get; set; }
+    /// <summary>Options declared on the unit itself, such as a two-trooper team option.</summary>
+    public IReadOnlyList<ProfileOption> Options { get; set; } = [];
 
-    public string? FiltersJson { get; set; }
+    public UnitFilterIds Filters { get; set; } = UnitFilterIds.Empty;
 
-    public string? FactionsJson { get; set; }
-
-    public string RawJson { get; set; } = string.Empty;
+    /// <summary>The armies the unit belongs to.</summary>
+    public IReadOnlyList<int> FactionIds { get; set; } = [];
 }

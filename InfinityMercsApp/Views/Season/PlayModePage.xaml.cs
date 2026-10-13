@@ -369,8 +369,8 @@ public partial class PlayModePage : ContentPage, IQueryAttributable
         if (codeList.Count == 0) return [];
 
         var snapshot = _armyDataService?.GetFactionSnapshot(sourceFactionId);
-        var lookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, sectionName);
-        var extrasLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "extras");
+        var lookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, sectionName);
+        var extrasLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "extras");
         var resolved = new List<string>();
 
         foreach (var code in codeList)

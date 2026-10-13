@@ -1109,7 +1109,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         }
 
         var snapshot = _armyDataService.GetFactionSnapshot(sourceFactionId);
-        return CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, sectionName);
+        return CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, sectionName);
     }
 
     private Dictionary<int, string> BuildExtraNameLookup(int sourceFactionId)
@@ -1120,7 +1120,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         }
 
         var snapshot = _armyDataService.GetFactionSnapshot(sourceFactionId);
-        return CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.FiltersJson, "extras");
+        return CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "extras");
     }
 
     private static string JoinCodesOrDash(IEnumerable<string> values)

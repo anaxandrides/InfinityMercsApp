@@ -46,11 +46,11 @@ internal static class CompanySelectionUnitDetailsWorkflow
     }
 
     internal static void MergeFireteamEntries(
-        string? fireteamChartJson,
+        FireteamChart? fireteamChart,
         Dictionary<string, CompanyTeamAggregate> target)
     {
         CompanyUnitDetailsShared.MergeFireteamEntries(
-            fireteamChartJson,
+            fireteamChart,
             entry =>
             {
                 if (!target.TryGetValue(entry.Name, out var aggregate))

@@ -677,12 +677,12 @@ public partial class UnitDisplayConfigurationsView : ContentView
     /// <summary>
     /// Serialized profile-groups payload for the currently selected unit.
     /// </summary>
-    public string? SelectedUnitProfileGroupsJson { get; set; }
+    public UnitProfileGroups SelectedUnitProfileGroups { get; set; } = UnitProfileGroups.Empty;
 
     /// <summary>
     /// Serialized filter payload associated with the currently selected unit.
     /// </summary>
-    public string? SelectedUnitFiltersJson { get; set; }
+    public ArmyFilterCatalog SelectedUnitFilters { get; set; } = ArmyFilterCatalog.Empty;
 
     /// <summary>
     /// Canonical common equipment entries for the currently selected unit.

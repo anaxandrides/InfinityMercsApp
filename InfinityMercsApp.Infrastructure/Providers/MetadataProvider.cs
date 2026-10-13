@@ -5,6 +5,8 @@ using DomainFaction = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using DomainSkill = InfinityMercsApp.Domain.Models.Metadata.Skill;
 using DomainWeapon = InfinityMercsApp.Domain.Models.Metadata.Weapon;
 using DomainAmmunition = InfinityMercsApp.Domain.Models.Metadata.Ammunition;
+using InfinityMercsApp.Domain.Models.Metadata;
+using InfinityMercsApp.Infrastructure.Models.Database.Metadata;
 using InfinityMercsApp.Infrastructure.Repositories;
 using DbAmmunition = InfinityMercsApp.Infrastructure.Models.Database.Metadata.Ammunition;
 using DbBooty = InfinityMercsApp.Infrastructure.Models.Database.Metadata.Booty;
@@ -52,10 +54,20 @@ public sealed class MetadataProvider(ISQLiteRepository sqliteRepository) : IMeta
             Damage = x.Damage,
             Saving = x.Saving,
             SavingNum = x.SavingNum,
-            Profile = x.Profile,
-            PropertiesJson = x.PropertiesJson,
-            DistanceJson = x.DistanceJson
+            Profile = x.Profile
         }).ToList();
+
+        var weaponProperties = new List<WeaponPropertyRow>();
+        var weaponBands = new List<WeaponDistanceBandRow>();
+        for (var i = 0; i < metadata.Weapons.Count; i++)
+        {
+            var weapon = metadata.Weapons[i];
+            var weaponKey = weapons[i].WeaponKey;
+            weaponProperties.AddRange(weapon.Properties.Select((property, position) =>
+                new WeaponPropertyRow { WeaponKey = weaponKey, Position = position, Property = property }));
+            weaponBands.AddRange((weapon.Distance?.Bands ?? []).Select((band, position) =>
+                new WeaponDistanceBandRow { WeaponKey = weaponKey, Position = position, Band = band.Name, Max = band.Band.Max, Mod = band.Band.Mod }));
+        }
 
         var skills = metadata.Skills.Select(x => new DbSkill
         {
@@ -79,10 +91,7 @@ public sealed class MetadataProvider(ISQLiteRepository sqliteRepository) : IMeta
             Damage = x.Damage,
             Attack = x.Attack,
             Burst = x.Burst,
-            Extra = x.Extra,
-            SkillTypeJson = x.SkillTypeJson,
-            DevicesJson = x.DevicesJson,
-            TargetJson = x.TargetJson
+            Extra = x.Extra
         }).ToList();
 
         var martialArts = metadata.MartialArts.Select(x => new DbMartialArt
@@ -117,6 +126,9 @@ public sealed class MetadataProvider(ISQLiteRepository sqliteRepository) : IMeta
         sqliteRepository.DeleteAll<DbMartialArt>();
         sqliteRepository.DeleteAll<DbMetachemistry>();
         sqliteRepository.DeleteAll<DbBooty>();
+        sqliteRepository.DeleteAll<WeaponPropertyRow>();
+        sqliteRepository.DeleteAll<WeaponDistanceBandRow>();
+        sqliteRepository.DeleteAll<HackingProgramValueRow>();
 
         sqliteRepository.Insert(factions);
         sqliteRepository.Insert(ammunitions);
@@ -127,6 +139,24 @@ public sealed class MetadataProvider(ISQLiteRepository sqliteRepository) : IMeta
         sqliteRepository.Insert(martialArts);
         sqliteRepository.Insert(metachemistry);
         sqliteRepository.Insert(booty);
+        sqliteRepository.Insert(weaponProperties);
+        sqliteRepository.Insert(weaponBands);
+
+        // Inserting assigned each program its AutoIncrement id, which its list values refer to.
+        var hackValues = new List<HackingProgramValueRow>();
+        for (var i = 0; i < metadata.Hack.Count; i++)
+        {
+            var program = metadata.Hack[i];
+            var programId = hacks[i].Id;
+            hackValues.AddRange(program.SkillTypes.Select((text, position) =>
+                new HackingProgramValueRow { ProgramId = programId, ListKind = HackingProgramLists.SkillType, Position = position, Text = text }));
+            hackValues.AddRange(program.Devices.Select((device, position) =>
+                new HackingProgramValueRow { ProgramId = programId, ListKind = HackingProgramLists.Devices, Position = position, Number = device }));
+            hackValues.AddRange(program.Targets.Select((text, position) =>
+                new HackingProgramValueRow { ProgramId = programId, ListKind = HackingProgramLists.Target, Position = position, Text = text }));
+        }
+
+        sqliteRepository.Insert(hackValues);
     }
 
     /// <inheritdoc/>
@@ -155,9 +185,7 @@ public sealed class MetadataProvider(ISQLiteRepository sqliteRepository) : IMeta
     /// <inheritdoc/>
     public IReadOnlyList<DomainWeapon> GetAllWeapons()
     {
-        return sqliteRepository.GetAll<DbWeapon>(x => true, x => x.Name)
-            .Select(MapWeapon)
-            .ToList();
+        return MapWeapons(sqliteRepository.GetAll<DbWeapon>(x => true, x => x.Name));
     }
 
     /// <inheritdoc/>
@@ -166,7 +194,7 @@ public sealed class MetadataProvider(ISQLiteRepository sqliteRepository) : IMeta
         var records = string.IsNullOrWhiteSpace(searchTerm)
             ? sqliteRepository.GetAll<DbWeapon>(x => true, x => x.Name, 100)
             : sqliteRepository.GetAll<DbWeapon>(x => x.Name.Contains(searchTerm), x => x.Name, 100);
-        return records.Select(MapWeapon).ToList();
+        return MapWeapons(records);
     }
 
     /// <inheritdoc/>
@@ -198,8 +226,20 @@ public sealed class MetadataProvider(ISQLiteRepository sqliteRepository) : IMeta
         };
     }
 
-    private static DomainWeapon MapWeapon(DbWeapon source)
+    private IReadOnlyList<DomainWeapon> MapWeapons(IReadOnlyList<DbWeapon> records)
     {
+        // The weapon list is small (a few hundred rows), so its property and band rows are read in full.
+        var properties = sqliteRepository.GetAll<WeaponPropertyRow>(x => true).ToLookup(row => row.WeaponKey);
+        var bands = sqliteRepository.GetAll<WeaponDistanceBandRow>(x => true).ToLookup(row => row.WeaponKey);
+        return records.Select(record => MapWeapon(record, properties[record.WeaponKey], bands[record.WeaponKey])).ToList();
+    }
+
+    private static DomainWeapon MapWeapon(DbWeapon source, IEnumerable<WeaponPropertyRow> properties, IEnumerable<WeaponDistanceBandRow> bands)
+    {
+        var bandList = bands
+            .OrderBy(row => row.Position)
+            .Select(row => (row.Band, new WeaponDistanceBand { Max = row.Max, Mod = row.Mod }))
+            .ToList();
         return new DomainWeapon
         {
             WeaponKey = source.WeaponKey,
@@ -214,8 +254,8 @@ public sealed class MetadataProvider(ISQLiteRepository sqliteRepository) : IMeta
             Saving = source.Saving,
             SavingNum = source.SavingNum,
             Profile = source.Profile,
-            PropertiesJson = source.PropertiesJson,
-            DistanceJson = source.DistanceJson
+            Properties = properties.OrderBy(row => row.Position).Select(row => row.Property).ToList(),
+            Distance = bandList.Count == 0 ? null : new WeaponDistance { Bands = bandList }
         };
     }
 
@@ -243,4 +283,12 @@ public sealed class MetadataProvider(ISQLiteRepository sqliteRepository) : IMeta
     {
         return $"{weapon.WeaponId}:{weapon.Name}:{weapon.Mode ?? string.Empty}";
     }
+}
+
+/// <summary><see cref="HackingProgramValueRow.ListKind"/> values.</summary>
+internal static class HackingProgramLists
+{
+    public const string SkillType = "skillType";
+    public const string Devices = "devices";
+    public const string Target = "target";
 }

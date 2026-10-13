@@ -1,5 +1,4 @@
 using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Common;
 
@@ -85,23 +84,23 @@ public partial class StandardCompanySelectionPage
         CompanyUnitVisibilityLookupContext lookupContext,
         CancellationToken cancellationToken)
     {
-        string? profileGroupsJson = null;
+        UnitProfileGroups? profileGroups = null;
 
         var unitRecord = GetUnitFromProvider(unit.SourceFactionId, unit.Id, cancellationToken);
-        profileGroupsJson = unitRecord?.ProfileGroupsJson;
+        profileGroups = unitRecord?.ProfileGroups;
 
         if (lookupContext.SpecopsByFactionId.TryGetValue(unit.SourceFactionId, out var specopsUnitsById) &&
             specopsUnitsById.TryGetValue(unit.Id, out var specopsUnit) &&
-            (unit.IsSpecOps || string.IsNullOrWhiteSpace(profileGroupsJson)))
+            (unit.IsSpecOps || profileGroups is not { IsEmpty: false }))
         {
-            profileGroupsJson = specopsUnit.ProfileGroupsJson;
+            profileGroups = specopsUnit.ProfileGroups;
         }
 
-        if (string.IsNullOrWhiteSpace(profileGroupsJson))
+        if (profileGroups is not { IsEmpty: false })
         {
             return false;
         }
 
-        return UnitTraits.ReadOrderTraits(ArmyJsonReader.Shared.ReadProfileGroups(profileGroupsJson)).HasRegular;
+        return UnitTraits.ReadOrderTraits(profileGroups ?? UnitProfileGroups.Empty).HasRegular;
     }
 }

@@ -82,10 +82,10 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
     {
         return BuildMercsCompanyPeripheralStatsCore(
             profile,
-            UnitDisplayConfigurationsViewForVisuals.SelectedUnitProfileGroupsJson,
-            UnitDisplayConfigurationsViewForVisuals.SelectedUnitFiltersJson,
-            (peripheralName, peripheralProfile, selectedUnitFiltersJson) =>
-                BuildPeripheralStatBlock(peripheralName, peripheralProfile, selectedUnitFiltersJson));
+            UnitDisplayConfigurationsViewForVisuals.SelectedUnitProfileGroups,
+            UnitDisplayConfigurationsViewForVisuals.SelectedUnitFilters,
+            (peripheralName, peripheralProfile, selectedUnitFilters) =>
+                BuildPeripheralStatBlock(peripheralName, peripheralProfile, selectedUnitFilters));
     }
 
     protected void RemoveMercsCompanyEntry(MercsCompanyEntry? entry)

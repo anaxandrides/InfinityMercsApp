@@ -99,7 +99,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
             activeSlotFaction,
             null,
             faction => faction.Id,
-            (factionId, ct) => ArmyDataService.GetFactionSnapshot(factionId, ct)?.FiltersJson,
+            (factionId, ct) => ArmyDataService.GetFactionSnapshot(factionId, ct)?.Filters,
             (factionIds, ct) => ArmyDataService.GetMergedMercsArmyListAsync(factionIds, ct),
             ResolveFilterPopupMaxPoints(),
             value => _filterState.PreparedUnitFilterPopupOptions = value,

@@ -1,5 +1,4 @@
 using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views.Common;
 
@@ -11,7 +10,7 @@ namespace InfinityMercsApp.Services;
 internal sealed class CompanyProfilePopulationRequest
 {
     public required UnitProfileGroups ProfileGroups { get; init; }
-    public required string? FiltersJson { get; init; }
+    public required ArmyFilterCatalog Filters { get; init; }
     public required bool ForceLieutenant { get; init; }
     public required bool ShowTacticalAwarenessIcon { get; init; }
     public required bool ShowUnitsInInches { get; init; }
@@ -34,7 +33,7 @@ internal static class CompanyProfilePopulationWorkflowService
             return [];
         }
 
-        var filters = ArmyJsonReader.Shared.ReadArmyFilters(request.FiltersJson);
+        var filters = request.Filters;
         var unit = request.ProfileGroups;
         var buildRequest = new CompanyProfileBuildRequest
         {

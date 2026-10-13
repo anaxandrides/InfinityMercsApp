@@ -1,5 +1,3 @@
-using InfinityMercsApp.Infrastructure.Json;
-
 namespace InfinityMercsApp.Views.Common;
 
 internal sealed record CompanyFireteamChartEntry(
@@ -14,10 +12,10 @@ internal static class CompanyUnitDetailsFireteamCommon
     /// <summary>
     /// The named fireteams of an army's fireteam chart, with their DUO/HARIS/CORE counts and unit slots.
     /// </summary>
-    internal static IReadOnlyList<CompanyFireteamChartEntry> ParseEntries(string? fireteamChartJson, Action<string>? logError = null)
+    internal static IReadOnlyList<CompanyFireteamChartEntry> ParseEntries(FireteamChart? fireteamChart, Action<string>? logError = null)
     {
         var entries = new List<CompanyFireteamChartEntry>();
-        foreach (var team in ArmyJsonReader.Shared.ReadFireteamChart(fireteamChartJson).Teams)
+        foreach (var team in (fireteamChart ?? FireteamChart.Empty).Teams)
         {
             var name = team.CompanyName;
             if (string.IsNullOrWhiteSpace(name))

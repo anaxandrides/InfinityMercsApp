@@ -1,4 +1,3 @@
-using System.Text.Json;
 using InfinityMercsApp.Views.Common;
 using InfinityMercsApp.Views.Controls;
 using CCFactionFireteamValidityRecord = InfinityMercsApp.Domain.Models.Army.CCFactionFireteamValidityRecord;
@@ -26,9 +25,7 @@ public partial class CohesiveCompanySelectionPage
                 .ToDictionary(x => x.Key, x => x.OrderByDescending(r => r.EvaluatedAtUnixSeconds).First());
 
             var factionsToEvaluate = ordered
-                .Where(faction =>
-                    !cachedByFaction.TryGetValue(faction.Id, out var row) ||
-                    string.IsNullOrWhiteSpace(row.ValidCoreFireteamsJson))
+                .Where(faction => !cachedByFaction.ContainsKey(faction.Id))
                 .ToList();
 
             foreach (var faction in factionsToEvaluate)
@@ -36,12 +33,11 @@ public partial class CohesiveCompanySelectionPage
                 cancellationToken.ThrowIfCancellationRequested();
                 var validCoreFireteamNames = await EvaluateValidCoreFireteamsForFactionAsync(faction, maxCost, cancellationToken);
                 var hasValidCoreFireteams = validCoreFireteamNames.Count > 0;
-                var validCoreFireteamsJson = JsonSerializer.Serialize(validCoreFireteamNames);
                 await _specOpsProvider.UpsertCCFactionFireteamValidityAsync(
                     faction.Id,
                     cacheFilterKey,
                     hasValidCoreFireteams,
-                    validCoreFireteamsJson,
+                    validCoreFireteamNames,
                     cancellationToken);
 
                 cachedByFaction[faction.Id] = new CCFactionFireteamValidityRecord
@@ -49,7 +45,7 @@ public partial class CohesiveCompanySelectionPage
                     FactionId = faction.Id,
                     FilterKey = cacheFilterKey,
                     HasValidCoreFireteams = hasValidCoreFireteams,
-                    ValidCoreFireteamsJson = validCoreFireteamsJson,
+                    ValidCoreFireteams = validCoreFireteamNames,
                     EvaluatedAtUnixSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
                 };
             }
@@ -57,7 +53,7 @@ public partial class CohesiveCompanySelectionPage
             _validCoreFireteamsByFaction.Clear();
             foreach (var row in cachedByFaction.Values)
             {
-                var validTeams = ParseValidCoreFireteams(row.ValidCoreFireteamsJson);
+                var validTeams = CohesiveCompanyTeamEligibilityWorkflow.ToValidCoreFireteamSet(row.ValidCoreFireteams);
                 _validCoreFireteamsByFaction[row.FactionId] = validTeams;
             }
 

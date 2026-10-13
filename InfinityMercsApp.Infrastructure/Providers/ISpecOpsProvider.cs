@@ -53,14 +53,14 @@ public interface ISpecOpsProvider
     /// <param name="factionId"></param>
     /// <param name="filterKey"></param>
     /// <param name="hasValidCoreFireteams"></param>
-    /// <param name="validCoreFireteamsJson"></param>
+    /// <param name="validCoreFireteams">The CORE fireteam names found valid.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task UpsertCCFactionFireteamValidityAsync(
         int factionId,
         string filterKey,
         bool hasValidCoreFireteams,
-        string? validCoreFireteamsJson,
+        IReadOnlyList<string> validCoreFireteams,
         CancellationToken cancellationToken = default);
 }
 

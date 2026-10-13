@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Infrastructure.Json;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Windows.Input;
@@ -99,7 +98,7 @@ public partial class ViewerViewModel
 
         var units = _armyDataService.GetResumeByFaction(SelectedFaction.Id, cancellationToken);
         var snapshot = _armyDataService.GetFactionSnapshot(SelectedFaction.Id, cancellationToken);
-        var filters = ArmyJsonReader.Shared.ReadArmyFilters(snapshot?.FiltersJson);
+        var filters = snapshot?.Filters ?? ArmyFilterCatalog.Empty;
         var typeLookup = filters.Names(ArmyFilterSection.Type);
         var charsLookup = filters.Names(ArmyFilterSection.Chars);
         var skillsLookup = filters.Names(ArmyFilterSection.Skills);
@@ -117,13 +116,13 @@ public partial class ViewerViewModel
             }
 
             var unitRecord = _armyDataService.GetUnit(SelectedFaction.Id, unit.UnitId, cancellationToken);
-            if (string.IsNullOrWhiteSpace(unitRecord?.ProfileGroupsJson))
+            if (unitRecord?.ProfileGroups is not { IsEmpty: false })
             {
                 continue;
             }
 
             var unitMaxCost = ViewerOptionNames.CollectAllOptionNames(
-                ArmyJsonReader.Shared.ReadProfileGroups(unitRecord.ProfileGroupsJson),
+                unitRecord.ProfileGroups,
                 charsLookup,
                 skillsLookup,
                 equipLookup,
