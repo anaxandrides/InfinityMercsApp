@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Captain;
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
@@ -1124,50 +1125,9 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     private static FormattedString BuildLieutenantHighlightedFormattedText(string text, Color defaultColor)
     {
         var formatted = new FormattedString();
-        if (string.IsNullOrEmpty(text))
+        foreach (var (run, isLieutenant) in LieutenantRules.HighlightRuns(text))
         {
-            return formatted;
-        }
-
-        var matches = Regex.Matches(text, "(lieutenant)", RegexOptions.IgnoreCase);
-        if (matches.Count == 0)
-        {
-            formatted.Spans.Add(new Span
-            {
-                Text = text,
-                TextColor = defaultColor
-            });
-            return formatted;
-        }
-
-        var currentIndex = 0;
-        foreach (Match match in matches)
-        {
-            if (match.Index > currentIndex)
-            {
-                formatted.Spans.Add(new Span
-                {
-                    Text = text.Substring(currentIndex, match.Index - currentIndex),
-                    TextColor = defaultColor
-                });
-            }
-
-            formatted.Spans.Add(new Span
-            {
-                Text = text.Substring(match.Index, match.Length),
-                TextColor = LieutenantHighlightColor
-            });
-
-            currentIndex = match.Index + match.Length;
-        }
-
-        if (currentIndex < text.Length)
-        {
-            formatted.Spans.Add(new Span
-            {
-                Text = text[currentIndex..],
-                TextColor = defaultColor
-            });
+            formatted.Spans.Add(new Span { Text = run, TextColor = isLieutenant ? LieutenantHighlightColor : defaultColor });
         }
 
         return formatted;

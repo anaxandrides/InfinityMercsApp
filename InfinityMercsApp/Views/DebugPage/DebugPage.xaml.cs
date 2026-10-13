@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Lieutenants;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -397,7 +398,7 @@ public partial class DebugPage : ContentPage
 
         var stableEquip = CompanyUnitDetailsWorkflowService.CommonNames(profileGroups, options, ProfileEntryKind.Equip, equipLookup, entryNames);
         var stableSkills = CompanyUnitDetailsWorkflowService.CommonNames(profileGroups, options, ProfileEntryKind.Skills, skillsLookup, entryNames)
-            .Where(x => !x.Contains("lieutenant", StringComparison.OrdinalIgnoreCase))
+            .Where(x => !LieutenantRules.Mentions(x))
             .ToList();
 
         var profiles = CompanyProfilePopulationWorkflowService.BuildProfiles(

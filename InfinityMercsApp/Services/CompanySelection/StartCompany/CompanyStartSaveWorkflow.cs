@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Captain;
 using System.Globalization;
 using System.Text.Json;
@@ -57,12 +58,9 @@ internal static class CompanyStartSaveWorkflow
             faction => faction.Id);
         var firstSourceFactionId = sourceFactions.FirstOrDefault()?.Id;
         var captainPopupSkillLines = SplitCodes(captainEntry.SavedSkills);
-        if (captainEntry.IsLieutenant &&
-            !captainPopupSkillLines.Any(x =>
-                string.Equals(x, "Lt", StringComparison.OrdinalIgnoreCase) ||
-                x.Contains("lieutenant", StringComparison.OrdinalIgnoreCase)))
+        if (captainEntry.IsLieutenant)
         {
-            captainPopupSkillLines.Add("Lieutenant");
+            LieutenantRules.AddSkillIfMissing(captainPopupSkillLines);
         }
 
         var captainPopupSkills = captainPopupSkillLines.Count == 0
@@ -364,9 +362,9 @@ internal static class CompanyStartSaveWorkflow
 
         // Persist Lieutenant explicitly for founded companies when this entry is the Lieutenant.
         if (entry.IsLieutenant &&
-            !currentSkillNames.Any(x => string.Equals(x?.Trim(), "Lieutenant", StringComparison.OrdinalIgnoreCase)))
+            !currentSkillNames.Any(x => string.Equals(x?.Trim(), LieutenantRules.SkillName, StringComparison.OrdinalIgnoreCase)))
         {
-            currentSkillNames.Add("Lieutenant");
+            currentSkillNames.Add(LieutenantRules.SkillName);
         }
 
         if (entry.IsLieutenant && improvedCaptainStats.IsEnabled)

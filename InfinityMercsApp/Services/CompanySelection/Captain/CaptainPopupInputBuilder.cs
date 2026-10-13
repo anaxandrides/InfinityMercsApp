@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Captain;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -133,15 +134,12 @@ internal static class CaptainPopupInputBuilder
             return;
         }
 
-        var hasLieutenantOption = skills.Any(skill =>
-            skill.Contains("lieutenant", StringComparison.OrdinalIgnoreCase) ||
-            Regex.IsMatch(skill, @"\bLt\b", RegexOptions.IgnoreCase));
-        if (hasLieutenantOption)
+        if (skills.Any(LieutenantRules.IsLieutenantSkill))
         {
             return;
         }
 
-        skills.Insert(0, "(0) - Lieutenant");
+        skills.Insert(0, CaptainChoiceLabel.Format(0, LieutenantRules.SkillName));
     }
 
     private static Dictionary<int, CaptainExtraDefinition> BuildExtrasLookup(ArmyFilterCatalog? filters)

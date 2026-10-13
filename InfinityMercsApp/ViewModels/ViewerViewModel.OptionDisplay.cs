@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Lieutenants;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -179,32 +180,11 @@ public partial class ViewerViewModel
             return formatted;
         }
 
-        const string token = "Lieutenant";
-        var start = 0;
-        while (true)
+        foreach (var (run, isLieutenant) in LieutenantRules.HighlightRuns(name))
         {
-            var index = name.IndexOf(token, start, StringComparison.OrdinalIgnoreCase);
-            if (index < 0)
-            {
-                if (start < name.Length)
-                {
-                    formatted.Spans.Add(new Span { Text = name[start..] });
-                }
-
-                break;
-            }
-
-            if (index > start)
-            {
-                formatted.Spans.Add(new Span { Text = name[start..index] });
-            }
-
-            formatted.Spans.Add(new Span
-            {
-                Text = name.Substring(index, token.Length),
-                TextColor = Color.FromArgb("#C084FC")
-            });
-            start = index + token.Length;
+            formatted.Spans.Add(isLieutenant
+                ? new Span { Text = run, TextColor = Color.FromArgb("#C084FC") }
+                : new Span { Text = run });
         }
 
         return formatted;
@@ -221,13 +201,13 @@ public partial class ViewerViewModel
             }
 
             var skillName = entry.Name.Trim();
-            if (!IsCommonSpecOpsSkill(skillName))
+            if (!LieutenantRules.IsCommonSpecOpsSkill(skillName))
             {
                 normalized.Add((entry.Id, skillName));
                 continue;
             }
 
-            var lieutenantDetail = ExtractLieutenantSkillDetail(skillName);
+            var lieutenantDetail = LieutenantRules.SkillDetail(skillName);
             if (!string.IsNullOrWhiteSpace(lieutenantDetail))
             {
                 normalized.Add((0, lieutenantDetail));
@@ -239,35 +219,6 @@ public partial class ViewerViewModel
             .Select(group => group.First())
             .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
-    }
-
-    private static bool IsCommonSpecOpsSkill(string? skillName)
-    {
-        if (string.IsNullOrWhiteSpace(skillName))
-        {
-            return false;
-        }
-
-        return skillName.Contains("lieutenant", StringComparison.OrdinalIgnoreCase) ||
-               skillName.Contains("infinity spec-ops", StringComparison.OrdinalIgnoreCase) ||
-               skillName.Contains("infinity spec ops", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static string? ExtractLieutenantSkillDetail(string skillName)
-    {
-        if (!skillName.Contains("lieutenant", StringComparison.OrdinalIgnoreCase))
-        {
-            return null;
-        }
-
-        var detail = Regex.Replace(skillName, "lieutenant", string.Empty, RegexOptions.IgnoreCase).Trim();
-        if (string.IsNullOrWhiteSpace(detail))
-        {
-            return null;
-        }
-
-        detail = detail.Trim('(', ')', '[', ']', '-', ':', ',', ';', ' ');
-        return string.IsNullOrWhiteSpace(detail) ? null : detail;
     }
 
 }

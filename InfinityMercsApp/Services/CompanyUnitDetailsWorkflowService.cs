@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
 
 namespace InfinityMercsApp.Services;
@@ -99,7 +100,7 @@ internal static class CompanyUnitDetailsWorkflowService
 
         stableSkills = treatAsSpecOps
             ? request.EnsureLieutenantSkill(stableSkills)
-            : stableSkills.Where(x => !x.Contains("lieutenant", StringComparison.OrdinalIgnoreCase)).ToList();
+            : stableSkills.Where(x => !LieutenantRules.Mentions(x)).ToList();
 
         request.SetCommonEquipmentSkills(stableEquip, stableSkills, treatAsSpecOps);
         request.LogInfo(

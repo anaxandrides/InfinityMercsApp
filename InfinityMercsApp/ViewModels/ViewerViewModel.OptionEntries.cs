@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Lieutenants;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -70,58 +71,11 @@ public partial class ViewerViewModel
 
     private static void AppendWithLieutenantHighlight(FormattedString formatted, string text, Color defaultColor, string? link = null)
     {
-        if (string.IsNullOrEmpty(text))
+        foreach (var (run, isLieutenant) in LieutenantRules.HighlightRuns(text))
         {
-            return;
-        }
-
-        var matches = Regex.Matches(text, "(lieutenant)", RegexOptions.IgnoreCase);
-        if (matches.Count == 0)
-        {
-            var span = new Span
-            {
-                Text = text,
-                TextColor = defaultColor
-            };
+            var span = new Span { Text = run, TextColor = isLieutenant ? Color.FromArgb("#C084FC") : defaultColor };
             AttachLinkGesture(span, link);
             formatted.Spans.Add(span);
-            return;
-        }
-
-        var currentIndex = 0;
-        foreach (Match match in matches)
-        {
-            if (match.Index > currentIndex)
-            {
-                var prefixSpan = new Span
-                {
-                    Text = text.Substring(currentIndex, match.Index - currentIndex),
-                    TextColor = defaultColor
-                };
-                AttachLinkGesture(prefixSpan, link);
-                formatted.Spans.Add(prefixSpan);
-            }
-
-            var highlightedSpan = new Span
-            {
-                Text = text.Substring(match.Index, match.Length),
-                TextColor = Color.FromArgb("#C084FC")
-            };
-            AttachLinkGesture(highlightedSpan, link);
-            formatted.Spans.Add(highlightedSpan);
-
-            currentIndex = match.Index + match.Length;
-        }
-
-        if (currentIndex < text.Length)
-        {
-            var suffixSpan = new Span
-            {
-                Text = text[currentIndex..],
-                TextColor = defaultColor
-            };
-            AttachLinkGesture(suffixSpan, link);
-            formatted.Spans.Add(suffixSpan);
         }
     }
 

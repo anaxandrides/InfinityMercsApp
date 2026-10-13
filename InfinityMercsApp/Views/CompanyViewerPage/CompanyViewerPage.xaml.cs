@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Captain;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -492,7 +493,7 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
         HasSelectedUnitTypeHeading = !string.IsNullOrWhiteSpace(item.UnitTypeCode);
         ApplyUnitHeaderThemeForFaction(item.VisualFactionId > 0 ? item.VisualFactionId : item.SourceFactionId);
         ApplyProfileTraitIconOverrides(item, mergedProfile);
-        var lieutenantIconCount = (mergedProfile.IsLieutenant ? 1 : 0) + CountBonusLieutenantOrders(mergedProfile.UniqueSkills);
+        var lieutenantIconCount = (mergedProfile.IsLieutenant ? 1 : 0) + LieutenantRules.CountBonusOrders(mergedProfile.UniqueSkills);
         UnitDisplayConfigurationsView.ShowLieutenantIcon = mergedProfile.IsLieutenant;
         UnitDisplayConfigurationsView.LieutenantIconCount = lieutenantIconCount;
         SetSelectedNameEditMode(false);
@@ -761,7 +762,7 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
         var characteristics = MergeProfileSectionText(loadedProfile?.Characteristics, item.SavedCharacteristics);
         if (isLieutenant)
         {
-            uniqueSkills = NormalizeLieutenantOrderEntries(uniqueSkills);
+            uniqueSkills = LieutenantRules.NormalizeOrderEntries(uniqueSkills);
         }
         uniqueSkills = NormalizeSkillsForDisplay(uniqueSkills);
         var keepLoadedRangedFormatting = string.Equals(loadedProfile?.RangedWeapons?.Trim(), rangedWeapons.Trim(), StringComparison.OrdinalIgnoreCase);
@@ -1513,66 +1514,6 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
         return lines.Count == 0 ? "-" : string.Join(Environment.NewLine, lines);
     }
 
-    private static string NormalizeLieutenantOrderEntries(string? skillsText)
-    {
-        var lines = ProfileText.Lines(skillsText);
-        if (lines.Count == 0)
-        {
-            return "-";
-        }
-
-        for (var i = 0; i < lines.Count; i++)
-        {
-            lines[i] = Regex.Replace(
-                lines[i],
-                @"\+(\d+)\s*(?:regular\s*)?orders?\b",
-                "+$1 Lt Order",
-                RegexOptions.IgnoreCase);
-        }
-
-        var detailedLtOrderValues = new HashSet<int>();
-        foreach (var line in lines)
-        {
-            var detailMatches = Regex.Matches(
-                line,
-                @"\blieutenant\b[^\n\r]*\(\s*\+(\d+)\s*(?:lt|lieutenant)?\s*orders?\s*\)",
-                RegexOptions.IgnoreCase);
-            foreach (Match match in detailMatches)
-            {
-                if (match.Groups.Count < 2 || !int.TryParse(match.Groups[1].Value, out var value))
-                {
-                    continue;
-                }
-
-                detailedLtOrderValues.Add(Math.Max(0, value));
-            }
-        }
-
-        var deduped = new List<string>(lines.Count);
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var line in lines)
-        {
-            var standaloneLtOrderMatch = Regex.Match(
-                line,
-                @"^\+(\d+)\s*(?:lt|lieutenant)\s*orders?\s*$",
-                RegexOptions.IgnoreCase);
-            if (standaloneLtOrderMatch.Success &&
-                standaloneLtOrderMatch.Groups.Count >= 2 &&
-                int.TryParse(standaloneLtOrderMatch.Groups[1].Value, out var standaloneValue) &&
-                detailedLtOrderValues.Contains(Math.Max(0, standaloneValue)))
-            {
-                continue;
-            }
-
-            if (seen.Add(line))
-            {
-                deduped.Add(line);
-            }
-        }
-
-        return deduped.Count == 0 ? "-" : string.Join(Environment.NewLine, deduped);
-    }
-
 
 
     private static int CountBonusRegularOrders(string? uniqueSkills)
@@ -1622,56 +1563,6 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
 
             var matches = Regex.Matches(line, @"\+(\d+)\s*command\s*tokens?\b", RegexOptions.IgnoreCase);
             foreach (Match match in matches)
-            {
-                if (match.Groups.Count < 2 || !int.TryParse(match.Groups[1].Value, out var value))
-                {
-                    continue;
-                }
-
-                total += Math.Max(0, value);
-            }
-        }
-
-        return total;
-    }
-
-    private static int CountBonusLieutenantOrders(string? uniqueSkills)
-    {
-        if (string.IsNullOrWhiteSpace(uniqueSkills))
-        {
-            return 0;
-        }
-
-        var total = 0;
-        foreach (var line in ProfileText.Lines(uniqueSkills))
-        {
-            if (!line.Contains("lt order", StringComparison.OrdinalIgnoreCase) &&
-                !line.Contains("lieutenant order", StringComparison.OrdinalIgnoreCase) &&
-                !line.Contains("lieutenant", StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            var matches = Regex.Matches(
-                line,
-                @"^\s*\+(\d+)\s*(?:lt|lieutenant)\s*orders?\s*$",
-                RegexOptions.IgnoreCase);
-            foreach (Match match in matches)
-            {
-                if (match.Groups.Count < 2 || !int.TryParse(match.Groups[1].Value, out var value))
-                {
-                    continue;
-                }
-
-                total += Math.Max(0, value);
-            }
-
-            // Also support skills rendered as "Lieutenant (+1 Order)".
-            var lieutenantDetailMatches = Regex.Matches(
-                line,
-                @"\blieutenant\b[^\n\r]*\(\s*\+(\d+)\s*(?:(?:lt|lieutenant)\s*)?orders?\s*\)",
-                RegexOptions.IgnoreCase);
-            foreach (Match match in lieutenantDetailMatches)
             {
                 if (match.Groups.Count < 2 || !int.TryParse(match.Groups[1].Value, out var value))
                 {

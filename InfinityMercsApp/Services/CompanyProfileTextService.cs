@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Lieutenants;
 using System.Text.RegularExpressions;
 
 namespace InfinityMercsApp.Services;
@@ -32,24 +33,7 @@ public static class CompanyProfileTextService
     /// <summary>
     /// Ensures lieutenant skill text exists in the returned sorted list.
     /// </summary>
-    public static List<string> EnsureLieutenantSkill(IEnumerable<string> skills)
-    {
-        var list = skills
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        if (!list.Any(x => x.Contains("lieutenant", StringComparison.OrdinalIgnoreCase)))
-        {
-            list.Add("Lieutenant");
-        }
-
-        return list
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-    }
+    public static List<string> EnsureLieutenantSkill(IEnumerable<string> skills) => LieutenantRules.WithSkill(skills);
 
     /// <summary>
     /// Normalizes raw option skill names into display-ready unique names.
@@ -65,13 +49,16 @@ public static class CompanyProfileTextService
             }
 
             var skillName = rawName.Trim();
-            if (!IsCommonSpecOpsSkill(skillName))
+            if (!LieutenantRules.IsCommonSpecOpsSkill(skillName))
             {
                 result.Add(skillName);
                 continue;
             }
 
-            var lieutenantDetail = ExtractLieutenantSkillDetail(skillName);
+            // Preserve the base skill context so save conversion can persist id + extra.
+            var lieutenantDetail = LieutenantRules.SkillDetail(skillName) is { } detail
+                ? $"{LieutenantRules.SkillName} ({detail})"
+                : null;
             if (!string.IsNullOrWhiteSpace(lieutenantDetail))
             {
                 result.Add(lieutenantDetail);
@@ -169,7 +156,7 @@ public static class CompanyProfileTextService
                 formatted.Spans.Add(new Span { Text = Environment.NewLine + " " + Environment.NewLine, FontSize = EntrySeparatorFontSize, TextColor = textColor });
             }
 
-            var lineColor = highlightLieutenantPurple && lines[i].Contains("lieutenant", StringComparison.OrdinalIgnoreCase)
+            var lineColor = highlightLieutenantPurple && LieutenantRules.Mentions(lines[i])
                 ? Color.FromArgb("#C084FC")
                 : textColor;
             formatted.Spans.Add(new Span { Text = lines[i], TextColor = lineColor });
@@ -211,7 +198,7 @@ public static class CompanyProfileTextService
             formatted.Spans.Add(new Span
             {
                 Text = list[i],
-                TextColor = highlightLieutenantPurple && list[i].Contains("lieutenant", StringComparison.OrdinalIgnoreCase)
+                TextColor = highlightLieutenantPurple && LieutenantRules.Mentions(list[i])
                     ? Color.FromArgb("#C084FC")
                     : accentColor
             });
@@ -320,95 +307,13 @@ public static class CompanyProfileTextService
     }
 
     /// <summary>
-    /// Returns true for generic SpecOps skill labels that should be filtered/trimmed.
-    /// </summary>
-    private static bool IsCommonSpecOpsSkill(string? skillName)
-    {
-        if (string.IsNullOrWhiteSpace(skillName))
-        {
-            return false;
-        }
-
-        return skillName.Contains("lieutenant", StringComparison.OrdinalIgnoreCase) ||
-               skillName.Contains("infinity spec-ops", StringComparison.OrdinalIgnoreCase) ||
-               skillName.Contains("infinity spec ops", StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// Extracts lieutenant detail text from a composite skill label.
-    /// </summary>
-    private static string? ExtractLieutenantSkillDetail(string skillName)
-    {
-        if (!skillName.Contains("lieutenant", StringComparison.OrdinalIgnoreCase))
-        {
-            return null;
-        }
-
-        var detail = Regex.Replace(skillName, "lieutenant", string.Empty, RegexOptions.IgnoreCase).Trim();
-        if (string.IsNullOrWhiteSpace(detail))
-        {
-            return null;
-        }
-
-        detail = detail.Trim('(', ')', '[', ']', '-', ':', ',', ';', ' ');
-        if (string.IsNullOrWhiteSpace(detail))
-        {
-            return null;
-        }
-
-        // Preserve the base skill context so save conversion can persist id + extra.
-        return $"Lieutenant ({detail})";
-    }
-
-    /// <summary>
     /// Appends text using the default color, but highlights "Lieutenant" in purple.
     /// </summary>
     private static void AppendWithLieutenantHighlight(FormattedString formatted, string text, Color defaultColor)
     {
-        if (string.IsNullOrEmpty(text))
+        foreach (var (run, isLieutenant) in LieutenantRules.HighlightRuns(text))
         {
-            return;
-        }
-
-        var matches = Regex.Matches(text, "(lieutenant)", RegexOptions.IgnoreCase);
-        if (matches.Count == 0)
-        {
-            formatted.Spans.Add(new Span
-            {
-                Text = text,
-                TextColor = defaultColor
-            });
-            return;
-        }
-
-        var currentIndex = 0;
-        foreach (Match match in matches)
-        {
-            if (match.Index > currentIndex)
-            {
-                formatted.Spans.Add(new Span
-                {
-                    Text = text.Substring(currentIndex, match.Index - currentIndex),
-                    TextColor = defaultColor
-                });
-            }
-
-            formatted.Spans.Add(new Span
-            {
-                Text = text.Substring(match.Index, match.Length),
-                TextColor = Color.FromArgb("#C084FC")
-            });
-
-            currentIndex = match.Index + match.Length;
-        }
-
-        if (currentIndex < text.Length)
-        {
-            formatted.Spans.Add(new Span
-            {
-                Text = text[currentIndex..],
-                TextColor = defaultColor
-            });
+            formatted.Spans.Add(new Span { Text = run, TextColor = isLieutenant ? Color.FromArgb("#C084FC") : defaultColor });
         }
     }
 }

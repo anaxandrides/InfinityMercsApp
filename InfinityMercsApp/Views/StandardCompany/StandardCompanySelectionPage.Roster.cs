@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views.Common;
@@ -177,10 +178,9 @@ public partial class StandardCompanySelectionPage
     {
         var sourceFactionId = ResolveTagWorkflowFactionId(entry.SourceFactionId);
         var popupSkillLines = CompanyProfileTextService.SplitDisplayLine(entry.SavedSkills);
-        if (entry.IsLieutenant &&
-            !popupSkillLines.Any(x => x.Contains("lieutenant", StringComparison.OrdinalIgnoreCase)))
+        if (entry.IsLieutenant)
         {
-            popupSkillLines.Add("Lieutenant");
+            LieutenantRules.AddSkillIfMissing(popupSkillLines);
         }
 
         return new CompanySpecOpsWorkflowRequest

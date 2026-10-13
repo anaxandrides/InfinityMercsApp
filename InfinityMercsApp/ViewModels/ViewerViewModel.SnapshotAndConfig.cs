@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Captain;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -330,10 +331,7 @@ public partial class ViewerViewModel
             .Where(x => !string.IsNullOrWhiteSpace(x) && x != "-")
             .ToList();
 
-        var hasLieutenantContext = normalized.Any(x =>
-            x.Contains("lt order", StringComparison.OrdinalIgnoreCase) ||
-            x.Contains("lieutenant order", StringComparison.OrdinalIgnoreCase) ||
-            x.Contains("lieutenant", StringComparison.OrdinalIgnoreCase));
+        var hasLieutenantContext = normalized.Any(LieutenantRules.MentionsLieutenantOrders);
 
         if (hasLieutenantContext)
         {
