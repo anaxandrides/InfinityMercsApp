@@ -40,10 +40,8 @@ public partial class CohesiveCompanySelectionPage
                 typeLookup,
                 _filterState.ActiveUnitFilter,
                 maxCost,
-                IsFtoLabel,
                 unit => IsCharacterCategory(unit, categoryLookup),
-                unitId => GetUnitFromProvider(faction.Id, unitId, cancellationToken),
-                (fireteamJson, teams) => MergeFireteamEntries(fireteamJson, teams)));
+                unitId => GetUnitFromProvider(faction.Id, unitId, cancellationToken)));
     }
 
     private void ResetMercsCompany()
@@ -140,38 +138,8 @@ public partial class CohesiveCompanySelectionPage
 
     private int EvaluateTrackedFireteamLevel()
     {
-        if (string.IsNullOrWhiteSpace(_trackedFireteamName))
-        {
-            return 0;
-        }
-
-        var trackedTeam = TeamEntries.FirstOrDefault(x =>
-            x.ShowTrackingRadioButton &&
-            string.Equals(x.Name, _trackedFireteamName, StringComparison.OrdinalIgnoreCase));
-        if (trackedTeam is null)
-        {
-            return 0;
-        }
-
-        var effectiveAllowedProfiles = trackedTeam.AllowedProfiles
-            .Concat(TeamEntries
-                .Where(x => x.IsWildcardBucket)
-                .SelectMany(x => x.AllowedProfiles))
-            .DistinctBy(x => $"{x.Name}|{x.ResolvedUnitId}|{x.ResolvedSourceFactionId}", StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        var level = CohesiveCompanyFireteamLevelWorkflow.EvaluateLevelByCapacity(
-            MercsCompanyEntries,
-            effectiveAllowedProfiles,
-            entry => entry.BaseUnitName,
-            entry => entry.Name,
-            entry => entry.SourceUnitId,
-            entry => entry.SourceFactionId,
-            allowed => allowed.Name,
-            allowed => allowed.ResolvedUnitId,
-            allowed => allowed.ResolvedSourceFactionId,
-            allowed => allowed.Max);
-        return Math.Clamp(level, 0, 6);
+        var slots = TrackedFireteamSlots();
+        return slots is null ? 0 : FireteamLevels.Level(TrackedFireteamMembers(), slots);
     }
 
     private void ReevaluateIrregularStatus()
@@ -181,50 +149,44 @@ public partial class CohesiveCompanySelectionPage
             return;
         }
 
+        // Without a tracked fireteam nobody is irregular.
+        var slots = TrackedFireteamSlots();
+        var claimed = slots is null ? null : FireteamLevels.ClaimSlots(TrackedFireteamMembers(), slots);
+        for (var i = 0; i < MercsCompanyEntries.Count; i++)
+        {
+            MercsCompanyEntries[i].IsIrregular = claimed is not null && !claimed[i];
+        }
+    }
+
+    // The tracked team's slots plus every wildcard bucket's, or null when no fireteam is tracked.
+    private List<FireteamSlot>? TrackedFireteamSlots()
+    {
         if (string.IsNullOrWhiteSpace(_trackedFireteamName))
         {
-            foreach (var entry in MercsCompanyEntries)
-            {
-                entry.IsIrregular = false;
-            }
-
-            return;
+            return null;
         }
 
         var trackedTeam = TeamEntries.FirstOrDefault(x =>
             x.ShowTrackingRadioButton &&
             string.Equals(x.Name, _trackedFireteamName, StringComparison.OrdinalIgnoreCase));
-
         if (trackedTeam is null)
         {
-            foreach (var entry in MercsCompanyEntries)
-            {
-                entry.IsIrregular = false;
-            }
-
-            return;
+            return null;
         }
 
-        var effectiveAllowedProfiles = trackedTeam.AllowedProfiles
+        return trackedTeam.AllowedProfiles
             .Concat(TeamEntries
                 .Where(x => x.IsWildcardBucket)
                 .SelectMany(x => x.AllowedProfiles))
             .DistinctBy(x => $"{x.Name}|{x.ResolvedUnitId}|{x.ResolvedSourceFactionId}", StringComparer.OrdinalIgnoreCase)
+            .Select(x => new FireteamSlot(x.Name, x.ResolvedUnitId, x.ResolvedSourceFactionId, x.Max))
             .ToList();
-
-        CohesiveCompanyFireteamLevelWorkflow.EvaluateIrregularStatus(
-            MercsCompanyEntries,
-            effectiveAllowedProfiles,
-            entry => entry.BaseUnitName,
-            entry => entry.Name,
-            entry => entry.SourceUnitId,
-            entry => entry.SourceFactionId,
-            allowed => allowed.Name,
-            allowed => allowed.ResolvedUnitId,
-            allowed => allowed.ResolvedSourceFactionId,
-            allowed => allowed.Max,
-            (entry, isIrregular) => entry.IsIrregular = isIrregular);
     }
+
+    private List<FireteamMember> TrackedFireteamMembers() =>
+        MercsCompanyEntries
+            .Select(entry => new FireteamMember(entry.BaseUnitName, entry.Name, entry.SourceUnitId, entry.SourceFactionId))
+            .ToList();
 
     // Hook point for full fireteam-level evaluation logic. Provide an evaluated value in [1..6].
     private void OnTrackedFireteamLevelEvaluated(int fireteamLevel)
@@ -234,7 +196,7 @@ public partial class CohesiveCompanySelectionPage
 
     private void SetTrackedFireteamLevel(int fireteamLevel)
     {
-        var normalizedLevel = Math.Clamp(fireteamLevel, 0, 6);
+        var normalizedLevel = Math.Clamp(fireteamLevel, 0, FireteamLevels.MaxLevel);
         if (_trackedFireteamLevel == normalizedLevel)
         {
             return;
@@ -251,7 +213,7 @@ public partial class CohesiveCompanySelectionPage
         _trackedFireteamLevelPicture?.Dispose();
         _trackedFireteamLevelPicture = null;
 
-        if (fireteamLevel >= 1 && fireteamLevel <= 6)
+        if (fireteamLevel >= 1 && fireteamLevel <= FireteamLevels.MaxLevel)
         {
             try
             {

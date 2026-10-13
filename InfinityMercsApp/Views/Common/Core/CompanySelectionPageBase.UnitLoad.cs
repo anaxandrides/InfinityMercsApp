@@ -17,7 +17,7 @@ public abstract partial class CompanySelectionPageBase
         public required Dictionary<string, ArmyUnitSelectionItem> UnitsByKey { get; init; }
 
         /// <summary>Fireteam aggregates indexed by team name, built from faction chart JSON.</summary>
-        public required Dictionary<string, CompanyTeamAggregate> TeamsByName { get; init; }
+        public required Dictionary<string, MergedFireteam> TeamsByName { get; init; }
     }
 
     /// <summary>
@@ -32,7 +32,6 @@ public abstract partial class CompanySelectionPageBase
         Func<int, CancellationToken, Task<IReadOnlyList<ArmySpecopsUnitRecord>>> getSpecopsByFactionAsync,
         Func<int, CancellationToken, ArmyFactionRecord?> getFactionSnapshot,
         Func<int, IReadOnlyList<ArmyResumeRecord>, CancellationToken, Task> cacheUnitLogosAsync,
-        Action<FireteamChart?, Dictionary<string, CompanyTeamAggregate>> mergeFireteamEntries,
         Func<ArmyResumeRecord, IReadOnlyDictionary<int, string>, bool> isCharacterCategory,
         Func<ArmyResumeRecord, IReadOnlyDictionary<int, string>, IReadOnlyDictionary<int, string>, string?> buildUnitSubtitle,
         Func<int, ArmyResumeRecord, IReadOnlyDictionary<int, string>, IReadOnlyDictionary<int, string>, ArmyUnitSelectionItem> createResumeUnit,
@@ -46,7 +45,6 @@ public abstract partial class CompanySelectionPageBase
             getSpecopsByFactionAsync,
             getFactionSnapshot,
             cacheUnitLogosAsync,
-            mergeFireteamEntries,
             createResumeUnit,
             createSpecopsUnit,
             cancellationToken);
@@ -74,7 +72,7 @@ public abstract partial class CompanySelectionPageBase
     /// team aggregates, keyed by unit key. Used to populate the wildcard catch-all team entry.
     /// </summary>
     protected static Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> BuildWildcardUnitLimits(
-        IEnumerable<CompanyTeamAggregate> mergedTeams,
+        IEnumerable<MergedFireteam> mergedTeams,
         IEnumerable<ArmyUnitSelectionItem> mergedUnits)
     {
         return CompanySelectionUnitLoadWorkflow.BuildWildcardUnitLimits(mergedTeams, mergedUnits);
@@ -107,9 +105,9 @@ public abstract partial class CompanySelectionPageBase
     protected static void BuildTeamEntriesFromMerged(
         CompanyMergedUnitsAndTeams merged,
         ICollection<ArmyTeamListItem> teamEntries,
-        Func<CompanyTeamAggregate, bool> includeTeam,
-        Func<CompanyTeamAggregate, int> readTeamCount,
-        Func<CompanyTeamAggregate, string> buildTeamCountText,
+        Func<MergedFireteam, bool> includeTeam,
+        Func<MergedFireteam, int> readTeamCount,
+        Func<MergedFireteam, string> buildTeamCountText,
         Func<string, string, string, string?, IEnumerable<ArmyUnitSelectionItem>, ArmyTeamUnitLimitItem> buildTeamUnitLimitItem,
         Func<string, string, bool, bool, ObservableCollection<ArmyTeamUnitLimitItem>, ArmyTeamListItem> createTeam)
     {

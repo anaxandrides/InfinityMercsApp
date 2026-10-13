@@ -9,20 +9,19 @@ namespace InfinityMercsApp.Views.Common;
 
 internal static class CompanySelectionUnitLoadWorkflow
 {
-    internal static async Task<(Dictionary<string, ArmyUnitSelectionItem> UnitsByKey, Dictionary<string, CompanyTeamAggregate> TeamsByName)> BuildMergedUnitsAndTeamsAsync<TFaction>(
+    internal static async Task<(Dictionary<string, ArmyUnitSelectionItem> UnitsByKey, Dictionary<string, MergedFireteam> TeamsByName)> BuildMergedUnitsAndTeamsAsync<TFaction>(
         IReadOnlyCollection<TFaction> factions,
         Func<TFaction, int> readFactionId,
         Func<int, CancellationToken, IReadOnlyList<ArmyResumeRecord>> getResumeByFaction,
         Func<int, CancellationToken, Task<IReadOnlyList<ArmySpecopsUnitRecord>>> getSpecopsByFactionAsync,
         Func<int, CancellationToken, ArmyFactionRecord?> getFactionSnapshot,
         Func<int, IReadOnlyList<ArmyResumeRecord>, CancellationToken, Task> cacheUnitLogosAsync,
-        Action<FireteamChart?, Dictionary<string, CompanyTeamAggregate>> mergeFireteamEntries,
         Func<int, ArmyResumeRecord, IReadOnlyDictionary<int, string>, IReadOnlyDictionary<int, string>, ArmyUnitSelectionItem> createResumeUnit,
         Func<int, ArmySpecopsUnitRecord, IReadOnlyDictionary<int, ArmyResumeRecord>, IReadOnlyList<ArmyResumeRecord>, IReadOnlyDictionary<int, string>, IReadOnlyDictionary<int, string>, ArmyUnitSelectionItem> createSpecopsUnit,
         CancellationToken cancellationToken)
     {
         var mergedUnits = new Dictionary<string, ArmyUnitSelectionItem>(StringComparer.OrdinalIgnoreCase);
-        var mergedTeams = new Dictionary<string, CompanyTeamAggregate>(StringComparer.OrdinalIgnoreCase);
+        var mergedTeams = new Dictionary<string, MergedFireteam>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var faction in factions)
         {
@@ -35,7 +34,7 @@ internal static class CompanySelectionUnitLoadWorkflow
             var snapshot = getFactionSnapshot(factionId, cancellationToken);
             var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "type");
             var categoryLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "category");
-            mergeFireteamEntries(snapshot?.FireteamChart, mergedTeams);
+            MergedFireteam.MergeChart(snapshot?.FireteamChart, mergedTeams);
 
             await cacheUnitLogosAsync(factionId, units, cancellationToken);
 
@@ -85,13 +84,13 @@ internal static class CompanySelectionUnitLoadWorkflow
     }
 
     internal static Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> BuildWildcardUnitLimits(
-        IEnumerable<CompanyTeamAggregate> mergedTeams,
+        IEnumerable<MergedFireteam> mergedTeams,
         IEnumerable<ArmyUnitSelectionItem> mergedUnits)
     {
         var wildcardUnitLimits = new Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)>(StringComparer.OrdinalIgnoreCase);
         foreach (var team in mergedTeams)
         {
-            var isWildcardTeam = CompanyTeamMatchingWorkflow.IsWildcardTeamName(team.Name);
+            var isWildcardTeam = FireteamMatching.IsWildcardTeamName(team.Name);
             var nonCharacterUnitLimits = CompanyTeamProfilesWorkflow.FilterCharacterUnitLimits(
                 team.UnitLimits,
                 mergedUnits,
@@ -100,7 +99,7 @@ internal static class CompanySelectionUnitLoadWorkflow
             {
                 var unitName = entry.Key;
                 var value = entry.Value;
-                if (!isWildcardTeam && !CompanyTeamMatchingWorkflow.IsWildcardEntry(unitName, value.Slug))
+                if (!isWildcardTeam && !FireteamMatching.IsWildcardEntry(unitName, value.Slug))
                 {
                     continue;
                 }
@@ -161,11 +160,11 @@ internal static class CompanySelectionUnitLoadWorkflow
 
     internal static void BuildTeamEntriesFromMerged(
         IReadOnlyDictionary<string, ArmyUnitSelectionItem> unitsByKey,
-        IEnumerable<CompanyTeamAggregate> mergedTeams,
+        IEnumerable<MergedFireteam> mergedTeams,
         ICollection<ArmyTeamListItem> teamEntries,
-        Func<CompanyTeamAggregate, bool> includeTeam,
-        Func<CompanyTeamAggregate, int> readTeamCount,
-        Func<CompanyTeamAggregate, string> buildTeamCountText,
+        Func<MergedFireteam, bool> includeTeam,
+        Func<MergedFireteam, int> readTeamCount,
+        Func<MergedFireteam, string> buildTeamCountText,
         Func<string, string, string, string?, IEnumerable<ArmyUnitSelectionItem>, ArmyTeamUnitLimitItem> buildTeamUnitLimitItem,
         Func<string, string, bool, bool, ObservableCollection<ArmyTeamUnitLimitItem>, ArmyTeamListItem> createTeam)
     {

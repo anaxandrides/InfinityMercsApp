@@ -190,15 +190,6 @@ public partial class StandardCompanySelectionPage
             _factionLogoCacheService is null ? null : factionId => _factionLogoCacheService.GetPackagedFactionLogoPath(factionId));
     }
 
-    /// <summary>
-    /// Handles merge fireteam entries.
-    /// </summary>
-    private static void MergeFireteamEntries(
-        FireteamChart? fireteamChart,
-        Dictionary<string, CompanyTeamAggregate> target)
-    {
-        MergeFireteamEntriesCore(fireteamChart, target);
-    }
 
     /// <summary>
     /// Handles build unit subtitle.

@@ -45,28 +45,6 @@ internal static class CompanySelectionUnitDetailsWorkflow
             getPackagedFactionLogoPath);
     }
 
-    internal static void MergeFireteamEntries(
-        FireteamChart? fireteamChart,
-        Dictionary<string, CompanyTeamAggregate> target)
-    {
-        CompanyUnitDetailsShared.MergeFireteamEntries(
-            fireteamChart,
-            entry =>
-            {
-                if (!target.TryGetValue(entry.Name, out var aggregate))
-                {
-                    aggregate = new CompanyTeamAggregate(entry.Name);
-                    target[entry.Name] = aggregate;
-                }
-
-                aggregate.AddCounts(entry.Duo, entry.Haris, entry.Core);
-                foreach (var limit in entry.UnitLimits)
-                {
-                    aggregate.MergeUnitLimit(limit.Name, limit.Min, limit.Max, limit.Slug, limit.MinAsterisk);
-                }
-            },
-            Console.Error.WriteLine);
-    }
 
     internal static string BuildUnitSubtitle(
         ArmyResumeRecord unit,

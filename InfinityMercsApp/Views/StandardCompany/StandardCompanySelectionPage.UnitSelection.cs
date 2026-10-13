@@ -168,7 +168,6 @@ public partial class StandardCompanySelectionPage
                         await _factionLogoCacheService.CacheUnitLogosFromRecordsAsync(factionId, units, ct);
                     }
                 },
-                MergeFireteamEntries,
                 IsCharacterCategory,
                 BuildUnitSubtitle,
                 (factionId, unit, typeLookup, categoryLookup) => new ArmyUnitSelectionItem

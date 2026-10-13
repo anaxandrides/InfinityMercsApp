@@ -44,18 +44,6 @@ public abstract partial class CompanySelectionPageBase
             getPackagedFactionLogoPath);
     }
 
-    /// <summary>
-    /// Deserialises fireteam chart JSON and merges the entries into the provided dictionary,
-    /// keyed by team name. Used to build the combined fireteam list from multiple faction sources.
-    /// </summary>
-    protected static void MergeFireteamEntriesCore(
-        FireteamChart? fireteamChart,
-        Dictionary<string, CompanyTeamAggregate> target)
-    {
-        CompanySelectionUnitDetailsWorkflow.MergeFireteamEntries(
-            fireteamChart,
-            target);
-    }
 
     /// <summary>
     /// Composes the unit subtitle string by resolving the unit type and category names

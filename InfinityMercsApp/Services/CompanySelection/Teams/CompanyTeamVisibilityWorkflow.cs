@@ -40,7 +40,7 @@ internal static class CompanyTeamVisibilityWorkflow
                 .Select(x => x!),
             StringComparer.OrdinalIgnoreCase);
         var visibleNormalizedNames = visibleUnits
-            .Select(x => CompanyTeamMatchingWorkflow.NormalizeTeamUnitName(readUnitName(x)))
+            .Select(x => FireteamMatching.NormalizeTeamUnitName(readUnitName(x)))
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Distinct(StringComparer.Ordinal)
             .ToList();
@@ -56,7 +56,7 @@ internal static class CompanyTeamVisibilityWorkflow
                     continue;
                 }
 
-                var isVisible = CompanyTeamMatchingWorkflow.IsVisibleTeamAllowedProfile(
+                var isVisible = FireteamMatching.IsVisibleTeamAllowedProfile(
                     readAllowedName(allowed),
                     readAllowedSlug(allowed),
                     visibleUnitNames,

@@ -4,17 +4,6 @@ namespace InfinityMercsApp.Views.Common;
 
 internal static partial class CompanyUnitDetailsShared
 {
-    internal static void MergeFireteamEntries(
-        FireteamChart? fireteamChart,
-        Action<CompanyFireteamChartEntry> mergeEntry,
-        Action<string>? logError = null)
-    {
-        foreach (var entry in CompanyUnitDetailsFireteamCommon.ParseEntries(fireteamChart, logError))
-        {
-            mergeEntry(entry);
-        }
-    }
-
     /// <summary>
     /// Shows the first profile's statline (or clears the stats when the unit has no profiles).
     /// </summary>

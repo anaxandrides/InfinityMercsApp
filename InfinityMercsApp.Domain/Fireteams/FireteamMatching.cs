@@ -1,21 +1,26 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Domain.Fireteams;
 
-internal static class CompanyTeamMatchingWorkflow
+/// <summary>
+/// How fireteam chart slots (a unit name and optional slug) are matched to army units: normalised names
+/// and slugs, wildcard and reinforcement slots, and FTO profiles.
+/// </summary>
+public static class FireteamMatching
 {
-    internal static bool IsWildcardEntry(string? name, string? slug)
+    public static bool IsWildcardEntry(string? name, string? slug)
     {
         return ContainsWildcardToken(name) || ContainsWildcardToken(slug);
     }
 
-    internal static bool IsWildcardTeamName(string? teamName)
+    public static bool IsWildcardTeamName(string? teamName)
     {
         return ContainsWildcardToken(teamName);
     }
 
-    internal static bool IsVisibleTeamAllowedProfile<TUnit>(
+    public static bool IsVisibleTeamAllowedProfile<TUnit>(
         string? allowedProfileName,
         string? allowedProfileSlug,
         HashSet<string> visibleUnitNames,
@@ -87,7 +92,7 @@ internal static class CompanyTeamMatchingWorkflow
         return false;
     }
 
-    internal static TUnit? ResolveUnitForTeamEntry<TUnit>(
+    public static TUnit? ResolveUnitForTeamEntry<TUnit>(
         string? allowedProfileName,
         string? allowedProfileSlug,
         IEnumerable<TUnit> sourceUnits,
@@ -202,20 +207,8 @@ internal static class CompanyTeamMatchingWorkflow
         return null;
     }
 
-    internal static ArmyUnitSelectionItem? ResolveUnitForTeamEntry(
-        string? allowedProfileName,
-        string? allowedProfileSlug,
-        IEnumerable<ArmyUnitSelectionItem> sourceUnits)
-    {
-        return ResolveUnitForTeamEntry(
-            allowedProfileName,
-            allowedProfileSlug,
-            sourceUnits,
-            x => x.Name,
-            x => x.Slug);
-    }
 
-    internal static bool ContainsEquivalentSlug(HashSet<string> visibleUnitSlugs, string allowedProfileSlug)
+    public static bool ContainsEquivalentSlug(HashSet<string> visibleUnitSlugs, string allowedProfileSlug)
     {
         var normalizedAllowed = NormalizeSlugForLookup(allowedProfileSlug);
         if (string.IsNullOrWhiteSpace(normalizedAllowed))
@@ -234,7 +227,7 @@ internal static class CompanyTeamMatchingWorkflow
         return false;
     }
 
-    internal static string NormalizeTeamUnitName(string? name)
+    public static string NormalizeTeamUnitName(string? name)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -259,7 +252,7 @@ internal static class CompanyTeamMatchingWorkflow
         return builder.ToString();
     }
 
-    internal static string NormalizeSlugForLookup(string? slug)
+    public static string NormalizeSlugForLookup(string? slug)
     {
         if (string.IsNullOrWhiteSpace(slug))
         {
@@ -297,19 +290,23 @@ internal static class CompanyTeamMatchingWorkflow
         return normalized;
     }
 
-    internal static bool IsReinforcementTeamEntry(string? allowedProfileName)
+    public static bool IsReinforcementTeamEntry(string? allowedProfileName)
     {
         return !string.IsNullOrWhiteSpace(allowedProfileName) &&
                allowedProfileName.IndexOf("REINF", StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
-    internal static bool IsReinforcementUnit(string? unitName, string? unitSlug)
+    public static bool IsReinforcementUnit(string? unitName, string? unitSlug)
     {
         return (!string.IsNullOrWhiteSpace(unitName) &&
                 unitName.IndexOf("REINF", StringComparison.OrdinalIgnoreCase) >= 0) ||
                (!string.IsNullOrWhiteSpace(unitSlug) &&
                 unitSlug.IndexOf("reinf", StringComparison.OrdinalIgnoreCase) >= 0);
     }
+
+    /// <summary>True when an option or slot label names a Fireteam-Only (FTO) profile.</summary>
+    public static bool IsFtoLabel(string? value) =>
+        !string.IsNullOrWhiteSpace(value) && Regex.IsMatch(value, @"\bFTO\b", RegexOptions.IgnoreCase);
 
     private static bool ContainsWildcardToken(string? value)
     {
@@ -318,5 +315,3 @@ internal static class CompanyTeamMatchingWorkflow
                 value.IndexOf("wild", StringComparison.OrdinalIgnoreCase) >= 0);
     }
 }
-
-

@@ -136,7 +136,7 @@ public partial class CohesiveCompanySelectionPage
 
     private bool ShouldIncludeOption(string? optionName)
     {
-        return !_restrictSelectedUnitProfilesToFto || IsFtoLabel(optionName);
+        return !_restrictSelectedUnitProfilesToFto || FireteamMatching.IsFtoLabel(optionName);
     }
 
     /// <summary>
@@ -212,12 +212,6 @@ public partial class CohesiveCompanySelectionPage
             _factionLogoCacheService is null ? null : factionId => _factionLogoCacheService.GetPackagedFactionLogoPath(factionId));
     }
 
-    private static void MergeFireteamEntries(
-        FireteamChart? fireteamChart,
-        Dictionary<string, CompanyTeamAggregate> target)
-    {
-        MergeFireteamEntriesCore(fireteamChart, target);
-    }
 
     private static string BuildUnitSubtitle(
         ArmyResumeRecord unit,

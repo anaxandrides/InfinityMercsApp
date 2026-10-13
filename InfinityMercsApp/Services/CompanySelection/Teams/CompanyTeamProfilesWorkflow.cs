@@ -33,10 +33,12 @@ internal static class CompanyTeamProfilesWorkflow
         return FilterCharacterUnitLimits(
             unitLimits,
             sourceUnits,
-            (allowedProfileName, allowedProfileSlug, units) => CompanyTeamMatchingWorkflow.ResolveUnitForTeamEntry(
+            (allowedProfileName, allowedProfileSlug, units) => FireteamMatching.ResolveUnitForTeamEntry(
                 allowedProfileName,
                 allowedProfileSlug,
-                units),
+                units,
+                x => x.Name,
+                x => x.Slug),
             readIsCharacter);
     }
 
@@ -47,7 +49,7 @@ internal static class CompanyTeamProfilesWorkflow
 
         foreach (var unitLimit in unitLimits)
         {
-            if (CompanyTeamMatchingWorkflow.IsWildcardEntry(unitLimit.Key, unitLimit.Value.Slug))
+            if (FireteamMatching.IsWildcardEntry(unitLimit.Key, unitLimit.Value.Slug))
             {
                 continue;
             }
@@ -71,7 +73,7 @@ internal static class CompanyTeamProfilesWorkflow
         {
             var name = entry.Key;
             var value = entry.Value;
-            var isWildcard = CompanyTeamMatchingWorkflow.IsWildcardEntry(name, value.Slug);
+            var isWildcard = FireteamMatching.IsWildcardEntry(name, value.Slug);
             var key = isWildcard ? "__WILDCARD__" : name.Trim();
             var normalizedName = isWildcard ? "Wildcards" : name;
 
@@ -167,10 +169,12 @@ internal static class CompanyTeamProfilesWorkflow
             max,
             slug,
             sourceUnits,
-            (allowedProfileName, allowedProfileSlug, units) => CompanyTeamMatchingWorkflow.ResolveUnitForTeamEntry(
+            (allowedProfileName, allowedProfileSlug, units) => FireteamMatching.ResolveUnitForTeamEntry(
                 allowedProfileName,
                 allowedProfileSlug,
-                units),
+                units,
+                x => x.Name,
+                x => x.Slug),
             x => x.IsCharacter,
             x => x.CachedLogoPath,
             x => x.PackagedLogoPath,

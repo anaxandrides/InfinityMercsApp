@@ -27,10 +27,8 @@ internal static class CohesiveCompanyTeamEligibilityWorkflow
         IReadOnlyDictionary<int, string> typeLookup,
         UnitFilterCriteria activeUnitFilter,
         int maxCost,
-        Func<string?, bool> isFtoLabel,
-        Func<ArmyResumeRecord, bool> isCharacterCategory,
-        Func<int, ArmyUnitRecord?> getUnitById,
-        Action<FireteamChart?, Dictionary<string, CompanyTeamAggregate>> mergeFireteamEntries)
+                Func<ArmyResumeRecord, bool> isCharacterCategory,
+        Func<int, ArmyUnitRecord?> getUnitById)
     {
         var sourceUnits = units.Select(unit => new EligibilitySourceUnit
             {
@@ -42,8 +40,8 @@ internal static class CohesiveCompanyTeamEligibilityWorkflow
             })
             .ToList();
 
-        var teams = new Dictionary<string, CompanyTeamAggregate>(StringComparer.OrdinalIgnoreCase);
-        mergeFireteamEntries(fireteamChart, teams);
+        var teams = new Dictionary<string, MergedFireteam>(StringComparer.OrdinalIgnoreCase);
+        MergedFireteam.MergeChart(fireteamChart, teams);
 
         var validCoreFireteams = new List<string>();
         foreach (var team in teams.Values
@@ -53,7 +51,7 @@ internal static class CohesiveCompanyTeamEligibilityWorkflow
             var hasLieutenantProfileAfterFilters = false;
             foreach (var unitLimit in team.UnitLimits)
             {
-                var matchedUnit = CompanyTeamMatchingWorkflow.ResolveUnitForTeamEntry(
+                var matchedUnit = FireteamMatching.ResolveUnitForTeamEntry(
                     unitLimit.Key,
                     unitLimit.Value.Slug,
                     sourceUnits,
@@ -75,7 +73,7 @@ internal static class CohesiveCompanyTeamEligibilityWorkflow
                     continue;
                 }
 
-                var requiresFtoProfile = isFtoLabel(unitLimit.Key);
+                var requiresFtoProfile = FireteamMatching.IsFtoLabel(unitLimit.Key);
                 var hasAnyVisibleProfile = CompanyUnitFilterService.UnitHasVisibleOptionWithFilter(
                     unitRecord.ProfileGroups,
                     skillsLookup,
@@ -87,7 +85,7 @@ internal static class CohesiveCompanyTeamEligibilityWorkflow
                     requireLieutenant: false,
                     requireZeroSwc: true,
                     maxCost: maxCost,
-                    optionNamePredicate: requiresFtoProfile ? isFtoLabel : null);
+                    optionNamePredicate: requiresFtoProfile ? FireteamMatching.IsFtoLabel : null);
                 if (!hasAnyVisibleProfile)
                 {
                     continue;
@@ -104,7 +102,7 @@ internal static class CohesiveCompanyTeamEligibilityWorkflow
                     requireLieutenant: true,
                     requireZeroSwc: true,
                     maxCost: maxCost,
-                    optionNamePredicate: requiresFtoProfile ? isFtoLabel : null);
+                    optionNamePredicate: requiresFtoProfile ? FireteamMatching.IsFtoLabel : null);
                 if (!hasVisibleLieutenantProfile)
                 {
                     continue;

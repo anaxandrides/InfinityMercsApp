@@ -170,12 +170,6 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
                     : FactionLogoCacheService.GetPackagedFactionLogoPath(factionId));
     }
 
-    protected static void MergeFireteamEntries(
-        FireteamChart? fireteamChart,
-        Dictionary<string, CompanyTeamAggregate> target)
-    {
-        MergeFireteamEntriesCore(fireteamChart, target);
-    }
 
     protected static string BuildUnitSubtitle(
         ArmyResumeRecord unit,

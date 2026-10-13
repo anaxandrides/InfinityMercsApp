@@ -140,7 +140,6 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
                         await FactionLogoCacheService.CacheUnitLogosFromRecordsAsync(factionId, units, ct);
                     }
                 },
-                MergeFireteamEntries,
                 IsCharacterCategory,
                 BuildUnitSubtitle,
                 (factionId, unit, typeLookup, categoryLookup) =>

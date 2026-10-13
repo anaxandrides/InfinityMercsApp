@@ -1,8 +1,12 @@
+// FROZEN LEGACY ORACLE — verbatim copy of production rules from 935f0c4.
+// Do not edit or "fix" this file. Tests run it against the domain replacement to prove identical results.
+// Source: Services/CompanySelection/Teams/CohesiveCompanyFireteamLevelWorkflow.cs (name normalising now via FireteamMatching).
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Fireteams;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.UnitTests.Legacy;
 
-internal static class CohesiveCompanyFireteamLevelWorkflow
+internal static class LegacyFireteamLevelWorkflow
 {
     // Cumulative bonuses indexed by fireteam level.
     // Level 0 = no fireteam; level 1 = formed but no bonus yet.
@@ -359,7 +363,7 @@ internal static class CohesiveCompanyFireteamLevelWorkflow
     // singular/plural variants. No-ops if the normalised result is blank.
     private static void AddNameKey(HashSet<string> target, string? value)
     {
-        var normalized = CompanyTeamMatchingWorkflow.NormalizeTeamUnitName(value);
+        var normalized = FireteamMatching.NormalizeTeamUnitName(value);
         if (!string.IsNullOrWhiteSpace(normalized))
         {
             target.Add(normalized);

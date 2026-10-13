@@ -89,7 +89,7 @@ public partial class CohesiveCompanySelectionPage : CompanySelectionPageBase, IC
                 teamItem,
                 Units,
                 (resolved, restrictProfiles) => SetSelectedUnit(resolved, restrictProfiles),
-                item => IsFtoLabel(item.Name)));
+                item => FireteamMatching.IsFtoLabel(item.Name)));
         _startCompanyCommand = CreateStartCompanyCommand(StartCompanyAsync, () => IsCompanyValid);
         StartCompanyCommand = _startCompanyCommand;
 
@@ -227,7 +227,7 @@ public partial class CohesiveCompanySelectionPage : CompanySelectionPageBase, IC
         string.IsNullOrWhiteSpace(_trackedFireteamName) ? "Select fireteam" : _trackedFireteamName;
 
     public string? TrackedFireteamLevelBonusText =>
-        CohesiveCompanyFireteamLevelWorkflow.GetBonusText(_trackedFireteamLevel);
+        FireteamLevels.BonusText(_trackedFireteamLevel);
 
     public bool HasTrackedFireteamLevelBonus =>
         !string.IsNullOrEmpty(TrackedFireteamLevelBonusText);
@@ -317,16 +317,6 @@ public partial class CohesiveCompanySelectionPage : CompanySelectionPageBase, IC
     }
 
     UnitFilterCriteria ICompanySelectionVisibilityState.ActiveUnitFilter => _filterState.ActiveUnitFilter;
-
-    private static bool IsFtoLabel(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        return Regex.IsMatch(value, @"\bFTO\b", RegexOptions.IgnoreCase);
-    }
 
 }
 
