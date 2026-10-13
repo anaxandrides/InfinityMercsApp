@@ -1,20 +1,138 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<views:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:views="clr-namespace:InfinityMercsApp.Views"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
              x:Class="InfinityMercsApp.Views.Season.InjuriesPage"
+             x:DataType="viewModels:InjuriesViewModel"
              Title="INJURIES"
              BackgroundColor="{StaticResource Void}">
+
+    <ContentPage.Resources>
+        <Style x:Key="RowCaption" TargetType="Label">
+            <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="VerticalTextAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="CheckButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="{StaticResource HairlineBright}" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="HeightRequest" Value="36" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalOptions" Value="Fill" />
+        </Style>
+    </ContentPage.Resources>
 
     <Grid RowDefinitions="*,Auto" Padding="0">
 
         <ScrollView Grid.Row="0"
                     Orientation="Vertical"
                     VerticalScrollBarVisibility="Always">
-            <VerticalStackLayout x:Name="InjuryStack" Spacing="0" Padding="0,8,0,16" />
+            <VerticalStackLayout Spacing="1" Padding="0,8,0,16" BindableLayout.ItemsSource="{Binding Injuries}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:InjuryCheckItem">
+                        <VerticalStackLayout Padding="16" Spacing="10" BackgroundColor="{StaticResource Plate}">
+
+                            <!-- [logo] [name] [avoid target / injury incurred] -->
+                            <Grid ColumnDefinitions="48,*,Auto" ColumnSpacing="12">
+                                <controls:SvgIcon Source="{Binding LogoSource}"
+                                                  WidthRequest="48"
+                                                  HeightRequest="48"
+                                                  VerticalOptions="Center" />
+                                <Label Grid.Column="1"
+                                       Text="{Binding Name}"
+                                       TextColor="{StaticResource TextPrimary}"
+                                       FontAttributes="Bold"
+                                       FontSize="16"
+                                       VerticalTextAlignment="Center"
+                                       LineBreakMode="TailTruncation" />
+                                <Label Grid.Column="2"
+                                       Text="{Binding AvoidText}"
+                                       TextColor="{StaticResource TextMuted}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       VerticalTextAlignment="Center"
+                                       HorizontalTextAlignment="End">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsInjured}" Value="True">
+                                            <Setter Property="TextColor" Value="{StaticResource Danger}" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="16" RowSpacing="8">
+                                <Label Text="Roll Virtually" Style="{StaticResource RowCaption}">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsRollLocked}" Value="True">
+                                            <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                                <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                    <Button Text="Roll"
+                                            Style="{StaticResource CheckButton}"
+                                            TextColor="{StaticResource TextPrimary}"
+                                            Command="{Binding RollCommand}">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding IsRollLocked}" Value="True">
+                                                <Setter Property="Opacity" Value="0.38" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                    <Label Text="{Binding RollResultText}"
+                                           IsVisible="{Binding HasRolled}"
+                                           TextColor="{StaticResource Danger}"
+                                           FontSize="13"
+                                           FontAttributes="Bold"
+                                           HorizontalTextAlignment="Center">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding RollPassed}" Value="True">
+                                                <Setter Property="TextColor" Value="{StaticResource Signal}" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                </VerticalStackLayout>
+
+                                <Label Grid.Row="1" Text="Roll In Reality" Style="{StaticResource RowCaption}" />
+                                <Grid Grid.Row="1" Grid.Column="1">
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8" IsVisible="{Binding IsInjured, Converter={StaticResource InvertedBoolConverter}}">
+                                        <Button Text="PASS"
+                                                Style="{StaticResource CheckButton}"
+                                                TextColor="{StaticResource Signal}"
+                                                FontAttributes="Bold"
+                                                Command="{Binding PassCommand}">
+                                            <Button.Triggers>
+                                                <DataTrigger TargetType="Button" Binding="{Binding IsPassed}" Value="True">
+                                                    <Setter Property="BackgroundColor" Value="#2A6B57" />
+                                                </DataTrigger>
+                                            </Button.Triggers>
+                                        </Button>
+                                        <Button Grid.Column="1"
+                                                Text="FAIL"
+                                                Style="{StaticResource CheckButton}"
+                                                TextColor="{StaticResource Danger}"
+                                                FontAttributes="Bold"
+                                                Command="{Binding FailCommand}" />
+                                    </Grid>
+                                    <Picker Title="Select Injury…"
+                                            IsVisible="{Binding IsInjured}"
+                                            ItemsSource="{Binding InjuryOptions}"
+                                            SelectedItem="{Binding SelectedInjury}"
+                                            TextColor="{StaticResource TextPrimary}"
+                                            BackgroundColor="{StaticResource HairlineBright}"
+                                            HorizontalOptions="Fill" />
+                                </Grid>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
         </ScrollView>
 
-        <Button x:Name="ContinueButton"
-                Grid.Row="1"
+        <Button Grid.Row="1"
                 Text="CONTINUE"
                 BackgroundColor="{StaticResource Signal}"
                 TextColor="{StaticResource TextPrimary}"
@@ -23,10 +141,14 @@
                 HeightRequest="52"
                 CornerRadius="0"
                 Margin="0"
-                IsEnabled="False"
-                Opacity="0.45"
-                Clicked="OnContinueClicked" />
+                Command="{Binding ContinueCommand}">
+            <Button.Triggers>
+                <Trigger TargetType="Button" Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.45" />
+                </Trigger>
+            </Button.Triggers>
+        </Button>
 
     </Grid>
 
-</ContentPage>
+</views:ContentPageBase>

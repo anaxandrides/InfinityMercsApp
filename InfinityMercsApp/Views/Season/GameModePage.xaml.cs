@@ -1181,7 +1181,7 @@ public partial class GameModePage : ContentPage, IQueryAttributable
 
         var deadUnits = _unitTracker
             .Where(t => t.Unit.WoundStateKey == "Dead")
-            .Select(t => new InjuryItem
+            .Select(t => new PendingInjury
             {
                 EntryIndex = t.Unit.EntryIndex,
                 Name = t.Unit.Name,
@@ -1195,7 +1195,7 @@ public partial class GameModePage : ContentPage, IQueryAttributable
 
         if (deadUnits.Count > 0)
         {
-            InjuryPageData.PendingInjuries = deadUnits;
+            _debrief.PendingInjuries = deadUnits;
             await Shell.Current.GoToAsync(nameof(InjuriesPage), parameters);
         }
         else

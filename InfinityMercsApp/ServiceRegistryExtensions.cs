@@ -17,6 +17,7 @@ public static class ServiceRegistryExtensions
                 .AddTransient<ArmoryViewModel>()
                 .AddTransient<LoadSeasonViewModel>()
                 .AddTransient<ExperienceViewModel>()
+                .AddTransient<InjuriesViewModel>()
                 .AddTransient<ViewerViewModel>()
                 .AddTransient<CreateNewCompanyPageViewModel>()
                 .AddTransient<StandardCompanySourcePopupPageViewModel>()
@@ -70,7 +71,8 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<IDialogService, MauiDialogService>()
                 .AddSingleton(_ => RecordPaths.ForAppData(FileSystem.Current.AppDataDirectory))
                 .AddSingleton<SeasonRecordCatalog>()
-                .AddSingleton<MissionDebrief>();
+                .AddSingleton<MissionDebrief>()
+                .AddSingleton<IDice, Dice>();
 
         services.AddSingleton<HttpClient>(_ =>
         {
