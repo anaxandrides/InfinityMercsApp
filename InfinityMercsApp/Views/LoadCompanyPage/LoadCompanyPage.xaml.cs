@@ -177,7 +177,7 @@ public partial class LoadCompanyPage : AdaptiveContentPage, IQueryAttributable
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Delete Failed", ex.Message, "OK");
+            await DisplayAlertAsync("Delete Failed", ex.Message, "OK");
         }
     }
 

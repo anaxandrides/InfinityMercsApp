@@ -68,7 +68,7 @@ public partial class DebugPage : ContentPage
 
             if (manifestCompanies.Count == 0)
             {
-                await DisplayAlert(
+                await DisplayAlertAsync(
                     "Reform Test Companies",
                     $"No companies found in manifest '{DebugManifestFileName}'.",
                     "OK");
@@ -123,7 +123,7 @@ public partial class DebugPage : ContentPage
                         SeasonPointsCapText = source.CurrentPoints.ToString(),
                         TryGetMetadataFactionName = _ => null,
                         ReadCaptainName = stats => stats.CaptainName,
-                        DisplayAlertAsync = async (title, message, cancel) => await DisplayAlert(title, message, cancel),
+                        DisplayAlertAsync = async (title, message, cancel) => await DisplayAlertAsync(title, message, cancel),
                         NavigateToCompanyViewerAsync = _ => Task.CompletedTask
                     };
 
@@ -149,7 +149,7 @@ public partial class DebugPage : ContentPage
             var message = summaryLines.Count == 0
                 ? "No files processed."
                 : string.Join(Environment.NewLine, summaryLines);
-            await DisplayAlert("Reform Test Companies", message, "OK");
+            await DisplayAlertAsync("Reform Test Companies", message, "OK");
         }
         finally
         {

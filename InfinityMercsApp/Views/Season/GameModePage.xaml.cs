@@ -1127,7 +1127,7 @@ public partial class GameModePage : ContentPage, IQueryAttributable
 
     private async Task ConfirmAndEndGame()
     {
-        var confirmed = await DisplayAlert("End Game", "Are you sure you want to end the game?", "Yes", "No");
+        var confirmed = await DisplayAlertAsync("End Game", "Are you sure you want to end the game?", "Yes", "No");
         if (!confirmed) return;
 
         // Determine which campaign mission this is (completed rounds + 1)

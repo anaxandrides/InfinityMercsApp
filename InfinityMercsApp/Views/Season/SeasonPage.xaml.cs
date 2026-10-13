@@ -1550,7 +1550,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
             var capturedSellPrice = sellPrice;
             sellBtn.Clicked += async (_, _) =>
             {
-                var confirmed = await DisplayAlert(
+                var confirmed = await DisplayAlertAsync(
                     "Sell Equipment",
                     $"Sell {capturedItem.Name} for {capturedSellPrice} CR?\n(SWC is not refunded)",
                     "Sell", "Cancel");

@@ -317,7 +317,7 @@ public partial class PlayModePage : ContentPage, IQueryAttributable
         var checkedUnits = DeploymentUnits.Where(u => u.IsChecked).ToList();
         if (checkedUnits.Count == 0)
         {
-            await DisplayAlert("No Units Selected", "Select at least one unit to deploy.", "OK");
+            await DisplayAlertAsync("No Units Selected", "Select at least one unit to deploy.", "OK");
             return;
         }
 

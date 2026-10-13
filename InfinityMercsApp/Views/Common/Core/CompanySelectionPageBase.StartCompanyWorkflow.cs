@@ -120,7 +120,7 @@ public abstract partial class CompanySelectionPageBase
                     SeasonPointsCapText = seasonPointsCapText,
                     TryGetMetadataFactionName = tryGetMetadataFactionName,
                     ReadCaptainName = readCaptainName,
-                    DisplayAlertAsync = (title, message, cancel) => DisplayAlert(title, message, cancel),
+                    DisplayAlertAsync = (title, message, cancel) => DisplayAlertAsync(title, message, cancel),
                     NavigateToCompanyViewerAsync = filePath => Shell.Current.GoToAsync(
                         $"//{nameof(SeasonPage)}",
                         NavigationParameters.ForCompany(filePath))
@@ -128,7 +128,7 @@ public abstract partial class CompanySelectionPageBase
                 HandleFailureAsync = async ex =>
                 {
                     Console.Error.WriteLine($"CompanySelectionPage StartCompanyAsync failed: {ex}");
-                    await DisplayAlert("Save Failed", ex.Message, "OK");
+                    await DisplayAlertAsync("Save Failed", ex.Message, "OK");
                 }
             });
     }

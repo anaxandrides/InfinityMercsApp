@@ -91,7 +91,7 @@ public partial class MercsCompanyEntryCardView : ContentView
 
         if (animated)
         {
-            await DetailsToggleButton.RotateTo(targetRotation, 140, Easing.CubicOut);
+            await DetailsToggleButton.RotateToAsync(targetRotation, 140, Easing.CubicOut);
             return;
         }
 

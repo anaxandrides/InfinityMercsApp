@@ -156,7 +156,7 @@ public partial class LoadSeasonPage : AdaptiveContentPage
 
         if (!File.Exists(item.CompanyFilePath))
         {
-            await DisplayAlert("Company Not Found",
+            await DisplayAlertAsync("Company Not Found",
                 $"The company file for '{item.CompanyName}' could not be found. It may have been deleted.",
                 "OK");
             return;

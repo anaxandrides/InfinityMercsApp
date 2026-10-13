@@ -37,7 +37,7 @@ public partial class DowntimePage : ContentPage, IQueryAttributable
     {
         if (RealPicker.SelectedIndex < 0)
         {
-            DisplayAlert("Pick a number", "Choose a value 1-20 first.", "OK");
+            DisplayAlertAsync("Pick a number", "Choose a value 1-20 first.", "OK");
             return;
         }
         DispatchRoll(RealPicker.SelectedIndex + 1);
