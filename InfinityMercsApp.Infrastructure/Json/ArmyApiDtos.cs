@@ -338,6 +338,22 @@ internal sealed class ArmyFilterItemDto
     [JsonPropertyName("web")]
     [JsonConverter(typeof(LenientStringConverter))]
     public string? Web { get; set; }
+
+    [JsonPropertyName("abbr")]
+    [JsonConverter(typeof(LenientStringConverter))]
+    public string? Abbr { get; set; }
+
+    [JsonPropertyName("min")]
+    public JsonScalar Min { get; set; }
+
+    [JsonPropertyName("max")]
+    public JsonScalar Max { get; set; }
+
+    [JsonPropertyName("mercs")]
+    public JsonScalar Mercs { get; set; }
+
+    [JsonPropertyName("specops")]
+    public JsonScalar SpecOps { get; set; }
 }
 
 /// <summary>An army's <c>fireteamChart</c>.</summary>
@@ -452,6 +468,193 @@ internal sealed class ArmyFilterSectionConverter : JsonConverter<ArmyFilterSecti
         ListConverter.Write(writer, value.Items, options);
 }
 
+/// <summary>A whole army payload (<c>/army/units/{id}</c>): its units, unit index, filters and charts.</summary>
+internal sealed class ArmyPayloadDto
+{
+    [JsonPropertyName("version")]
+    public JsonScalar Version { get; set; }
+
+    [JsonPropertyName("units")]
+    [JsonConverter(typeof(LenientObjectListConverter<ArmyUnitDto>))]
+    public List<ArmyUnitDto>? Units { get; set; }
+
+    [JsonPropertyName("resume")]
+    [JsonConverter(typeof(LenientObjectListConverter<ArmyResumeDto>))]
+    public List<ArmyResumeDto>? Resume { get; set; }
+
+    [JsonPropertyName("reinforcements")]
+    public JsonScalar Reinforcements { get; set; }
+
+    [JsonPropertyName("filters")]
+    [JsonConverter(typeof(LenientObjectConverter<Dictionary<string, ArmyFilterSectionDto>>))]
+    public Dictionary<string, ArmyFilterSectionDto>? Filters { get; set; }
+
+    [JsonPropertyName("relations")]
+    [JsonConverter(typeof(LenientObjectListConverter<ArmyRelationDto>))]
+    public List<ArmyRelationDto>? Relations { get; set; }
+
+    [JsonPropertyName("specops")]
+    [JsonConverter(typeof(LenientObjectConverter<SpecopsDto>))]
+    public SpecopsDto? Specops { get; set; }
+
+    [JsonPropertyName("fireteamChart")]
+    [JsonConverter(typeof(LenientObjectConverter<FireteamChartDto>))]
+    public FireteamChartDto? FireteamChart { get; set; }
+}
+
+/// <summary>A unit of an army payload (<c>units[]</c> or <c>specops.units[]</c>).</summary>
+internal sealed class ArmyUnitDto
+{
+    [JsonPropertyName("id")]
+    [JsonConverter(typeof(FlexibleIdConverter))]
+    public int? Id { get; set; }
+
+    [JsonPropertyName("idArmy")]
+    public JsonScalar IdArmy { get; set; }
+
+    [JsonPropertyName("canonical")]
+    public JsonScalar Canonical { get; set; }
+
+    [JsonPropertyName("isc")]
+    [JsonConverter(typeof(LenientStringConverter))]
+    public string? Isc { get; set; }
+
+    [JsonPropertyName("iscAbbr")]
+    [JsonConverter(typeof(LenientStringConverter))]
+    public string? IscAbbr { get; set; }
+
+    [JsonPropertyName("name")]
+    [JsonConverter(typeof(LenientStringConverter))]
+    public string? Name { get; set; }
+
+    [JsonPropertyName("slug")]
+    [JsonConverter(typeof(LenientStringConverter))]
+    public string? Slug { get; set; }
+
+    [JsonPropertyName("profileGroups")]
+    [JsonConverter(typeof(LenientObjectListConverter<ProfileGroupDto>))]
+    public List<ProfileGroupDto>? ProfileGroups { get; set; }
+
+    [JsonPropertyName("options")]
+    [JsonConverter(typeof(LenientObjectListConverter<ProfileOptionDto>))]
+    public List<ProfileOptionDto>? Options { get; set; }
+
+    [JsonPropertyName("filters")]
+    [JsonConverter(typeof(LenientObjectConverter<UnitFiltersDto>))]
+    public UnitFiltersDto? Filters { get; set; }
+
+    [JsonPropertyName("factions")]
+    [JsonConverter(typeof(JsonScalarListConverter))]
+    public List<JsonScalar>? Factions { get; set; }
+}
+
+/// <summary>An entry of an army payload's <c>resume</c> unit index.</summary>
+internal sealed class ArmyResumeDto
+{
+    [JsonPropertyName("id")]
+    [JsonConverter(typeof(FlexibleIdConverter))]
+    public int? Id { get; set; }
+
+    [JsonPropertyName("isc")]
+    [JsonConverter(typeof(LenientStringConverter))]
+    public string? Isc { get; set; }
+
+    [JsonPropertyName("idArmy")]
+    public JsonScalar IdArmy { get; set; }
+
+    [JsonPropertyName("name")]
+    [JsonConverter(typeof(LenientStringConverter))]
+    public string? Name { get; set; }
+
+    [JsonPropertyName("slug")]
+    [JsonConverter(typeof(LenientStringConverter))]
+    public string? Slug { get; set; }
+
+    [JsonPropertyName("logo")]
+    [JsonConverter(typeof(LenientStringConverter))]
+    public string? Logo { get; set; }
+
+    [JsonPropertyName("type")]
+    public JsonScalar Type { get; set; }
+
+    [JsonPropertyName("category")]
+    public JsonScalar Category { get; set; }
+}
+
+/// <summary>An army <c>relations[]</c> entry: <c>{"units":[{"unit":42}],"min":1,"max":1,"group":false}</c>.</summary>
+internal sealed class ArmyRelationDto
+{
+    [JsonPropertyName("units")]
+    [JsonConverter(typeof(LenientObjectListConverter<ArmyRelationUnitDto>))]
+    public List<ArmyRelationUnitDto>? Units { get; set; }
+
+    [JsonPropertyName("min")]
+    public JsonScalar Min { get; set; }
+
+    [JsonPropertyName("max")]
+    public JsonScalar Max { get; set; }
+
+    [JsonPropertyName("group")]
+    public JsonScalar Group { get; set; }
+}
+
+internal sealed class ArmyRelationUnitDto
+{
+    [JsonPropertyName("unit")]
+    [JsonConverter(typeof(FlexibleIdConverter))]
+    public int? Unit { get; set; }
+}
+
+/// <summary>An army's <c>specops</c>: the choices a spec-ops trooper can buy, and the spec-ops units.</summary>
+internal sealed class SpecopsDto
+{
+    [JsonPropertyName("skills")]
+    [JsonConverter(typeof(LenientObjectListConverter<SpecopsChoiceDto>))]
+    public List<SpecopsChoiceDto>? Skills { get; set; }
+
+    [JsonPropertyName("equip")]
+    [JsonConverter(typeof(LenientObjectListConverter<SpecopsChoiceDto>))]
+    public List<SpecopsChoiceDto>? Equip { get; set; }
+
+    [JsonPropertyName("weapons")]
+    [JsonConverter(typeof(LenientObjectListConverter<SpecopsChoiceDto>))]
+    public List<SpecopsChoiceDto>? Weapons { get; set; }
+
+    [JsonPropertyName("units")]
+    [JsonConverter(typeof(LenientObjectListConverter<ArmyUnitDto>))]
+    public List<ArmyUnitDto>? Units { get; set; }
+}
+
+/// <summary>A spec-ops choice: <c>{"exp":8,"id":35,"extras":[6],"skills":[{"id":74,"extras":[304]}]}</c>.</summary>
+internal sealed class SpecopsChoiceDto
+{
+    [JsonPropertyName("id")]
+    [JsonConverter(typeof(FlexibleIdConverter))]
+    public int? Id { get; set; }
+
+    [JsonPropertyName("exp")]
+    public JsonScalar Exp { get; set; }
+
+    [JsonPropertyName("extras")]
+    [JsonConverter(typeof(IdListConverter))]
+    public List<int>? Extras { get; set; }
+
+    [JsonPropertyName("skills")]
+    [JsonConverter(typeof(SpecopsLinkListConverter))]
+    public List<SpecopsLinkDto>? Skills { get; set; }
+
+    [JsonPropertyName("equip")]
+    [JsonConverter(typeof(SpecopsLinkListConverter))]
+    public List<SpecopsLinkDto>? Equip { get; set; }
+
+    [JsonPropertyName("weapons")]
+    [JsonConverter(typeof(SpecopsLinkListConverter))]
+    public List<SpecopsLinkDto>? Weapons { get; set; }
+}
+
+/// <summary>An item a spec-ops choice grants: a bare id or <c>{"id":74,"extras":[304]}</c>.</summary>
+internal sealed record SpecopsLinkDto(int Id, List<int> Extras);
+
 /// <summary>
 /// Source-generated System.Text.Json metadata for the Infinity Army payloads. Reading through this context
 /// needs no reflection, so it is trim- and AOT-safe on iOS and Android.
@@ -468,6 +671,15 @@ internal sealed class ArmyFilterSectionConverter : JsonConverter<ArmyFilterSecti
 [JsonSerializable(typeof(ProfileOptionDto))]
 [JsonSerializable(typeof(OrderDto))]
 [JsonSerializable(typeof(IncludeDto))]
+[JsonSerializable(typeof(List<ProfileOptionDto>), TypeInfoPropertyName = "ProfileOptions")]
+[JsonSerializable(typeof(List<ArmyRelationDto>), TypeInfoPropertyName = "Relations")]
+[JsonSerializable(typeof(SpecopsDto), TypeInfoPropertyName = "Specops")]
+[JsonSerializable(typeof(ArmyPayloadDto), TypeInfoPropertyName = "ArmyPayload")]
+[JsonSerializable(typeof(ArmyUnitDto))]
+[JsonSerializable(typeof(ArmyResumeDto))]
+[JsonSerializable(typeof(ArmyRelationUnitDto))]
+[JsonSerializable(typeof(SpecopsChoiceDto))]
+[JsonSerializable(typeof(JsonScalar))]
 internal sealed partial class ArmyJsonContext : JsonSerializerContext
 {
 }

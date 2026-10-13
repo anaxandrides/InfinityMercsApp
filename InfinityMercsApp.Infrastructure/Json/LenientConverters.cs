@@ -183,3 +183,163 @@ internal sealed class JsonScalarListConverter : JsonConverter<List<JsonScalar>?>
         writer.WriteEndArray();
     }
 }
+
+/// <summary>
+/// Reads an object with its normal contract; any other value (array, string, number...) reads as <c>null</c>
+/// instead of failing the surrounding payload.
+/// </summary>
+internal sealed class LenientObjectConverter<T> : JsonConverter<T?>
+    where T : class
+{
+    public override bool HandleNull => true;
+
+    public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.StartObject)
+        {
+            reader.Skip();
+            return null;
+        }
+
+        return JsonSerializer.Deserialize(ref reader, (JsonTypeInfo<T>)options.GetTypeInfo(typeof(T)));
+    }
+
+    public override void Write(Utf8JsonWriter writer, T? value, JsonSerializerOptions options)
+    {
+        if (value is null)
+        {
+            writer.WriteNullValue();
+            return;
+        }
+
+        JsonSerializer.Serialize(writer, value, (JsonTypeInfo<T>)options.GetTypeInfo(typeof(T)));
+    }
+}
+
+/// <summary>
+/// An array of ids: numbers, numeric strings and <c>{"id":..}</c> objects, in order; anything else is skipped.
+/// A non-array value reads as <c>null</c>.
+/// </summary>
+internal sealed class IdListConverter : JsonConverter<List<int>?>
+{
+    public override bool HandleNull => true;
+
+    public override List<int>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.StartArray)
+        {
+            reader.Skip();
+            return null;
+        }
+
+        var ids = new List<int>();
+        while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+        {
+            if (FlexibleIdConverter.ReadId(ref reader) is int id)
+            {
+                ids.Add(id);
+            }
+        }
+
+        return ids;
+    }
+
+    public override void Write(Utf8JsonWriter writer, List<int>? value, JsonSerializerOptions options)
+    {
+        if (value is null)
+        {
+            writer.WriteNullValue();
+            return;
+        }
+
+        writer.WriteStartArray();
+        foreach (var id in value)
+        {
+            writer.WriteNumberValue(id);
+        }
+
+        writer.WriteEndArray();
+    }
+}
+
+/// <summary>
+/// The items a spec-ops choice grants: bare ids (numbers or numeric strings) or <c>{"id":..,"extras":[..]}</c>
+/// objects. Items without a usable id are skipped; a non-array value reads as <c>null</c>.
+/// </summary>
+internal sealed class SpecopsLinkListConverter : JsonConverter<List<SpecopsLinkDto>?>
+{
+    private static readonly IdListConverter ExtrasConverter = new();
+
+    public override bool HandleNull => true;
+
+    public override List<SpecopsLinkDto>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.StartArray)
+        {
+            reader.Skip();
+            return null;
+        }
+
+        var links = new List<SpecopsLinkDto>();
+        while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+        {
+            if (reader.TokenType != JsonTokenType.StartObject)
+            {
+                if (FlexibleIdConverter.ReadId(ref reader) is int bareId)
+                {
+                    links.Add(new SpecopsLinkDto(bareId, []));
+                }
+
+                continue;
+            }
+
+            int? id = null;
+            List<int>? extras = null;
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+            {
+                var property = reader.GetString();
+                reader.Read();
+                switch (property)
+                {
+                    case "id":
+                        id = FlexibleIdConverter.ReadId(ref reader);
+                        break;
+                    case "extras":
+                        extras = ExtrasConverter.Read(ref reader, typeof(List<int>), options);
+                        break;
+                    default:
+                        reader.Skip();
+                        break;
+                }
+            }
+
+            if (id is int linkId)
+            {
+                links.Add(new SpecopsLinkDto(linkId, extras ?? []));
+            }
+        }
+
+        return links;
+    }
+
+    public override void Write(Utf8JsonWriter writer, List<SpecopsLinkDto>? value, JsonSerializerOptions options)
+    {
+        if (value is null)
+        {
+            writer.WriteNullValue();
+            return;
+        }
+
+        writer.WriteStartArray();
+        foreach (var link in value)
+        {
+            writer.WriteStartObject();
+            writer.WriteNumber("id", link.Id);
+            writer.WritePropertyName("extras");
+            ExtrasConverter.Write(writer, link.Extras, options);
+            writer.WriteEndObject();
+        }
+
+        writer.WriteEndArray();
+    }
+}

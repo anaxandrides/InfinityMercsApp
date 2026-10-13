@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.Json;
+using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
 
 namespace InfinityMercsApp.Infrastructure.Json;
@@ -32,6 +33,23 @@ public interface IArmyJsonReader
     /// <c>{"id":..}</c> objects, in order; anything else is skipped.
     /// </summary>
     IReadOnlyList<int> ReadIdList(string? idListJson);
+
+    /// <summary>Reads a unit's own <c>options</c> array (options declared outside its profile groups).</summary>
+    IReadOnlyList<ProfileOption> ReadUnitOptions(string? unitOptionsJson);
+
+    /// <summary>Reads an army's <c>relations</c> array.</summary>
+    IReadOnlyList<ArmyRelation> ReadRelations(string? relationsJson);
+
+    /// <summary>Reads an army's <c>reinforcements</c> value: the id of the army that provides them.</summary>
+    int? ReadReinforcements(string? reinforcementsJson);
+
+    /// <summary>Reads an army's <c>specops</c> object.</summary>
+    SpecopsCatalog ReadSpecops(string? specopsJson);
+
+    /// <summary>
+    /// Reads a whole army payload as the API sends it. Returns <c>null</c> when the text is not a JSON object.
+    /// </summary>
+    ArmyDefinition? ReadArmyPayload(string? armyPayloadJson);
 }
 
 /// <summary>
@@ -82,21 +100,7 @@ public sealed class ArmyJsonReader : IArmyJsonReader
             return UnitFilterIds.Empty;
         }
 
-        if (dto is null)
-        {
-            return UnitFilterIds.Empty;
-        }
-
-        return new UnitFilterIds
-        {
-            Categories = Ints(dto.Categories),
-            Types = Ints(dto.Types),
-            Chars = Ints(dto.Chars),
-            Skills = Ints(dto.Skills),
-            Equip = Ints(dto.Equip),
-            Weapons = Ints(dto.Weapons),
-            Ammunition = Ints(dto.Ammunition)
-        };
+        return MapUnitFilters(dto);
     }
 
     public ArmyFilterCatalog ReadArmyFilters(string? armyFiltersJson)
@@ -138,16 +142,7 @@ public sealed class ArmyJsonReader : IArmyJsonReader
             return [];
         }
 
-        var result = new List<int>();
-        foreach (var id in ids ?? [])
-        {
-            if (id.AsInvariantInt32() is int value)
-            {
-                result.Add(value);
-            }
-        }
-
-        return result;
+        return MapFactionIds(ids);
     }
 
     public FireteamChart ReadFireteamChart(string? fireteamChartJson)
@@ -167,6 +162,115 @@ public sealed class ArmyJsonReader : IArmyJsonReader
             return FireteamChart.Empty;
         }
 
+        return MapFireteamChart(dto);
+    }
+
+    public IReadOnlyList<ProfileOption> ReadUnitOptions(string? unitOptionsJson)
+    {
+        if (string.IsNullOrWhiteSpace(unitOptionsJson))
+        {
+            return [];
+        }
+
+        try
+        {
+            var dtos = JsonSerializer.Deserialize(unitOptionsJson, ArmyJsonContext.Default.ProfileOptions);
+            return MapOptions(dtos);
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+
+    public IReadOnlyList<ArmyRelation> ReadRelations(string? relationsJson)
+    {
+        if (string.IsNullOrWhiteSpace(relationsJson))
+        {
+            return [];
+        }
+
+        try
+        {
+            return MapRelations(JsonSerializer.Deserialize(relationsJson, ArmyJsonContext.Default.Relations));
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+
+    public int? ReadReinforcements(string? reinforcementsJson)
+    {
+        if (string.IsNullOrWhiteSpace(reinforcementsJson))
+        {
+            return null;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize(reinforcementsJson, ArmyJsonContext.Default.JsonScalar).AsInvariantInt32();
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    public SpecopsCatalog ReadSpecops(string? specopsJson)
+    {
+        if (string.IsNullOrWhiteSpace(specopsJson))
+        {
+            return SpecopsCatalog.Empty;
+        }
+
+        try
+        {
+            return MapSpecops(JsonSerializer.Deserialize(specopsJson, ArmyJsonContext.Default.Specops));
+        }
+        catch (JsonException)
+        {
+            return SpecopsCatalog.Empty;
+        }
+    }
+
+    public ArmyDefinition? ReadArmyPayload(string? armyPayloadJson)
+    {
+        if (string.IsNullOrWhiteSpace(armyPayloadJson))
+        {
+            return null;
+        }
+
+        ArmyPayloadDto? dto;
+        try
+        {
+            dto = JsonSerializer.Deserialize(armyPayloadJson, ArmyJsonContext.Default.ArmyPayload);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+
+        if (dto is null)
+        {
+            return null;
+        }
+
+        return new ArmyDefinition
+        {
+            Version = dto.Version.Text ?? string.Empty,
+            Units = dto.Units?.Select(unit => MapUnit(unit, unit.Id ?? 0)).ToList() ?? [],
+            Resume = dto.Resume?.Select(MapResume).ToList() ?? [],
+            ReinforcementsFactionId = dto.Reinforcements.AsInvariantInt32(),
+            Filters = MapArmyFilters(dto.Filters),
+            Relations = MapRelations(dto.Relations),
+            Specops = MapSpecops(dto.Specops),
+            FireteamChart = MapFireteamChart(dto.FireteamChart)
+        };
+    }
+
+    internal static FireteamChart MapFireteamChart(FireteamChartDto? dto)
+    {
         if (dto is null)
         {
             return FireteamChart.Empty;
@@ -247,6 +351,11 @@ public sealed class ArmyJsonReader : IArmyJsonReader
             return UnitProfileGroups.Empty;
         }
 
+        return MapProfileGroups(dtos);
+    }
+
+    internal static UnitProfileGroups MapProfileGroups(List<ProfileGroupDto>? dtos)
+    {
         if (dtos is null || dtos.Count == 0)
         {
             return UnitProfileGroups.Empty;
@@ -264,6 +373,105 @@ public sealed class ArmyJsonReader : IArmyJsonReader
         return new UnitProfileGroups(groups);
     }
 
+    internal static UnitFilterIds MapUnitFilters(UnitFiltersDto? dto)
+    {
+        if (dto is null)
+        {
+            return UnitFilterIds.Empty;
+        }
+
+        return new UnitFilterIds
+        {
+            Categories = Ints(dto.Categories),
+            Types = Ints(dto.Types),
+            Chars = Ints(dto.Chars),
+            Skills = Ints(dto.Skills),
+            Equip = Ints(dto.Equip),
+            Weapons = Ints(dto.Weapons),
+            Ammunition = Ints(dto.Ammunition)
+        };
+    }
+
+    internal static IReadOnlyList<int> MapFactionIds(List<JsonScalar>? ids)
+    {
+        var result = new List<int>();
+        foreach (var id in ids ?? [])
+        {
+            if (id.AsInvariantInt32() is int value)
+            {
+                result.Add(value);
+            }
+        }
+
+        return result;
+    }
+
+    internal static IReadOnlyList<ProfileOption> MapOptions(List<ProfileOptionDto>? dtos) =>
+        dtos?.Where(dto => dto is not null).Select(MapOption).ToList() ?? [];
+
+    internal static IReadOnlyList<ArmyRelation> MapRelations(List<ArmyRelationDto>? dtos) =>
+        dtos?.Where(dto => dto is not null).Select(dto => new ArmyRelation(
+            dto.Min.AsInvariantInt32(),
+            dto.Max.AsInvariantInt32(),
+            dto.Group.AsBool(),
+            dto.Units?.Where(unit => unit?.Unit is not null).Select(unit => unit.Unit!.Value).ToList() ?? [])).ToList() ?? [];
+
+    internal static SpecopsCatalog MapSpecops(SpecopsDto? dto)
+    {
+        if (dto is null)
+        {
+            return SpecopsCatalog.Empty;
+        }
+
+        return new SpecopsCatalog
+        {
+            Skills = MapChoices(dto.Skills),
+            Equip = MapChoices(dto.Equip),
+            Weapons = MapChoices(dto.Weapons),
+            // A spec-ops unit without an id cannot be stored or looked up.
+            Units = dto.Units?.Where(unit => unit?.Id is not null).Select(unit => MapUnit(unit, unit.Id!.Value)).ToList() ?? []
+        };
+    }
+
+    private static IReadOnlyList<SpecopsChoice>? MapChoices(List<SpecopsChoiceDto>? dtos) =>
+        dtos?.Where(dto => dto?.Id is not null).Select(dto => new SpecopsChoice(
+            dto.Id!.Value,
+            dto.Exp.AsInvariantInt32() ?? 0,
+            dto.Extras ?? [],
+            MapLinks(dto.Skills),
+            MapLinks(dto.Equip),
+            MapLinks(dto.Weapons))).ToList();
+
+    private static IReadOnlyList<SpecopsLink> MapLinks(List<SpecopsLinkDto>? dtos) =>
+        dtos?.Select(link => new SpecopsLink(link.Id, link.Extras)).ToList() ?? [];
+
+    private static ArmyUnitDefinition MapUnit(ArmyUnitDto dto, int id) => new()
+    {
+        Id = id,
+        IdArmy = dto.IdArmy.AsInvariantInt32(),
+        Canonical = dto.Canonical.AsInvariantInt32(),
+        Isc = dto.Isc,
+        IscAbbr = dto.IscAbbr,
+        Name = dto.Name ?? string.Empty,
+        Slug = dto.Slug,
+        ProfileGroups = MapProfileGroups(dto.ProfileGroups),
+        Options = MapOptions(dto.Options),
+        Filters = MapUnitFilters(dto.Filters),
+        FactionIds = MapFactionIds(dto.Factions)
+    };
+
+    private static ArmyImportResume MapResume(ArmyResumeDto dto) => new()
+    {
+        Id = dto.Id ?? 0,
+        Isc = dto.Isc,
+        IdArmy = dto.IdArmy.AsInvariantInt32(),
+        Name = dto.Name ?? string.Empty,
+        Slug = dto.Slug,
+        Logo = dto.Logo,
+        Type = dto.Type.AsInvariantInt32(),
+        Category = dto.Category.AsInvariantInt32()
+    };
+
     private static ArmyFilterCatalog ParseArmyFilters(string json)
     {
         Dictionary<string, ArmyFilterSectionDto>? dto;
@@ -276,30 +484,55 @@ public sealed class ArmyJsonReader : IArmyJsonReader
             return ArmyFilterCatalog.Empty;
         }
 
+        return MapArmyFilters(dto);
+    }
+
+    internal static ArmyFilterCatalog MapArmyFilters(Dictionary<string, ArmyFilterSectionDto>? dto)
+    {
         if (dto is null)
         {
             return ArmyFilterCatalog.Empty;
         }
 
         var sections = new Dictionary<string, IReadOnlyList<ArmyFilterItem>>(StringComparer.Ordinal);
+        var keyedSections = new Dictionary<string, IReadOnlyList<ArmyFilterKeyedItem>>(StringComparer.Ordinal);
         foreach (var (sectionName, section) in dto)
         {
             var items = new List<ArmyFilterItem>();
+            var keyedItems = new List<ArmyFilterKeyedItem>();
             foreach (var item in section?.Items ?? [])
             {
-                // Filter ids are numbers or numeric strings; an item without one cannot be looked up.
+                // Lookups need numeric ids (numbers or numeric strings); other ids ("cc", "0.5") are kept as keyed items.
                 if (item.Id.AsInt32() is not int id)
                 {
+                    if (!string.IsNullOrEmpty(item.Id.Text))
+                    {
+                        keyedItems.Add(new ArmyFilterKeyedItem(
+                            item.Id.Text,
+                            item.Name,
+                            item.Abbr,
+                            item.Min.AsInvariantInt32(),
+                            item.Max.AsInvariantInt32()));
+                    }
+
                     continue;
                 }
 
-                items.Add(new ArmyFilterItem(id, item.Name, item.Type, FirstHttpLink(item)));
+                items.Add(new ArmyFilterItem(id, item.Name, item.Type, FirstHttpLink(item))
+                {
+                    Mercs = item.Mercs.AsBool() == true,
+                    SpecOps = item.SpecOps.AsBool() == true
+                });
             }
 
             sections[sectionName] = items;
+            if (keyedItems.Count > 0)
+            {
+                keyedSections[sectionName] = keyedItems;
+            }
         }
 
-        return new ArmyFilterCatalog(sections);
+        return new ArmyFilterCatalog(sections, keyedSections);
     }
 
     private static ProfileGroup MapGroup(ProfileGroupDto dto) => new()

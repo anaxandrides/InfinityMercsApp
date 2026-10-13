@@ -29,7 +29,20 @@ public sealed record ExtraDefinition(string Name, string Type, string? Url)
 /// <summary>
 /// One item of an army filter section.
 /// </summary>
-public sealed record ArmyFilterItem(int Id, string? Name, string? Type, string? Url);
+public sealed record ArmyFilterItem(int Id, string? Name, string? Type, string? Url)
+{
+    /// <summary>The item is flagged for MERCS (<c>"mercs": true</c>).</summary>
+    public bool Mercs { get; init; }
+
+    /// <summary>The item is flagged as a spec-ops choice (<c>"specops": true</c>).</summary>
+    public bool SpecOps { get; init; }
+}
+
+/// <summary>
+/// A filter item whose id is text rather than a number, e.g. the <c>attrs</c> section's
+/// <c>{"id":"cc","name":"CC","abbr":"CC","min":0,"max":30}</c> or a fractional <c>swc</c> id such as "0.5".
+/// </summary>
+public sealed record ArmyFilterKeyedItem(string Key, string? Name, string? Abbr, int? Min, int? Max);
 
 /// <summary>
 /// An army's <c>filters</c> payload: for every section, the items with their names, types and wiki links.
@@ -38,20 +51,39 @@ public sealed class ArmyFilterCatalog
 {
     private static readonly IReadOnlyDictionary<int, string> EmptyLookup = new Dictionary<int, string>();
 
+    private static readonly IReadOnlyDictionary<string, IReadOnlyList<ArmyFilterKeyedItem>> NoKeyedSections =
+        new Dictionary<string, IReadOnlyList<ArmyFilterKeyedItem>>();
+
     private readonly IReadOnlyDictionary<string, IReadOnlyList<ArmyFilterItem>> _sections;
+    private readonly IReadOnlyDictionary<string, IReadOnlyList<ArmyFilterKeyedItem>> _keyedSections;
     private readonly Dictionary<string, IReadOnlyDictionary<int, string>> _nameLookups = new(StringComparer.Ordinal);
     private readonly Dictionary<string, IReadOnlyDictionary<int, string>> _linkLookups = new(StringComparer.Ordinal);
     private IReadOnlyDictionary<int, ExtraDefinition>? _extras;
 
     public static ArmyFilterCatalog Empty { get; } = new(new Dictionary<string, IReadOnlyList<ArmyFilterItem>>());
 
-    public ArmyFilterCatalog(IReadOnlyDictionary<string, IReadOnlyList<ArmyFilterItem>> sections)
+    public ArmyFilterCatalog(
+        IReadOnlyDictionary<string, IReadOnlyList<ArmyFilterItem>> sections,
+        IReadOnlyDictionary<string, IReadOnlyList<ArmyFilterKeyedItem>>? keyedSections = null)
     {
         _sections = sections;
+        _keyedSections = keyedSections ?? NoKeyedSections;
     }
+
+    /// <summary>Every section of the catalogue, in payload order.</summary>
+    public IEnumerable<string> Sections => _sections.Keys;
+
+    /// <summary>
+    /// The sections that also hold text-id items (see <see cref="ArmyFilterKeyedItem"/>); every one of them is
+    /// also listed in <see cref="Sections"/>.
+    /// </summary>
+    public IEnumerable<string> KeyedSections => _keyedSections.Keys;
 
     public IReadOnlyList<ArmyFilterItem> Items(string section) =>
         _sections.TryGetValue(section, out var items) ? items : [];
+
+    public IReadOnlyList<ArmyFilterKeyedItem> KeyedItems(string section) =>
+        _keyedSections.TryGetValue(section, out var items) ? items : [];
 
     /// <summary>
     /// Id → name for a section (e.g. <see cref="ArmyFilterSection.Skills"/>). Items without a name are skipped;
