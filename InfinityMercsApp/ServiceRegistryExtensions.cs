@@ -14,6 +14,7 @@ public static class ServiceRegistryExtensions
     {
         services.AddTransient<SplashPageViewModel>()
                 .AddTransient<SettingsViewModel>()
+                .AddTransient<ArmoryViewModel>()
                 .AddTransient<ViewerViewModel>()
                 .AddTransient<CreateNewCompanyPageViewModel>()
                 .AddTransient<StandardCompanySourcePopupPageViewModel>()

@@ -1,55 +1,40 @@
-using InfinityMercsApp.Domain.Models.Metadata;
-using InfinityMercsApp.Infrastructure.Providers;
+using System.ComponentModel;
+using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views.Adaptive;
-using System.Collections.ObjectModel;
 
 namespace InfinityMercsApp.Views;
 
+/// <summary>
+/// Weapon reference. <see cref="ArmoryViewModel"/> holds the list and selection; the code-behind only
+/// switches between the side-by-side panes and, on phones, showing the list or the detail.
+/// </summary>
 public partial class ArmoryPage : AdaptiveContentPage
 {
-    private readonly IMetadataProvider? _metadataProvider;
-    private readonly ObservableCollection<WeaponGroup> _weaponGroups = [];
-    private WeaponGroup? _selectedWeaponGroup;
-    private bool _showDetail;
+    private readonly ArmoryViewModel _viewModel;
 
-    public ObservableCollection<WeaponGroup> WeaponGroups => _weaponGroups;
-
-    public WeaponGroup? SelectedWeaponGroup
+    public ArmoryPage(ArmoryViewModel viewModel)
     {
-        get => _selectedWeaponGroup;
-        set
-        {
-            if (_selectedWeaponGroup == value)
-            {
-                return;
-            }
-
-            _selectedWeaponGroup = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(SelectedWeaponName));
-            OnPropertyChanged(nameof(HasSelectedWeapon));
-            OnPropertyChanged(nameof(NoWeaponSelected));
-
-            // In compact mode, choosing a weapon reveals the detail pane over the list.
-            _showDetail = _selectedWeaponGroup is not null;
-            ApplyLayout();
-        }
-    }
-
-    public string SelectedWeaponName => _selectedWeaponGroup?.Name ?? "Select a weapon";
-    public bool HasSelectedWeapon => _selectedWeaponGroup is not null;
-    public bool NoWeaponSelected => _selectedWeaponGroup is null;
-
-    public ArmoryPage(IMetadataProvider? metadataProvider = null)
-    {
-        _metadataProvider = metadataProvider;
         InitializeComponent();
-        BindingContext = this;
-        LoadWeapons(null);
+        BindingContext = _viewModel = viewModel;
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         ApplyLayout();
     }
 
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        await InitializeViewModelAsync();
+    }
+
     protected override void OnLayoutModeChanged(AdaptiveLayoutMode mode) => ApplyLayout();
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ArmoryViewModel.IsShowingDetail))
+        {
+            ApplyLayout();
+        }
+    }
 
     private void ApplyLayout()
     {
@@ -59,8 +44,8 @@ public partial class ArmoryPage : AdaptiveContentPage
             RootGrid.ColumnSpacing = 0;
             Grid.SetColumn(ListPane, 0);
             Grid.SetColumn(DetailPane, 0);
-            ListPane.IsVisible = !_showDetail;
-            DetailPane.IsVisible = _showDetail;
+            ListPane.IsVisible = !_viewModel.IsShowingDetail;
+            DetailPane.IsVisible = _viewModel.IsShowingDetail;
             DetailBackButton.IsVisible = true;
         }
         else
@@ -89,50 +74,5 @@ public partial class ArmoryPage : AdaptiveContentPage
         // via MaximumWidthRequest; centering can collapse a stack whose children have no fixed width.
         DetailWeaponList.HorizontalOptions = LayoutOptions.Fill;
         DetailWeaponList.MaximumWidthRequest = IsWide ? 820d : double.PositiveInfinity;
-    }
-
-    private void OnDetailBackClicked(object? sender, EventArgs e)
-    {
-        _showDetail = false;
-        ApplyLayout();
-    }
-
-    private void OnWeaponSearchTextChanged(object? sender, TextChangedEventArgs e)
-    {
-        LoadWeapons(e.NewTextValue);
-    }
-
-    private void LoadWeapons(string? searchTerm)
-    {
-        if (_metadataProvider is null)
-        {
-            return;
-        }
-
-        var weapons = string.IsNullOrWhiteSpace(searchTerm)
-            ? _metadataProvider.GetAllWeapons()
-            : _metadataProvider.SearchWeaponsByName(searchTerm);
-
-        var groups = weapons
-            .GroupBy(w => w.Name.Trim(), StringComparer.OrdinalIgnoreCase)
-            .Select(g => new WeaponGroup
-            {
-                Name = g.Key,
-                Modes = g.OrderBy(w => w.Mode ?? string.Empty).ToList()
-            })
-            .OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        _weaponGroups.Clear();
-        foreach (var group in groups)
-        {
-            _weaponGroups.Add(group);
-        }
-    }
-
-    public sealed class WeaponGroup
-    {
-        public required string Name { get; init; }
-        public required IReadOnlyList<Weapon> Modes { get; init; }
     }
 }

@@ -3,9 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
              xmlns:domain="clr-namespace:InfinityMercsApp.Domain.Models.Metadata;assembly=InfinityMercsApp.Domain"
              x:Class="InfinityMercsApp.Views.ArmoryPage"
-             x:Name="ArmoryRoot"
+             x:DataType="viewModels:ArmoryViewModel"
              Title="Armory">
 
     <Grid x:Name="RootGrid" Padding="16" ColumnDefinitions="*" ColumnSpacing="16">
@@ -20,14 +21,14 @@
                        FontAttributes="Bold" />
                 <Entry Grid.Row="1"
                        Placeholder="Search weapons..."
-                       TextChanged="OnWeaponSearchTextChanged" />
+                       Text="{Binding SearchText}" />
                 <CollectionView Grid.Row="2"
                                 VerticalOptions="FillAndExpand"
-                                ItemsSource="{Binding Source={x:Reference ArmoryRoot}, Path=WeaponGroups}"
+                                ItemsSource="{Binding WeaponGroups}"
                                 SelectionMode="Single"
-                                SelectedItem="{Binding Source={x:Reference ArmoryRoot}, Path=SelectedWeaponGroup, Mode=TwoWay}">
+                                SelectedItem="{Binding SelectedWeaponGroup, Mode=TwoWay}">
                     <CollectionView.ItemTemplate>
-                        <DataTemplate>
+                        <DataTemplate x:DataType="viewModels:WeaponGroup">
                             <Grid Padding="6,4">
                                 <Label Text="{Binding Name}"
                                        FontSize="{DynamicResource FontSizeBody}"
@@ -53,9 +54,9 @@
                         TextColor="{StaticResource Signal}"
                         FontAttributes="Bold"
                         Padding="0"
-                        Clicked="OnDetailBackClicked" />
+                        Command="{Binding CloseDetailCommand}" />
                 <Label Grid.Row="1"
-                       Text="{Binding Source={x:Reference ArmoryRoot}, Path=SelectedWeaponName}"
+                       Text="{Binding SelectedWeaponName}"
                        FontSize="{DynamicResource FontSizeSubHeadline}"
                        FontAttributes="Bold" />
                 <Grid Grid.Row="2">
@@ -63,12 +64,12 @@
                            HorizontalTextAlignment="Center"
                            VerticalTextAlignment="Center"
                            TextColor="{StaticResource TextMuted}"
-                           IsVisible="{Binding Source={x:Reference ArmoryRoot}, Path=NoWeaponSelected}" />
+                           IsVisible="{Binding NoWeaponSelected}" />
                     <ScrollView VerticalOptions="Fill"
-                                IsVisible="{Binding Source={x:Reference ArmoryRoot}, Path=HasSelectedWeapon}">
+                                IsVisible="{Binding HasSelectedWeapon}">
                         <VerticalStackLayout x:Name="DetailWeaponList"
                                              Spacing="8"
-                                             BindableLayout.ItemsSource="{Binding Source={x:Reference ArmoryRoot}, Path=SelectedWeaponGroup.Modes}">
+                                             BindableLayout.ItemsSource="{Binding SelectedWeaponGroup.Modes}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="domain:Weapon">
                                     <controls:WeaponDetailCardView Weapon="{Binding}" />
