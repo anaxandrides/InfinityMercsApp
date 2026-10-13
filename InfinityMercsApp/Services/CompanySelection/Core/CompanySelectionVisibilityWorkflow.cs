@@ -20,11 +20,11 @@ internal static class CompanySelectionVisibilityWorkflow
         return ComputePointsRemaining(state.SelectedStartSeasonPoints, state.SeasonPointsCapText);
     }
 
-    internal static async Task<CompanyUnitVisibilityLookupContext> BuildUnitVisibilityLookupContextAsync<TFaction>(
+    internal static CompanyUnitVisibilityLookupContext BuildUnitVisibilityLookupContext<TFaction>(
         IEnumerable<TFaction> factions,
         Func<TFaction, int> readFactionId,
         Func<int, CancellationToken, ArmyFactionRecord?> getFactionSnapshot,
-        Func<int, CancellationToken, Task<IReadOnlyList<ArmySpecopsUnitRecord>>> getSpecopsUnitsByFactionAsync,
+        Func<int, CancellationToken, IReadOnlyList<ArmySpecopsUnitRecord>> getSpecopsUnitsByFaction,
         CancellationToken cancellationToken)
     {
         var context = new CompanyUnitVisibilityLookupContext();
@@ -39,7 +39,7 @@ internal static class CompanySelectionVisibilityWorkflow
             context.WeaponsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "weapons");
             context.AmmoByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "ammunition");
 
-            var specopsUnits = await getSpecopsUnitsByFactionAsync(factionId, cancellationToken);
+            var specopsUnits = getSpecopsUnitsByFaction(factionId, cancellationToken);
             context.SpecopsByFactionId[factionId] = specopsUnits
                 .GroupBy(x => x.UnitId)
                 .ToDictionary(x => x.Key, x => x.First());

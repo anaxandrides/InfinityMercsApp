@@ -13,7 +13,7 @@ internal static class CompanySelectionUnitLoadWorkflow
         IReadOnlyCollection<TFaction> factions,
         Func<TFaction, int> readFactionId,
         Func<int, CancellationToken, IReadOnlyList<ArmyResumeRecord>> getResumeByFaction,
-        Func<int, CancellationToken, Task<IReadOnlyList<ArmySpecopsUnitRecord>>> getSpecopsByFactionAsync,
+        Func<int, CancellationToken, IReadOnlyList<ArmySpecopsUnitRecord>> getSpecopsByFaction,
         Func<int, CancellationToken, ArmyFactionRecord?> getFactionSnapshot,
         Func<int, IReadOnlyList<ArmyResumeRecord>, CancellationToken, Task> cacheUnitLogosAsync,
         Func<int, ArmyResumeRecord, IReadOnlyDictionary<int, string>, IReadOnlyDictionary<int, string>, ArmyUnitSelectionItem> createResumeUnit,
@@ -30,7 +30,7 @@ internal static class CompanySelectionUnitLoadWorkflow
             var resumeByUnitId = units
                 .GroupBy(x => x.UnitId)
                 .ToDictionary(x => x.Key, x => x.First());
-            var specopsUnits = await getSpecopsByFactionAsync(factionId, cancellationToken);
+            var specopsUnits = getSpecopsByFaction(factionId, cancellationToken);
             var snapshot = getFactionSnapshot(factionId, cancellationToken);
             var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "type");
             var categoryLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "category");

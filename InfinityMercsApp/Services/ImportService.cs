@@ -55,7 +55,7 @@ internal class ImportService(
             yield break;
         }
 
-        await armyImportProvider.ImportAsync(factionId, latestArmy);
+        armyImportProvider.Import(factionId, latestArmy);
         yield return new(true, $"Faction {factionId} updated to version {latestVersion}.");
     }
 
@@ -119,7 +119,7 @@ internal class ImportService(
                     continue;
                 }
 
-                await armyImportProvider.ImportAsync(factionId, latestArmy);
+                armyImportProvider.Import(factionId, latestArmy);
                 updatedCount++;
             }
             catch (Exception ex)
@@ -219,7 +219,7 @@ internal class ImportService(
             }
 
             yield return new(true, $"Importing faction {result.Faction.Name}...");
-            var imported = await TryImportFactionSerialAsync(result.Faction, latestArmy);
+            var imported = TryImportFaction(result.Faction, latestArmy);
             if (imported)
             {
                 updatedCount++;
@@ -233,7 +233,7 @@ internal class ImportService(
         yield return new(true, "Generating synthetic company factions...");
         try
         {
-            await airborneCompanyFactionGenerator.GenerateAsync();
+            airborneCompanyFactionGenerator.Generate();
         }
         catch (Exception ex)
         {
@@ -242,7 +242,7 @@ internal class ImportService(
 
         try
         {
-            await inspiringCompanyFactionGenerator.GenerateAsync();
+            inspiringCompanyFactionGenerator.Generate();
         }
         catch (Exception ex)
         {
@@ -251,7 +251,7 @@ internal class ImportService(
 
         try
         {
-            await tagCompanyFactionGenerator.GenerateAsync();
+            tagCompanyFactionGenerator.Generate();
         }
         catch (Exception ex)
         {
@@ -337,11 +337,11 @@ internal class ImportService(
         }
     }
 
-    private async Task<bool> TryImportFactionSerialAsync(FactionTarget faction, DomainArmyImportFaction latestArmy)
+    private bool TryImportFaction(FactionTarget faction, DomainArmyImportFaction latestArmy)
     {
         try
         {
-            await armyImportProvider.ImportAsync(faction.Id, latestArmy);
+            armyImportProvider.Import(faction.Id, latestArmy);
             return true;
         }
         catch (Exception ex)

@@ -10,5 +10,5 @@ public interface IInspiringCompanyFactionGenerator
     /// Generates or regenerates the synthetic Inspiring Company faction from all stored faction data.
     /// Skips the write if the generated content matches the previously stored version.
     /// </summary>
-    Task GenerateAsync(CancellationToken cancellationToken = default);
+    void Generate(CancellationToken cancellationToken = default);
 }

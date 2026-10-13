@@ -15,7 +15,7 @@ public sealed class InspiringCompanyFactionGenerator(
     private const string LogTag = "InspiringGen";
 
     /// <inheritdoc/>
-    public async Task GenerateAsync(CancellationToken cancellationToken = default)
+    public void Generate(CancellationToken cancellationToken = default)
     {
         Console.WriteLine($"[{LogTag}] GenerateAsync started.");
 
@@ -46,7 +46,7 @@ public sealed class InspiringCompanyFactionGenerator(
         }
 
         Console.WriteLine($"[{LogTag}] Importing faction {InspiringCompanyFactionId} (version {army.Version}, previous: {existing?.Version ?? "none"})...");
-        await armyImportProvider.ImportAsync(InspiringCompanyFactionId, army, cancellationToken);
+        armyImportProvider.Import(InspiringCompanyFactionId, army, cancellationToken);
         InsertMetadataFactionEntry();
 
         Console.WriteLine($"[{LogTag}] Successfully generated synthetic faction with {army.Units.Count} units (version {army.Version}).");

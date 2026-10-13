@@ -67,13 +67,13 @@ internal static class CompanySelectionUnitFilterOptionsService
         return ClonePopupOptionsForCurrentPoints(preparedOptions, maxPoints);
     }
 
-    internal static async Task<UnitFilterPopupOptions> BuildUnitFilterPopupOptionsAsync<TFaction>(
+    internal static UnitFilterPopupOptions BuildUnitFilterPopupOptions<TFaction>(
         bool showRightSelectionBox,
         TFaction? leftSlotFaction,
         TFaction? rightSlotFaction,
         Func<TFaction, int> readFactionId,
         Func<int, CancellationToken, ArmyFilterCatalog?> getFiltersByFactionId,
-        Func<IReadOnlyCollection<int>, CancellationToken, Task<IReadOnlyList<MercsArmyListEntry>>> getMergedMercsArmyListAsync,
+        Func<IReadOnlyCollection<int>, CancellationToken, IReadOnlyList<MercsArmyListEntry>> getMergedMercsArmyList,
         int maxPoints,
         Action<UnitFilterPopupOptions> setPreparedOptions,
         Action<string>? log = null,
@@ -120,7 +120,7 @@ internal static class CompanySelectionUnitFilterOptionsService
             CompanySelectionSharedUtilities.MergeLookup(ammoLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, "ammunition"));
         }
 
-        var mergedMercsList = await getMergedMercsArmyListAsync(sourceFactionIds, cancellationToken);
+        var mergedMercsList = getMergedMercsArmyList(sourceFactionIds, cancellationToken);
         foreach (var entry in mergedMercsList)
         {
             cancellationToken.ThrowIfCancellationRequested();

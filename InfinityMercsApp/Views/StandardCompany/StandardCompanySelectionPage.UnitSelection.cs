@@ -62,7 +62,7 @@ public partial class StandardCompanySelectionPage
             value => TeamsView = value);
         SetIsUnitFilterActive(_filterState.ActiveUnitFilter.IsActive);
         CloseUnitFilterPopup(sender as UnitFilterPopupView);
-        _ = ApplyUnitVisibilityFiltersAsync();
+        ApplyUnitVisibilityFilters();
     }
 
     /// <summary>
@@ -112,15 +112,15 @@ public partial class StandardCompanySelectionPage
     /// <summary>
     /// Handles build unit filter popup options async.
     /// </summary>
-    private async Task<UnitFilterPopupOptions> BuildUnitFilterPopupOptionsAsync(CancellationToken cancellationToken = default)
+    private UnitFilterPopupOptions BuildUnitFilterPopupOptions(CancellationToken cancellationToken = default)
     {
-        return await CompanySelectionUnitFilterWorkflow.BuildUnitFilterPopupOptionsAsync(
+        return CompanySelectionUnitFilterWorkflow.BuildUnitFilterPopupOptions(
             ShowRightSelectionBox,
             _factionSelectionState.LeftSlotFaction,
             _factionSelectionState.RightSlotFaction,
             faction => faction.Id,
             (factionId, ct) => _armyDataService.GetFactionSnapshot(factionId, ct)?.Filters,
-            (factionIds, ct) => _armyDataService.GetMergedMercsArmyListAsync(factionIds, ct),
+            (factionIds, ct) => _armyDataService.GetMergedMercsArmyList(factionIds, ct),
             ResolveFilterPopupMaxPoints(),
             value => _filterState.PreparedUnitFilterPopupOptions = value,
             message => Console.WriteLine(message),
@@ -159,7 +159,7 @@ public partial class StandardCompanySelectionPage
                 factions,
                 faction => faction.Id,
                 getResumesByFaction,
-                _specOpsProvider.GetSpecopsUnitsByFactionAsync,
+                _specOpsProvider.GetSpecopsUnitsByFaction,
                 _armyDataService.GetFactionSnapshot,
                 async (factionId, units, ct) =>
                 {
@@ -235,14 +235,14 @@ public partial class StandardCompanySelectionPage
                     AllowedProfiles = allowedProfiles
                 });
 
-            await ApplyUnitVisibilityFiltersAsync(cancellationToken);
+            ApplyUnitVisibilityFilters(cancellationToken);
             var visibleCount = Units.Count(x => x.IsVisible);
             var preview = string.Join(", ", Units.Take(3).Select(unit => $"{unit.Name}:{unit.IsVisible}"));
             Console.WriteLine(
                 $"[StandardCompanySelectionPage] Post-filter units: total={Units.Count}, visible={visibleCount}, " +
                 $"ShowUnitsList={ShowUnitsList}, preview=[{preview}]");
             TryAutoSelectFirstVisibleUnitAfterFactionLoad();
-            await BuildUnitFilterPopupOptionsAsync(cancellationToken);
+            BuildUnitFilterPopupOptions(cancellationToken);
         }
         catch (Exception ex)
         {

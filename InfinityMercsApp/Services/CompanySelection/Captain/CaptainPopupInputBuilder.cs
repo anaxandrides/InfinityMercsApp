@@ -70,7 +70,7 @@ internal static class CaptainPopupInputBuilder
                 : "Faction";
     }
 
-    internal static async Task<CaptainUpgradeOptionSet> LoadUpgradeOptionsAsync(
+    internal static CaptainUpgradeOptionSet LoadUpgradeOptions(
         IArmyDataService armyDataService,
         ISpecOpsProvider specOpsProvider,
         int factionId,
@@ -91,9 +91,9 @@ internal static class CaptainPopupInputBuilder
             var weaponLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, "weapons");
             var extrasLookup = BuildExtrasLookup(filters);
 
-            var skillRecords = await specOpsProvider.GetSpecopsSkillsByFactionAsync(factionId, cancellationToken);
-            var equipRecords = await specOpsProvider.GetSpecopsEquipsByFactionAsync(factionId, cancellationToken);
-            var weaponRecords = await specOpsProvider.GetSpecopsWeaponsByFactionAsync(factionId, cancellationToken);
+            var skillRecords = specOpsProvider.GetSpecopsSkillsByFaction(factionId, cancellationToken);
+            var equipRecords = specOpsProvider.GetSpecopsEquipsByFaction(factionId, cancellationToken);
+            var weaponRecords = specOpsProvider.GetSpecopsWeaponsByFaction(factionId, cancellationToken);
 
             var skills = skillRecords
                 .OrderBy(x => x.EntryOrder)
@@ -122,7 +122,7 @@ internal static class CaptainPopupInputBuilder
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"CaptainPopupInputBuilder LoadUpgradeOptionsAsync failed for faction {factionId}: {ex.Message}");
+            Console.Error.WriteLine($"CaptainPopupInputBuilder LoadUpgradeOptions failed for faction {factionId}: {ex.Message}");
             return CaptainUpgradeOptionSet.Empty;
         }
     }

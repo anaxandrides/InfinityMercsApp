@@ -16,18 +16,18 @@ namespace InfinityMercsApp.Views.CohesiveCompany;
 /// </summary>
 public partial class CohesiveCompanySelectionPage
 {
-    private async Task LoadSelectedUnitDetailsAsync(CancellationToken cancellationToken = default)
+    private void LoadSelectedUnitDetails(CancellationToken cancellationToken = default)
     {
         ResetUnitDetails(clearLogo: false, resetHeaderColors: false);
         if (_selectedUnit is null)
         {
-            Console.Error.WriteLine("CompanySelectionPage LoadSelectedUnitDetailsAsync aborted: selected unit or accessor missing.");
+            Console.Error.WriteLine("CompanySelectionPage LoadSelectedUnitDetails aborted: selected unit or accessor missing.");
             return;
         }
 
         try
         {
-            await CompanyUnitDetailsWorkflowService.LoadAsync(
+            CompanyUnitDetailsWorkflowService.Load(
                 new CompanyUnitDetailsWorkflowRequest
                 {
                     UnitName = _selectedUnit.Name,
@@ -38,9 +38,9 @@ public partial class CohesiveCompanySelectionPage
                     ShowUnitsInInches = ShowUnitsInInches,
                     GetUnit = GetUnitFromProvider,
                     GetFactionSnapshot = GetFactionSnapshotFromProvider,
-                    GetSpecopsUnitsByFactionAsync = (factionId, token) => _specOpsProvider.GetSpecopsUnitsByFactionAsync(factionId, token),
-                    ApplyUnitHeaderColorsAsync = ApplyUnitHeaderColorsAsync,
-                    ApplyGlobalDisplayUnitsPreferenceAsync = token => CompanyUnitDetailsShared.ApplyGlobalDisplayUnitsPreferenceAsync(
+                    GetSpecopsUnitsByFaction = (factionId, token) => _specOpsProvider.GetSpecopsUnitsByFaction(factionId, token),
+                    ApplyUnitHeaderColors = ApplyUnitHeaderColors,
+                    ApplyGlobalDisplayUnitsPreference = token => CompanyUnitDetailsShared.ApplyGlobalDisplayUnitsPreference(
                         () => GetShowUnitsInInchesFromProvider(token),
                         ShowUnitsInInches,
                         value => ShowUnitsInInches = value,
@@ -85,11 +85,11 @@ public partial class CohesiveCompanySelectionPage
                     LogError = Console.Error.WriteLine
                 },
                 cancellationToken);
-            Console.WriteLine($"CompanySelectionPage LoadSelectedUnitDetailsAsync completed: heading='{UnitNameHeading}', MOV='{UnitMov}', equipment='{EquipmentSummary}'.");
+            Console.WriteLine($"CompanySelectionPage LoadSelectedUnitDetails completed: heading='{UnitNameHeading}', MOV='{UnitMov}', equipment='{EquipmentSummary}'.");
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"CompanySelectionPage LoadSelectedUnitDetailsAsync failed: {ex}");
+            Console.Error.WriteLine($"CompanySelectionPage LoadSelectedUnitDetails failed: {ex}");
         }
     }
 

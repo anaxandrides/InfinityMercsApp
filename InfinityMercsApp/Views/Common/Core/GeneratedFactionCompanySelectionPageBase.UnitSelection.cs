@@ -54,7 +54,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
         TeamsView = false;
         SetIsUnitFilterActive(_filterState.ActiveUnitFilter.IsActive);
         CloseUnitFilterPopup(sender as UnitFilterPopupView);
-        _ = ApplyUnitVisibilityFiltersAsync();
+        ApplyUnitVisibilityFilters();
     }
 
     protected void OnUnitFilterPopupCloseRequested(object? sender, EventArgs e)
@@ -89,18 +89,18 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
             ApplyFilterButtonSize);
     }
 
-    protected async Task<UnitFilterPopupOptions> BuildUnitFilterPopupOptionsAsync(CancellationToken cancellationToken = default)
+    protected UnitFilterPopupOptions BuildUnitFilterPopupOptions(CancellationToken cancellationToken = default)
     {
         var activeSlotFaction = _activeSlotIndex == 0
             ? _factionSelectionState.LeftSlotFaction
             : _factionSelectionState.RightSlotFaction;
-        return await CompanySelectionUnitFilterWorkflow.BuildUnitFilterPopupOptionsAsync(
+        return CompanySelectionUnitFilterWorkflow.BuildUnitFilterPopupOptions(
             false,
             activeSlotFaction,
             null,
             faction => faction.Id,
             (factionId, ct) => ArmyDataService.GetFactionSnapshot(factionId, ct)?.Filters,
-            (factionIds, ct) => ArmyDataService.GetMergedMercsArmyListAsync(factionIds, ct),
+            (factionIds, ct) => ArmyDataService.GetMergedMercsArmyList(factionIds, ct),
             ResolveFilterPopupMaxPoints(),
             value => _filterState.PreparedUnitFilterPopupOptions = value,
             message => Console.WriteLine(message),
@@ -130,7 +130,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
                 factions,
                 faction => faction.Id,
                 ArmyDataService.GetResumeByFactionMercsOnly,
-                SpecOpsProvider.GetSpecopsUnitsByFactionAsync,
+                SpecOpsProvider.GetSpecopsUnitsByFaction,
                 ArmyDataService.GetFactionSnapshot,
                 async (factionId, units, ct) =>
                 {
@@ -223,8 +223,8 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
                     AllowedProfiles = allowedProfiles
                 });
 
-            await ApplyUnitVisibilityFiltersAsync(cancellationToken);
-            await BuildUnitFilterPopupOptionsAsync(cancellationToken);
+            ApplyUnitVisibilityFilters(cancellationToken);
+            BuildUnitFilterPopupOptions(cancellationToken);
         }
         catch (Exception ex)
         {

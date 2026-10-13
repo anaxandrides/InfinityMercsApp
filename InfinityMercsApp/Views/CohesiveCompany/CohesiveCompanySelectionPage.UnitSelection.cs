@@ -34,7 +34,7 @@ public partial class CohesiveCompanySelectionPage
             value => TeamsView = value);
         SetIsUnitFilterActive(_filterState.ActiveUnitFilter.IsActive);
         CloseUnitFilterPopup(sender as UnitFilterPopupView);
-        _ = ApplyUnitVisibilityFiltersAsync();
+        ApplyUnitVisibilityFilters();
     }
 
     private void OnUnitFilterPopupCloseRequested(object? sender, EventArgs e)
@@ -69,15 +69,15 @@ public partial class CohesiveCompanySelectionPage
             ApplyFilterButtonSize);
     }
 
-    private async Task<UnitFilterPopupOptions> BuildUnitFilterPopupOptionsAsync(CancellationToken cancellationToken = default)
+    private UnitFilterPopupOptions BuildUnitFilterPopupOptions(CancellationToken cancellationToken = default)
     {
-        return await CompanySelectionUnitFilterWorkflow.BuildUnitFilterPopupOptionsAsync(
+        return CompanySelectionUnitFilterWorkflow.BuildUnitFilterPopupOptions(
             ShowRightSelectionBox,
             _factionSelectionState.LeftSlotFaction,
             _factionSelectionState.RightSlotFaction,
             faction => faction.Id,
             (factionId, ct) => GetFactionSnapshotFromProvider(factionId, ct)?.Filters,
-            (factionIds, ct) => GetMergedMercsArmyListFromQueryAccessorAsync(factionIds, ct),
+            (factionIds, ct) => GetMergedMercsArmyListFromQueryAccessor(factionIds, ct),
             ResolveFilterPopupMaxPoints(),
             value => _filterState.PreparedUnitFilterPopupOptions = value,
             message => Console.WriteLine(message),

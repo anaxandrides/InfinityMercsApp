@@ -14,51 +14,51 @@ namespace InfinityMercsApp.Infrastructure.Providers;
 public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository, IArmyContentStore contentStore) : ISpecOpsProvider
 {
     /// <inheritdoc/>
-    public Task<IReadOnlyList<SpecopsSkill>> GetSpecopsSkillsByFactionAsync(int factionId, CancellationToken cancellationToken = default)
+    public IReadOnlyList<SpecopsSkill> GetSpecopsSkillsByFaction(int factionId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var records = sqliteRepository
             .GetAll<DbSpecopsSkill>(x => x.FactionId == factionId, x => x.EntryOrder)
             .Select(MapSkill)
             .ToList();
-        return Task.FromResult<IReadOnlyList<SpecopsSkill>>(records);
+        return records;
     }
 
     /// <inheritdoc/>
-    public Task<IReadOnlyList<SpecopsEquipment>> GetSpecopsEquipsByFactionAsync(int factionId, CancellationToken cancellationToken = default)
+    public IReadOnlyList<SpecopsEquipment> GetSpecopsEquipsByFaction(int factionId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var records = sqliteRepository
             .GetAll<DbSpecopsEquipment>(x => x.FactionId == factionId, x => x.EntryOrder)
             .Select(MapEquipment)
             .ToList();
-        return Task.FromResult<IReadOnlyList<SpecopsEquipment>>(records);
+        return records;
     }
 
     /// <inheritdoc/>
-    public Task<IReadOnlyList<SpecopsWeapon>> GetSpecopsWeaponsByFactionAsync(int factionId, CancellationToken cancellationToken = default)
+    public IReadOnlyList<SpecopsWeapon> GetSpecopsWeaponsByFaction(int factionId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var records = sqliteRepository
             .GetAll<DbSpecopsWeapon>(x => x.FactionId == factionId, x => x.EntryOrder)
             .Select(MapWeapon)
             .ToList();
-        return Task.FromResult<IReadOnlyList<SpecopsWeapon>>(records);
+        return records;
     }
 
     /// <inheritdoc/>
-    public Task<IReadOnlyList<SpecopsUnit>> GetSpecopsUnitsByFactionAsync(int factionId, CancellationToken cancellationToken = default)
+    public IReadOnlyList<SpecopsUnit> GetSpecopsUnitsByFaction(int factionId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var records = sqliteRepository
             .GetAll<DbSpecopsUnit>(x => x.FactionId == factionId, x => x.EntryOrder)
             .Select(MapUnit)
             .ToList();
-        return Task.FromResult<IReadOnlyList<SpecopsUnit>>(records);
+        return records;
     }
 
     /// <inheritdoc/>
-    public Task<IReadOnlyList<CCFactionFireteamValidityRecord>> GetCCFactionFireteamValidityAsync(
+    public IReadOnlyList<CCFactionFireteamValidityRecord> GetCCFactionFireteamValidity(
         string filterKey,
         IReadOnlyCollection<int> factionIds,
         CancellationToken cancellationToken = default)
@@ -66,7 +66,7 @@ public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository, IArmyCon
         cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(filterKey) || factionIds.Count == 0)
         {
-            return Task.FromResult<IReadOnlyList<CCFactionFireteamValidityRecord>>([]);
+            return [];
         }
 
         var rows = new List<CCFactionFireteamValidityRecord>();
@@ -81,11 +81,11 @@ public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository, IArmyCon
             }
         }
 
-        return Task.FromResult<IReadOnlyList<CCFactionFireteamValidityRecord>>(rows);
+        return rows;
     }
 
     /// <inheritdoc/>
-    public Task UpsertCCFactionFireteamValidityAsync(
+    public void UpsertCCFactionFireteamValidity(
         int factionId,
         string filterKey,
         bool hasValidCoreFireteams,
@@ -95,7 +95,6 @@ public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository, IArmyCon
         cancellationToken.ThrowIfCancellationRequested();
         if (factionId <= 0 || string.IsNullOrWhiteSpace(filterKey))
         {
-            return Task.CompletedTask;
         }
 
         var normalizedFilterKey = filterKey.Trim();
@@ -119,7 +118,6 @@ public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository, IArmyCon
             sqliteRepository.Insert([record]);
             sqliteRepository.Insert(names);
         });
-        return Task.CompletedTask;
     }
 
     private static string BuildCCFactionFireteamValidityCacheKey(int factionId, string filterKey)

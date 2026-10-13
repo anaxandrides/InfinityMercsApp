@@ -29,18 +29,18 @@ public abstract partial class CompanySelectionPageBase
     /// pre-fetching faction snapshots and spec-ops unit lists for all active factions.
     /// The context is reused across multiple visibility passes to avoid redundant data access.
     /// </summary>
-    protected static async Task<CompanyUnitVisibilityLookupContext> BuildUnitVisibilityLookupContextAsync<TFaction>(
+    protected static CompanyUnitVisibilityLookupContext BuildUnitVisibilityLookupContext<TFaction>(
         IEnumerable<TFaction> factions,
         Func<TFaction, int> readFactionId,
         Func<int, CancellationToken, ArmyFactionRecord?> getFactionSnapshot,
-        Func<int, CancellationToken, Task<IReadOnlyList<ArmySpecopsUnitRecord>>> getSpecopsUnitsByFactionAsync,
+        Func<int, CancellationToken, IReadOnlyList<ArmySpecopsUnitRecord>> getSpecopsUnitsByFaction,
         CancellationToken cancellationToken)
     {
-        return await CompanySelectionVisibilityWorkflow.BuildUnitVisibilityLookupContextAsync(
+        return CompanySelectionVisibilityWorkflow.BuildUnitVisibilityLookupContext(
             factions,
             readFactionId,
             getFactionSnapshot,
-            getSpecopsUnitsByFactionAsync,
+            getSpecopsUnitsByFaction,
             cancellationToken);
     }
 

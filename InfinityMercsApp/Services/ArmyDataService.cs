@@ -90,7 +90,7 @@ internal sealed class ArmyDataService(
         return CloneArmyUnit(factionProvider.GetUnit(factionId, unitId));
     }
 
-    public async Task<IReadOnlyList<MercsArmyListEntry>> GetMergedMercsArmyListAsync(
+    public IReadOnlyList<MercsArmyListEntry> GetMergedMercsArmyList(
         IReadOnlyCollection<int> factionIds,
         CancellationToken cancellationToken = default)
     {
@@ -99,7 +99,7 @@ internal sealed class ArmyDataService(
             return [];
         }
 
-        var queryResult = await cohesiveCompanyFactionQueryProvider.GetFilterQuerySourceAsync(factionIds, cancellationToken);
+        var queryResult = cohesiveCompanyFactionQueryProvider.GetFilterQuerySource(factionIds, cancellationToken);
         return queryResult.MergedMercsListEntries;
     }
 

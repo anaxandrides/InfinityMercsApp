@@ -16,7 +16,7 @@ public partial class CohesiveCompanySelectionPage
             var cacheFilterKey = BuildCCFactionValidityFilterKey(maxCost);
             var visibleFactions = new List<FactionRecord>();
             var factionIds = ordered.Select(x => x.Id).ToList();
-            var cachedRows = await _specOpsProvider.GetCCFactionFireteamValidityAsync(
+            var cachedRows = _specOpsProvider.GetCCFactionFireteamValidity(
                 cacheFilterKey,
                 factionIds,
                 cancellationToken);
@@ -33,7 +33,7 @@ public partial class CohesiveCompanySelectionPage
                 cancellationToken.ThrowIfCancellationRequested();
                 var validCoreFireteamNames = await EvaluateValidCoreFireteamsForFactionAsync(faction, maxCost, cancellationToken);
                 var hasValidCoreFireteams = validCoreFireteamNames.Count > 0;
-                await _specOpsProvider.UpsertCCFactionFireteamValidityAsync(
+                _specOpsProvider.UpsertCCFactionFireteamValidity(
                     faction.Id,
                     cacheFilterKey,
                     hasValidCoreFireteams,

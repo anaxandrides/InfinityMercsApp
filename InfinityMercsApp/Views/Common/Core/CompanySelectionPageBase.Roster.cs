@@ -234,23 +234,23 @@ public abstract partial class CompanySelectionPageBase
     /// unit list or falling back to a freshly fetched unit record when not found.
     /// Loads the full unit details for the resolved unit.
     /// </summary>
-    protected static async Task SelectMercsCompanyEntryAsyncCore<TEntry>(
+    protected static void SelectMercsCompanyEntryCore<TEntry>(
         TEntry? entry,
         IReadOnlyList<ArmyUnitSelectionItem> units,
         Func<int, int, CancellationToken, ArmyUnitRecord?> getUnitFromProvider,
         Func<int, int, string, string?, string?, ArmyUnitSelectionItem> createFallbackUnit,
         Action<ArmyUnitSelectionItem> setSelectedUnit,
-        Func<CancellationToken, Task> loadSelectedUnitDetailsAsync,
+        Action<CancellationToken> loadSelectedUnitDetails,
         CancellationToken cancellationToken = default)
         where TEntry : class, ICompanyMercsEntry
     {
-        await CompanySelectionRosterWorkflow.SelectMercsCompanyEntryAsync(
+        CompanySelectionRosterWorkflow.SelectMercsCompanyEntry(
             entry,
             units,
             getUnitFromProvider,
             createFallbackUnit,
             setSelectedUnit,
-            loadSelectedUnitDetailsAsync,
+            loadSelectedUnitDetails,
             cancellationToken);
     }
 }

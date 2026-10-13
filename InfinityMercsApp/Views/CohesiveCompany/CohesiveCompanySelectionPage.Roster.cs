@@ -15,12 +15,12 @@ public partial class CohesiveCompanySelectionPage
             _restrictSelectedUnitProfilesToFto,
             restrictProfilesToFto,
             value => _restrictSelectedUnitProfilesToFto = value,
-            onContextChangedForSameSelection: () => _ = LoadSelectedUnitDetailsAsync(),
+            onContextChangedForSameSelection: () => LoadSelectedUnitDetails(),
             loadSelectedUnitLogo: selectedItem => _ = LoadSelectedUnitLogoAsync(selectedItem),
             loadSelectedUnitDetails: selectedItem =>
             {
                 _selectedUnit = selectedItem;
-                _ = LoadSelectedUnitDetailsAsync();
+                LoadSelectedUnitDetails();
             });
     }
 
@@ -70,7 +70,7 @@ public partial class CohesiveCompanySelectionPage
                 ReevaluateTrackedFireteamLevel();
                 ApplyLieutenantVisualStates();
             },
-            () => _ = ApplyUnitVisibilityFiltersAsync());
+            () => ApplyUnitVisibilityFilters());
     }
 
     private static IReadOnlyList<string> EnsureCohesiveDefaultSkills(IReadOnlyCollection<string> selectedUnitCommonSkills, bool isLieutenant)
@@ -114,12 +114,12 @@ public partial class CohesiveCompanySelectionPage
                 ReevaluateTrackedFireteamLevel();
                 ApplyLieutenantVisualStates();
             },
-            () => _ = ApplyUnitVisibilityFiltersAsync());
+            () => ApplyUnitVisibilityFilters());
     }
 
-    private async Task SelectMercsCompanyEntryAsync(MercsCompanyEntry? entry, CancellationToken cancellationToken = default)
+    private void SelectMercsCompanyEntry(MercsCompanyEntry? entry, CancellationToken cancellationToken = default)
     {
-        await SelectMercsCompanyEntryAsyncCore(
+        SelectMercsCompanyEntryCore(
             entry,
             Units,
             GetUnitFromProvider,
@@ -134,7 +134,7 @@ public partial class CohesiveCompanySelectionPage
                 IsVisible = false
             },
             item => SetSelectedUnit(item),
-            LoadSelectedUnitDetailsAsync,
+            LoadSelectedUnitDetails,
             cancellationToken);
     }
 

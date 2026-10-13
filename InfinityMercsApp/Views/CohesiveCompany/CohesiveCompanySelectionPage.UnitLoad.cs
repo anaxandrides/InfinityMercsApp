@@ -32,7 +32,7 @@ public partial class CohesiveCompanySelectionPage
                 factions,
                 faction => faction.Id,
                 GetResumeByFactionMercsOnlyFromProvider,
-                _specOpsProvider.GetSpecopsUnitsByFactionAsync,
+                _specOpsProvider.GetSpecopsUnitsByFaction,
                 GetFactionSnapshotFromProvider,
                 async (factionId, units, ct) =>
                 {
@@ -118,8 +118,8 @@ public partial class CohesiveCompanySelectionPage
                     AllowedProfiles = allowedProfiles
                 });
 
-            await ApplyUnitVisibilityFiltersAsync(cancellationToken);
-            await BuildUnitFilterPopupOptionsAsync(cancellationToken);
+            ApplyUnitVisibilityFilters(cancellationToken);
+            BuildUnitFilterPopupOptions(cancellationToken);
             RestoreTrackedFireteamSelection(trackedFireteamNameToRestore);
             TryAutoSelectFirstVisibleUnitAfterFactionLoad();
             AreTeamEntriesReady = true;

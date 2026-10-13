@@ -139,7 +139,7 @@ internal static partial class CompanyUnitDetailsShared
         return CompanyUnitFilterService.MatchesClassificationFilter(activeUnitFilter, unitType, typeLookup);
     }
 
-    internal static Task ApplyGlobalDisplayUnitsPreferenceAsync(
+    internal static void ApplyGlobalDisplayUnitsPreference(
         Func<bool> getShowUnitsInInches,
         bool showUnitsInInches,
         Action<bool> setShowUnitsInInches,
@@ -153,7 +153,7 @@ internal static partial class CompanyUnitDetailsShared
             var showInches = getShowUnitsInInches();
             if (showUnitsInInches == showInches)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             setShowUnitsInInches(showInches);
@@ -163,9 +163,7 @@ internal static partial class CompanyUnitDetailsShared
         }
         catch (Exception ex)
         {
-            logError($"CompanySelectionPage ApplyGlobalDisplayUnitsPreferenceAsync failed: {ex.Message}");
+            logError($"CompanySelectionPage ApplyGlobalDisplayUnitsPreference failed: {ex.Message}");
         }
-
-        return Task.CompletedTask;
     }
 }

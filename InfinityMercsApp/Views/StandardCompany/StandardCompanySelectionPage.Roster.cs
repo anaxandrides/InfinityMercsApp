@@ -21,7 +21,7 @@ public partial class StandardCompanySelectionPage
             loadSelectedUnitDetails: selectedItem =>
             {
                 _selectedUnit = selectedItem;
-                _ = LoadSelectedUnitDetailsAsync();
+                LoadSelectedUnitDetails();
             });
     }
 
@@ -64,7 +64,7 @@ public partial class StandardCompanySelectionPage
             x => x.IsLieutenant,
             UpdateMercsCompanyTotal,
             ApplyLieutenantVisualStates,
-            () => _ = ApplyUnitVisibilityFiltersAsync());
+            () => ApplyUnitVisibilityFilters());
 
         if (!ShouldRunTagFinalizeWorkflow(profile, entry))
         {
@@ -109,12 +109,12 @@ public partial class StandardCompanySelectionPage
             MercsCompanyEntries,
             UpdateMercsCompanyTotal,
             ApplyLieutenantVisualStates,
-            () => _ = ApplyUnitVisibilityFiltersAsync());
+            () => ApplyUnitVisibilityFilters());
     }
 
-    private async Task SelectMercsCompanyEntryAsync(MercsCompanyEntry? entry, CancellationToken cancellationToken = default)
+    private void SelectMercsCompanyEntry(MercsCompanyEntry? entry, CancellationToken cancellationToken = default)
     {
-        await SelectMercsCompanyEntryAsyncCore(
+        SelectMercsCompanyEntryCore(
             entry,
             Units,
             GetUnitFromProvider,
@@ -129,7 +129,7 @@ public partial class StandardCompanySelectionPage
                 IsVisible = false
             },
             SetSelectedUnit,
-            LoadSelectedUnitDetailsAsync,
+            LoadSelectedUnitDetails,
             cancellationToken);
     }
 
@@ -346,6 +346,6 @@ public partial class StandardCompanySelectionPage
         MercsCompanyEntries[index] = replacement;
         UpdateMercsCompanyTotal();
         ApplyLieutenantVisualStates();
-        _ = ApplyUnitVisibilityFiltersAsync();
+        ApplyUnitVisibilityFilters();
     }
 }

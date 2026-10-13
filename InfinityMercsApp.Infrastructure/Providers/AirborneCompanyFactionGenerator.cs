@@ -15,7 +15,7 @@ public sealed class AirborneCompanyFactionGenerator(
     private const string LogTag = "AirborneGen";
 
     /// <inheritdoc/>
-    public async Task GenerateAsync(CancellationToken cancellationToken = default)
+    public void Generate(CancellationToken cancellationToken = default)
     {
         Console.WriteLine($"[{LogTag}] GenerateAsync started.");
 
@@ -56,7 +56,7 @@ public sealed class AirborneCompanyFactionGenerator(
         }
 
         Console.WriteLine($"[{LogTag}] Importing faction {AirborneCompanyFactionId} (version {army.Version}, previous: {existing?.Version ?? "none"})...");
-        await armyImportProvider.ImportAsync(AirborneCompanyFactionId, army, cancellationToken);
+        armyImportProvider.Import(AirborneCompanyFactionId, army, cancellationToken);
         InsertMetadataFactionEntry();
 
         Console.WriteLine($"[{LogTag}] Successfully generated synthetic faction with {army.Units.Count} units (version {army.Version}).");

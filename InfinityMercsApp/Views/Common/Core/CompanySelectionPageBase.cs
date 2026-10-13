@@ -380,7 +380,7 @@ public abstract partial class CompanySelectionPageBase : AdaptiveContentPage
     protected virtual bool AreTeamEntriesReadyForTeamsList => true;
 
     protected abstract void ApplyLieutenantVisualStatesFromBase();
-    protected abstract Task ApplyUnitVisibilityFiltersFromBaseAsync();
+    protected abstract void ApplyUnitVisibilityFiltersFromBase();
 
     /// <summary>
     /// Updates the filter-active flag and forces both filter icon canvases to repaint
@@ -440,7 +440,7 @@ public abstract partial class CompanySelectionPageBase : AdaptiveContentPage
             _lieutenantOnlyUnits = value;
             OnPropertyChanged();
             ApplyLieutenantVisualStatesFromBase();
-            _ = ApplyUnitVisibilityFiltersFromBaseAsync();
+            ApplyUnitVisibilityFiltersFromBase();
         }
     }
 
@@ -901,7 +901,7 @@ public abstract partial class CompanySelectionPageBase : AdaptiveContentPage
     protected abstract Task LoadUnitsForActiveSlotAsync();
 
     /// <summary>Loads the full detail data (profiles, equipment, skills) for the currently selected unit.</summary>
-    protected abstract Task LoadSelectedUnitDetailsAsync();
+    protected abstract void LoadSelectedUnitDetails();
 
     /// <summary>Validates the company and persists it to disk, then navigates to the company viewer.</summary>
     protected abstract Task StartCompanyAsync();

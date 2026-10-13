@@ -114,7 +114,7 @@ public partial class UnitDetailViewModel(
     }
 
     /// <summary>Loads the unit's stat line, trait icons, shared equipment and skills, and configurations.</summary>
-    public Task LoadAsync(UnitDetailRequest request, CancellationToken cancellationToken = default)
+    public void Load(UnitDetailRequest request, CancellationToken cancellationToken = default)
     {
         RefreshDisplayUnits();
 
@@ -139,7 +139,7 @@ public partial class UnitDetailViewModel(
             if (unit?.ProfileGroups is not { IsEmpty: false } profileGroups)
             {
                 ProfilesStatus = "No profiles found for this unit.";
-                return Task.CompletedTask;
+                return;
             }
 
             ShowStatsOfFirstProfile(profileGroups);
@@ -152,8 +152,6 @@ public partial class UnitDetailViewModel(
             Console.Error.WriteLine($"Loading unit profiles failed: {ex.Message}");
             ProfilesStatus = $"Failed to load profiles: {ex.Message}";
         }
-
-        return Task.CompletedTask;
     }
 
     /// <summary>Adds the chosen configuration's own equipment and skills to the shared summaries.</summary>

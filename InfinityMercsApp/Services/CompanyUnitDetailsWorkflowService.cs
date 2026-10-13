@@ -13,9 +13,9 @@ internal sealed class CompanyUnitDetailsWorkflowRequest
     public required bool ShowUnitsInInches { get; init; }
     public required Func<int, int, CancellationToken, InfinityMercsApp.Domain.Models.Army.Unit?> GetUnit { get; init; }
     public required Func<int, CancellationToken, InfinityMercsApp.Domain.Models.Army.Faction?> GetFactionSnapshot { get; init; }
-    public required Func<int, CancellationToken, Task<IReadOnlyList<InfinityMercsApp.Domain.Models.Army.SpecopsUnit>>> GetSpecopsUnitsByFactionAsync { get; init; }
-    public required Func<int, InfinityMercsApp.Domain.Models.Army.Unit?, CancellationToken, Task> ApplyUnitHeaderColorsAsync { get; init; }
-    public required Func<CancellationToken, Task> ApplyGlobalDisplayUnitsPreferenceAsync { get; init; }
+    public required Func<int, CancellationToken, IReadOnlyList<InfinityMercsApp.Domain.Models.Army.SpecopsUnit>> GetSpecopsUnitsByFaction { get; init; }
+    public required Action<int, InfinityMercsApp.Domain.Models.Army.Unit?, CancellationToken> ApplyUnitHeaderColors { get; init; }
+    public required Action<CancellationToken> ApplyGlobalDisplayUnitsPreference { get; init; }
     public required Action<UnitProfileGroups> PopulateUnitStatsFromFirstProfile { get; init; }
     public required Action<bool, bool, bool, bool> SetOrderTraits { get; init; }
     public required Action<bool, bool, bool> SetTechTraits { get; init; }
@@ -38,23 +38,23 @@ internal static class CompanyUnitDetailsWorkflowService
     /// <summary>
     /// Runs the shared selected-unit details workflow and applies outputs via callbacks.
     /// </summary>
-    public static async Task LoadAsync(
+    public static void Load(
         CompanyUnitDetailsWorkflowRequest request,
         CancellationToken cancellationToken = default)
     {
-        request.LogInfo($"ArmyFactionSelectionPage LoadSelectedUnitDetailsAsync started: id={request.UnitId}, faction={request.SourceFactionId}, name='{request.UnitName}'.");
+        request.LogInfo($"ArmyFactionSelectionPage LoadSelectedUnitDetails started: id={request.UnitId}, faction={request.SourceFactionId}, name='{request.UnitName}'.");
         request.SetUnitNameHeading(request.UnitName);
 
         var unit = request.GetUnit(request.SourceFactionId, request.UnitId, cancellationToken);
         InfinityMercsApp.Domain.Models.Army.SpecopsUnit? specopsUnit = null;
         if (request.IsSpecOps || unit is null)
         {
-            var specopsUnits = await request.GetSpecopsUnitsByFactionAsync(request.SourceFactionId, cancellationToken);
+            var specopsUnits = request.GetSpecopsUnitsByFaction(request.SourceFactionId, cancellationToken);
             specopsUnit = specopsUnits.FirstOrDefault(x => x.UnitId == request.UnitId);
         }
 
         var treatAsSpecOps = request.IsSpecOps || (unit is null && specopsUnit is not null);
-        await request.ApplyUnitHeaderColorsAsync(request.SourceFactionId, unit, cancellationToken);
+        request.ApplyUnitHeaderColors(request.SourceFactionId, unit, cancellationToken);
 
         var profileGroups = unit?.ProfileGroups ?? UnitProfileGroups.Empty;
         if (treatAsSpecOps && specopsUnit is { ProfileGroups.IsEmpty: false })
@@ -80,7 +80,7 @@ internal static class CompanyUnitDetailsWorkflowService
         var entryNames = new ProfileEntryNames(filters.Extras, request.ShowUnitsInInches);
         request.SetSelectedUnitProfileGroups(profileGroups);
         request.SetSelectedUnitFilters(filters);
-        await request.ApplyGlobalDisplayUnitsPreferenceAsync(cancellationToken);
+        request.ApplyGlobalDisplayUnitsPreference(cancellationToken);
 
         var visibleOptions = profileGroups.AllOptions()
             .Select(x => x.Option)

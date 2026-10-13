@@ -81,10 +81,10 @@ public abstract partial class CompanySelectionPageBase
     /// Resolves the canonical (non-sectorial) faction name from the unit's faction data
     /// and applies the corresponding header colour scheme.
     /// </summary>
-    protected async Task ApplyUnitHeaderColorsAsync(int sourceFactionId, ArmyUnitRecord? unit, CancellationToken cancellationToken)
+    protected void ApplyUnitHeaderColors(int sourceFactionId, ArmyUnitRecord? unit, CancellationToken cancellationToken)
     {
         // Resolve via the theme workflow so sectorial IDs are mapped back to their vanilla faction colour.
-        var factionName = await CompanySelectionVisualThemeWorkflow.ResolveThemeFactionNameAsync(
+        var factionName = CompanySelectionVisualThemeWorkflow.ResolveThemeFactionName(
             Mode,
             ArmyDataService,
             sourceFactionId,

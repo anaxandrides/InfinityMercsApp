@@ -14,7 +14,7 @@ internal static class CompanyCaptainWorkflowService
         var optionFactionId = TemplateCaptain.CaptainPopupInputBuilder.ResolveOptionFactionId(
             sourceFactionId,
             request.TryGetParentFactionId(sourceFactionId));
-        var options = await TemplateCaptain.CaptainPopupInputBuilder.LoadUpgradeOptionsAsync(
+        var options = TemplateCaptain.CaptainPopupInputBuilder.LoadUpgradeOptions(
             request.ArmyDataService,
             request.SpecOpsProvider,
             optionFactionId,
@@ -23,7 +23,7 @@ internal static class CompanyCaptainWorkflowService
 
         if (options.IsEmpty && optionFactionId != sourceFactionId)
         {
-            options = await TemplateCaptain.CaptainPopupInputBuilder.LoadUpgradeOptionsAsync(
+            options = TemplateCaptain.CaptainPopupInputBuilder.LoadUpgradeOptions(
                 request.ArmyDataService,
                 request.SpecOpsProvider,
                 sourceFactionId,

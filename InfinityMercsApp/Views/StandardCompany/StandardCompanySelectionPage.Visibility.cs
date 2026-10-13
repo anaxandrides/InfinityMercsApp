@@ -6,7 +6,7 @@ namespace InfinityMercsApp.Views.StandardCompany;
 
 public partial class StandardCompanySelectionPage
 {
-    private async Task ApplyUnitVisibilityFiltersAsync(CancellationToken cancellationToken = default)
+    private void ApplyUnitVisibilityFilters(CancellationToken cancellationToken = default)
     {
         if (Units.Count == 0)
         {
@@ -22,11 +22,11 @@ public partial class StandardCompanySelectionPage
                 _factionSelectionState.LeftSlotFaction,
                 _factionSelectionState.RightSlotFaction,
                 faction => faction.Id);
-            var lookupContext = await BuildUnitVisibilityLookupContextAsync(
+            var lookupContext = BuildUnitVisibilityLookupContext(
                 factions,
                 faction => faction.Id,
                 GetFactionSnapshotFromProvider,
-                _specOpsProvider.GetSpecopsUnitsByFactionAsync,
+                _specOpsProvider.GetSpecopsUnitsByFaction,
                 cancellationToken);
 
             ApplyUnitVisibilityCore(
@@ -75,7 +75,7 @@ public partial class StandardCompanySelectionPage
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"CompanySelectionPage ApplyUnitVisibilityFiltersAsync failed: {ex.Message}");
+            Console.Error.WriteLine($"CompanySelectionPage ApplyUnitVisibilityFilters failed: {ex.Message}");
         }
     }
 

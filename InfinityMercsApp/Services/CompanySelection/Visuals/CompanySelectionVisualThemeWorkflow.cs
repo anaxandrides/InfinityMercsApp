@@ -9,7 +9,7 @@ internal readonly record struct CompanyHeaderColors(Color Primary, Color Seconda
 
 internal static class CompanySelectionVisualThemeWorkflow
 {
-    internal static async Task<string?> ResolveThemeFactionNameAsync(
+    internal static string? ResolveThemeFactionName(
         ArmySourceSelectionMode mode,
         IArmyDataService armyDataService,
         int sourceFactionId,
@@ -18,13 +18,13 @@ internal static class CompanySelectionVisualThemeWorkflow
     {
         if (mode == ArmySourceSelectionMode.Sectorials)
         {
-            return await ResolveVanillaFactionNameAsync(armyDataService, sourceFactionId, cancellationToken);
+            return ResolveVanillaFactionName(armyDataService, sourceFactionId, cancellationToken);
         }
 
-        return await ResolveUnitVanillaFactionNameAsync(armyDataService, sourceFactionId, unitFactionIds, cancellationToken);
+        return ResolveUnitVanillaFactionName(armyDataService, sourceFactionId, unitFactionIds, cancellationToken);
     }
 
-    internal static async Task<string?> ResolveUnitVanillaFactionNameAsync(
+    internal static string? ResolveUnitVanillaFactionName(
         IArmyDataService armyDataService,
         int sourceFactionId,
         IReadOnlyList<int>? unitFactionIds,
@@ -32,24 +32,24 @@ internal static class CompanySelectionVisualThemeWorkflow
     {
         foreach (var factionId in unitFactionIds ?? [])
         {
-            var candidateName = await ResolveVanillaFactionNameAsync(armyDataService, factionId, cancellationToken);
+            var candidateName = ResolveVanillaFactionName(armyDataService, factionId, cancellationToken);
             if (CompanySelectionSharedUtilities.IsThemeFactionName(candidateName))
             {
                 return candidateName;
             }
         }
 
-        return await ResolveVanillaFactionNameAsync(armyDataService, sourceFactionId, cancellationToken);
+        return ResolveVanillaFactionName(armyDataService, sourceFactionId, cancellationToken);
     }
 
-    internal static Task<string?> ResolveVanillaFactionNameAsync(
+    internal static string? ResolveVanillaFactionName(
         IArmyDataService armyDataService,
         int sourceFactionId,
         CancellationToken cancellationToken)
     {
         if (sourceFactionId <= 0)
         {
-            return Task.FromResult<string?>(null);
+            return null;
         }
 
         var source = armyDataService.GetMetadataFactionById(sourceFactionId);
@@ -70,7 +70,7 @@ internal static class CompanySelectionVisualThemeWorkflow
         {
             if (CompanySelectionSharedUtilities.IsThemeFactionName(current.Name))
             {
-                return Task.FromResult<string?>(current.Name);
+                return current.Name;
             }
 
             if (current.ParentId <= 0)
@@ -104,10 +104,10 @@ internal static class CompanySelectionVisualThemeWorkflow
             ?? (current is not null ? InferThemeFactionNameFromFactionId(current.Id) : null);
         if (!string.IsNullOrWhiteSpace(inferredThemeName))
         {
-            return Task.FromResult<string?>(inferredThemeName);
+            return inferredThemeName;
         }
 
-        return Task.FromResult(current?.Name);
+        return current?.Name;
     }
 
     internal static CompanyHeaderColors GetHeaderColors(string? vanillaFactionName, Color defaultPrimary, Color defaultSecondary)

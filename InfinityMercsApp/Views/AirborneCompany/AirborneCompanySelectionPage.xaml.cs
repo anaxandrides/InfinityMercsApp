@@ -39,7 +39,7 @@ public partial class AirborneCompanySelectionPage : GeneratedFactionCompanySelec
             item => item.Name);
         AddProfileToMercsCompanyCommand = new Command<ViewerProfileItem>(AddProfileToMercsCompany);
         RemoveMercsCompanyEntryCommand = new Command<MercsCompanyEntry>(RemoveMercsCompanyEntry);
-        SelectMercsCompanyEntryCommand = new Command<MercsCompanyEntry>(entry => _ = SelectMercsCompanyEntryAsync(entry));
+        SelectMercsCompanyEntryCommand = new Command<MercsCompanyEntry>(entry => SelectMercsCompanyEntry(entry));
         SelectTeamAllowedProfileCommand = new Command<ArmyTeamUnitLimitItem>(teamItem =>
             HandleTeamAllowedProfileSelected(
                 teamItem,

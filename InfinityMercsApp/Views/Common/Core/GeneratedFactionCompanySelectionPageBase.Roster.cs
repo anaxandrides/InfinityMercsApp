@@ -17,7 +17,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
             loadSelectedUnitDetails: selectedItem =>
             {
                 _selectedUnit = selectedItem;
-                _ = LoadSelectedUnitDetailsAsync();
+                LoadSelectedUnitDetails();
             });
     }
 
@@ -70,7 +70,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
             x => x.IsLieutenant,
             UpdateMercsCompanyTotal,
             ApplyLieutenantVisualStates,
-            () => _ = ApplyUnitVisibilityFiltersAsync());
+            () => ApplyUnitVisibilityFilters());
 
         if (isLeftSlotEntry)
         {
@@ -95,12 +95,12 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
             MercsCompanyEntries,
             UpdateMercsCompanyTotal,
             ApplyLieutenantVisualStates,
-            () => _ = ApplyUnitVisibilityFiltersAsync());
+            () => ApplyUnitVisibilityFilters());
     }
 
-    protected async Task SelectMercsCompanyEntryAsync(MercsCompanyEntry? entry, CancellationToken cancellationToken = default)
+    protected void SelectMercsCompanyEntry(MercsCompanyEntry? entry, CancellationToken cancellationToken = default)
     {
-        await SelectMercsCompanyEntryAsyncCore(
+        SelectMercsCompanyEntryCore(
             entry,
             Units,
             GetUnitFromProvider,
@@ -115,7 +115,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
                 IsVisible = false
             },
             SetSelectedUnit,
-            LoadSelectedUnitDetailsAsync,
+            LoadSelectedUnitDetails,
             cancellationToken);
     }
 

@@ -18,18 +18,18 @@ namespace InfinityMercsApp.Views.Common;
 /// </summary>
 public abstract partial class GeneratedFactionCompanySelectionPageBase
 {
-    protected async Task LoadSelectedUnitDetailsAsync(CancellationToken cancellationToken = default)
+    protected void LoadSelectedUnitDetails(CancellationToken cancellationToken = default)
     {
         ResetUnitDetails(clearLogo: false, resetHeaderColors: false);
         if (_selectedUnit is null)
         {
-            Console.Error.WriteLine("GeneratedFactionCompanyPage LoadSelectedUnitDetailsAsync aborted: selected unit or accessor missing.");
+            Console.Error.WriteLine("GeneratedFactionCompanyPage LoadSelectedUnitDetails aborted: selected unit or accessor missing.");
             return;
         }
 
         try
         {
-            await CompanyUnitDetailsWorkflowService.LoadAsync(
+            CompanyUnitDetailsWorkflowService.Load(
                 new CompanyUnitDetailsWorkflowRequest
                 {
                     UnitName = _selectedUnit.Name,
@@ -40,9 +40,9 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
                     ShowUnitsInInches = ShowUnitsInInches,
                     GetUnit = GetUnitFromProvider,
                     GetFactionSnapshot = GetFactionSnapshotFromProvider,
-                    GetSpecopsUnitsByFactionAsync = (factionId, token) => SpecOpsProvider.GetSpecopsUnitsByFactionAsync(factionId, token),
-                    ApplyUnitHeaderColorsAsync = ApplyUnitHeaderColorsAsync,
-                    ApplyGlobalDisplayUnitsPreferenceAsync = token => CompanyUnitDetailsShared.ApplyGlobalDisplayUnitsPreferenceAsync(
+                    GetSpecopsUnitsByFaction = (factionId, token) => SpecOpsProvider.GetSpecopsUnitsByFaction(factionId, token),
+                    ApplyUnitHeaderColors = ApplyUnitHeaderColors,
+                    ApplyGlobalDisplayUnitsPreference = token => CompanyUnitDetailsShared.ApplyGlobalDisplayUnitsPreference(
                         () => GetShowUnitsInInchesFromProvider(token),
                         ShowUnitsInInches,
                         value => ShowUnitsInInches = value,
@@ -87,11 +87,11 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
                     LogError = Console.Error.WriteLine
                 },
                 cancellationToken);
-            Console.WriteLine($"GeneratedFactionCompanyPage LoadSelectedUnitDetailsAsync completed: heading='{UnitNameHeading}', MOV='{UnitMov}', equipment='{EquipmentSummary}'.");
+            Console.WriteLine($"GeneratedFactionCompanyPage LoadSelectedUnitDetails completed: heading='{UnitNameHeading}', MOV='{UnitMov}', equipment='{EquipmentSummary}'.");
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"GeneratedFactionCompanyPage LoadSelectedUnitDetailsAsync failed: {ex}");
+            Console.Error.WriteLine($"GeneratedFactionCompanyPage LoadSelectedUnitDetails failed: {ex}");
         }
     }
 

@@ -154,15 +154,15 @@ public partial class UnitEncyclopediaViewModel(
     }
 
     [RelayCommand]
-    private Task SelectUnitAsync(ViewerUnitItem? unit)
+    private void SelectUnit(ViewerUnitItem? unit)
     {
         if (unit is null || SelectedFaction is null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         SelectedUnit = unit;
-        return Detail.LoadAsync(new UnitDetailRequest(
+        Detail.Load(new UnitDetailRequest(
             SelectedFaction.Id,
             unit.Id,
             unit.Name,
@@ -305,7 +305,7 @@ public partial class UnitEncyclopediaViewModel(
     }
 
     /// <summary>The choices offered by the unit filter popup, from the selected faction's units.</summary>
-    public Task<UnitFilterPopupOptions> BuildUnitFilterPopupOptionsAsync(CancellationToken cancellationToken = default)
+    public UnitFilterPopupOptions BuildUnitFilterPopupOptions(CancellationToken cancellationToken = default)
     {
         var classification = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var characteristics = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -352,7 +352,7 @@ public partial class UnitEncyclopediaViewModel(
 
         static List<string> Sorted(HashSet<string> values) => values.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
 
-        return Task.FromResult(new UnitFilterPopupOptions
+        return new UnitFilterPopupOptions
         {
             Classification = Sorted(classification),
             Characteristics = Sorted(characteristics),
@@ -362,7 +362,7 @@ public partial class UnitEncyclopediaViewModel(
             Ammo = Sorted(ammo),
             MinPoints = 0,
             MaxPoints = SelectedFaction is null ? maxPoints : Math.Max(1, maxPoints)
-        });
+        };
     }
 
     private void ApplyFactionFilter()

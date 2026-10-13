@@ -20,7 +20,7 @@ public class ArmyImportProvider(ISQLiteRepository sqliteRepository, IArmyContent
     private const int JsaObanFactionId = 1103;
 
     /// <inheritdoc/>
-    public Task ImportAsync(int factionId, ArmyDefinition army, CancellationToken cancellationToken = default)
+    public void Import(int factionId, ArmyDefinition army, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -139,8 +139,6 @@ public class ArmyImportProvider(ISQLiteRepository sqliteRepository, IArmyContent
             sqliteRepository.Insert(specopsUnits);
             contentStore.ReplaceFactionContent(factionId, unitContent, armyContent, specopsLinks);
         });
-
-        return Task.CompletedTask;
     }
 
     /// <summary>The import's unit key: faction, unit id, army id and slug.</summary>

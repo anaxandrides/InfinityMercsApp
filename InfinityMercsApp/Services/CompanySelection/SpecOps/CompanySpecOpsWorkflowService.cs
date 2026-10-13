@@ -34,7 +34,7 @@ internal static class CompanySpecOpsWorkflowService
 
         foreach (var candidateFactionId in candidateFactionIds)
         {
-            var candidateOptions = await TemplateCaptain.CaptainPopupInputBuilder.LoadUpgradeOptionsAsync(
+            var candidateOptions = TemplateCaptain.CaptainPopupInputBuilder.LoadUpgradeOptions(
                 request.ArmyDataService,
                 request.SpecOpsProvider,
                 candidateFactionId,

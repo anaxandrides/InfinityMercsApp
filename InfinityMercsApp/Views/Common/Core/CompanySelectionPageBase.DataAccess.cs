@@ -34,13 +34,13 @@ public abstract partial class CompanySelectionPageBase
     }
 
     /// <summary>
-    /// Asynchronously retrieves the merged mercenary army list across all provided faction IDs.
+    /// Retrieves the merged mercenary army list across all provided faction IDs.
     /// Used to build the combined unit pool when multiple factions are active.
     /// </summary>
-    protected async Task<IReadOnlyList<MercsArmyListEntry>> GetMergedMercsArmyListFromQueryAccessorAsync(
+    protected IReadOnlyList<MercsArmyListEntry> GetMergedMercsArmyListFromQueryAccessor(
         IReadOnlyCollection<int> factionIds,
         CancellationToken cancellationToken = default)
     {
-        return await ArmyDataService.GetMergedMercsArmyListAsync(factionIds, cancellationToken);
+        return ArmyDataService.GetMergedMercsArmyList(factionIds, cancellationToken);
     }
 }

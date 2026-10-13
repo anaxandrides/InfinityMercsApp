@@ -9,7 +9,7 @@ namespace InfinityMercsApp.Infrastructure.Providers;
 public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider factionProvider) : ICohesiveCompanyFactionQueryProvider
 {
     /// <inheritdoc/>
-    public Task<CohesiveCompanyFactionQueryResult> GetFilterQuerySourceAsync(
+    public CohesiveCompanyFactionQueryResult GetFilterQuerySource(
         IReadOnlyCollection<int> factionIds,
         CancellationToken cancellationToken = default)
     {
@@ -21,7 +21,7 @@ public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider faction
             .ToArray();
         if (normalizedFactionIds.Length == 0)
         {
-            return Task.FromResult(new CohesiveCompanyFactionQueryResult());
+            return new CohesiveCompanyFactionQueryResult();
         }
 
         var typeLookup = new Dictionary<int, string>();
@@ -49,7 +49,7 @@ public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider faction
         }
 
         var mergedEntries = GetMergedMercsArmyList(normalizedFactionIds, cancellationToken);
-        return Task.FromResult(new CohesiveCompanyFactionQueryResult
+        return new CohesiveCompanyFactionQueryResult
         {
             TypeLookup = typeLookup,
             CharacteristicsLookup = charsLookup,
@@ -58,7 +58,7 @@ public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider faction
             WeaponsLookup = weaponsLookup,
             AmmoLookup = ammoLookup,
             MergedMercsListEntries = mergedEntries
-        });
+        };
     }
 
     private IReadOnlyList<MercsArmyListEntry> GetMergedMercsArmyList(

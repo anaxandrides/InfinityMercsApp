@@ -107,26 +107,26 @@ internal static class CompanySelectionUnitFilterWorkflow
             maxPoints);
     }
 
-    internal static async Task<UnitFilterPopupOptions> BuildUnitFilterPopupOptionsAsync<TFaction>(
+    internal static UnitFilterPopupOptions BuildUnitFilterPopupOptions<TFaction>(
         bool showRightSelectionBox,
         TFaction? leftSlotFaction,
         TFaction? rightSlotFaction,
         Func<TFaction, int> readFactionId,
         Func<int, CancellationToken, ArmyFilterCatalog?> getFiltersByFactionId,
-        Func<IReadOnlyCollection<int>, CancellationToken, Task<IReadOnlyList<MercsArmyListEntry>>> getMergedMercsArmyListAsync,
+        Func<IReadOnlyCollection<int>, CancellationToken, IReadOnlyList<MercsArmyListEntry>> getMergedMercsArmyList,
         int maxPoints,
         Action<UnitFilterPopupOptions> setPreparedOptions,
         Action<string>? log = null,
         CancellationToken cancellationToken = default)
         where TFaction : class
     {
-        return await CompanySelectionUnitFilterOptionsService.BuildUnitFilterPopupOptionsAsync(
+        return CompanySelectionUnitFilterOptionsService.BuildUnitFilterPopupOptions(
             showRightSelectionBox,
             leftSlotFaction,
             rightSlotFaction,
             readFactionId,
             getFiltersByFactionId,
-            getMergedMercsArmyListAsync,
+            getMergedMercsArmyList,
             maxPoints,
             setPreparedOptions,
             log,

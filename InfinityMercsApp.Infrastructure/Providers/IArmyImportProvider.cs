@@ -11,5 +11,5 @@ public interface IArmyImportProvider
     /// Stores an army (as read from the Army API, or generated) under <paramref name="factionId"/>, replacing
     /// whatever was stored for it before.
     /// </summary>
-    Task ImportAsync(int factionId, ArmyDefinition army, CancellationToken cancellationToken = default);
+    void Import(int factionId, ArmyDefinition army, CancellationToken cancellationToken = default);
 }

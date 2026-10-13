@@ -83,7 +83,7 @@ public partial class CohesiveCompanySelectionPage : CompanySelectionPageBase, IC
             item => item.Name);
         AddProfileToMercsCompanyCommand = new Command<ViewerProfileItem>(AddProfileToMercsCompany);
         RemoveMercsCompanyEntryCommand = new Command<MercsCompanyEntry>(RemoveMercsCompanyEntry);
-        SelectMercsCompanyEntryCommand = new Command<MercsCompanyEntry>(entry => _ = SelectMercsCompanyEntryAsync(entry));
+        SelectMercsCompanyEntryCommand = new Command<MercsCompanyEntry>(entry => SelectMercsCompanyEntry(entry));
         SelectTeamAllowedProfileCommand = new Command<ArmyTeamUnitLimitItem>(teamItem =>
             HandleTeamAllowedProfileSelected(
                 teamItem,
@@ -155,7 +155,7 @@ public partial class CohesiveCompanySelectionPage : CompanySelectionPageBase, IC
             SeasonStartPointsView.SeasonPointsCapText = value;
             OnPropertyChanged();
             UpdateSeasonValidationState();
-            _ = ApplyUnitVisibilityFiltersAsync();
+            ApplyUnitVisibilityFilters();
         }
     }
 
@@ -258,9 +258,9 @@ public partial class CohesiveCompanySelectionPage : CompanySelectionPageBase, IC
         ApplyLieutenantVisualStates();
     }
 
-    protected override Task ApplyUnitVisibilityFiltersFromBaseAsync()
+    protected override void ApplyUnitVisibilityFiltersFromBase()
     {
-        return ApplyUnitVisibilityFiltersAsync();
+        ApplyUnitVisibilityFilters();
     }
 
     protected override Grid AdaptiveMainContentGrid => MainContentGrid;
@@ -303,7 +303,7 @@ public partial class CohesiveCompanySelectionPage : CompanySelectionPageBase, IC
             _filterState.PreparedUnitFilterPopupOptions = null;
             await LoadFactionsAsync(cancellationToken);
             await LoadUnitsForActiveSlotAsync(cancellationToken);
-            await ApplyUnitVisibilityFiltersAsync(cancellationToken);
+            ApplyUnitVisibilityFilters(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -311,9 +311,9 @@ public partial class CohesiveCompanySelectionPage : CompanySelectionPageBase, IC
         }
     }
 
-    protected override Task LoadSelectedUnitDetailsAsync()
+    protected override void LoadSelectedUnitDetails()
     {
-        return LoadSelectedUnitDetailsAsync(CancellationToken.None);
+        LoadSelectedUnitDetails(CancellationToken.None);
     }
 
     UnitFilterCriteria ICompanySelectionVisibilityState.ActiveUnitFilter => _filterState.ActiveUnitFilter;

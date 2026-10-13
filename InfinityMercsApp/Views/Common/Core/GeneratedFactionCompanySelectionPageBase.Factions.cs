@@ -11,7 +11,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
         try
         {
             var filteredFactions = await LoadFilteredFactionRecordsAsync(cancellationToken);
-            var factionsWithLieutenant = await FilterFactionsWithLieutenantAsync(filteredFactions, cancellationToken);
+            var factionsWithLieutenant = FilterFactionsWithLieutenant(filteredFactions, cancellationToken);
             var items = BuildFactionSelectionItems(
                 factionsWithLieutenant,
                 (id, parentId, name, cachedLogoPath, packagedLogoPath) => new ArmyFactionSelectionItem
@@ -31,7 +31,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
         }
     }
 
-    protected async Task<List<FactionRecord>> FilterFactionsWithLieutenantAsync(
+    protected List<FactionRecord> FilterFactionsWithLieutenant(
         List<FactionRecord> factions,
         CancellationToken cancellationToken = default)
     {
@@ -40,7 +40,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
         {
             var snapshot = ArmyDataService.GetFactionSnapshot(faction.Id, cancellationToken);
             var skillsLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(snapshot?.Filters, "skills");
-            var mercsEntries = await ArmyDataService.GetMergedMercsArmyListAsync([faction.Id], cancellationToken);
+            var mercsEntries = ArmyDataService.GetMergedMercsArmyList([faction.Id], cancellationToken);
 
             var hasLieutenant = mercsEntries.Any(entry =>
                 CompanySelectionSharedUtilities.UnitHasLieutenantOption(entry.ProfileGroups, skillsLookup));

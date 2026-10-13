@@ -4,7 +4,7 @@ namespace InfinityMercsApp.Views.CohesiveCompany;
 
 public partial class CohesiveCompanySelectionPage
 {
-    private async Task ApplyUnitVisibilityFiltersAsync(CancellationToken cancellationToken = default)
+    private void ApplyUnitVisibilityFilters(CancellationToken cancellationToken = default)
     {
         AreTeamEntriesReady = false;
         if (Units.Count == 0)
@@ -21,11 +21,11 @@ public partial class CohesiveCompanySelectionPage
                 _factionSelectionState.LeftSlotFaction,
                 _factionSelectionState.RightSlotFaction,
                 faction => faction.Id);
-            var lookupContext = await BuildUnitVisibilityLookupContextAsync(
+            var lookupContext = BuildUnitVisibilityLookupContext(
                 factions,
                 faction => faction.Id,
                 GetFactionSnapshotFromProvider,
-                _specOpsProvider.GetSpecopsUnitsByFactionAsync,
+                _specOpsProvider.GetSpecopsUnitsByFaction,
                 cancellationToken);
 
             ApplyUnitVisibilityCore(
@@ -63,7 +63,7 @@ public partial class CohesiveCompanySelectionPage
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"CompanySelectionPage ApplyUnitVisibilityFiltersAsync failed: {ex.Message}");
+            Console.Error.WriteLine($"CompanySelectionPage ApplyUnitVisibilityFilters failed: {ex.Message}");
             AreTeamEntriesReady = false;
         }
     }

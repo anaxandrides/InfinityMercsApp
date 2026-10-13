@@ -96,17 +96,17 @@ public sealed class UnitDetailViewModelTests
 {
     private static readonly int SwissGuardId = Army101Data.UnitNamed("SWISS GUARD").Id;
 
-    private static async Task<UnitDetailViewModel> LoadAsync(bool mercsOnly = false, bool lieutenantOnly = false)
+    private static UnitDetailViewModel Load(bool mercsOnly = false, bool lieutenantOnly = false)
     {
         var detail = new UnitDetailViewModel(Army101Data.Create());
-        await detail.LoadAsync(new UnitDetailRequest(Army101Data.PanOceania, SwissGuardId, "Swiss Guard", "logo.svg", mercsOnly, lieutenantOnly));
+        detail.Load(new UnitDetailRequest(Army101Data.PanOceania, SwissGuardId, "Swiss Guard", "logo.svg", mercsOnly, lieutenantOnly));
         return detail;
     }
 
     [Fact]
-    public async Task LoadsTheStatLineSummariesAndConfigurations()
+    public void LoadsTheStatLineSummariesAndConfigurations()
     {
-        var detail = await LoadAsync();
+        var detail = Load();
 
         Assert.Equal("Swiss Guard", detail.UnitNameHeading);
         Assert.Equal("logo.svg", detail.LogoSource);
@@ -119,17 +119,17 @@ public sealed class UnitDetailViewModelTests
     }
 
     [Fact]
-    public async Task LieutenantOnlyListsLieutenantConfigurations()
+    public void LieutenantOnlyListsLieutenantConfigurations()
     {
-        var detail = await LoadAsync(lieutenantOnly: true);
+        var detail = Load(lieutenantOnly: true);
         Assert.All(detail.Profiles, p => Assert.True(p.IsLieutenant));
     }
 
     [Fact]
-    public async Task MercsOnlyHidesSwcConfigurations()
+    public void MercsOnlyHidesSwcConfigurations()
     {
-        var all = await LoadAsync();
-        var mercs = await LoadAsync(mercsOnly: true);
+        var all = Load();
+        var mercs = Load(mercsOnly: true);
 
         Assert.True(mercs.Profiles.Count < all.Profiles.Count);
         Assert.All(mercs.Profiles, p => Assert.False(ProfileValues.IsPositiveSwc(p.Swc)));
@@ -137,9 +137,9 @@ public sealed class UnitDetailViewModelTests
     }
 
     [Fact]
-    public async Task ChoosingAConfigurationMergesItIntoTheSummaries()
+    public void ChoosingAConfigurationMergesItIntoTheSummaries()
     {
-        var detail = await LoadAsync();
+        var detail = Load();
         var profile = detail.Profiles.First(p => p.UniqueEquipment != "-");
 
         detail.ApplySelectedProfileTopSummaries(profile);
@@ -148,9 +148,9 @@ public sealed class UnitDetailViewModelTests
     }
 
     [Fact]
-    public async Task ResetReturnsToNoUnit()
+    public void ResetReturnsToNoUnit()
     {
-        var detail = await LoadAsync();
+        var detail = Load();
         detail.Reset();
 
         Assert.Equal("Select a unit", detail.UnitNameHeading);
@@ -176,7 +176,7 @@ public sealed class UnitDetailViewModelTests
     }
 
     [Fact]
-    public async Task SwitchingToCentimetresReformatsMove()
+    public void SwitchingToCentimetresReformatsMove()
     {
         var detail = new UnitDetailViewModel(Army101Data.Create());
         detail.ApplySavedUnitSnapshot("Hero", "4-2", "", "", "", "", "", "", "", "", "", false);
@@ -185,7 +185,6 @@ public sealed class UnitDetailViewModelTests
 
         Assert.False(detail.ShowUnitsInInches);
         Assert.Equal("10-5", detail.UnitMov);
-        await Task.CompletedTask;
     }
 }
 
@@ -229,7 +228,7 @@ public sealed class UnitEncyclopediaViewModelTests
         Assert.NotEqual("-", viewModel.FireteamCoreCount);
 
         var unit = viewModel.Units.First(u => u.Name == "SWISS GUARD");
-        await viewModel.SelectUnitCommand.ExecuteAsync(unit);
+        viewModel.SelectUnitCommand.Execute(unit);
 
         Assert.Equal(BrowseStep.Detail, viewModel.Step);
         Assert.Equal("SWISS GUARD", viewModel.Detail.UnitNameHeading);
@@ -246,7 +245,7 @@ public sealed class UnitEncyclopediaViewModelTests
     {
         var viewModel = await OpenAsync();
         await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Factions[0]);
-        await viewModel.SelectUnitCommand.ExecuteAsync(viewModel.Units[0]);
+        viewModel.SelectUnitCommand.Execute(viewModel.Units[0]);
 
         viewModel.ShowSectorialEntriesOnly = true;
 
@@ -273,10 +272,10 @@ public sealed class UnitEncyclopediaViewModelTests
     public async Task FilterOptionsComeFromTheFactionsUnits()
     {
         var viewModel = await OpenAsync();
-        Assert.Empty((await viewModel.BuildUnitFilterPopupOptionsAsync()).Weapons);
+        Assert.Empty((viewModel.BuildUnitFilterPopupOptions()).Weapons);
 
         await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Factions[0]);
-        var options = await viewModel.BuildUnitFilterPopupOptionsAsync();
+        var options = viewModel.BuildUnitFilterPopupOptions();
 
         Assert.NotEmpty(options.Classification);
         Assert.NotEmpty(options.Weapons);
@@ -304,7 +303,7 @@ public sealed class PerkTesterViewModelTests
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Factions[0]);
 
-        await viewModel.SelectUnitCommand.ExecuteAsync(viewModel.Units.First(u => u.Name == "SWISS GUARD"));
+        viewModel.SelectUnitCommand.Execute(viewModel.Units.First(u => u.Name == "SWISS GUARD"));
 
         Assert.True(viewModel.Detail.Profiles[0].IsSelected);
         Assert.Single(viewModel.Detail.Profiles, p => p.IsSelected);

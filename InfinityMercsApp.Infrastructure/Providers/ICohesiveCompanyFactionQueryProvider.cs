@@ -13,7 +13,7 @@ public interface ICohesiveCompanyFactionQueryProvider
     /// <param name="factionIds"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<CohesiveCompanyFactionQueryResult> GetFilterQuerySourceAsync(
+    CohesiveCompanyFactionQueryResult GetFilterQuerySource(
         IReadOnlyCollection<int> factionIds,
         CancellationToken cancellationToken = default);
 }

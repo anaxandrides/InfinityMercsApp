@@ -389,13 +389,13 @@ internal static class CompanySelectionRosterWorkflow
         applyUnitVisibilityFilters();
     }
 
-    internal static async Task SelectMercsCompanyEntryAsync<TEntry>(
+    internal static void SelectMercsCompanyEntry<TEntry>(
         TEntry? entry,
         IReadOnlyList<ArmyUnitSelectionItem> units,
         Func<int, int, CancellationToken, ArmyUnitRecord?> getUnitFromProvider,
         Func<int, int, string, string?, string?, ArmyUnitSelectionItem> createFallbackUnit,
         Action<ArmyUnitSelectionItem> setSelectedUnit,
-        Func<CancellationToken, Task> loadSelectedUnitDetailsAsync,
+        Action<CancellationToken> loadSelectedUnitDetails,
         CancellationToken cancellationToken = default)
         where TEntry : class, ICompanyMercsEntry
     {
@@ -426,11 +426,11 @@ internal static class CompanySelectionRosterWorkflow
             }
 
             setSelectedUnit(unitItem);
-            await loadSelectedUnitDetailsAsync(cancellationToken);
+            loadSelectedUnitDetails(cancellationToken);
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"CompanySelectionPage SelectMercsCompanyEntryAsync failed: {ex.Message}");
+            Console.Error.WriteLine($"CompanySelectionPage SelectMercsCompanyEntry failed: {ex.Message}");
         }
     }
 }

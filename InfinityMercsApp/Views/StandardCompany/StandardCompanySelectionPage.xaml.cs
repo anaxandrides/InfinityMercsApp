@@ -93,7 +93,7 @@ public partial class StandardCompanySelectionPage : CompanySelectionPageBase, IC
             item => item.Name);
         AddProfileToMercsCompanyCommand = new Command<ViewerProfileItem>(profile => _ = AddProfileToMercsCompanyAsync(profile));
         RemoveMercsCompanyEntryCommand = new Command<MercsCompanyEntry>(RemoveMercsCompanyEntry);
-        SelectMercsCompanyEntryCommand = new Command<MercsCompanyEntry>(entry => _ = SelectMercsCompanyEntryAsync(entry));
+        SelectMercsCompanyEntryCommand = new Command<MercsCompanyEntry>(entry => SelectMercsCompanyEntry(entry));
         SelectTeamAllowedProfileCommand = new Command<ArmyTeamUnitLimitItem>(teamItem =>
             HandleTeamAllowedProfileSelected(
                 teamItem,
@@ -148,7 +148,7 @@ public partial class StandardCompanySelectionPage : CompanySelectionPageBase, IC
     private void OnSelectedStartSeasonPointsChanged(object? sender, EventArgs e)
     {
         UpdateSeasonValidationState();
-        _ = RefreshSeasonPointsDependentUnitStateAsync();
+        RefreshSeasonPointsDependentUnitState();
     }
 
     public string SeasonPointsCapText
@@ -165,7 +165,7 @@ public partial class StandardCompanySelectionPage : CompanySelectionPageBase, IC
             OnPropertyChanged();
             UpdateSeasonValidationState();
             ApplyLieutenantVisualStates();
-            _ = ApplyUnitVisibilityFiltersAsync();
+            ApplyUnitVisibilityFilters();
         }
     }
 
@@ -239,9 +239,9 @@ public partial class StandardCompanySelectionPage : CompanySelectionPageBase, IC
         ApplyLieutenantVisualStates();
     }
 
-    protected override Task ApplyUnitVisibilityFiltersFromBaseAsync()
+    protected override void ApplyUnitVisibilityFiltersFromBase()
     {
-        return ApplyUnitVisibilityFiltersAsync();
+        ApplyUnitVisibilityFilters();
     }
 
     protected override Grid AdaptiveMainContentGrid => MainContentGrid;
@@ -278,16 +278,16 @@ public partial class StandardCompanySelectionPage : CompanySelectionPageBase, IC
         return LoadUnitsForActiveSlotAsync(CancellationToken.None);
     }
 
-    private async Task RefreshSeasonPointsDependentUnitStateAsync(CancellationToken cancellationToken = default)
+    private void RefreshSeasonPointsDependentUnitState(CancellationToken cancellationToken = default)
     {
         _filterState.PreparedUnitFilterPopupOptions = null;
-        await ApplyUnitVisibilityFiltersAsync(cancellationToken);
-        await BuildUnitFilterPopupOptionsAsync(cancellationToken);
+        ApplyUnitVisibilityFilters(cancellationToken);
+        BuildUnitFilterPopupOptions(cancellationToken);
     }
 
-    protected override Task LoadSelectedUnitDetailsAsync()
+    protected override void LoadSelectedUnitDetails()
     {
-        return LoadSelectedUnitDetailsAsync(CancellationToken.None);
+        LoadSelectedUnitDetails(CancellationToken.None);
     }
 
     UnitFilterCriteria ICompanySelectionVisibilityState.ActiveUnitFilter => _filterState.ActiveUnitFilter;

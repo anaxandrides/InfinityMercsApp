@@ -18,7 +18,7 @@ public sealed class TagCompanyFactionGenerator(
     private const string TagCompanyVersion = "tag-company-repurposed-mining-equipment-v3";
 
     /// <inheritdoc/>
-    public async Task GenerateAsync(CancellationToken cancellationToken = default)
+    public void Generate(CancellationToken cancellationToken = default)
     {
         Console.WriteLine("[TagGen] GenerateAsync started.");
 
@@ -32,7 +32,7 @@ public sealed class TagCompanyFactionGenerator(
 
         var tagFaction = BuildTagFaction();
 
-        await armyImportProvider.ImportAsync(TagCompanyFactionId, tagFaction, cancellationToken);
+        armyImportProvider.Import(TagCompanyFactionId, tagFaction, cancellationToken);
         InsertMetadataFactionEntry();
 
         Console.WriteLine($"[TagGen] Synthetic faction {TagCompanyFactionId} imported with {tagFaction.Units.Count} unit.");

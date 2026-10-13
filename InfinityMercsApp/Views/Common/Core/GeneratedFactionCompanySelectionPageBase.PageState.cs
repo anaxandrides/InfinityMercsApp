@@ -28,7 +28,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
     protected void OnSelectedStartSeasonPointsChanged(object? sender, EventArgs e)
     {
         UpdateSeasonValidationState();
-        _ = RefreshSeasonPointsDependentUnitStateAsync();
+        RefreshSeasonPointsDependentUnitState();
     }
 
     public string SeasonPointsCapText
@@ -45,7 +45,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
             OnPropertyChanged();
             UpdateSeasonValidationState();
             ApplyLieutenantVisualStates();
-            _ = ApplyUnitVisibilityFiltersAsync();
+            ApplyUnitVisibilityFilters();
         }
     }
 
@@ -119,9 +119,9 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
         ApplyLieutenantVisualStates();
     }
 
-    protected override Task ApplyUnitVisibilityFiltersFromBaseAsync()
+    protected override void ApplyUnitVisibilityFiltersFromBase()
     {
-        return ApplyUnitVisibilityFiltersAsync();
+        ApplyUnitVisibilityFilters();
     }
 
     protected override Task LoadFactionsAsync()
@@ -134,16 +134,16 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
         return LoadUnitsForActiveSlotAsync(CancellationToken.None);
     }
 
-    protected override Task LoadSelectedUnitDetailsAsync()
+    protected override void LoadSelectedUnitDetails()
     {
-        return LoadSelectedUnitDetailsAsync(CancellationToken.None);
+        LoadSelectedUnitDetails(CancellationToken.None);
     }
 
-    private async Task RefreshSeasonPointsDependentUnitStateAsync(CancellationToken cancellationToken = default)
+    private void RefreshSeasonPointsDependentUnitState(CancellationToken cancellationToken = default)
     {
         _filterState.PreparedUnitFilterPopupOptions = null;
-        await ApplyUnitVisibilityFiltersAsync(cancellationToken);
-        await BuildUnitFilterPopupOptionsAsync(cancellationToken);
+        ApplyUnitVisibilityFilters(cancellationToken);
+        BuildUnitFilterPopupOptions(cancellationToken);
     }
 
     UnitFilterCriteria ICompanySelectionVisibilityState.ActiveUnitFilter => _filterState.ActiveUnitFilter;

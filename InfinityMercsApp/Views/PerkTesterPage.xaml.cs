@@ -47,12 +47,12 @@ public partial class PerkTesterPage : ContentPageBase
         return startY;
     }
 
-    private async void OnUnitSelectionFilterButtonTapped(object? sender, TappedEventArgs e)
+    private void OnUnitSelectionFilterButtonTapped(object? sender, TappedEventArgs e)
     {
         try
         {
             var popup = new UnitFilterPopupView(
-                await _viewModel.BuildUnitFilterPopupOptionsAsync(),
+                _viewModel.BuildUnitFilterPopupOptions(),
                 _viewModel.ActiveUnitFilter,
                 lieutenantOnlyUnits: _viewModel.LieutenantOnlyUnits,
                 teamsView: false);

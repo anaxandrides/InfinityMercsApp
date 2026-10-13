@@ -9,5 +9,5 @@ public interface ITagCompanyFactionGenerator
     /// <summary>
     /// Creates or refreshes the synthetic TAG Company faction.
     /// </summary>
-    Task GenerateAsync(CancellationToken cancellationToken = default);
+    void Generate(CancellationToken cancellationToken = default);
 }
