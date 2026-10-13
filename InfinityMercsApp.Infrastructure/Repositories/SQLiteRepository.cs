@@ -28,6 +28,7 @@ public sealed class SQLiteRepository : ISQLiteRepository
         _connection.BusyTimeout = TimeSpan.FromSeconds(5);
         _connection.ExecuteScalar<string>("PRAGMA journal_mode=WAL");
         _connection.Execute("PRAGMA synchronous=NORMAL");
+        DatabaseSchema.StampIfNew(_connection);
     }
 
     /// <inheritdoc/>

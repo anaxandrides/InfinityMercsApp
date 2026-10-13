@@ -25,10 +25,9 @@ public static class MauiProgram
 				fonts.AddFont("Conthrax-SemiBold.otf", "ConthraxSemiBold");
 			});
 
-		// Seed the working DB from the bundled snapshot before anything opens a connection to it,
-		// so first launch starts populated instead of importing every faction over the network.
+		// A database from before the typed-table layout is discarded; the network import rebuilds it.
 		var dbPath = Path.Combine(FileSystem.Current.AppDataDirectory, "infinitymercs.db3");
-		DatabaseSeeder.EnsureSeeded(dbPath);
+		DatabaseReset.DiscardIfOutdated(dbPath);
 
 		builder.Services
 				.AddInfrastructureServices()

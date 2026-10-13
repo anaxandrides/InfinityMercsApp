@@ -23,8 +23,9 @@ internal sealed record CorpusUnit(
 /// Real Infinity Army API payloads checked into the repo:
 /// <list type="bullet">
 /// <item><c>ReferenceData/army-101.json</c> — a raw <c>/army/units/en/101</c> response (PanOceania).</item>
-/// <item><c>ReferenceData/infinitymercs.db3</c> — the bundled database: ~4,000 unit blobs across every army,
-/// including the generated company factions.</item>
+/// <item><c>ReferenceData/infinitymercs.db3</c> — a snapshot of the app database from before the typed tables
+/// (schema version 0): ~4,000 unit JSON blobs across every army, including the generated company factions.
+/// The app no longer reads this layout; it is kept only as test data.</item>
 /// </list>
 /// </summary>
 internal static class ReferenceCorpus
