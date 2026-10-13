@@ -700,10 +700,67 @@ public partial class UnitDisplayConfigurationsView : ContentView
     public event EventHandler<SKPaintSurfaceEventArgs>? ProfileTacticalIconCanvasPaintSurface;
     public event EventHandler<EventArgs>? UnitNameHeadingSizeChanged;
 
+    public static readonly BindableProperty SelectedUnitLogoSourceProperty =
+        BindableProperty.Create(nameof(SelectedUnitLogoSource), typeof(string), typeof(UnitDisplayConfigurationsView), null,
+            propertyChanged: (bindable, _, _) => ((UnitDisplayConfigurationsView)bindable).LoadLogoFromSource());
+
+    // The control's own icons, used when a host does not supply a picture. They come from the shared
+    // cache, so they are never disposed (hosts dispose only the pictures they set).
+    private SKPicture? _regularIcon, _irregularIcon, _lieutenantIcon, _peripheralIcon, _impetuousIcon,
+        _tacticalIcon, _cubeIcon, _cube2Icon, _hackableIcon, _logoFromSource;
+
     public UnitDisplayConfigurationsView()
     {
         InitializeComponent();
         UpdateConfigurationRows();
+        _ = LoadDefaultIconsAsync();
+    }
+
+    /// <summary>The selected unit's logo file, used when <see cref="SelectedUnitPicture"/> is not set.</summary>
+    public string? SelectedUnitLogoSource
+    {
+        get => (string?)GetValue(SelectedUnitLogoSourceProperty);
+        set => SetValue(SelectedUnitLogoSourceProperty, value);
+    }
+
+    private SKPicture? RegularIcon => RegularOrderIconPicture ?? _regularIcon;
+    private SKPicture? IrregularIcon => IrregularOrderIconPicture ?? _irregularIcon;
+    private SKPicture? LieutenantIcon => LieutenantIconPicture ?? _lieutenantIcon;
+    private SKPicture? PeripheralIcon => PeripheralIconPicture ?? _peripheralIcon;
+    private SKPicture? ImpetuousIcon => ImpetuousIconPicture ?? _impetuousIcon;
+    private SKPicture? TacticalIcon => TacticalAwarenessIconPicture ?? _tacticalIcon;
+    private SKPicture? CubeIcon => CubeIconPicture ?? _cubeIcon;
+    private SKPicture? Cube2Icon => Cube2IconPicture ?? _cube2Icon;
+    private SKPicture? HackableIcon => HackableIconPicture ?? _hackableIcon;
+
+    private async Task LoadDefaultIconsAsync()
+    {
+        _regularIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/regular.svg");
+        _irregularIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/irregular.svg");
+        _lieutenantIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/lieutenant.svg");
+        _peripheralIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/peripheral.svg");
+        _impetuousIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/impetuous.svg");
+        _tacticalIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/tactical.svg");
+        _cubeIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/cube.svg");
+        _cube2Icon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/cube2.svg");
+        _hackableIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/hackable.svg");
+
+        InvalidateHeaderIconsCanvas();
+        InvalidatePeripheralHeaderIconCanvas();
+    }
+
+    private async void LoadLogoFromSource()
+    {
+        var source = SelectedUnitLogoSource;
+        _logoFromSource = null;
+        InvalidateSelectedUnitCanvas();
+
+        var picture = await SvgPictureCache.GetAsync(source);
+        if (source == SelectedUnitLogoSource)
+        {
+            _logoFromSource = picture;
+            InvalidateSelectedUnitCanvas();
+        }
     }
 
     protected override void OnSizeAllocated(double width, double height)
@@ -865,9 +922,9 @@ public partial class UnitDisplayConfigurationsView : ContentView
 
     private void OnSelectedUnitCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        if (SelectedUnitPicture is not null)
+        if ((SelectedUnitPicture ?? _logoFromSource) is { } selectedUnitPicture)
         {
-            DrawSlotPicture(SelectedUnitPicture, e);
+            DrawSlotPicture(selectedUnitPicture, e);
             return;
         }
 
@@ -876,9 +933,9 @@ public partial class UnitDisplayConfigurationsView : ContentView
 
     private void OnPeripheralIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        if (PeripheralIconPicture is not null)
+        if (PeripheralIcon is { } peripheralIcon)
         {
-            DrawSlotPicture(PeripheralIconPicture, e);
+            DrawSlotPicture(peripheralIcon, e);
             return;
         }
 
@@ -887,9 +944,9 @@ public partial class UnitDisplayConfigurationsView : ContentView
 
     private void OnProfileTacticalIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        if (TacticalAwarenessIconPicture is not null)
+        if (TacticalIcon is { } tacticalIcon)
         {
-            DrawSlotPicture(TacticalAwarenessIconPicture, e);
+            DrawSlotPicture(tacticalIcon, e);
             return;
         }
 
@@ -938,120 +995,45 @@ public partial class UnitDisplayConfigurationsView : ContentView
         }
     }
 
-    private List<HeaderIconRenderItem> BuildHeaderIconPictures(IUnitDisplayIconState state)
+    private List<HeaderIconRenderItem> BuildHeaderIconPictures(IUnitDisplayIconState state) =>
+        BuildHeaderIconPictures(
+            state.ShowRegularOrderIcon, state.ShowIrregularOrderIcon, state.ShowImpetuousIcon,
+            state.ShowTacticalAwarenessIcon, state.ShowCubeIcon, state.ShowCube2Icon, state.ShowHackableIcon);
+
+    private List<HeaderIconRenderItem> BuildHeaderIconPictures() =>
+        BuildHeaderIconPictures(
+            ShowRegularOrderIcon, ShowIrregularOrderIcon, ShowImpetuousIcon,
+            ShowTacticalAwarenessIcon, ShowCubeIcon, ShowCube2Icon, ShowHackableIcon);
+
+    private List<HeaderIconRenderItem> BuildHeaderIconPictures(
+        bool regular, bool irregular, bool impetuous, bool tactical, bool cube, bool cube2, bool hackable)
     {
         var pictures = new List<HeaderIconRenderItem>(MaxHeaderIcons);
-        var orderTypePicture = state.ShowIrregularOrderIcon ? IrregularOrderIconPicture : RegularOrderIconPicture;
-        if ((state.ShowRegularOrderIcon || state.ShowIrregularOrderIcon) && orderTypePicture is not null)
+
+        void Add(bool show, SKPicture? picture)
         {
-            pictures.Add(new HeaderIconRenderItem(orderTypePicture));
+            if (show && picture is not null)
+            {
+                pictures.Add(new HeaderIconRenderItem(picture));
+            }
         }
+
+        Add(regular || irregular, irregular ? IrregularIcon : RegularIcon);
 
         var lieutenantIconCount = Math.Max(ShowLieutenantIcon ? 1 : 0, LieutenantIconCount);
         for (var i = 0; i < lieutenantIconCount; i++)
         {
-            if (LieutenantIconPicture is null)
-            {
-                break;
-            }
-
-            pictures.Add(new HeaderIconRenderItem(LieutenantIconPicture));
+            Add(true, LieutenantIcon);
         }
 
-        if (ShowPeripheralIcon && PeripheralIconPicture is not null)
-        {
-            pictures.Add(new HeaderIconRenderItem(PeripheralIconPicture));
-        }
+        Add(ShowPeripheralIcon, PeripheralIcon);
+        Add(impetuous, ImpetuousIcon);
+        Add(tactical, TacticalIcon);
+        Add(cube, CubeIcon);
+        Add(cube2, Cube2Icon);
+        Add(hackable, HackableIcon);
 
-        if (state.ShowImpetuousIcon && ImpetuousIconPicture is not null)
-        {
-            pictures.Add(new HeaderIconRenderItem(ImpetuousIconPicture));
-        }
-
-        if (state.ShowTacticalAwarenessIcon && TacticalAwarenessIconPicture is not null)
-        {
-            pictures.Add(new HeaderIconRenderItem(TacticalAwarenessIconPicture));
-        }
-
-        if (state.ShowCubeIcon && CubeIconPicture is not null)
-        {
-            pictures.Add(new HeaderIconRenderItem(CubeIconPicture));
-        }
-
-        if (state.ShowCube2Icon && Cube2IconPicture is not null)
-        {
-            pictures.Add(new HeaderIconRenderItem(Cube2IconPicture));
-        }
-
-        if (state.ShowHackableIcon && HackableIconPicture is not null)
-        {
-            pictures.Add(new HeaderIconRenderItem(HackableIconPicture));
-        }
-
-        if (pictures.Count <= MaxHeaderIcons)
-        {
-            return pictures;
-        }
-
-        return pictures.Take(MaxHeaderIcons).ToList();
-    }
-
-    private List<HeaderIconRenderItem> BuildHeaderIconPictures()
-    {
-        var pictures = new List<HeaderIconRenderItem>(MaxHeaderIcons);
-        var orderTypePicture = ShowIrregularOrderIcon ? IrregularOrderIconPicture : RegularOrderIconPicture;
-        if ((ShowRegularOrderIcon || ShowIrregularOrderIcon) && orderTypePicture is not null)
-        {
-            pictures.Add(new HeaderIconRenderItem(orderTypePicture));
-        }
-
-        var lieutenantIconCount = Math.Max(ShowLieutenantIcon ? 1 : 0, LieutenantIconCount);
-        for (var i = 0; i < lieutenantIconCount; i++)
-        {
-            if (LieutenantIconPicture is null)
-            {
-                break;
-            }
-
-            pictures.Add(new HeaderIconRenderItem(LieutenantIconPicture));
-        }
-
-        if (ShowPeripheralIcon && PeripheralIconPicture is not null)
-        {
-            pictures.Add(new HeaderIconRenderItem(PeripheralIconPicture));
-        }
-
-        if (ShowImpetuousIcon && ImpetuousIconPicture is not null)
-        {
-            pictures.Add(new HeaderIconRenderItem(ImpetuousIconPicture));
-        }
-
-        if (ShowTacticalAwarenessIcon && TacticalAwarenessIconPicture is not null)
-        {
-            pictures.Add(new HeaderIconRenderItem(TacticalAwarenessIconPicture));
-        }
-
-        if (ShowCubeIcon && CubeIconPicture is not null)
-        {
-            pictures.Add(new HeaderIconRenderItem(CubeIconPicture));
-        }
-
-        if (ShowCube2Icon && Cube2IconPicture is not null)
-        {
-            pictures.Add(new HeaderIconRenderItem(Cube2IconPicture));
-        }
-
-        if (ShowHackableIcon && HackableIconPicture is not null)
-        {
-            pictures.Add(new HeaderIconRenderItem(HackableIconPicture));
-        }
-
-        if (pictures.Count <= MaxHeaderIcons)
-        {
-            return pictures;
-        }
-
-        return pictures.Take(MaxHeaderIcons).ToList();
+        return pictures.Count <= MaxHeaderIcons ? pictures : pictures.Take(MaxHeaderIcons).ToList();
     }
 
     private static void DrawIconColumn(SKCanvas canvas, SKImageInfo info, IReadOnlyList<HeaderIconRenderItem> pictures)

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<views:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
-             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
+             xmlns:views="clr-namespace:InfinityMercsApp.Views"
              x:Class="InfinityMercsApp.Views.PerkTesterPage"
              x:Name="PerkTesterPageRoot"
              Title="Perk Tester">
@@ -59,7 +59,7 @@
             <Border Grid.Row="1" StrokeThickness="1" Padding="12">
                 <Grid RowDefinitions="Auto,*" RowSpacing="8">
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                        <Button Grid.Column="0" Text="Units" Command="{Binding ShowUnitsTabCommand}" CornerRadius="8">
+                        <Button Grid.Column="0" Text="Units" Command="{Binding ShowUnitsCommand}" CornerRadius="8">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button" Binding="{Binding ShowUnitsTab}" Value="True">
                                     <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
@@ -73,7 +73,7 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Grid.Column="1" Text="Fireteams" Command="{Binding ShowFireteamsTabCommand}" CornerRadius="8">
+                        <Button Grid.Column="1" Text="Fireteams" Command="{Binding ShowFireteamsCommand}" CornerRadius="8">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button" Binding="{Binding ShowFireteamsTab}" Value="True">
                                     <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
@@ -103,13 +103,7 @@
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnUnitSelectionFilterButtonTapped" />
                                 </Border.GestureRecognizers>
-                                <skia:SKCanvasView
-                                    x:Name="UnitSelectionFilterCanvas"
-                                    WidthRequest="20"
-                                    HeightRequest="20"
-                                    VerticalOptions="Center"
-                                    HorizontalOptions="Center"
-                                    PaintSurface="OnUnitSelectionFilterCanvasPaintSurface" />
+                                <controls:SvgIcon Source="SVGCache/NonCBIcons/noun-filter.svg" WidthRequest="20" HeightRequest="20" VerticalOptions="Center" HorizontalOptions="Center" />
                             </Border>
                         </Grid>
                         <Label Grid.Row="1" Text="{Binding UnitsStatus}" TextColor="{StaticResource TextMuted}" />
@@ -186,6 +180,8 @@
                 <controls:UnitDisplayConfigurationsView
                     Grid.Row="0"
                     x:Name="UnitDisplayConfigurationsView"
+                    BindingContext="{Binding Detail}"
+                    SelectedUnitLogoSource="{Binding LogoSource}"
                     ShowConfigurationsSection="False"
                     ShowSummaryRows="False"
                     UnitNameHeading="{Binding UnitNameHeading}"
@@ -211,11 +207,11 @@
                     SpecialSkillsSummaryFormatted="{Binding SpecialSkillsSummaryFormatted}" />
                 <Label
                     Grid.Row="1"
-                    Text="{Binding ProfilesStatus}"
+                    Text="{Binding Detail.ProfilesStatus}"
                     TextColor="{StaticResource TextMuted}" />
                 <ScrollView Grid.Row="2">
                     <VerticalStackLayout
-                        BindableLayout.ItemsSource="{Binding Profiles}"
+                        BindableLayout.ItemsSource="{Binding Detail.Profiles}"
                         Spacing="6">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate>
@@ -232,7 +228,7 @@
                                     </Border.Triggers>
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer
-                                            Command="{Binding Source={x:Reference PerkTesterPageRoot}, Path=SelectProfileCommand}"
+                                            Command="{Binding Source={x:Reference PerkTesterPageRoot}, Path=BindingContext.SelectProfileCommand}"
                                             CommandParameter="{Binding .}" />
                                     </Border.GestureRecognizers>
                                     <VerticalStackLayout Spacing="2">
@@ -243,12 +239,7 @@
                                             </Grid.ColumnDefinitions>
                                             <Label Grid.Column="0" FormattedText="{Binding NameFormatted}" FontAttributes="Bold" />
                                             <HorizontalStackLayout Grid.Column="1" Spacing="4" HorizontalOptions="End" VerticalOptions="Center">
-                                                <skia:SKCanvasView
-                                                    WidthRequest="14"
-                                                    HeightRequest="14"
-                                                    VerticalOptions="Center"
-                                                    IsVisible="{Binding ShowProfileTacticalAwarenessIcon}"
-                                                    PaintSurface="OnProfileTacticalIconCanvasPaintSurface" />
+                                                <controls:SvgIcon Source="SVGCache/CBIcons/tactical.svg" WidthRequest="14" HeightRequest="14" VerticalOptions="Center" IsVisible="{Binding ShowProfileTacticalAwarenessIcon}" />
                                                 <Label Text="{Binding Cost, StringFormat='C {0}'}" FontSize="{DynamicResource FontSizeCaption}" HorizontalTextAlignment="End" VerticalOptions="Center" />
                                             </HorizontalStackLayout>
                                         </Grid>
@@ -277,7 +268,7 @@
                 <Label Text="Qualified Perks" FontSize="{DynamicResource FontSizeTitleSmall}" FontAttributes="Bold" />
                 <ScrollView Grid.Row="1">
                     <VerticalStackLayout
-                        BindableLayout.ItemsSource="{Binding Source={x:Reference PerkTesterPageRoot}, Path=QualifiedPerks}"
+                        BindableLayout.ItemsSource="{Binding QualifiedPerks}"
                         Spacing="6">
                         <BindableLayout.EmptyView>
                             <Label Text="Select a profile to view qualified perks." TextColor="{StaticResource TextMuted}" />
@@ -313,4 +304,4 @@
         </Grid>
     </Grid>
 
-</ContentPage>
+</views:ContentPageBase>

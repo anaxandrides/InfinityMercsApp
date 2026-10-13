@@ -24,7 +24,7 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
         PropertyNameCaseInsensitive = true
     };
 
-    private readonly ViewerViewModel _viewerViewModel;
+    private readonly UnitDetailViewModel _viewerViewModel;
     private readonly FactionLogoCacheService? _factionLogoCacheService;
     private readonly IArmyDataService? _armyDataService;
 
@@ -232,7 +232,7 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
     }
 
     public CompanyViewerPage(
-        ViewerViewModel viewModel,
+        UnitDetailViewModel viewModel,
         FactionLogoCacheService? factionLogoCacheService = null,
         IArmyDataService? armyDataService = null)
     {
@@ -242,7 +242,7 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
         _armyDataService = armyDataService;
         BindingContext = _viewerViewModel;
         SelectCompanyUnitCommand = new Command<CompanyViewerUnitListItem>(item => _ = SelectCompanyUnitAsync(item));
-        _viewerViewModel.PropertyChanged += OnViewerViewModelPropertyChanged;
+        _viewerViewModel.PropertyChanged += OnUnitDetailViewModelPropertyChanged;
 
         var saveNameTap = new TapGestureRecognizer();
         saveNameTap.Tapped += OnSelectedNameSaveTapped;
@@ -1114,28 +1114,19 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
         SelectedNameRejectCanvas.InvalidateSurface();
     }
 
-    private void OnViewerViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnUnitDetailViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(ViewerViewModel.ShowRegularOrderIcon)
-            or nameof(ViewerViewModel.ShowIrregularOrderIcon)
-            or nameof(ViewerViewModel.ShowImpetuousIcon)
-            or nameof(ViewerViewModel.ShowTacticalAwarenessIcon)
-            or nameof(ViewerViewModel.ShowCubeIcon)
-            or nameof(ViewerViewModel.ShowCube2Icon)
-            or nameof(ViewerViewModel.ShowHackableIcon))
+        if (e.PropertyName is nameof(UnitDetailViewModel.ShowRegularOrderIcon)
+            or nameof(UnitDetailViewModel.ShowIrregularOrderIcon)
+            or nameof(UnitDetailViewModel.ShowImpetuousIcon)
+            or nameof(UnitDetailViewModel.ShowTacticalAwarenessIcon)
+            or nameof(UnitDetailViewModel.ShowCubeIcon)
+            or nameof(UnitDetailViewModel.ShowCube2Icon)
+            or nameof(UnitDetailViewModel.ShowHackableIcon))
         {
             UnitDisplayConfigurationsView.InvalidateHeaderIconsCanvas();
         }
 
-        if (e.PropertyName == nameof(ViewerViewModel.SelectedUnit))
-        {
-            _ = LoadSelectedUnitLogoAsync(_viewerViewModel.SelectedUnit);
-        }
-    }
-
-    private async Task LoadSelectedUnitLogoAsync(ViewerUnitItem? unit)
-    {
-        await LoadSelectedLogoPictureAsync(unit);
     }
 
     private async Task LoadSelectedCompanyUnitLogoAsync(CompanyViewerUnitListItem? item)

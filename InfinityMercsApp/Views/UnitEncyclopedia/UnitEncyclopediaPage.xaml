@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
-             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              x:Class="InfinityMercsApp.Views.UnitEncyclopedia.UnitEncyclopediaPage"
              x:Name="UnitEncyclopediaPageRoot"
              Title="Unit Encyclopedia">
@@ -69,10 +68,10 @@
                         TextColor="{StaticResource Signal}"
                         FontAttributes="Bold"
                         Padding="0"
-                        Clicked="OnBrowseBackClicked" />
+                        Command="{Binding BackToFactionsCommand}" />
 
                 <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="8">
-                    <Button Grid.Column="0" Text="Units" Command="{Binding ShowUnitsTabCommand}" CornerRadius="8">
+                    <Button Grid.Column="0" Text="Units" Command="{Binding ShowUnitsCommand}" CornerRadius="8">
                         <Button.Triggers>
                             <DataTrigger TargetType="Button" Binding="{Binding ShowUnitsTab}" Value="True">
                                 <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
@@ -86,7 +85,7 @@
                             </DataTrigger>
                         </Button.Triggers>
                     </Button>
-                    <Button Grid.Column="1" Text="Fireteams" Command="{Binding ShowFireteamsTabCommand}" CornerRadius="8">
+                    <Button Grid.Column="1" Text="Fireteams" Command="{Binding ShowFireteamsCommand}" CornerRadius="8">
                         <Button.Triggers>
                             <DataTrigger TargetType="Button" Binding="{Binding ShowFireteamsTab}" Value="True">
                                 <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
@@ -116,13 +115,12 @@
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="OnUnitSelectionFilterButtonTapped" />
                             </Border.GestureRecognizers>
-                            <skia:SKCanvasView
-                                x:Name="UnitSelectionFilterCanvas"
+                            <controls:SvgIcon
+                                Source="SVGCache/NonCBIcons/noun-filter.svg"
                                 WidthRequest="20"
                                 HeightRequest="20"
                                 VerticalOptions="Center"
-                                HorizontalOptions="Center"
-                                PaintSurface="OnUnitSelectionFilterCanvasPaintSurface" />
+                                HorizontalOptions="Center" />
                         </Border>
                     </Grid>
                     <Label Grid.Row="1" Text="{Binding UnitsStatus}" TextColor="{StaticResource TextMuted}" />
@@ -206,10 +204,12 @@
                         TextColor="{StaticResource Signal}"
                         FontAttributes="Bold"
                         Padding="0"
-                        Clicked="OnDetailBackClicked" />
+                        Command="{Binding BackToUnitsCommand}" />
                 <controls:UnitDisplayConfigurationsView
                     Grid.Row="1"
                     x:Name="UnitDisplayConfigurationsView"
+                    BindingContext="{Binding Detail}"
+                    SelectedUnitLogoSource="{Binding LogoSource}"
                     UnitNameHeading="{Binding UnitNameHeading}"
                     ShowRegularOrderIcon="{Binding ShowRegularOrderIcon}"
                     ShowIrregularOrderIcon="{Binding ShowIrregularOrderIcon}"
