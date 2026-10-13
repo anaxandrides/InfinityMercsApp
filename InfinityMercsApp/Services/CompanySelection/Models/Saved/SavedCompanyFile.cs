@@ -5,11 +5,7 @@ namespace InfinityMercsApp.Views.Common;
 /// JSON shape, and all loaders (season, viewer, load, play/game mode) deserialize into this type,
 /// so a single shared set replaces the previously duplicated per-page <c>Saved*</c> definitions.
 /// </summary>
-public sealed class SavedCompanyFile : CompanySavedCompanyFileBase<SavedImprovedCaptainStats, SavedCompanyFaction, SavedCompanyEntry>
-{
-}
-
-public sealed class SavedImprovedCaptainStats : CompanySavedImprovedCaptainStatsBase
+public sealed class SavedCompanyFile : CompanySavedCompanyFileBase<SavedCompanyFaction, SavedCompanyEntry>
 {
 }
 

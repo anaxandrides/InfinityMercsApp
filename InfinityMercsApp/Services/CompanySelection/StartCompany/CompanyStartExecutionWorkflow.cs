@@ -1,22 +1,20 @@
 ﻿namespace InfinityMercsApp.Views.Common;
 
-internal sealed class CompanyStartExecutionRequest<TFaction, TEntry, TCaptainStats>
+internal sealed class CompanyStartExecutionRequest<TFaction, TEntry>
     where TFaction : class, ICompanySourceFaction
     where TEntry : class, ICompanyMercsEntry
-    where TCaptainStats : CompanySavedImprovedCaptainStatsBase
 {
     public required string? CompanyName { get; init; }
     public required Action<bool> SetCompanyNameValidationError { get; init; }
-    public required Func<CompanyStartSaveRequest<TFaction, TEntry, TCaptainStats>> BuildSaveRequest { get; init; }
+    public required Func<CompanyStartSaveRequest<TFaction, TEntry>> BuildSaveRequest { get; init; }
     public required Func<Exception, Task> HandleFailureAsync { get; init; }
 }
 
 internal static class CompanyStartExecutionWorkflow
 {
-    internal static async Task ExecuteAsync<TFaction, TEntry, TCaptainStats>(CompanyStartExecutionRequest<TFaction, TEntry, TCaptainStats> request)
+    internal static async Task ExecuteAsync<TFaction, TEntry>(CompanyStartExecutionRequest<TFaction, TEntry> request)
         where TFaction : class, ICompanySourceFaction
         where TEntry : class, ICompanyMercsEntry
-        where TCaptainStats : CompanySavedImprovedCaptainStatsBase
     {
         if (!CompanyStartSharedState.IsCompanyNameValid(request.CompanyName))
         {

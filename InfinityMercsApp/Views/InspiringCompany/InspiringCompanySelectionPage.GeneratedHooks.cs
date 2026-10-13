@@ -32,7 +32,7 @@ public partial class InspiringCompanySelectionPage
 
     protected override async Task StartCompanyAsync()
     {
-        await ExecuteStartCompanyAsync<ArmyFactionSelectionItem, MercsCompanyEntry, SavedImprovedCaptainStats>(
+        await ExecuteStartCompanyAsync<ArmyFactionSelectionItem, MercsCompanyEntry>(
             CompanyName,
             MercsCompanyEntries,
             false,
@@ -43,8 +43,7 @@ public partial class InspiringCompanySelectionPage
             ShowUnitsInInches,
             SelectedStartSeasonPoints,
             SeasonPointsCapText,
-            factionId => ArmyDataService.GetMetadataFactionById(factionId)?.Name,
-            stats => stats.CaptainName);
+            factionId => ArmyDataService.GetMetadataFactionById(factionId)?.Name);
     }
 
     private static IReadOnlyCollection<string> EnsureInspiringLeadershipSkill(IReadOnlyCollection<string> skills)

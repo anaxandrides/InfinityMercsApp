@@ -19,7 +19,7 @@ public partial class StandardCompanySelectionPage
     /// </summary>
     protected override async Task StartCompanyAsync()
     {
-        await ExecuteStartCompanyAsync<ArmyFactionSelectionItem, MercsCompanyEntry, SavedImprovedCaptainStats>(
+        await ExecuteStartCompanyAsync<ArmyFactionSelectionItem, MercsCompanyEntry>(
             CompanyName,
             MercsCompanyEntries,
             ShowRightSelectionBox,
@@ -30,8 +30,7 @@ public partial class StandardCompanySelectionPage
             ShowUnitsInInches,
             SelectedStartSeasonPoints,
             SeasonPointsCapText,
-            factionId => _armyDataService.GetMetadataFactionById(factionId)?.Name,
-            stats => stats.CaptainName);
+            factionId => _armyDataService.GetMetadataFactionById(factionId)?.Name);
     }
 
     /// <summary>

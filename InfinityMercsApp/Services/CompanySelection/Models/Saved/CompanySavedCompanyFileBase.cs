@@ -2,8 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace InfinityMercsApp.Views.Common;
 
-public abstract class CompanySavedCompanyFileBase<TCaptainStats, TFaction, TEntry>
-    where TCaptainStats : CompanySavedImprovedCaptainStatsBase, new()
+public abstract class CompanySavedCompanyFileBase<TFaction, TEntry>
     where TFaction : CompanySavedCompanyFactionBase, new()
     where TEntry : CompanySavedCompanyEntryBase, new()
 {
@@ -16,7 +15,7 @@ public abstract class CompanySavedCompanyFileBase<TCaptainStats, TFaction, TEntr
     public int PointsLimit { get; init; }
     public int CurrentPoints { get; init; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public TCaptainStats? ImprovedCaptainStats { get; init; }
+    public SavedImprovedCaptainStats? ImprovedCaptainStats { get; init; }
     public List<TFaction> SourceFactions { get; init; } = [];
     public List<TEntry> Entries { get; init; } = [];
 }

@@ -81,7 +81,7 @@ public abstract partial class CompanySelectionPageBase
     /// serialises the roster to disk, and navigates to the company viewer on success.
     /// Displays an error alert and logs on failure.
     /// </summary>
-    protected async Task ExecuteStartCompanyAsync<TFaction, TEntry, TCaptainStats>(
+    protected async Task ExecuteStartCompanyAsync<TFaction, TEntry>(
         string? companyName,
         IEnumerable<TEntry> mercsCompanyEntries,
         bool showRightSelectionBox,
@@ -92,18 +92,16 @@ public abstract partial class CompanySelectionPageBase
         bool showUnitsInInches,
         string selectedStartSeasonPoints,
         string seasonPointsCapText,
-        Func<int, string?> tryGetMetadataFactionName,
-        Func<TCaptainStats, string?> readCaptainName)
+        Func<int, string?> tryGetMetadataFactionName)
         where TFaction : class, ICompanySourceFaction
         where TEntry : class, ICompanyMercsEntry
-        where TCaptainStats : CompanySavedImprovedCaptainStatsBase
     {
-        await CompanyStartExecutionWorkflow.ExecuteAsync<TFaction, TEntry, TCaptainStats>(
-            new CompanyStartExecutionRequest<TFaction, TEntry, TCaptainStats>
+        await CompanyStartExecutionWorkflow.ExecuteAsync<TFaction, TEntry>(
+            new CompanyStartExecutionRequest<TFaction, TEntry>
             {
                 CompanyName = companyName,
                 SetCompanyNameValidationError = SetCompanyNameValidationError,
-                BuildSaveRequest = () => new CompanyStartSaveRequest<TFaction, TEntry, TCaptainStats>
+                BuildSaveRequest = () => new CompanyStartSaveRequest<TFaction, TEntry>
                 {
                     CompanyName = (companyName ?? string.Empty).Trim(),
                     CompanyType = CompanyTypeLabel,
@@ -119,7 +117,6 @@ public abstract partial class CompanySelectionPageBase
                     SelectedStartSeasonPoints = selectedStartSeasonPoints,
                     SeasonPointsCapText = seasonPointsCapText,
                     TryGetMetadataFactionName = tryGetMetadataFactionName,
-                    ReadCaptainName = readCaptainName,
                     DisplayAlertAsync = (title, message, cancel) => DisplayAlertAsync(title, message, cancel),
                     NavigateToCompanyViewerAsync = filePath => Shell.Current.GoToAsync(
                         $"//{nameof(SeasonPage)}",

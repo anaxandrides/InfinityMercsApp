@@ -8,7 +8,7 @@ public partial class CohesiveCompanySelectionPage
 
     protected override async Task StartCompanyAsync()
     {
-        await ExecuteStartCompanyAsync<ArmyFactionSelectionItem, MercsCompanyEntry, SavedImprovedCaptainStats>(
+        await ExecuteStartCompanyAsync<ArmyFactionSelectionItem, MercsCompanyEntry>(
             CompanyName,
             MercsCompanyEntries,
             ShowRightSelectionBox,
@@ -19,8 +19,7 @@ public partial class CohesiveCompanySelectionPage
             ShowUnitsInInches,
             SelectedStartSeasonPoints,
             SeasonPointsCapText,
-            factionId => _armyDataService.GetMetadataFactionById(factionId)?.Name,
-            stats => stats.CaptainName);
+            factionId => _armyDataService.GetMetadataFactionById(factionId)?.Name);
     }
 
     private void UpdateMercsCompanyTotal()

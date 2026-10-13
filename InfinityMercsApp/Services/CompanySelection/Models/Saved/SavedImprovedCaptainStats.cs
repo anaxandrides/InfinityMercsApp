@@ -1,6 +1,10 @@
 namespace InfinityMercsApp.Views.Common;
 
-public abstract class CompanySavedImprovedCaptainStatsBase
+/// <summary>
+/// The captain upgrades chosen when a company is founded (or the TAG company's spec-ops build), as saved
+/// in the company file and returned by the captain configuration popup.
+/// </summary>
+public sealed class SavedImprovedCaptainStats
 {
     public bool IsEnabled { get; init; }
     public string CaptainName { get; init; } = string.Empty;

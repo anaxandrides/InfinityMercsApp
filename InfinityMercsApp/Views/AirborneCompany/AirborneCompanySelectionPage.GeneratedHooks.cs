@@ -34,7 +34,7 @@ public partial class AirborneCompanySelectionPage
 
     protected override async Task StartCompanyAsync()
     {
-        await ExecuteStartCompanyAsync<ArmyFactionSelectionItem, MercsCompanyEntry, SavedImprovedCaptainStats>(
+        await ExecuteStartCompanyAsync<ArmyFactionSelectionItem, MercsCompanyEntry>(
             CompanyName,
             MercsCompanyEntries,
             false,
@@ -45,8 +45,7 @@ public partial class AirborneCompanySelectionPage
             ShowUnitsInInches,
             SelectedStartSeasonPoints,
             SeasonPointsCapText,
-            factionId => ArmyDataService.GetMetadataFactionById(factionId)?.Name,
-            stats => stats.CaptainName);
+            factionId => ArmyDataService.GetMetadataFactionById(factionId)?.Name);
     }
 
     private static List<string> BuildCaptainSkills(IReadOnlyCollection<string> commonSkills, string? uniqueSkills)

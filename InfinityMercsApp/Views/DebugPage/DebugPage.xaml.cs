@@ -106,7 +106,7 @@ public partial class DebugPage : ContentPage
                         continue;
                     }
 
-                    var request = new CompanyStartSaveRequest<DebugSourceFaction, DebugMercsEntry, DebugCaptainStats>
+                    var request = new CompanyStartSaveRequest<DebugSourceFaction, DebugMercsEntry>
                     {
                         CompanyName = source.CompanyName,
                         CompanyType = source.CompanyType,
@@ -122,7 +122,6 @@ public partial class DebugPage : ContentPage
                         SelectedStartSeasonPoints = source.StartSeasonPoints.ToString(),
                         SeasonPointsCapText = source.CurrentPoints.ToString(),
                         TryGetMetadataFactionName = _ => null,
-                        ReadCaptainName = stats => stats.CaptainName,
                         DisplayAlertAsync = async (title, message, cancel) => await DisplayAlertAsync(title, message, cancel),
                         NavigateToCompanyViewerAsync = _ => Task.CompletedTask
                     };
@@ -134,7 +133,7 @@ public partial class DebugPage : ContentPage
 
                     await CompanyStartSaveWorkflow.RunWithProvidedCaptainStatsAsync(
                         request,
-                        source.ImprovedCaptainStats ?? new DebugCaptainStats(),
+                        source.ImprovedCaptainStats ?? new SavedImprovedCaptainStats(),
                         outputFilePath: filePath,
                         navigateToViewer: false);
 
@@ -744,7 +743,7 @@ public partial class DebugPage : ContentPage
         public string? PackagedLogoPath { get; init; }
     }
 
-    private sealed class DebugSavedCompanyFile : CompanySavedCompanyFileBase<DebugCaptainStats, DebugSavedCompanyFaction, DebugSavedEntry>
+    private sealed class DebugSavedCompanyFile : CompanySavedCompanyFileBase<DebugSavedCompanyFaction, DebugSavedEntry>
     {
     }
 
@@ -770,10 +769,6 @@ public partial class DebugPage : ContentPage
     }
 
     private sealed class DebugSavedCompanyFaction : CompanySavedCompanyFactionBase
-    {
-    }
-
-    private sealed class DebugCaptainStats : CompanySavedImprovedCaptainStatsBase
     {
     }
 

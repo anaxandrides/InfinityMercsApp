@@ -1,11 +1,10 @@
-using System.Text.Json;
 using TemplateCaptain = InfinityMercsApp.Views.Common.Captain;
 
 namespace InfinityMercsApp.Views.Common.UICommon;
 
 internal static class CompanyCaptainWorkflowService
 {
-    public static async Task<TemplateCaptain.SavedImprovedCaptainStats?> ShowCaptainConfigurationAsync(
+    public static async Task<SavedImprovedCaptainStats?> ShowCaptainConfigurationAsync(
         CompanyCaptainWorkflowRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -55,21 +54,6 @@ internal static class CompanyCaptainWorkflowService
         };
 
         return await TemplateCaptain.ConfigureCaptainPopupPage.ShowAsync(request.Navigation, context);
-    }
-
-    public static async Task<TStats?> ShowCaptainConfigurationAsync<TStats>(
-        CompanyCaptainWorkflowRequest request,
-        CancellationToken cancellationToken = default)
-        where TStats : class
-    {
-        var templateResult = await ShowCaptainConfigurationAsync(request, cancellationToken);
-        if (templateResult is null)
-        {
-            return null;
-        }
-
-        var json = JsonSerializer.Serialize(templateResult);
-        return JsonSerializer.Deserialize<TStats>(json);
     }
 
     private static string ResolveOptionFactionName(

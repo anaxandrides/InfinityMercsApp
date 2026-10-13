@@ -16,7 +16,7 @@ internal static class CompanySpecOpsWorkflowService
         "Engineer"
     ];
 
-    public static async Task<TemplateCaptain.SavedImprovedCaptainStats?> ShowTagSpecOpsConfigurationAsync(
+    public static async Task<SavedImprovedCaptainStats?> ShowTagSpecOpsConfigurationAsync(
         CompanySpecOpsWorkflowRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -98,21 +98,6 @@ internal static class CompanySpecOpsWorkflowService
         };
 
         return await TemplateCaptain.ConfigureCaptainPopupPage.ShowAsync(request.Navigation, context);
-    }
-
-    public static async Task<TStats?> ShowTagSpecOpsConfigurationAsync<TStats>(
-        CompanySpecOpsWorkflowRequest request,
-        CancellationToken cancellationToken = default)
-        where TStats : class
-    {
-        var templateResult = await ShowTagSpecOpsConfigurationAsync(request, cancellationToken);
-        if (templateResult is null)
-        {
-            return null;
-        }
-
-        var json = System.Text.Json.JsonSerializer.Serialize(templateResult);
-        return System.Text.Json.JsonSerializer.Deserialize<TStats>(json);
     }
 
     private static int ResolveNonTagSourceFactionId(int resolvedSourceFactionId, int? firstSourceFactionId)

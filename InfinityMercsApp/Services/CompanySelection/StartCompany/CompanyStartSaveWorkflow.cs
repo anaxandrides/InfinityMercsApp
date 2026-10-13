@@ -11,10 +11,9 @@ using TagGen = InfinityMercsApp.Infrastructure.Providers.TagCompanyFactionGenera
 
 namespace InfinityMercsApp.Views.Common;
 
-internal sealed class CompanyStartSaveRequest<TFaction, TEntry, TCaptainStats>
+internal sealed class CompanyStartSaveRequest<TFaction, TEntry>
     where TFaction : class, ICompanySourceFaction
     where TEntry : class, ICompanyMercsEntry
-    where TCaptainStats : CompanySavedImprovedCaptainStatsBase
 {
     public required string CompanyName { get; init; }
     public required string CompanyType { get; init; }
@@ -30,17 +29,15 @@ internal sealed class CompanyStartSaveRequest<TFaction, TEntry, TCaptainStats>
     public required string SelectedStartSeasonPoints { get; init; }
     public required string SeasonPointsCapText { get; init; }
     public required Func<int, string?> TryGetMetadataFactionName { get; init; }
-    public required Func<TCaptainStats, string?> ReadCaptainName { get; init; }
     public required Func<string, string, string, Task> DisplayAlertAsync { get; init; }
     public required Func<string, Task> NavigateToCompanyViewerAsync { get; init; }
 }
 
 internal static class CompanyStartSaveWorkflow
 {
-    internal static async Task RunAsync<TFaction, TEntry, TCaptainStats>(CompanyStartSaveRequest<TFaction, TEntry, TCaptainStats> request)
+    internal static async Task RunAsync<TFaction, TEntry>(CompanyStartSaveRequest<TFaction, TEntry> request)
         where TFaction : class, ICompanySourceFaction
         where TEntry : class, ICompanyMercsEntry
-        where TCaptainStats : CompanySavedImprovedCaptainStatsBase
     {
         var entries = request.MercsCompanyEntries as IList<TEntry> ?? request.MercsCompanyEntries.ToList();
         var factions = request.Factions as IList<TFaction> ?? request.Factions.ToList();
@@ -73,14 +70,14 @@ internal static class CompanyStartSaveWorkflow
             factions.FirstOrDefault(x => x.Id == factionId)?.ParentId
             ?? request.ArmyDataService.GetMetadataFactionById(factionId)?.ParentId;
 
-        TCaptainStats? improvedCaptainStats;
+        SavedImprovedCaptainStats? improvedCaptainStats;
         if (isTagCompanyWorkflow)
         {
             var preferredOtherFactionId = sourceFactions
                 .Select(x => x.Id)
                 .FirstOrDefault(id => id != TagGen.TagCompanyFactionId);
 
-            improvedCaptainStats = await CompanySpecOpsWorkflowService.ShowTagSpecOpsConfigurationAsync<TCaptainStats>(
+            improvedCaptainStats = await CompanySpecOpsWorkflowService.ShowTagSpecOpsConfigurationAsync(
                 new CompanySpecOpsWorkflowRequest
                 {
                     Navigation = request.Navigation,
@@ -108,7 +105,7 @@ internal static class CompanyStartSaveWorkflow
         }
         else
         {
-            improvedCaptainStats = await CompanyCaptainWorkflowService.ShowCaptainConfigurationAsync<TCaptainStats>(
+            improvedCaptainStats = await CompanyCaptainWorkflowService.ShowCaptainConfigurationAsync(
                 new CompanyCaptainWorkflowRequest
                 {
                     Navigation = request.Navigation,
@@ -149,7 +146,7 @@ internal static class CompanyStartSaveWorkflow
         var companyIndex = CompanySelectionSharedUtilities.GetNextCompanyIndex(saveDir, companyName, safeFileName);
         var fileName = $"{safeFileName}-{companyIndex:D4}.json";
 
-        var captainName = request.ReadCaptainName(improvedCaptainStats);
+        var captainName = improvedCaptainStats.CaptainName;
         var normalizedCaptainName = string.IsNullOrWhiteSpace(captainName) ? "Captain" : captainName.Trim();
         var startSeasonPoints = int.TryParse(request.SelectedStartSeasonPoints, out var parsedStartSeasonPoints)
             ? parsedStartSeasonPoints
@@ -186,14 +183,13 @@ internal static class CompanyStartSaveWorkflow
         await request.NavigateToCompanyViewerAsync(filePath);
     }
 
-    internal static async Task<string> RunWithProvidedCaptainStatsAsync<TFaction, TEntry, TCaptainStats>(
-        CompanyStartSaveRequest<TFaction, TEntry, TCaptainStats> request,
-        TCaptainStats improvedCaptainStats,
+    internal static async Task<string> RunWithProvidedCaptainStatsAsync<TFaction, TEntry>(
+        CompanyStartSaveRequest<TFaction, TEntry> request,
+        SavedImprovedCaptainStats improvedCaptainStats,
         string? outputFilePath = null,
         bool navigateToViewer = false)
         where TFaction : class, ICompanySourceFaction
         where TEntry : class, ICompanyMercsEntry
-        where TCaptainStats : CompanySavedImprovedCaptainStatsBase
     {
         var entries = request.MercsCompanyEntries as IList<TEntry> ?? request.MercsCompanyEntries.ToList();
         var factions = request.Factions as IList<TFaction> ?? request.Factions.ToList();
@@ -241,7 +237,7 @@ internal static class CompanyStartSaveWorkflow
             filePath = Path.Combine(saveDir, fileName);
         }
 
-        var captainName = request.ReadCaptainName(improvedCaptainStats);
+        var captainName = improvedCaptainStats.CaptainName;
         var normalizedCaptainName = string.IsNullOrWhiteSpace(captainName) ? "Captain" : captainName.Trim();
         var startSeasonPoints = int.TryParse(request.SelectedStartSeasonPoints, out var parsedStartSeasonPoints)
             ? parsedStartSeasonPoints
@@ -285,7 +281,7 @@ internal static class CompanyStartSaveWorkflow
     private static List<SerializedCompanyEntry> BuildSerializedEntries<TEntry>(
         IList<TEntry> entries,
         string normalizedCaptainName,
-        CompanySavedImprovedCaptainStatsBase improvedCaptainStats,
+        SavedImprovedCaptainStats improvedCaptainStats,
         IArmyDataService armyDataService)
         where TEntry : class, ICompanyMercsEntry
     {
@@ -327,7 +323,7 @@ internal static class CompanyStartSaveWorkflow
         TEntry entry,
         int entryIndex,
         string normalizedCaptainName,
-        CompanySavedImprovedCaptainStatsBase improvedCaptainStats,
+        SavedImprovedCaptainStats improvedCaptainStats,
         IArmyDataService armyDataService,
         Dictionary<(int FactionId, string Section), Dictionary<string, int>> codeIdLookupCache,
         Dictionary<int, Dictionary<string, int>> extrasIdLookupCache)

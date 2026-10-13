@@ -74,7 +74,7 @@ public partial class StandardCompanySelectionPage
         SavedImprovedCaptainStats? finalizedTagStats;
         try
         {
-            finalizedTagStats = await CompanySpecOpsWorkflowService.ShowTagSpecOpsConfigurationAsync<SavedImprovedCaptainStats>(
+            finalizedTagStats = await CompanySpecOpsWorkflowService.ShowTagSpecOpsConfigurationAsync(
                 BuildTagSpecOpsWorkflowRequest(entry));
         }
         catch (Exception ex)
