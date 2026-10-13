@@ -8,7 +8,7 @@ namespace InfinityMercsApp.UnitTests.ViewModels;
 
 public sealed class InjuriesViewModelTests
 {
-    private readonly FakeNavigationService _navigation = new();
+    private readonly INavigationService _navigation = Substitute.For<INavigationService>();
     private readonly MissionDebrief _debrief = new();
     private readonly IDice _dice = Substitute.For<IDice>();
 
@@ -113,6 +113,6 @@ public sealed class InjuriesViewModelTests
         await viewModel.ContinueCommand.ExecuteAsync(null);
 
         Assert.Empty(_debrief.PendingInjuries);
-        Assert.Equal("MissionOutcomePage", Assert.Single(_navigation.Navigations).Route);
+        await _navigation.Received(1).PushAsync("MissionOutcomePage", Arg.Any<IDictionary<string, object>>());
     }
 }

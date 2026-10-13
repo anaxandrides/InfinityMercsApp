@@ -61,7 +61,7 @@ public sealed class MercsGlossaryViewModelTests
     {
         _files.ReadTextAsync(MercsGlossary.IndexFile).Returns(Index);
         _files.ReadTextAsync("glossary/orders.md").Returns("# Orders");
-        var viewModel = new MercsGlossaryViewModel(new FakeNavigationService(), _files);
+        var viewModel = new MercsGlossaryViewModel(Substitute.For<INavigationService>(), _files);
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         return viewModel;
     }
@@ -112,7 +112,7 @@ public sealed class MercsGlossaryViewModelTests
         _files.ReadTextAsync("glossary/slow.md").Returns(slow.Task);
         _files.ReadTextAsync(MercsGlossary.IndexFile).Returns(
             """{"entries":[{"title":"Slow","markdownFile":"slow.md"},{"title":"Fast"}]}""");
-        var viewModel = new MercsGlossaryViewModel(new FakeNavigationService(), _files);
+        var viewModel = new MercsGlossaryViewModel(Substitute.For<INavigationService>(), _files);
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
 
         viewModel.SelectedItem = viewModel.GlossaryItems[1];
@@ -126,7 +126,7 @@ public sealed class MercsGlossaryViewModelTests
     public async Task AMissingIndexShowsTheError()
     {
         _files.ReadTextAsync(MercsGlossary.IndexFile).ThrowsAsync(new FileNotFoundException("gone"));
-        var viewModel = new MercsGlossaryViewModel(new FakeNavigationService(), _files);
+        var viewModel = new MercsGlossaryViewModel(Substitute.For<INavigationService>(), _files);
 
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
 

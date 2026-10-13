@@ -1,3 +1,4 @@
+using InfinityMercsApp.Services;
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.ViewModels;
@@ -13,7 +14,7 @@ public sealed class ArmoryViewModelTests
 
     private async Task<ArmoryViewModel> OpenAsync()
     {
-        var viewModel = new ArmoryViewModel(new FakeNavigationService(), _metadata);
+        var viewModel = new ArmoryViewModel(Substitute.For<INavigationService>(), _metadata);
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         return viewModel;
     }

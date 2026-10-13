@@ -1,13 +1,14 @@
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views;
+using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.ViewModels;
 
 public sealed class CreateNewCompanyPageViewModelTests
 {
-    private readonly FakeNavigationService _navigation = new();
-    private readonly FakeCompanySelectionNavigator _companySelection = new();
+    private readonly INavigationService _navigation = Substitute.For<INavigationService>();
+    private readonly ICompanySelectionNavigator _companySelection = Substitute.For<ICompanySelectionNavigator>();
 
     private CreateNewCompanyPageViewModel Create() => new(_navigation, _companySelection);
 
@@ -16,8 +17,8 @@ public sealed class CreateNewCompanyPageViewModelTests
     {
         await Create().OpenStandardCompanyPopupCommand.ExecuteAsync(null);
 
-        Assert.Equal("//StandardCompanySourcePopupPage", Assert.Single(_navigation.Navigations).Route);
-        Assert.Empty(_companySelection.Opened);
+        await _navigation.Received(1).NavigateToAsync("//StandardCompanySourcePopupPage");
+        await _companySelection.DidNotReceiveWithAnyArgs().OpenAsync(default);
     }
 
     [Fact]
@@ -25,37 +26,31 @@ public sealed class CreateNewCompanyPageViewModelTests
     {
         await Create().NavigateBackCommand.ExecuteAsync(null);
 
-        Assert.Equal("//MercsSeasonPage", Assert.Single(_navigation.Navigations).Route);
+        await _navigation.Received(1).NavigateToAsync("//MercsSeasonPage");
     }
 
-    [Fact]
-    public async Task OtherCompaniesOpenTheirSelectionScreens()
+    [Theory]
+    [InlineData(nameof(CreateNewCompanyPageViewModel.OpenCohesiveCompanyPageCommand), CompanyKind.Cohesive, ArmySourceSelectionMode.Sectorials)]
+    [InlineData(nameof(CreateNewCompanyPageViewModel.OpenInspiringLeadershipPageCommand), CompanyKind.Inspiring, ArmySourceSelectionMode.Sectorials)]
+    [InlineData(nameof(CreateNewCompanyPageViewModel.OpenAirborneCompanyPageCommand), CompanyKind.Airborne, ArmySourceSelectionMode.Sectorials)]
+    [InlineData(nameof(CreateNewCompanyPageViewModel.OpenTAGCompanyPageCommand), CompanyKind.Tag, ArmySourceSelectionMode.Sectorials)]
+    [InlineData(nameof(CreateNewCompanyPageViewModel.OpenLoneWolfCompanyPopupCommand), CompanyKind.LoneWolf, ArmySourceSelectionMode.VanillaFactions)]
+    public async Task OtherCompaniesOpenTheirSelectionScreens(string command, CompanyKind kind, ArmySourceSelectionMode mode)
     {
         var viewModel = Create();
+        var relayCommand = (CommunityToolkit.Mvvm.Input.IAsyncRelayCommand)typeof(CreateNewCompanyPageViewModel).GetProperty(command)!.GetValue(viewModel)!;
 
-        await viewModel.OpenCohesiveCompanyPageCommand.ExecuteAsync(null);
-        await viewModel.OpenInspiringLeadershipPageCommand.ExecuteAsync(null);
-        await viewModel.OpenAirborneCompanyPageCommand.ExecuteAsync(null);
-        await viewModel.OpenTAGCompanyPageCommand.ExecuteAsync(null);
-        await viewModel.OpenLoneWolfCompanyPopupCommand.ExecuteAsync(null);
+        await relayCommand.ExecuteAsync(null);
 
-        Assert.Equal(
-            [
-                (CompanyKind.Cohesive, ArmySourceSelectionMode.Sectorials),
-                (CompanyKind.Inspiring, ArmySourceSelectionMode.Sectorials),
-                (CompanyKind.Airborne, ArmySourceSelectionMode.Sectorials),
-                (CompanyKind.Tag, ArmySourceSelectionMode.Sectorials),
-                (CompanyKind.LoneWolf, ArmySourceSelectionMode.VanillaFactions)
-            ],
-            _companySelection.Opened);
-        Assert.Empty(_navigation.Navigations);
+        await _companySelection.Received(1).OpenAsync(kind, mode);
+        await _navigation.DidNotReceiveWithAnyArgs().NavigateToAsync(default!, default);
     }
 }
 
 public sealed class StandardCompanySourcePopupPageViewModelTests
 {
-    private readonly FakeNavigationService _navigation = new();
-    private readonly FakeCompanySelectionNavigator _companySelection = new();
+    private readonly INavigationService _navigation = Substitute.For<INavigationService>();
+    private readonly ICompanySelectionNavigator _companySelection = Substitute.For<ICompanySelectionNavigator>();
 
     private StandardCompanySourcePopupPageViewModel Create() => new(_navigation, _companySelection);
 
@@ -67,12 +62,19 @@ public sealed class StandardCompanySourcePopupPageViewModelTests
         await viewModel.VanillaFactionSelectedCommand.ExecuteAsync(null);
         await viewModel.TwoSectorialsSelectedCommand.ExecuteAsync(null);
 
-        Assert.Equal(
-            [
-                (CompanyKind.Standard, ArmySourceSelectionMode.VanillaFactions),
-                (CompanyKind.Standard, ArmySourceSelectionMode.Sectorials)
-            ],
-            _companySelection.Opened);
+        Received.InOrder(() =>
+        {
+            _companySelection.OpenAsync(CompanyKind.Standard, ArmySourceSelectionMode.VanillaFactions);
+            _companySelection.OpenAsync(CompanyKind.Standard, ArmySourceSelectionMode.Sectorials);
+        });
+    }
+
+    [Fact]
+    public async Task ANavigationFailureIsSwallowed()
+    {
+        _companySelection.OpenAsync(default).ReturnsForAnyArgs(Task.FromException(new InvalidOperationException("no shell")));
+
+        await Create().TwoSectorialsSelectedCommand.ExecuteAsync(null);
     }
 
     [Fact]
@@ -80,6 +82,6 @@ public sealed class StandardCompanySourcePopupPageViewModelTests
     {
         await Create().ClosePopupCommand.ExecuteAsync(null);
 
-        Assert.Equal("//CreateNewCompanyPage", Assert.Single(_navigation.Navigations).Route);
+        await _navigation.Received(1).NavigateToAsync("//CreateNewCompanyPage");
     }
 }

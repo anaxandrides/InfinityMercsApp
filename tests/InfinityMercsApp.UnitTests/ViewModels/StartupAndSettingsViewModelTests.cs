@@ -37,7 +37,7 @@ public sealed class SettingsViewModelTests
     private async Task<SettingsViewModel> OpenAsync(bool storedInches)
     {
         _settings.GetShowUnitsInInches().Returns(storedInches);
-        var viewModel = new SettingsViewModel(new FakeNavigationService(), _settings, _import);
+        var viewModel = new SettingsViewModel(Substitute.For<INavigationService>(), _settings, _import);
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         return viewModel;
     }
@@ -95,7 +95,7 @@ public sealed class SettingsViewModelTests
 
 public sealed class SplashPageViewModelTests
 {
-    private readonly FakeNavigationService _navigation = new();
+    private readonly INavigationService _navigation = Substitute.For<INavigationService>();
     private readonly IFactionProvider _factions = Substitute.For<IFactionProvider>();
     private readonly IImportService _import = Substitute.For<IImportService>();
     private readonly IServiceProvider _services = Substitute.For<IServiceProvider>();
@@ -112,7 +112,7 @@ public sealed class SplashPageViewModelTests
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
 
         Assert.Equal("Importing factions", viewModel.UpdateProgressMessage);
-        Assert.Equal("//MercsSeasonPage", Assert.Single(_navigation.Navigations).Route);
+        await _navigation.Received(1).NavigateToAsync("//MercsSeasonPage");
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public sealed class SplashPageViewModelTests
 
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
 
-        Assert.Equal("//MercsSeasonPage", Assert.Single(_navigation.Navigations).Route);
+        await _navigation.Received(1).NavigateToAsync("//MercsSeasonPage");
         _import.Received(1).ImportAllDataAsync();
     }
 }

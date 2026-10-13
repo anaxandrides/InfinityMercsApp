@@ -3,6 +3,7 @@ using InfinityMercsApp.Domain.Season;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels;
+using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.ViewModels;
 
@@ -10,14 +11,17 @@ public sealed class ExperienceViewModelTests
 {
     private const string SeasonPath = "season.json";
 
-    private readonly FakeNavigationService _navigation = new();
-    private readonly FakeSeasonFileService _seasonFiles = new();
+    private readonly INavigationService _navigation = Substitute.For<INavigationService>();
+    private readonly ISeasonFileService _seasonFiles = Substitute.For<ISeasonFileService>();
     private readonly MissionDebrief _debrief = new();
+    private Action<SeasonRound>? _roundUpdate;
+
+    public ExperienceViewModelTests() =>
+        _seasonFiles.UpdateLatestRoundAsync(SeasonPath, Arg.Do<Action<SeasonRound>>(update => _roundUpdate = update)).Returns(true);
 
     private async Task<ExperienceViewModel> OpenAsync(params ExperienceUnitResult[] units)
     {
         _debrief.Units = [.. units];
-        _seasonFiles.Files[SeasonPath] = new SeasonFile { Rounds = [new SeasonRound { RoundIndex = 1 }] };
         var viewModel = new ExperienceViewModel(_navigation, _seasonFiles, _debrief);
         viewModel.ApplyQueryAttributes(NavigationParameters.ForCompany("company.json", SeasonPath));
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
@@ -58,9 +62,11 @@ public sealed class ExperienceViewModelTests
 
         await viewModel.ConfirmCommand.ExecuteAsync(null);
 
-        var result = Assert.Single(_seasonFiles.Files[SeasonPath].Rounds[0].MissionResults.UnitResults);
+        var round = new SeasonRound();
+        _roundUpdate!(round);
+        var result = Assert.Single(round.MissionResults.UnitResults);
         Assert.Equal(("Hero", 6), (result.UnitName, result.XpGained));
-        Assert.Equal("DowntimePage", Assert.Single(_navigation.Navigations).Route);
+        await _navigation.Received(1).PushAsync("DowntimePage", Arg.Any<IDictionary<string, object>>());
     }
 
     [Fact]

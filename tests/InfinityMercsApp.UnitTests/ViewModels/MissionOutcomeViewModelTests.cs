@@ -1,6 +1,8 @@
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels;
+using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.ViewModels;
 
@@ -9,15 +11,19 @@ public sealed class MissionOutcomeViewModelTests
     private const string SeasonPath = "season.json";
     private const string CompanyPath = "company.json";
 
-    private readonly FakeNavigationService _navigation = new();
-    private readonly FakeSeasonFileService _seasonFiles = new();
+    private readonly INavigationService _navigation = Substitute.For<INavigationService>();
+    private readonly ISeasonFileService _seasonFiles = Substitute.For<ISeasonFileService>();
+    private Action<SeasonRound>? _roundUpdate;
+
+    public MissionOutcomeViewModelTests() =>
+        _seasonFiles.UpdateLatestRoundAsync(SeasonPath, Arg.Do<Action<SeasonRound>>(update => _roundUpdate = update)).Returns(true);
 
     private async Task<MissionOutcomeViewModel> OpenAsync(params int[] roundIndices)
     {
-        _seasonFiles.Files[SeasonPath] = new SeasonFile
+        _seasonFiles.LoadAsync(SeasonPath).Returns(new SeasonFile
         {
             Rounds = roundIndices.Select(i => new SeasonRound { RoundIndex = i }).ToList()
-        };
+        });
 
         var viewModel = new MissionOutcomeViewModel(_navigation, _seasonFiles);
         viewModel.ApplyQueryAttributes(NavigationParameters.ForCompany(CompanyPath, SeasonPath));
@@ -89,14 +95,15 @@ public sealed class MissionOutcomeViewModelTests
 
         await viewModel.GoToExperienceCommand.ExecuteAsync(null);
 
-        var rounds = _seasonFiles.Files[SeasonPath].Rounds;
-        Assert.False(rounds[0].MissionResults.Won);
-        Assert.True(rounds[1].MissionResults.Won);
-        Assert.Equal(4, rounds[1].MissionResults.OpScored);
+        var round = new SeasonRound();
+        _roundUpdate!(round);
+        Assert.True(round.MissionResults.Won);
+        Assert.Equal(4, round.MissionResults.OpScored);
 
-        var (route, parameters) = Assert.Single(_navigation.Navigations);
-        Assert.Equal("ExperiencePage", route);
-        Assert.Equal(CompanyPath, parameters![NavigationParameters.CompanyFilePath]);
-        Assert.Equal(SeasonPath, parameters[NavigationParameters.SeasonFilePath]);
+        await _navigation.Received(1).PushAsync(
+            "ExperiencePage",
+            Arg.Is<IDictionary<string, object>>(p =>
+                (string)p[NavigationParameters.CompanyFilePath] == CompanyPath &&
+                (string)p[NavigationParameters.SeasonFilePath] == SeasonPath));
     }
 }

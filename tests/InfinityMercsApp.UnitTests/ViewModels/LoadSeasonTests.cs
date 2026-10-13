@@ -75,7 +75,7 @@ public sealed class SeasonRecordCatalogTests : IDisposable
 public sealed class LoadSeasonViewModelTests : IDisposable
 {
     private readonly TempRecords _records = new();
-    private readonly FakeNavigationService _navigation = new();
+    private readonly INavigationService _navigation = Substitute.For<INavigationService>();
     private readonly IDialogService _dialogs = Substitute.For<IDialogService>();
 
     public void Dispose() => _records.Dispose();
@@ -105,10 +105,11 @@ public sealed class LoadSeasonViewModelTests : IDisposable
 
         await viewModel.OpenSeasonCommand.ExecuteAsync(Assert.Single(viewModel.SeasonRecords));
 
-        var (route, parameters) = Assert.Single(_navigation.Navigations);
-        Assert.Equal("//SeasonPage", route);
-        Assert.Equal(company, parameters![NavigationParameters.CompanyFilePath]);
-        Assert.Equal(season, parameters[NavigationParameters.SeasonFilePath]);
+        await _navigation.Received(1).NavigateToAsync(
+            "//SeasonPage",
+            Arg.Is<IDictionary<string, object>>(p =>
+                (string)p[NavigationParameters.CompanyFilePath] == company &&
+                (string)p[NavigationParameters.SeasonFilePath] == season));
     }
 
     [Fact]
@@ -119,7 +120,7 @@ public sealed class LoadSeasonViewModelTests : IDisposable
 
         await viewModel.OpenSeasonCommand.ExecuteAsync(viewModel.SeasonRecords[0]);
 
-        Assert.Empty(_navigation.Navigations);
+        await _navigation.DidNotReceiveWithAnyArgs().NavigateToAsync(default!, default);
         await _dialogs.Received(1).ShowAlertAsync("Company Not Found", Arg.Is<string>(m => m.Contains("'Gone'")), "OK");
     }
 }

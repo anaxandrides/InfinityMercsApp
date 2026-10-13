@@ -5,6 +5,8 @@ using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views.Controls;
 
+using NSubstitute;
+
 namespace InfinityMercsApp.UnitTests.ViewModels;
 
 public sealed class UnitDetailTextTests
@@ -193,7 +195,7 @@ public sealed class UnitEncyclopediaViewModelTests
 
     private async Task<UnitEncyclopediaViewModel> OpenAsync()
     {
-        var viewModel = new UnitEncyclopediaViewModel(new FakeNavigationService(), _data, new UnitDetailViewModel(_data));
+        var viewModel = new UnitEncyclopediaViewModel(Substitute.For<INavigationService>(), _data, new UnitDetailViewModel(_data));
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         return viewModel;
     }
@@ -298,7 +300,7 @@ public sealed class PerkTesterViewModelTests
     public async Task ChoosingAUnitSelectsItsFirstConfiguration()
     {
         var data = Army101Data.Create();
-        var viewModel = new PerkTesterViewModel(new FakeNavigationService(), data, new UnitDetailViewModel(data));
+        var viewModel = new PerkTesterViewModel(Substitute.For<INavigationService>(), data, new UnitDetailViewModel(data));
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Factions[0]);
 
