@@ -71,13 +71,17 @@ public partial class GameModePage : ContentPage, IQueryAttributable
     private HashSet<int>? _deployedEntryIndices;
     private bool _isEliteDeployment;
 
+    private readonly MissionDebrief _debrief;
+
     public GameModePage(
+        MissionDebrief debrief,
         IArmyDataService? armyDataService = null,
         FactionLogoCacheService? factionLogoCacheService = null,
         IAppSettingsProvider? appSettingsProvider = null,
         IMetadataProvider? metadataProvider = null)
     {
         InitializeComponent();
+        _debrief = debrief;
         _armyDataService = armyDataService;
         _factionLogoCacheService = factionLogoCacheService;
         _appSettingsProvider = appSettingsProvider;
@@ -1150,7 +1154,7 @@ public partial class GameModePage : ContentPage, IQueryAttributable
             await SeasonFileService.SaveSeasonFileAsync(_seasonFilePath, seasonFile);
         }
 
-        ExperiencePageData.Units = _unitTracker
+        _debrief.Units = _unitTracker
             .Select(t => new ExperienceUnitResult
             {
                 EntryIndex = t.Unit.EntryIndex,

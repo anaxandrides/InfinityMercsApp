@@ -1,9 +1,29 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<views:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:views="clr-namespace:InfinityMercsApp.Views"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
+             xmlns:season="clr-namespace:InfinityMercsApp.Domain.Season;assembly=InfinityMercsApp.Domain"
              x:Class="InfinityMercsApp.Views.Season.ExperiencePage"
+             x:DataType="viewModels:ExperienceViewModel"
              Title="Experience"
              BackgroundColor="{StaticResource Void}">
+
+    <ContentPage.Resources>
+        <Style x:Key="XpLabel" TargetType="Label">
+            <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="VerticalTextAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="XpValue" TargetType="Label">
+            <Setter Property="Grid.Column" Value="1" />
+            <Setter Property="TextColor" Value="{StaticResource Signal}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="HorizontalTextAlignment" Value="End" />
+        </Style>
+    </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,*,Auto" Padding="16,12,16,16">
 
@@ -15,17 +35,83 @@
                Margin="0,0,0,12"/>
 
         <ScrollView Grid.Row="1">
-            <VerticalStackLayout x:Name="UnitStack" Spacing="10"/>
+            <VerticalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding Units}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:ExperienceUnitItem">
+                        <Grid ColumnDefinitions="60,*" ColumnSpacing="0" BackgroundColor="{StaticResource Plate}">
+
+                            <!-- MVP column -->
+                            <VerticalStackLayout Grid.Column="0"
+                                                 Spacing="6"
+                                                 Padding="8,12"
+                                                 BackgroundColor="{StaticResource Void}">
+                                <Label Text="MVP"
+                                       TextColor="#F59E0B"
+                                       FontSize="11"
+                                       FontAttributes="Bold"
+                                       HorizontalTextAlignment="Center" />
+                                <CheckBox IsChecked="{Binding IsMvp}"
+                                          Color="#F59E0B"
+                                          HorizontalOptions="Center" />
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1" Padding="12" Spacing="4">
+                                <HorizontalStackLayout Spacing="10" Margin="0,0,0,6">
+                                    <controls:SvgIcon Source="{Binding LogoSource}"
+                                                      WidthRequest="44"
+                                                      HeightRequest="44"
+                                                      VerticalOptions="Center" />
+                                    <Label Text="{Binding Name}"
+                                           TextColor="{StaticResource TextPrimary}"
+                                           FontAttributes="Bold"
+                                           FontSize="16"
+                                           VerticalTextAlignment="Center"
+                                           LineBreakMode="TailTruncation" />
+                                </HorizontalStackLayout>
+                                <BoxView HeightRequest="1" Color="{StaticResource HairlineBright}" Margin="0,0,0,2" />
+
+                                <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding XpLines}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="season:XpLine">
+                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                                <Label Text="{Binding Label}" Style="{StaticResource XpLabel}" />
+                                                <Label Text="{Binding Xp, StringFormat='+{0} XP'}" Style="{StaticResource XpValue}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding IsMvp}">
+                                    <Label Text="MVP" Style="{StaticResource XpLabel}" TextColor="#F59E0B" />
+                                    <Label Text="{Binding MvpXp, StringFormat='+{0} XP'}" Style="{StaticResource XpValue}" />
+                                </Grid>
+
+                                <BoxView HeightRequest="1" Color="{StaticResource HairlineBright}" Margin="0,4,0,0" />
+                                <Label Text="{Binding TotalText}"
+                                       TextColor="{StaticResource Signal}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       HorizontalTextAlignment="End" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
         </ScrollView>
 
         <Button Grid.Row="2"
-                x:Name="ConfirmButton"
                 Text="CONFIRM EXPERIENCE GAINS"
                 BackgroundColor="{StaticResource Signal}"
                 TextColor="{StaticResource Void}"
                 FontAttributes="Bold"
                 Margin="0,12,0,0"
-                Clicked="OnConfirmExperienceClicked"
-                HorizontalOptions="Fill" />
+                Command="{Binding ConfirmCommand}"
+                HorizontalOptions="Fill">
+            <Button.Triggers>
+                <Trigger TargetType="Button" Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.45" />
+                </Trigger>
+            </Button.Triggers>
+        </Button>
     </Grid>
-</ContentPage>
+</views:ContentPageBase>

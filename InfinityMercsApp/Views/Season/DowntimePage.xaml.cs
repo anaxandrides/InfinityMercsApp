@@ -11,9 +11,12 @@ public partial class DowntimePage : ContentPage, IQueryAttributable
     private bool _eventResolved;
     private Action<int>? _pendingRollHandler;
 
-    public DowntimePage()
+    private readonly MissionDebrief _debrief;
+
+    public DowntimePage(MissionDebrief debrief)
     {
         InitializeComponent();
+        _debrief = debrief;
 
         var picks = new List<string>();
         for (var i = 1; i <= 20; i++) picks.Add(i.ToString());
@@ -348,7 +351,7 @@ public partial class DowntimePage : ContentPage, IQueryAttributable
         stack.Children.Add(outcomeArea);
 
         var requiredParticipant = ResolveRequiredParticipantKind(evt, choice);
-        var availableUnits = ExperiencePageData.Units;
+        var availableUnits = _debrief.Units;
 
         ExperienceUnitResult? selectedParticipant = null;
         var crSpentTotal = 0;

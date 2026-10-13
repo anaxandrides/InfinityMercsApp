@@ -44,13 +44,25 @@ public class SvgIcon : SKCanvasView
         }
     }
 
+    // Packaged asset names are case-sensitive on Android, so a lower-case spelling is tried as well.
     private static async Task<SKPicture?> LoadAsync(string source)
+    {
+        if (Path.IsPathRooted(source))
+        {
+            return await TryLoadAsync(source, () => Task.FromResult<Stream>(File.OpenRead(source)));
+        }
+
+        return await TryLoadAsync(source, () => FileSystem.Current.OpenAppPackageFileAsync(source))
+            ?? (source == source.ToLowerInvariant()
+                ? null
+                : await TryLoadAsync(source, () => FileSystem.Current.OpenAppPackageFileAsync(source.ToLowerInvariant())));
+    }
+
+    private static async Task<SKPicture?> TryLoadAsync(string source, Func<Task<Stream>> open)
     {
         try
         {
-            await using var stream = Path.IsPathRooted(source)
-                ? File.OpenRead(source)
-                : await FileSystem.Current.OpenAppPackageFileAsync(source);
+            await using var stream = await open();
             return new SKSvg().Load(stream);
         }
         catch (Exception ex)

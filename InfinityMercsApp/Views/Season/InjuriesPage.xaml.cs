@@ -3,6 +3,7 @@ using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using Svg.Skia;
 using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.Season;
 
 namespace InfinityMercsApp.Views.Season;
 
@@ -12,9 +13,12 @@ public partial class InjuriesPage : ContentPage, IQueryAttributable
     private string _seasonFilePath = string.Empty;
     private bool _built;
 
-    public InjuriesPage()
+    private readonly MissionDebrief _debrief;
+
+    public InjuriesPage(MissionDebrief debrief)
     {
         InitializeComponent();
+        _debrief = debrief;
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -60,7 +64,7 @@ public partial class InjuriesPage : ContentPage, IQueryAttributable
             void OnResolved() { resolved[idx] = true; CheckAllResolved(); }
             void OnInjured(string injuryLabel)
             {
-                var match = ExperiencePageData.Units.FirstOrDefault(u => u.EntryIndex == injury.EntryIndex);
+                var match = _debrief.Units.FirstOrDefault(u => u.EntryIndex == injury.EntryIndex);
                 if (match is null) return;
                 match.GainedInjury = true;
                 match.InjuryName = injuryLabel;
