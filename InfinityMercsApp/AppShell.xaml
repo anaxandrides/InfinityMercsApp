@@ -15,12 +15,6 @@
         Route="MercsSeasonPage" />
 
     <ShellContent
-        Title="Home (Classic)"
-        FlyoutItemIsVisible="False"
-        ContentTemplate="{DataTemplate views:ModeSelectionPage}"
-        Route="ModeSelectionPage" />
-
-    <ShellContent
         Title="Create New Company"
         FlyoutItemIsVisible="False"
         ContentTemplate="{DataTemplate views:CreateNewCompanyPage}"

@@ -2,9 +2,9 @@ using InfinityMercsApp.ViewModels;
 
 namespace InfinityMercsApp.Views;
 
-public partial class SettingsPage : ContentPage
+public partial class SettingsPage : ContentPageBase
 {
-	public SettingsPage(MainViewModel viewModel)
+	public SettingsPage(SettingsViewModel viewModel)
 	{
 		InitializeComponent();
 		BindingContext = viewModel;

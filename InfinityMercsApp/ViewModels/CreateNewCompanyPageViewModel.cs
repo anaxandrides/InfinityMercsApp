@@ -11,7 +11,7 @@ public partial class CreateNewCompanyPageViewModel(
     ICompanySelectionNavigator companySelection) : ViewModelBase(navigationService)
 {
     [RelayCommand]
-    private Task NavigateToModeSelectionPageAsync() => NavigationService.NavigateToAsync("//MercsSeasonPage");
+    private Task NavigateBackAsync() => NavigationService.NavigateToAsync("//MercsSeasonPage");
 
     [RelayCommand]
     private Task OpenStandardCompanyPopupAsync() => NavigationService.NavigateToAsync("//StandardCompanySourcePopupPage");

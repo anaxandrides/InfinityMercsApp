@@ -12,9 +12,8 @@ public static class ServiceRegistryExtensions
 {
     public static IServiceCollection AddViewModels(this IServiceCollection services)
     {
-        services.AddTransient<ModeSelectionViewModel>()
-                .AddTransient<SplashPageViewModel>()
-                .AddTransient<MainViewModel>()
+        services.AddTransient<SplashPageViewModel>()
+                .AddTransient<SettingsViewModel>()
                 .AddTransient<ViewerViewModel>()
                 .AddTransient<CreateNewCompanyPageViewModel>()
                 .AddTransient<StandardCompanySourcePopupPageViewModel>()
@@ -30,7 +29,6 @@ public static class ServiceRegistryExtensions
     {
         services.AddTransient<AppShell>()
                 .AddTransient<ArmoryPage>()
-                .AddTransient<ModeSelectionPage>()
                 .AddTransient<CreateNewCompanyPage>()
                 .AddTransient<StandardCompanySourcePopupPage>()
                 .AddTransient<SplashPage>()

@@ -23,7 +23,7 @@ public sealed class CreateNewCompanyPageViewModelTests
     [Fact]
     public async Task BackReturnsToTheSeasonHome()
     {
-        await Create().NavigateToModeSelectionPageCommand.ExecuteAsync(null);
+        await Create().NavigateBackCommand.ExecuteAsync(null);
 
         Assert.Equal("//MercsSeasonPage", Assert.Single(_navigation.Navigations).Route);
     }
