@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views;
 using InfinityMercsApp.Views.Season;
@@ -21,7 +22,8 @@ public static class ServiceRegistryExtensions
                 .AddTransient<LoneWolfCompanySourcePopupPageViewModel>()
                 .AddTransient<FeedbackBugsPageViewModel>()
                 .AddTransient<AboutPageViewModel>()
-                .AddTransient<MercsSeasonPageViewModel>();
+                .AddTransient<MercsSeasonPageViewModel>()
+                .AddTransient<MissionOutcomeViewModel>();
 
         return services;
     }
@@ -48,6 +50,7 @@ public static class ServiceRegistryExtensions
                 .AddTransient<SeasonPage>()
                 .AddTransient<PlayModePage>()
                 .AddTransient<GameModePage>()
+                .AddTransient<MissionOutcomePage>()
                 .AddTransient<ExperiencePage>()
                 .AddTransient<DowntimePage>()
                 .AddTransient<MarketplacesPage>();
@@ -64,7 +67,8 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<IStoreProvider, StoreProvider>()
                 .AddSingleton<FactionLogoCacheService>()
                 .AddSingleton<IFeedbackService, FeedbackService>()
-                .AddSingleton<IImportService, ImportService>();
+                .AddSingleton<IImportService, ImportService>()
+                .AddSingleton<ISeasonFileService, SeasonFileStore>();
 
         services.AddSingleton<HttpClient>(_ =>
         {

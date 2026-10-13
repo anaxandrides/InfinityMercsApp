@@ -1187,10 +1187,6 @@ public partial class GameModePage : ContentPage, IQueryAttributable
             })
             .ToList();
 
-        MissionOutcomePageData.CurrentRound = deploymentXp;
-        MissionOutcomePageData.Victory = null;
-        MissionOutcomePageData.PointsScored = null;
-
         var parameters = NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath);
 
         if (deadUnits.Count > 0)
