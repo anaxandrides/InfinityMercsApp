@@ -74,7 +74,7 @@
                     Grid.Row="2"
                     Text="← BACK"
                     HorizontalOptions="Start"
-                    Clicked="OnBackClicked" />
+                    Command="{Binding ClosePopupCommand}" />
             </Grid>
         </Border>
     </Grid>

@@ -58,3 +58,15 @@ internal sealed class FakeSeasonFileService : ISeasonFileService
         return Task.FromResult(true);
     }
 }
+
+/// <summary>Records which company selection screens were opened.</summary>
+internal sealed class FakeCompanySelectionNavigator : ICompanySelectionNavigator
+{
+    public List<(CompanyKind Kind, InfinityMercsApp.Views.ArmySourceSelectionMode Mode)> Opened { get; } = [];
+
+    public Task OpenAsync(CompanyKind kind, InfinityMercsApp.Views.ArmySourceSelectionMode mode = InfinityMercsApp.Views.ArmySourceSelectionMode.Sectorials)
+    {
+        Opened.Add((kind, mode));
+        return Task.CompletedTask;
+    }
+}

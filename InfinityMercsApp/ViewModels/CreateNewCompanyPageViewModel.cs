@@ -1,53 +1,33 @@
-﻿using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.Views;
 
 namespace InfinityMercsApp.ViewModels;
 
+/// <summary>Picks the kind of company to build and opens its selection screen.</summary>
 public partial class CreateNewCompanyPageViewModel(
     INavigationService navigationService,
-    ICompanySelectionPageFactory companySelectionPageFactory) : ViewModelBase(navigationService)
+    ICompanySelectionNavigator companySelection) : ViewModelBase(navigationService)
 {
     [RelayCommand]
-    public async Task NavigateToModeSelectionPageAsync()
-    {
-        await NavigationService.NavigateToAsync("//MercsSeasonPage");
-    }
+    private Task NavigateToModeSelectionPageAsync() => NavigationService.NavigateToAsync("//MercsSeasonPage");
 
     [RelayCommand]
-    public async Task OpenStandardCompanyPopupAsync()
-    {
-        await NavigationService.NavigateToAsync("//StandardCompanySourcePopupPage");
-    }
+    private Task OpenStandardCompanyPopupAsync() => NavigationService.NavigateToAsync("//StandardCompanySourcePopupPage");
 
     [RelayCommand]
-    private async Task OpenCohesiveCompanyPageAsync()
-    {
-        await Shell.Current.Navigation.PushAsync(companySelectionPageFactory.CreateCohesive(ArmySourceSelectionMode.Sectorials));
-    }
+    private Task OpenCohesiveCompanyPageAsync() => companySelection.OpenAsync(CompanyKind.Cohesive, ArmySourceSelectionMode.Sectorials);
 
     [RelayCommand]
-    private async Task OpenInspiringLeadershipPageAsync()
-    {
-        await Shell.Current.Navigation.PushAsync(companySelectionPageFactory.CreateInspiring());
-    }
+    private Task OpenInspiringLeadershipPageAsync() => companySelection.OpenAsync(CompanyKind.Inspiring);
 
     [RelayCommand]
-    private async Task OpenAirborneCompanyPageAsync()
-    {
-        await Shell.Current.Navigation.PushAsync(companySelectionPageFactory.CreateAirborne());
-    }
+    private Task OpenAirborneCompanyPageAsync() => companySelection.OpenAsync(CompanyKind.Airborne);
 
     [RelayCommand]
-    private async Task OpenTAGCompanyPageAsync()
-    {
-        await Shell.Current.Navigation.PushAsync(companySelectionPageFactory.CreateTag(ArmySourceSelectionMode.Sectorials));
-    }
+    private Task OpenTAGCompanyPageAsync() => companySelection.OpenAsync(CompanyKind.Tag, ArmySourceSelectionMode.Sectorials);
 
     [RelayCommand]
-    private async Task OpenLoneWolfCompanyPopupAsync()
-    {
-        await Shell.Current.Navigation.PushAsync(companySelectionPageFactory.CreateLoneWolf(ArmySourceSelectionMode.VanillaFactions));
-    }
+    private Task OpenLoneWolfCompanyPopupAsync() => companySelection.OpenAsync(CompanyKind.LoneWolf, ArmySourceSelectionMode.VanillaFactions);
 }

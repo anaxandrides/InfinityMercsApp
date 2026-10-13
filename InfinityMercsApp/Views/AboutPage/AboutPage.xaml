@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:views="clr-namespace:InfinityMercsApp.Views"
              xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
-             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              x:Class="InfinityMercsApp.Views.AboutPage"
              x:DataType="viewModels:AboutPageViewModel"
              Title="About">
@@ -75,86 +75,77 @@
                 AlignItems="Start"
                 JustifyContent="Start">
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="CbCubeCanvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon2CanvasPaintSurface" />
+                    Source="SVGCache/CBIcons/cube.svg" />
                 <Label Grid.Column="1" Text="cube.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
             </Grid>
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="CbCube2Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIconCanvasPaintSurface" />
+                    Source="SVGCache/CBIcons/cube2.svg" />
                 <Label Grid.Column="1" Text="cube2.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
             </Grid>
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="CbHackableCanvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon9CanvasPaintSurface" />
+                    Source="SVGCache/CBIcons/hackable.svg" />
                 <Label Grid.Column="1" Text="hackable.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
             </Grid>
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="CbImpetuousCanvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon6CanvasPaintSurface" />
+                    Source="SVGCache/CBIcons/impetuous.svg" />
                 <Label Grid.Column="1" Text="impetuous.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
             </Grid>
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="CbIrregularCanvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon4CanvasPaintSurface" />
+                    Source="SVGCache/CBIcons/irregular.svg" />
                 <Label Grid.Column="1" Text="irregular.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
             </Grid>
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="CbLieutenantCanvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon7CanvasPaintSurface" />
+                    Source="SVGCache/CBIcons/lieutenant.svg" />
                 <Label Grid.Column="1" Text="lieutenant.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
             </Grid>
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="CbRegularCanvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon5CanvasPaintSurface" />
+                    Source="SVGCache/CBIcons/regular.svg" />
                 <Label Grid.Column="1" Text="regular.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
             </Grid>
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="CbTacticalCanvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon8CanvasPaintSurface" />
+                    Source="SVGCache/CBIcons/tactical.svg" />
                 <Label Grid.Column="1" Text="tactical.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
             </Grid>
 
             <!--
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIconCanvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIconCanvasPaintSurface" />
+                    Source="SVGCache/CBIcons/cube2.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -174,12 +165,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon4Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon4CanvasPaintSurface" />
+                    Source="SVGCache/CBIcons/irregular.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -200,12 +190,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon5Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon5CanvasPaintSurface" />
+                    Source="SVGCache/CBIcons/regular.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -226,12 +215,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon6Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon6CanvasPaintSurface" />
+                    Source="SVGCache/CBIcons/impetuous.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -252,12 +240,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon7Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon7CanvasPaintSurface" />
+                    Source="SVGCache/CBIcons/lieutenant.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -278,12 +265,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon8Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon8CanvasPaintSurface" />
+                    Source="SVGCache/CBIcons/tactical.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -304,12 +290,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon9Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon9CanvasPaintSurface" />
+                    Source="SVGCache/CBIcons/hackable.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -331,12 +316,11 @@
             -->
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon3Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon3CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-edit-333556.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -357,12 +341,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon10Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon10CanvasPaintSurface" />
+                    Source="SVGCache/MercsIcons/noun-hack-2277937.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -383,12 +366,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon11Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon11CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/Fireteam/noun-team-base.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -409,12 +391,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon12Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon12CanvasPaintSurface" />
+                    Source="SVGCache/MercsIcons/noun-leadership-7195245.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -435,12 +416,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon13Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon13CanvasPaintSurface" />
+                    Source="SVGCache/MercsIcons/noun-airborne-8005870.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -461,12 +441,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon14Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon14CanvasPaintSurface" />
+                    Source="SVGCache/MercsIcons/noun-battle-mech-1731140.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -487,12 +466,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon15Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon15CanvasPaintSurface" />
+                    Source="SVGCache/MercsIcons/noun-assassin-5981200.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -513,12 +491,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon16Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon16CanvasPaintSurface" />
+                    Source="SVGCache/MercsIcons/noun-male-player-2851844.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -539,12 +516,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon17Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon17CanvasPaintSurface" />
+                    Source="SVGCache/MercsIcons/noun-duo-2851835.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -565,12 +541,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon18Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon18CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-check-3612574.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -591,12 +566,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon19Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon19CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-x-1890844.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -617,12 +591,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon20Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon20CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-open-file-8064123.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -643,12 +616,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon21Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon21CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-trash-1523235.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -669,12 +641,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon22Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon22CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-captain-8115950.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -695,12 +666,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon23Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon23CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-5-stars-5872927.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -721,12 +691,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon24Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon24CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-options-6682476.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -747,12 +716,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon28Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon28CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-filter.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -773,12 +741,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon27Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon27CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-delta.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -799,12 +766,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon25Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon25CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-ok-5506550.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -825,12 +791,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon26Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon26CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-reject-8230150.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -851,12 +816,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon29Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon29CanvasPaintSurface" />
+                    Source="SVGCache/units/2003-1.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -877,12 +841,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon30Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon30CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-flags.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -903,12 +866,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon31Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon31CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-knocked-out-face.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -929,12 +891,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon32Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon32CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-mad-face.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -955,12 +916,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon33Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon33CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-sad-face.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -981,12 +941,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon34Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon34CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-smiley-face.svg" />
 
                 <FlexLayout
                     Grid.Column="1"
@@ -1007,12 +966,11 @@
             </Grid>
 
             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <skia:SKCanvasView
-                    x:Name="AttributionIcon35Canvas"
+                <controls:SvgIcon
                     WidthRequest="100"
                     HeightRequest="100"
                     VerticalOptions="Start"
-                    PaintSurface="OnAttributionIcon35CanvasPaintSurface" />
+                    Source="SVGCache/NonCBIcons/noun-gravestone.svg" />
 
                 <FlexLayout
                     Grid.Column="1"

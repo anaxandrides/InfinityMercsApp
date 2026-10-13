@@ -7,7 +7,11 @@ using InfinityMercsApp.Views.StandardCompany;
 
 namespace InfinityMercsApp.Services;
 
-public sealed class CompanySelectionPageFactory : ICompanySelectionPageFactory
+/// <summary>
+/// Builds the company selection pages, which still take their dependencies directly, and pushes them
+/// onto the Shell navigation stack.
+/// </summary>
+internal sealed class CompanySelectionNavigator : ICompanySelectionNavigator
 {
     private readonly IMetadataProvider? _metadataProvider;
     private readonly IFactionProvider? _factionProvider;
@@ -17,7 +21,7 @@ public sealed class CompanySelectionPageFactory : ICompanySelectionPageFactory
     private readonly IAppSettingsProvider? _appSettingsProvider;
     private readonly IArmyDataService _armyDataService;
 
-    public CompanySelectionPageFactory(
+    public CompanySelectionNavigator(
         IMetadataProvider? metadataProvider,
         IFactionProvider? factionProvider,
         ISpecOpsProvider specOpsProvider,
@@ -35,34 +39,23 @@ public sealed class CompanySelectionPageFactory : ICompanySelectionPageFactory
         _armyDataService = armyDataService;
     }
 
-    public StandardCompanySelectionPage CreateStandard(ArmySourceSelectionMode mode)
+    public Task OpenAsync(CompanyKind kind, ArmySourceSelectionMode mode = ArmySourceSelectionMode.Sectorials)
     {
-        return new StandardCompanySelectionPage(
-            mode,
-            _metadataProvider,
-            _factionProvider,
-            _specOpsProvider,
-            _cohesiveCompanyFactionQueryProvider,
-            _factionLogoCacheService,
-            _appSettingsProvider,
-            _armyDataService);
+        Page page = kind switch
+        {
+            CompanyKind.Standard => CreateStandard(mode),
+            CompanyKind.Tag => CreateStandard(mode, "TAG Company"),
+            CompanyKind.LoneWolf => CreateStandard(mode, "Lone Wolf Company"),
+            CompanyKind.Cohesive => CreateCohesive(mode),
+            CompanyKind.Inspiring => CreateInspiring(),
+            CompanyKind.Airborne => CreateAirborne(),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+        };
+
+        return Shell.Current.Navigation.PushAsync(page);
     }
 
-    public StandardCompanySelectionPage CreateTag(ArmySourceSelectionMode mode)
-    {
-        return new StandardCompanySelectionPage(
-            mode,
-            _metadataProvider,
-            _factionProvider,
-            _specOpsProvider,
-            _cohesiveCompanyFactionQueryProvider,
-            _factionLogoCacheService,
-            _appSettingsProvider,
-            _armyDataService,
-            companyTypeLabelOverride: "TAG Company");
-    }
-
-    public StandardCompanySelectionPage CreateLoneWolf(ArmySourceSelectionMode mode)
+    private StandardCompanySelectionPage CreateStandard(ArmySourceSelectionMode mode, string? companyTypeLabelOverride = null)
     {
         return new StandardCompanySelectionPage(
             mode,
@@ -73,10 +66,10 @@ public sealed class CompanySelectionPageFactory : ICompanySelectionPageFactory
             _factionLogoCacheService,
             _appSettingsProvider,
             _armyDataService,
-            companyTypeLabelOverride: "Lone Wolf Company");
+            companyTypeLabelOverride: companyTypeLabelOverride);
     }
 
-    public CohesiveCompanySelectionPage CreateCohesive(ArmySourceSelectionMode mode)
+    private CohesiveCompanySelectionPage CreateCohesive(ArmySourceSelectionMode mode)
     {
         return new CohesiveCompanySelectionPage(
             mode,
@@ -89,7 +82,7 @@ public sealed class CompanySelectionPageFactory : ICompanySelectionPageFactory
             _armyDataService);
     }
 
-    public InspiringCompanySelectionPage CreateInspiring()
+    private InspiringCompanySelectionPage CreateInspiring()
     {
         return new InspiringCompanySelectionPage(
             _metadataProvider,
@@ -101,7 +94,7 @@ public sealed class CompanySelectionPageFactory : ICompanySelectionPageFactory
             _armyDataService);
     }
 
-    public AirborneCompanySelectionPage CreateAirborne()
+    private AirborneCompanySelectionPage CreateAirborne()
     {
         return new AirborneCompanySelectionPage(
             _metadataProvider,

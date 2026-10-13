@@ -1,39 +1,29 @@
-﻿using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.Views;
 
 namespace InfinityMercsApp.ViewModels;
 
+/// <summary>Chooses where a Standard company's units come from: one vanilla faction or two sectorials.</summary>
 public partial class StandardCompanySourcePopupPageViewModel(
     INavigationService navigationService,
-    ICompanySelectionPageFactory companySelectionPageFactory) : ViewModelBase(navigationService)
+    ICompanySelectionNavigator companySelection) : ViewModelBase(navigationService)
 {
     [RelayCommand]
-    private async Task ClosePopupAsync()
-    {
-        await NavigationService.NavigateToAsync("//CreateNewCompanyPage");
-    }
+    private Task ClosePopupAsync() => NavigationService.NavigateToAsync("//CreateNewCompanyPage");
 
     [RelayCommand]
-    private async Task VanillaFactionSelectedAsync()
-    {
-        Console.WriteLine("[StandardCompanySourcePopupPage] Selected source: One Vanilla Faction");
-        await NavigateToFactionSelectionAsync(ArmySourceSelectionMode.VanillaFactions);
-    }
+    private Task VanillaFactionSelectedAsync() => OpenSelectionAsync(ArmySourceSelectionMode.VanillaFactions);
 
     [RelayCommand]
-    private async Task TwoSectorialsSelectedAsync()
-    {
-        Console.WriteLine("[StandardCompanySourcePopupPage] Selected source: Two Sectorials");
-        await NavigateToFactionSelectionAsync(ArmySourceSelectionMode.Sectorials);
-    }
+    private Task TwoSectorialsSelectedAsync() => OpenSelectionAsync(ArmySourceSelectionMode.Sectorials);
 
-    private async Task NavigateToFactionSelectionAsync(ArmySourceSelectionMode mode)
+    private async Task OpenSelectionAsync(ArmySourceSelectionMode mode)
     {
         try
         {
-            await Shell.Current.Navigation.PushAsync(companySelectionPageFactory.CreateStandard(mode));
+            await companySelection.OpenAsync(CompanyKind.Standard, mode);
         }
         catch (Exception ex)
         {
