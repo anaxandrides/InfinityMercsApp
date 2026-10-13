@@ -2,8 +2,10 @@
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
+             xmlns:season="clr-namespace:InfinityMercsApp.Services.Season"
              x:Class="InfinityMercsApp.Views.Season.LoadSeasonPage"
-             x:Name="LoadSeasonRoot"
+             x:DataType="viewModels:LoadSeasonViewModel"
              Title="Load Season"
              BackgroundColor="{StaticResource Void}">
 
@@ -28,7 +30,7 @@
                             SelectionMode="None"
                             IsVisible="{Binding HasSeasonRecords}">
                 <CollectionView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="season:SeasonRecord">
                         <Border StrokeThickness="1"
                                 Stroke="{StaticResource Hairline}"
                                 BackgroundColor="{StaticResource Plate}"
@@ -38,10 +40,11 @@
                                 <RoundRectangle CornerRadius="{DynamicResource CornerRadiusDefault}" />
                             </Border.StrokeShape>
                             <Border.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnLoadSeasonTapped" />
+                                <TapGestureRecognizer Command="{Binding OpenSeasonCommand, Source={RelativeSource AncestorType={x:Type viewModels:LoadSeasonViewModel}}, x:DataType=viewModels:LoadSeasonViewModel}"
+                                                      CommandParameter="{Binding .}" />
                             </Border.GestureRecognizers>
                             <VerticalStackLayout Spacing="2">
-                                <Label Text="{Binding DisplayName}"
+                                <Label Text="{Binding CompanyName}"
                                        FontSize="{DynamicResource FontSizeSubHeadline}"
                                        FontAttributes="Bold"
                                        TextColor="{StaticResource TextPrimary}" />

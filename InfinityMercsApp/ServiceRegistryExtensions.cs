@@ -15,6 +15,7 @@ public static class ServiceRegistryExtensions
         services.AddTransient<SplashPageViewModel>()
                 .AddTransient<SettingsViewModel>()
                 .AddTransient<ArmoryViewModel>()
+                .AddTransient<LoadSeasonViewModel>()
                 .AddTransient<ViewerViewModel>()
                 .AddTransient<CreateNewCompanyPageViewModel>()
                 .AddTransient<StandardCompanySourcePopupPageViewModel>()
@@ -63,7 +64,10 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<FactionLogoCacheService>()
                 .AddSingleton<IFeedbackService, FeedbackService>()
                 .AddSingleton<IImportService, ImportService>()
-                .AddSingleton<ISeasonFileService, SeasonFileStore>();
+                .AddSingleton<ISeasonFileService, SeasonFileStore>()
+                .AddSingleton<IDialogService, MauiDialogService>()
+                .AddSingleton(_ => RecordPaths.ForAppData(FileSystem.Current.AppDataDirectory))
+                .AddSingleton<SeasonRecordCatalog>();
 
         services.AddSingleton<HttpClient>(_ =>
         {
