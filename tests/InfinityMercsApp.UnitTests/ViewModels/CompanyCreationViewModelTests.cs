@@ -1,5 +1,6 @@
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.Views;
 using NSubstitute;
 
@@ -44,6 +45,32 @@ public sealed class CreateNewCompanyPageViewModelTests
 
         await _companySelection.Received(1).OpenAsync(kind, mode);
         await _navigation.DidNotReceiveWithAnyArgs().NavigateToAsync(default!, default);
+    }
+
+    [Fact]
+    public void ListsTheFiveCompanyCardsInOneColumnOnAPhone()
+    {
+        var viewModel = Create();
+
+        Assert.Equal(["Standard Company", "Cohesive Company", "Inspiring Leader", "Airborne Company", "TAG Company"], viewModel.Choices.Select(choice => choice.Title));
+        Assert.Same(viewModel.OpenTAGCompanyPageCommand, viewModel.Choices[4].Command);
+        Assert.Equal(new GridCell(4, 0), viewModel.Choices[4].Cell);
+        Assert.Equal("Auto,Auto,Auto,Auto,Auto", viewModel.ChoiceRows);
+    }
+
+    [Fact]
+    public void ReflowsTheCardsForTheWidth()
+    {
+        var viewModel = Create();
+        var changed = new List<string?>();
+        viewModel.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Wide);
+
+        Assert.Equal(new GridCell(1, 1), viewModel.Choices[4].Cell);
+        Assert.Equal("Auto,Auto", viewModel.ChoiceRows);
+        Assert.False(viewModel.Choices[0].Style.UsesCompactTitle);
+        Assert.Contains(nameof(CreateNewCompanyPageViewModel.Choices), changed);
     }
 }
 

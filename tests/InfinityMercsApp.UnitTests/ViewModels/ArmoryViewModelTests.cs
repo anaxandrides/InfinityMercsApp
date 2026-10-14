@@ -1,7 +1,8 @@
-using InfinityMercsApp.Services;
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.Base;
 using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.ViewModels;
@@ -72,5 +73,35 @@ public sealed class ArmoryViewModelTests
         viewModel.CloseDetailCommand.Execute(null);
         Assert.False(viewModel.IsShowingDetail);
         Assert.True(viewModel.HasSelectedWeapon);
+    }
+
+    [Fact]
+    public async Task OnAPhoneTheDetailReplacesTheList()
+    {
+        _metadata.GetAllWeapons().Returns([W("Rifle")]);
+        var viewModel = await OpenAsync();
+        Assert.True(viewModel.IsListPaneVisible);
+        Assert.False(viewModel.IsDetailPaneVisible);
+
+        viewModel.SelectedWeaponGroup = viewModel.WeaponGroups[0];
+
+        Assert.False(viewModel.IsListPaneVisible);
+        Assert.True(viewModel.IsDetailPaneVisible);
+        Assert.True(viewModel.Layout.StacksPanes);
+    }
+
+    [Fact]
+    public async Task WiderScreensShowBothPanes()
+    {
+        var viewModel = await OpenAsync();
+        var changed = new List<string?>();
+        viewModel.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Wide);
+
+        Assert.True(viewModel.IsListPaneVisible && viewModel.IsDetailPaneVisible);
+        Assert.Equal("360,*", viewModel.Layout.Columns);
+        Assert.Equal(820, viewModel.Layout.ReadingMaxWidth);
+        Assert.Contains(nameof(ArmoryViewModel.IsDetailPaneVisible), changed);
     }
 }

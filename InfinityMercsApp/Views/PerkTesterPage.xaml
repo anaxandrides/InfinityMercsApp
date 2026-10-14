@@ -2,10 +2,18 @@
 <views:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
              xmlns:views="clr-namespace:InfinityMercsApp.Views"
              x:Class="InfinityMercsApp.Views.PerkTesterPage"
              x:Name="PerkTesterPageRoot"
              Title="Perk Tester">
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior BindingContext="{Binding Source={x:Reference PerkTesterPageRoot}, Path=BindingContext}"
+                                        EventName="Disappearing"
+                                        Command="{Binding CloseUnitFilterCommand}" />
+    </ContentPage.Behaviors>
 
     <Grid Padding="16" ColumnSpacing="12">
         <Grid.ColumnDefinitions>
@@ -39,10 +47,10 @@
                             TextColor="{StaticResource TextMuted}" />
                     </VerticalStackLayout>
 
-                    <ScrollView Grid.Row="3" x:Name="FactionScrollView">
-                        <ScrollView.GestureRecognizers>
-                            <PanGestureRecognizer PanUpdated="OnFactionListPanUpdated" />
-                        </ScrollView.GestureRecognizers>
+                    <ScrollView Grid.Row="3">
+                        <ScrollView.Behaviors>
+                            <behaviors:DragToScrollBehavior />
+                        </ScrollView.Behaviors>
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Factions}" Spacing="0">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate>
@@ -101,16 +109,16 @@
                                 VerticalOptions="Center"
                                 HorizontalOptions="End">
                                 <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnUnitSelectionFilterButtonTapped" />
+                                    <TapGestureRecognizer Command="{Binding Source={x:Reference PerkTesterPageRoot}, Path=BindingContext.OpenUnitFilterCommand}" />
                                 </Border.GestureRecognizers>
                                 <controls:SvgIcon Source="SVGCache/NonCBIcons/noun-filter.svg" WidthRequest="20" HeightRequest="20" VerticalOptions="Center" HorizontalOptions="Center" />
                             </Border>
                         </Grid>
                         <Label Grid.Row="1" Text="{Binding UnitsStatus}" TextColor="{StaticResource TextMuted}" />
-                        <ScrollView Grid.Row="2" x:Name="UnitScrollView">
-                            <ScrollView.GestureRecognizers>
-                                <PanGestureRecognizer PanUpdated="OnUnitListPanUpdated" />
-                            </ScrollView.GestureRecognizers>
+                        <ScrollView Grid.Row="2">
+                            <ScrollView.Behaviors>
+                                <behaviors:DragToScrollBehavior />
+                            </ScrollView.Behaviors>
                             <VerticalStackLayout BindableLayout.ItemsSource="{Binding Units}" Spacing="0">
                                 <BindableLayout.ItemTemplate>
                                     <DataTemplate>
@@ -290,17 +298,27 @@
         </Border>
 
         <Grid
-            x:Name="UnitFilterOverlay"
             Grid.ColumnSpan="3"
-            IsVisible="False"
+            IsVisible="{Binding Source={x:Reference PerkTesterPageRoot}, Path=BindingContext.IsUnitFilterOpen}"
+            RowDefinitions="*,18*,*"
             BackgroundColor="#880E1116"
             InputTransparent="False"
             ZIndex="100">
-            <ContentView
-                x:Name="UnitFilterPopupHost"
+            <!-- Takes 90% of the height; applying or closing it goes straight to the ViewModel. -->
+            <controls:UnitFilterPopupView
+                Grid.Row="1"
                 HorizontalOptions="Center"
-                VerticalOptions="Center"
-                MaximumWidthRequest="700" />
+                MaximumWidthRequest="700"
+                Request="{Binding Source={x:Reference PerkTesterPageRoot}, Path=BindingContext.UnitFilterRequest}">
+                <controls:UnitFilterPopupView.Behaviors>
+                    <toolkit:EventToCommandBehavior BindingContext="{Binding Source={x:Reference PerkTesterPageRoot}, Path=BindingContext}"
+                                                    EventName="FilterArmyApplied"
+                                                    Command="{Binding ApplyUnitFilterCommand}" />
+                    <toolkit:EventToCommandBehavior BindingContext="{Binding Source={x:Reference PerkTesterPageRoot}, Path=BindingContext}"
+                                                    EventName="CloseRequested"
+                                                    Command="{Binding CloseUnitFilterCommand}" />
+                </controls:UnitFilterPopupView.Behaviors>
+            </controls:UnitFilterPopupView>
         </Grid>
     </Grid>
 

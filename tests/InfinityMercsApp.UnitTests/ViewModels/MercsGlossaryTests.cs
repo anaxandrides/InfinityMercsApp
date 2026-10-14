@@ -1,5 +1,6 @@
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.Base;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
@@ -132,5 +133,38 @@ public sealed class MercsGlossaryViewModelTests
 
         Assert.Equal("Load Error", viewModel.SelectedTitle);
         Assert.Contains("Failed to load glossary data: gone", viewModel.SelectedContentHtml);
+    }
+
+    [Theory]
+    [InlineData(AdaptiveLayoutMode.Compact, 17)]
+    [InlineData(AdaptiveLayoutMode.Medium, 14)]
+    [InlineData(AdaptiveLayoutMode.Expanded, 15)]
+    [InlineData(AdaptiveLayoutMode.Wide, 16)]
+    public async Task ScalesTheIndexTextToTheWidth(AdaptiveLayoutMode mode, double fontSize)
+    {
+        var viewModel = await OpenAsync();
+        var changed = new List<string?>();
+        viewModel.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        viewModel.ApplyLayoutCommand.Execute(mode);
+
+        Assert.Equal(fontSize, viewModel.ListFontSize);
+        Assert.Contains(nameof(MercsGlossaryViewModel.ListFontSize), changed);
+    }
+
+    [Fact]
+    public async Task OnAPhoneTheRuleTextReplacesTheIndex()
+    {
+        var viewModel = await OpenAsync();
+        Assert.True(viewModel.IsIndexPaneVisible);
+
+        viewModel.IsShowingDetail = true;
+
+        Assert.False(viewModel.IsIndexPaneVisible);
+        Assert.True(viewModel.IsDetailPaneVisible);
+
+        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Medium);
+        Assert.True(viewModel.IsIndexPaneVisible);
+        Assert.Equal("300,*", viewModel.Layout.Columns);
     }
 }

@@ -1,5 +1,4 @@
 using InfinityMercsApp.ViewModels;
-using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.Views.Adaptive;
 
 namespace InfinityMercsApp.Views;

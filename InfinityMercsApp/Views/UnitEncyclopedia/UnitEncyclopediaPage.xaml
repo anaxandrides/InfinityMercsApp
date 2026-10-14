@@ -2,6 +2,7 @@
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
@@ -16,6 +17,9 @@
                                         EventName="LayoutModeChanged"
                                         Command="{Binding ApplyLayoutCommand}"
                                         CommandParameter="{Binding LayoutMode, Source={x:Reference UnitEncyclopediaPageRoot}, x:DataType=layout:AdaptiveContentPage}" />
+        <toolkit:EventToCommandBehavior BindingContext="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext}"
+                                        EventName="Disappearing"
+                                        Command="{Binding CloseUnitFilterCommand}" />
     </ContentPage.Behaviors>
 
     <Grid Padding="16"
@@ -48,10 +52,10 @@
                         TextColor="{StaticResource TextMuted}" />
                 </VerticalStackLayout>
 
-                <ScrollView Grid.Row="3" x:Name="FactionScrollView">
-                    <ScrollView.GestureRecognizers>
-                        <PanGestureRecognizer PanUpdated="OnFactionListPanUpdated" />
-                    </ScrollView.GestureRecognizers>
+                <ScrollView Grid.Row="3">
+                    <ScrollView.Behaviors>
+                        <behaviors:DragToScrollBehavior />
+                    </ScrollView.Behaviors>
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding Factions}" Spacing="0">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate>
@@ -123,7 +127,7 @@
                             VerticalOptions="Center"
                             HorizontalOptions="End">
                             <Border.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnUnitSelectionFilterButtonTapped" />
+                                <TapGestureRecognizer Command="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext.OpenUnitFilterCommand}" />
                             </Border.GestureRecognizers>
                             <controls:SvgIcon
                                 Source="SVGCache/NonCBIcons/noun-filter.svg"
@@ -134,10 +138,10 @@
                         </Border>
                     </Grid>
                     <Label Grid.Row="1" Text="{Binding UnitsStatus}" TextColor="{StaticResource TextMuted}" />
-                    <ScrollView Grid.Row="2" x:Name="UnitScrollView">
-                        <ScrollView.GestureRecognizers>
-                            <PanGestureRecognizer PanUpdated="OnUnitListPanUpdated" />
-                        </ScrollView.GestureRecognizers>
+                    <ScrollView Grid.Row="2">
+                        <ScrollView.Behaviors>
+                            <behaviors:DragToScrollBehavior />
+                        </ScrollView.Behaviors>
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Units}" Spacing="0">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate>
@@ -246,17 +250,27 @@
         </Border>
 
         <Grid
-            x:Name="UnitFilterOverlay"
             layout:GridLayout.Cell="{Binding Layout.OverlayCell}"
-            IsVisible="False"
+            IsVisible="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext.IsUnitFilterOpen}"
+            RowDefinitions="*,18*,*"
             BackgroundColor="#880E1116"
             InputTransparent="False"
             ZIndex="100">
-            <ContentView
-                x:Name="UnitFilterPopupHost"
+            <!-- Takes 90% of the height; applying or closing it goes straight to the ViewModel. -->
+            <controls:UnitFilterPopupView
+                Grid.Row="1"
                 HorizontalOptions="Center"
-                VerticalOptions="Center"
-                MaximumWidthRequest="700" />
+                MaximumWidthRequest="700"
+                Request="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext.UnitFilterRequest}">
+                <controls:UnitFilterPopupView.Behaviors>
+                    <toolkit:EventToCommandBehavior BindingContext="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext}"
+                                                    EventName="FilterArmyApplied"
+                                                    Command="{Binding ApplyUnitFilterCommand}" />
+                    <toolkit:EventToCommandBehavior BindingContext="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext}"
+                                                    EventName="CloseRequested"
+                                                    Command="{Binding CloseUnitFilterCommand}" />
+                </controls:UnitFilterPopupView.Behaviors>
+            </controls:UnitFilterPopupView>
         </Grid>
     </Grid>
 

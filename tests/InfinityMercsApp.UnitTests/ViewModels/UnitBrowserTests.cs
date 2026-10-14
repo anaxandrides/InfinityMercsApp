@@ -3,6 +3,7 @@ using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Models.Filtering;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.Views.Controls;
 using NSubstitute;
 
@@ -285,6 +286,48 @@ public sealed class UnitEncyclopediaViewModelTests
         Assert.True(viewModel.ShowFireteamsTab);
         viewModel.ShowUnitsCommand.Execute(null);
         Assert.True(viewModel.ShowUnitsTab);
+    }
+
+    [Fact]
+    public async Task OpensTheFilterOnTheAppliedFilter()
+    {
+        var viewModel = await OpenAsync();
+        Assert.False(viewModel.IsUnitFilterOpen);
+
+        viewModel.OpenUnitFilterCommand.Execute(null);
+
+        Assert.True(viewModel.IsUnitFilterOpen);
+        Assert.Same(viewModel.ActiveUnitFilter, viewModel.UnitFilterRequest!.ExistingCriteria);
+        Assert.False(viewModel.UnitFilterRequest.TeamsView);
+
+        viewModel.CloseUnitFilterCommand.Execute(null);
+        Assert.False(viewModel.IsUnitFilterOpen);
+    }
+
+    [Fact]
+    public async Task ApplyingAFilterClosesThePopup()
+    {
+        var viewModel = await OpenAsync();
+        viewModel.OpenUnitFilterCommand.Execute(null);
+
+        await viewModel.ApplyUnitFilterCommand.ExecuteAsync(UnitFilterCriteria.None);
+
+        Assert.Null(viewModel.UnitFilterRequest);
+    }
+
+    [Fact]
+    public async Task OnAPhoneOnlyTheCurrentStepShows()
+    {
+        var viewModel = await OpenAsync();
+        Assert.True(viewModel.IsFactionsPaneVisible);
+        Assert.False(viewModel.IsBrowsePaneVisible || viewModel.IsDetailPaneVisible);
+
+        viewModel.Step = BrowseStep.Units;
+        Assert.True(viewModel.IsBrowsePaneVisible);
+        Assert.False(viewModel.IsFactionsPaneVisible);
+
+        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Expanded);
+        Assert.True(viewModel.IsFactionsPaneVisible && viewModel.IsBrowsePaneVisible && viewModel.IsDetailPaneVisible);
     }
 }
 
