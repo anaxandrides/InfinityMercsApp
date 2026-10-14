@@ -1,5 +1,5 @@
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using TemplateCaptain = InfinityMercsApp.Views.Common.Captain;
+using InfinityMercsApp.Views;
 
 namespace InfinityMercsApp.Services.CompanySelection.Captain;
 
@@ -54,7 +54,7 @@ internal static class CompanyCaptainWorkflowService
             EquipmentOptions = options.Equipment
         };
 
-        return await TemplateCaptain.ConfigureCaptainPopupPage.ShowAsync(request.Navigation, context);
+        return await ConfigureCaptainPopupPage.ShowAsync(request.Navigation, context);
     }
 
     private static string ResolveOptionFactionName(
