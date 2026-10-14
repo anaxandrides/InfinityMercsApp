@@ -1,4 +1,4 @@
-namespace InfinityMercsApp.Views;
+namespace InfinityMercsApp.Services.Navigation;
 
 public enum ArmySourceSelectionMode
 {

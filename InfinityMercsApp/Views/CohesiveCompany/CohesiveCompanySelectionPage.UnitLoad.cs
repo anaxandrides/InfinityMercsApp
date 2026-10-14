@@ -1,6 +1,7 @@
-using System.Collections.ObjectModel;
-using InfinityMercsApp.Services;
-using InfinityMercsApp.Views.Common;
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
+using InfinityMercsApp.Services.CompanySelection.Models.Ui;
+using InfinityMercsApp.Services.CompanySelection.Teams;
+using InfinityMercsApp.Services.CompanySelection.Units;
 
 namespace InfinityMercsApp.Views.CohesiveCompany;
 

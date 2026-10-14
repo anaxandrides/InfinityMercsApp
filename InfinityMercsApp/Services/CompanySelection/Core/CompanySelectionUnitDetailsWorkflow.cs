@@ -1,8 +1,10 @@
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
+using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Views.Controls;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Core;
 
 internal static class CompanySelectionUnitDetailsWorkflow
 {

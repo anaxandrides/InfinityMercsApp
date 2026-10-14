@@ -1,6 +1,6 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
 /// <summary>Turns the codes saved on a company entry back into display names using an army's filters.</summary>
 public static class SavedCodeNames

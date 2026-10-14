@@ -1,6 +1,6 @@
 using InfinityMercsApp.Domain.Models.Army.Stats;
 
-namespace InfinityMercsApp.Views.Common.Captain;
+namespace InfinityMercsApp.Services.CompanySelection.Captain;
 
 /// <summary>A captain stat upgrade level as a picker item.</summary>
 public sealed record StatPickerOption(Stat Stat, int Tier, int Bonus, int Cost)

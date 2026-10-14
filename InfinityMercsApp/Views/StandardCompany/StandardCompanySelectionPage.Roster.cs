@@ -1,9 +1,11 @@
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanyProfiles;
+using InfinityMercsApp.Services.CompanySelection.Models.Entries;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
+using InfinityMercsApp.Services.CompanySelection.SpecOps;
 using InfinityMercsApp.ViewModels.UnitBrowser;
-using InfinityMercsApp.Views.Common;
-using InfinityMercsApp.Views.Common.UICommon;
 using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 
 namespace InfinityMercsApp.Views.StandardCompany;

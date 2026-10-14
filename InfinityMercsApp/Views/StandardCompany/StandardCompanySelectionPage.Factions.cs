@@ -1,4 +1,4 @@
-using InfinityMercsApp.Views.Common;
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
 using InfinityMercsApp.Views.Controls;
 using AirborneGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.AirborneCompanyFactionGenerator;
 using InspiringGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.InspiringCompanyFactionGenerator;

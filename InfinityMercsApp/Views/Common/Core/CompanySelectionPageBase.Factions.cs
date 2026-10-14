@@ -1,3 +1,4 @@
+using InfinityMercsApp.Services.CompanySelection.Core;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
 namespace InfinityMercsApp.Views.Common;

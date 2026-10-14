@@ -1,4 +1,4 @@
-namespace InfinityMercsApp.Views.Common.Captain;
+namespace InfinityMercsApp.Services.CompanySelection.Captain;
 
 public sealed class CaptainUpgradePopupContext
 {

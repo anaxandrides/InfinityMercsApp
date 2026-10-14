@@ -7,10 +7,14 @@ using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.ArmyData;
-using InfinityMercsApp.Views.Common.UICommon;
+using InfinityMercsApp.Services.CompanySelection.Captain;
+using InfinityMercsApp.Services.CompanySelection.Common;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Services.CompanySelection.SpecOps;
+using InfinityMercsApp.Services.CompanySelection.Units;
 using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.StartCompany;
 
 internal static class CompanyStartSaveWorkflow
 {

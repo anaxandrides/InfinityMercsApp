@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
 public sealed class CompanySavedCodeRef
 {

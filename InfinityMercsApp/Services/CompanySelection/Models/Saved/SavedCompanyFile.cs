@@ -1,4 +1,4 @@
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
 /// <summary>
 /// Concrete saved-company DTO shared by every company type. All company pages persist the same

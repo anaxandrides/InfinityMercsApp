@@ -4,8 +4,9 @@ using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.CompanySelection.Common;
 
-namespace InfinityMercsApp.Views.Common.Captain;
+namespace InfinityMercsApp.Services.CompanySelection.Captain;
 
 internal static class CaptainPopupInputBuilder
 {

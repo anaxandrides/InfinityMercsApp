@@ -1,6 +1,6 @@
 using InfinityMercsApp.Services.CompanyProfiles;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
 /// <summary>A unit's weapons split into ranged and close-combat lists.</summary>
 public sealed record WeaponLists(IReadOnlyList<string> Ranged, IReadOnlyList<string> Melee)

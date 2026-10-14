@@ -1,9 +1,10 @@
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Services.CompanySelection.Common;
 using InfinityMercsApp.Services.Logos;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Units;
 
 internal static partial class CompanyUnitDetailsShared
 {

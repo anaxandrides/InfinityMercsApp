@@ -1,8 +1,9 @@
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Army.Traits;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.ViewModels.UnitBrowser;
-using InfinityMercsApp.Views.Common;
 
 namespace InfinityMercsApp.Services.CompanyProfiles;
 

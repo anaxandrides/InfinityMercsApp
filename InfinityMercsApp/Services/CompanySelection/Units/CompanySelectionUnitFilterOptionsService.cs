@@ -2,7 +2,7 @@ using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Views.Controls.UnitFilter;
 using MercsArmyListEntry = InfinityMercsApp.Domain.Models.Army.MercsArmyListEntry;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Units;
 
 internal static class CompanySelectionUnitFilterOptionsService
 {

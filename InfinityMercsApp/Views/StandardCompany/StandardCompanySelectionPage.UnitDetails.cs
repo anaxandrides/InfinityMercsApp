@@ -1,9 +1,11 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanyProfiles;
-using InfinityMercsApp.Views.Common;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
+using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Views.Controls;
-using static InfinityMercsApp.Views.Common.CompanyUnitDetailsShared;
+using static InfinityMercsApp.Services.CompanySelection.Units.CompanyUnitDetailsShared;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 
 namespace InfinityMercsApp.Views.StandardCompany;

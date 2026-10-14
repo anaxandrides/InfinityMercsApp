@@ -2,6 +2,8 @@ using System.Globalization;
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Services.CompanySelection.Captain;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;

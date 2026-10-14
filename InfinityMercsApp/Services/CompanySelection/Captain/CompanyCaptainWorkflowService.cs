@@ -1,6 +1,7 @@
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using TemplateCaptain = InfinityMercsApp.Views.Common.Captain;
 
-namespace InfinityMercsApp.Views.Common.UICommon;
+namespace InfinityMercsApp.Services.CompanySelection.Captain;
 
 internal static class CompanyCaptainWorkflowService
 {
@@ -8,13 +9,13 @@ internal static class CompanyCaptainWorkflowService
         CompanyCaptainWorkflowRequest request,
         CancellationToken cancellationToken = default)
     {
-        var sourceFactionId = TemplateCaptain.CaptainPopupInputBuilder.ResolveSourceFactionId(
+        var sourceFactionId = CaptainPopupInputBuilder.ResolveSourceFactionId(
             request.FallbackSourceFactionId,
             request.FirstSourceFactionId);
-        var optionFactionId = TemplateCaptain.CaptainPopupInputBuilder.ResolveOptionFactionId(
+        var optionFactionId = CaptainPopupInputBuilder.ResolveOptionFactionId(
             sourceFactionId,
             request.TryGetParentFactionId(sourceFactionId));
-        var options = TemplateCaptain.CaptainPopupInputBuilder.LoadUpgradeOptions(
+        var options = CaptainPopupInputBuilder.LoadUpgradeOptions(
             request.ArmyDataService,
             request.SpecOpsProvider,
             optionFactionId,
@@ -23,7 +24,7 @@ internal static class CompanyCaptainWorkflowService
 
         if (options.IsEmpty && optionFactionId != sourceFactionId)
         {
-            options = TemplateCaptain.CaptainPopupInputBuilder.LoadUpgradeOptions(
+            options = CaptainPopupInputBuilder.LoadUpgradeOptions(
                 request.ArmyDataService,
                 request.SpecOpsProvider,
                 sourceFactionId,
@@ -32,9 +33,9 @@ internal static class CompanyCaptainWorkflowService
             optionFactionId = sourceFactionId;
         }
 
-        var context = new TemplateCaptain.CaptainUpgradePopupContext
+        var context = new CaptainUpgradePopupContext
         {
-            Unit = new TemplateCaptain.CaptainUnitPopupInfo
+            Unit = new CaptainUnitPopupInfo
             {
                 Name = request.UnitName,
                 Cost = request.UnitCost,
@@ -65,7 +66,7 @@ internal static class CompanyCaptainWorkflowService
         var optionName = optionFactionId > 0 ? request.TryGetFactionName(optionFactionId) : null;
         var metadataSourceName = sourceFactionId > 0 ? request.TryGetMetadataFactionName(sourceFactionId) : null;
         var metadataOptionName = optionFactionId > 0 ? request.TryGetMetadataFactionName(optionFactionId) : null;
-        return TemplateCaptain.CaptainPopupInputBuilder.ResolveOptionFactionName(
+        return CaptainPopupInputBuilder.ResolveOptionFactionName(
             sourceFactionId,
             optionFactionId,
             sourceName,

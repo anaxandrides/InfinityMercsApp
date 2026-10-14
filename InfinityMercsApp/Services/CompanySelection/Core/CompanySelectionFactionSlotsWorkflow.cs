@@ -1,6 +1,7 @@
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
 using InfinityMercsApp.Views.Controls;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Core;
 
 internal static class CompanySelectionFactionSlotsWorkflow
 {

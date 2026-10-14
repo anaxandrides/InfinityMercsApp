@@ -1,9 +1,11 @@
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanyProfiles;
+using InfinityMercsApp.Services.CompanySelection.Common;
+using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Views.Controls;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Visuals;
 
 internal static class CompanySelectionVisualThemeWorkflow
 {

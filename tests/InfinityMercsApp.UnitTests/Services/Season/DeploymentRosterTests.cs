@@ -149,7 +149,7 @@ public sealed class DeploymentRosterTests : IDisposable
     [Fact]
     public void RepurposedMiningTagsUseTheTagCompany()
     {
-        var entry = JsonSerializer.Deserialize<InfinityMercsApp.Views.Common.SavedCompanyEntry>(
+        var entry = JsonSerializer.Deserialize<InfinityMercsApp.Services.CompanySelection.Models.Saved.SavedCompanyEntry>(
             """{"sourceFactionId":101,"baseUnitName":"Turtlemek"}""",
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
 

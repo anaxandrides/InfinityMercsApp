@@ -1,6 +1,6 @@
 using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.UnitTests.Support;
-using InfinityMercsApp.Views.Common;
 
 namespace InfinityMercsApp.UnitTests.Services.CompanySelection;
 

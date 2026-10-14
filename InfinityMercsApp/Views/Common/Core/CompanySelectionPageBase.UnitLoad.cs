@@ -1,4 +1,8 @@
 using System.Collections.ObjectModel;
+using InfinityMercsApp.Services.CompanySelection.Core;
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
+using InfinityMercsApp.Services.CompanySelection.Models.Teams;
+using InfinityMercsApp.Services.CompanySelection.Models.Ui;
 using ArmyFactionRecord = InfinityMercsApp.Domain.Models.Army.Faction;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecOps.SpecopsUnit;

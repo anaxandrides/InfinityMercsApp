@@ -1,4 +1,7 @@
-using InfinityMercsApp.Views.Common;
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
+using InfinityMercsApp.Services.CompanySelection.Models.Ui;
+using InfinityMercsApp.Services.CompanySelection.Teams;
+using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Views.Controls.UnitFilter;
 using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 

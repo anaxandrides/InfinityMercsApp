@@ -1,4 +1,4 @@
-using InfinityMercsApp.Views.Common;
+using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Views.Controls.UnitFilter;
 
 namespace InfinityMercsApp.Views.CohesiveCompany;

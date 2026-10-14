@@ -1,9 +1,10 @@
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanyProfiles;
+using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Models.Entries;
 
 public class MercsCompanyEntry : BaseViewModel, IViewerListItem, ICompanyMercsEntry
 {

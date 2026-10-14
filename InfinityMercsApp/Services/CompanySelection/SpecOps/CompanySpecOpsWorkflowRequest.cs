@@ -1,7 +1,7 @@
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.ArmyData;
 
-namespace InfinityMercsApp.Views.Common.UICommon;
+namespace InfinityMercsApp.Services.CompanySelection.SpecOps;
 
 internal sealed class CompanySpecOpsWorkflowRequest
 {

@@ -1,7 +1,7 @@
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.ArmyData;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.StartCompany;
 
 internal sealed class CompanyStartSaveRequest<TFaction, TEntry>
     where TFaction : class, ICompanySourceFaction

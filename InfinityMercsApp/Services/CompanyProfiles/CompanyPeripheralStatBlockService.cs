@@ -1,6 +1,6 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Stats;
-using InfinityMercsApp.Views.Common;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
 namespace InfinityMercsApp.Services.CompanyProfiles;
 

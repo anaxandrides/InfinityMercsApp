@@ -1,6 +1,7 @@
-using InfinityMercsApp.Domain.Fireteams;
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
+using InfinityMercsApp.Services.CompanySelection.Models.Teams;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Teams;
 
 internal static class CompanyTeamProfilesWorkflow
 {

@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
-using InfinityMercsApp.Views.Common;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
 namespace InfinityMercsApp.Services.Records;
 

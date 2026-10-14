@@ -1,8 +1,9 @@
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.CompanySelection.Common;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
 /// <summary>
 /// The reverse of <see cref="SavedCodeNames"/>: finds the filter ids for display names such as

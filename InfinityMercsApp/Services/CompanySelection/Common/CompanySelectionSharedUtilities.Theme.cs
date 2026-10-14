@@ -1,4 +1,4 @@
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Common;
 
 internal static partial class CompanySelectionSharedUtilities
 {

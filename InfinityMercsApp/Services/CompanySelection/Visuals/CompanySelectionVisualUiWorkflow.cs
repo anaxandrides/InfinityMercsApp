@@ -1,11 +1,11 @@
 using InfinityMercsApp.Infrastructure.Providers;
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.CompanySelection.Common;
 using InfinityMercsApp.Views.Controls;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Visuals;
 
 internal static class CompanySelectionVisualUiWorkflow
 {

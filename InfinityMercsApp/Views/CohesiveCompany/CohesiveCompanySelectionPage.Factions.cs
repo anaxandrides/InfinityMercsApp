@@ -1,4 +1,5 @@
-using InfinityMercsApp.Views.Common;
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
+using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Views.Controls;
 using CCFactionFireteamValidityRecord = InfinityMercsApp.Domain.Models.Army.CCFactionFireteamValidityRecord;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;

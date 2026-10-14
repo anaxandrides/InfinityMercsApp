@@ -1,4 +1,6 @@
-﻿namespace InfinityMercsApp.Views.Common;
+using InfinityMercsApp.Services.CompanySelection.Units;
+
+namespace InfinityMercsApp.Services.CompanySelection.StartCompany;
 
 internal static class CompanyStartSharedState
 {

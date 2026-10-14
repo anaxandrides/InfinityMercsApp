@@ -1,4 +1,6 @@
-﻿using InfinityMercsApp.Views.Common;
+using InfinityMercsApp.Services.CompanySelection.Models.Entries;
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
+using InfinityMercsApp.Views.Common;
 
 namespace InfinityMercsApp.Views.CohesiveCompany;
 

@@ -1,4 +1,4 @@
-﻿namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.StartCompany;
 
 internal sealed class CompanyStartExecutionRequest<TFaction, TEntry>
     where TFaction : class, ICompanySourceFaction

@@ -1,4 +1,4 @@
-using InfinityMercsApp.Views.Common;
+using InfinityMercsApp.Services.CompanySelection.Common;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using Svg.Skia;

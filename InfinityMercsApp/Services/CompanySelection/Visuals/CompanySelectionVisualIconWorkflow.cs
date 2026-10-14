@@ -2,7 +2,7 @@ using InfinityMercsApp.Views.Controls;
 using SkiaSharp;
 using Svg.Skia;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Visuals;
 
 internal static class CompanySelectionVisualIconWorkflow
 {

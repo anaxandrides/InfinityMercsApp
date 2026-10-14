@@ -1,4 +1,6 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Services.CompanySelection.Common;
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
 namespace InfinityMercsApp.Views.Common;

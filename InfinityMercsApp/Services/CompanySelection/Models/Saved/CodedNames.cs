@@ -1,4 +1,4 @@
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
 /// <summary>
 /// Names turned into saved codes: <see cref="Codes"/> for every name found in the army filters, and

@@ -6,9 +6,9 @@ using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanyProfiles;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.ViewModels.Season;
-using InfinityMercsApp.Views.Common;
 using InfinityMercsApp.Views.Season;
 
 namespace InfinityMercsApp.Services.Season;

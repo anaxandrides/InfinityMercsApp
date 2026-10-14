@@ -1,3 +1,4 @@
+using InfinityMercsApp.Services.CompanySelection.Visuals;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;

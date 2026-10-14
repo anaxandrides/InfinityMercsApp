@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Common;
 
 /// <summary>
 /// Shared static helpers used by Standard and Cohesive company selection pages.

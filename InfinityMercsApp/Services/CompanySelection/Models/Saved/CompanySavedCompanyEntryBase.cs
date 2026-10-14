@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
 public abstract class CompanySavedCompanyEntryBase
 {

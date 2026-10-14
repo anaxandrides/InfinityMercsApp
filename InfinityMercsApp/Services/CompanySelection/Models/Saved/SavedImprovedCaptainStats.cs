@@ -1,4 +1,4 @@
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
 /// <summary>
 /// The captain upgrades chosen when a company is founded (or the TAG company's spec-ops build), as saved

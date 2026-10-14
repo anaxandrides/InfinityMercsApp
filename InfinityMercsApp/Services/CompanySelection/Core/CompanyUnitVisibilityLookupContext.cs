@@ -1,6 +1,6 @@
 using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecOps.SpecopsUnit;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Core;
 
 public sealed class CompanyUnitVisibilityLookupContext
 {

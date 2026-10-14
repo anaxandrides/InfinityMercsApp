@@ -13,7 +13,7 @@ public sealed class CompanyFileNameTests : IDisposable
     {
         var dir = _records.Paths.CompaniesDirectory;
 
-        Assert.Equal("iron-wolves-0001.json", InfinityMercsApp.Views.Common.CompanyStartSaveWorkflow.NextCompanyFileName(dir, "  Iron Wolves! "));
-        Assert.Equal("company-0001.json", InfinityMercsApp.Views.Common.CompanyStartSaveWorkflow.NextCompanyFileName(dir, "???"));
+        Assert.Equal("iron-wolves-0001.json", InfinityMercsApp.Services.CompanySelection.StartCompany.CompanyStartSaveWorkflow.NextCompanyFileName(dir, "  Iron Wolves! "));
+        Assert.Equal("company-0001.json", InfinityMercsApp.Services.CompanySelection.StartCompany.CompanyStartSaveWorkflow.NextCompanyFileName(dir, "???"));
     }
 }

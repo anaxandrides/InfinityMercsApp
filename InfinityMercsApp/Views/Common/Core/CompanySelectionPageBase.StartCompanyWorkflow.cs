@@ -1,4 +1,5 @@
 using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Views.Season;
 

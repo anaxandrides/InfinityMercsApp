@@ -1,4 +1,5 @@
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.CompanySelection.Core;
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
 using InfinityMercsApp.Views.Controls;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 

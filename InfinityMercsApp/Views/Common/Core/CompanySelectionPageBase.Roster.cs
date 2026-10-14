@@ -1,4 +1,9 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Services.CompanySelection.Core;
+using InfinityMercsApp.Services.CompanySelection.Models.Entries;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
+using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
 

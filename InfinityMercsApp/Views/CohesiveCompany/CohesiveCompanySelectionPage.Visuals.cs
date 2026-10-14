@@ -1,6 +1,4 @@
-﻿using InfinityMercsApp.Views.Controls;
-using InfinityMercsApp.Views.Common;
-using SkiaSharp;
+using InfinityMercsApp.Services.CompanySelection.Visuals;
 using SkiaSharp.Views.Maui;
 
 namespace InfinityMercsApp.Views.CohesiveCompany;

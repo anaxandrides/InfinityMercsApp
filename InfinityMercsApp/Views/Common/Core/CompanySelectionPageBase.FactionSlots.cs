@@ -1,3 +1,5 @@
+using InfinityMercsApp.Services.CompanySelection.Core;
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
 using InfinityMercsApp.Views.Controls;
 
 namespace InfinityMercsApp.Views.Common;

@@ -1,7 +1,9 @@
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
+using InfinityMercsApp.Services.CompanySelection.Core;
 using InfinityMercsApp.Services.Logos;
+using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.Controls;
 

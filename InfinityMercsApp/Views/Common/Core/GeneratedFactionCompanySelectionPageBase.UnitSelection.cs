@@ -1,4 +1,8 @@
 using System.Globalization;
+using InfinityMercsApp.Services.CompanySelection.Models.Selection;
+using InfinityMercsApp.Services.CompanySelection.Models.Ui;
+using InfinityMercsApp.Services.CompanySelection.Teams;
+using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Views.Controls.UnitFilter;
 

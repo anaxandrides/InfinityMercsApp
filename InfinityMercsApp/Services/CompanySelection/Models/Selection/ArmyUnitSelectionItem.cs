@@ -1,7 +1,7 @@
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Models.Selection;
 
 public class ArmyUnitSelectionItem : BaseViewModel, IViewerListItem
 {

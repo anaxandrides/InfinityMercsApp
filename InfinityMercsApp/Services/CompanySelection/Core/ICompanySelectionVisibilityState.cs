@@ -1,6 +1,4 @@
-using InfinityMercsApp.Views.Controls;
-
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Core;
 
 public interface ICompanySelectionVisibilityState
 {

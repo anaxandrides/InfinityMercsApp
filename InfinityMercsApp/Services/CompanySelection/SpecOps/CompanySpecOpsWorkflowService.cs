@@ -1,7 +1,9 @@
+using InfinityMercsApp.Services.CompanySelection.Captain;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using TemplateCaptain = InfinityMercsApp.Views.Common.Captain;
 using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 
-namespace InfinityMercsApp.Views.Common.UICommon;
+namespace InfinityMercsApp.Services.CompanySelection.SpecOps;
 
 internal static class CompanySpecOpsWorkflowService
 {
@@ -34,7 +36,7 @@ internal static class CompanySpecOpsWorkflowService
 
         foreach (var candidateFactionId in candidateFactionIds)
         {
-            var candidateOptions = TemplateCaptain.CaptainPopupInputBuilder.LoadUpgradeOptions(
+            var candidateOptions = CaptainPopupInputBuilder.LoadUpgradeOptions(
                 request.ArmyDataService,
                 request.SpecOpsProvider,
                 candidateFactionId,
@@ -65,16 +67,16 @@ internal static class CompanySpecOpsWorkflowService
             }
         }
 
-        var options = FilterDisallowedTagSpecOpsOptions(new TemplateCaptain.CaptainUpgradeOptionSet
+        var options = FilterDisallowedTagSpecOpsOptions(new CaptainUpgradeOptionSet
         {
             Weapons = mergedWeapons.ToList(),
             Skills = mergedSkills.ToList(),
             Equipment = mergedEquipment.ToList()
         });
 
-        var context = new TemplateCaptain.CaptainUpgradePopupContext
+        var context = new CaptainUpgradePopupContext
         {
-            Unit = new TemplateCaptain.CaptainUnitPopupInfo
+            Unit = new CaptainUnitPopupInfo
             {
                 Name = request.UnitName,
                 Cost = request.UnitCost,
@@ -124,7 +126,7 @@ internal static class CompanySpecOpsWorkflowService
             return request.PreferredOtherFactionId.GetValueOrDefault();
         }
 
-        var rawSourceFactionId = TemplateCaptain.CaptainPopupInputBuilder.ResolveSourceFactionId(
+        var rawSourceFactionId = CaptainPopupInputBuilder.ResolveSourceFactionId(
             request.FallbackSourceFactionId,
             request.FirstSourceFactionId);
         return ResolveNonTagSourceFactionId(
@@ -174,8 +176,8 @@ internal static class CompanySpecOpsWorkflowService
         return vanillaFactionId > 0 ? vanillaFactionId : null;
     }
 
-    private static TemplateCaptain.CaptainUpgradeOptionSet FilterDisallowedTagSpecOpsOptions(
-        TemplateCaptain.CaptainUpgradeOptionSet source)
+    private static CaptainUpgradeOptionSet FilterDisallowedTagSpecOpsOptions(
+        CaptainUpgradeOptionSet source)
     {
         static bool IsDisallowed(string optionLabel)
         {
@@ -195,7 +197,7 @@ internal static class CompanySpecOpsWorkflowService
             return false;
         }
 
-        return new TemplateCaptain.CaptainUpgradeOptionSet
+        return new CaptainUpgradeOptionSet
         {
             Weapons = source.Weapons.Where(option => !IsDisallowed(option)).ToList(),
             Skills = source.Skills.Where(option => !IsDisallowed(option)).ToList(),
@@ -212,7 +214,7 @@ internal static class CompanySpecOpsWorkflowService
         var optionName = optionFactionId > 0 ? request.TryGetFactionName(optionFactionId) : null;
         var metadataSourceName = sourceFactionId > 0 ? request.TryGetMetadataFactionName(sourceFactionId) : null;
         var metadataOptionName = optionFactionId > 0 ? request.TryGetMetadataFactionName(optionFactionId) : null;
-        return TemplateCaptain.CaptainPopupInputBuilder.ResolveOptionFactionName(
+        return CaptainPopupInputBuilder.ResolveOptionFactionName(
             sourceFactionId,
             optionFactionId,
             sourceName,

@@ -1,6 +1,6 @@
-﻿using SkiaSharp.Views.Maui.Controls;
+using SkiaSharp.Views.Maui.Controls;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Units;
 
 internal static class CompanySelectionUnitSelectionUiWorkflow
 {

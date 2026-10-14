@@ -1,9 +1,10 @@
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.Logos;
+using InfinityMercsApp.Services.Navigation;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Core;
 
 internal static class CompanySelectionFactionsWorkflow
 {

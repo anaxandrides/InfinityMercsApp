@@ -1,6 +1,6 @@
-using SkiaSharp.Views.Maui;
 using System.Windows.Input;
-using InfinityMercsApp.Views.Common;
+using InfinityMercsApp.Services.CompanySelection.Models.Entries;
+using SkiaSharp.Views.Maui;
 
 namespace InfinityMercsApp.Views.Controls;
 

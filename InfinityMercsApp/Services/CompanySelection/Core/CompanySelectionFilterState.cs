@@ -1,6 +1,6 @@
 using InfinityMercsApp.Views.Controls.UnitFilter;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.Services.CompanySelection.Core;
 
 public sealed class CompanySelectionFilterState
 {
