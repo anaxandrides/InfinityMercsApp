@@ -3,10 +3,10 @@ namespace InfinityMercsApp.Domain.Season;
 /// <summary>XP a trooper earned from actions ticked off during the game.</summary>
 public sealed class UnitXpData
 {
-    // 2 checkboxes
-    public bool[] Assist { get; } = new bool[2];
-    // 3 checkboxes
-    public bool[] InflictState { get; } = new bool[3];
+    /// <summary>Two checkboxes, ticked in order.</summary>
+    public IList<bool> Assist { get; } = [false, false];
+    /// <summary>Three checkboxes, ticked in order.</summary>
+    public IList<bool> InflictState { get; } = [false, false, false];
     public bool AttemptButton { get; set; }
     public bool SucceedButton { get; set; }
     public bool ScanEnemy { get; set; }

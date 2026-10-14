@@ -10,11 +10,7 @@ namespace InfinityMercsApp.UnitTests.Characterization;
 /// </summary>
 public sealed class LegacyViewerAgreementTests
 {
-    public static IEnumerable<object[]> CorpusSources =>
-    [
-        ["army-101.json"],
-        ["infinitymercs.db3"]
-    ];
+    public static TheoryData<string> CorpusSources => new() { "army-101.json", "infinitymercs.db3" };
 
     [Theory]
     [MemberData(nameof(CorpusSources))]

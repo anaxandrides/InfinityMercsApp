@@ -54,7 +54,7 @@ public sealed class FireteamTeam
         get
         {
             int duo = 0, haris = 0, core = 0;
-            foreach (var type in TypeList ?? Array.Empty<string>())
+            foreach (var type in TypeList ?? [])
             {
                 if (type.Equals("DUO", StringComparison.OrdinalIgnoreCase))
                 {

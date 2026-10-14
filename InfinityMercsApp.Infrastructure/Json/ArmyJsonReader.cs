@@ -61,8 +61,8 @@ public sealed class ArmyJsonReader : IArmyJsonReader
 {
     private const int MaxCachedEntries = 8192;
 
-    private static readonly string[] StatContainerNames = ["stats", "Stats", "attributes", "Attributes", "attrs", "Attrs"];
-    private static readonly string[] LinkPropertyOrder = ["url", "href", "link", "wiki", "web"];
+    private static readonly IReadOnlyList<string> StatContainerNames = ["stats", "Stats", "attributes", "Attributes", "attrs", "Attrs"];
+    private static readonly IReadOnlyList<string> LinkPropertyOrder = ["url", "href", "link", "wiki", "web"];
 
     private readonly ConcurrentDictionary<string, UnitProfileGroups> _profileGroupsCache = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, ArmyFilterCatalog> _armyFiltersCache = new(StringComparer.Ordinal);
@@ -815,15 +815,14 @@ public sealed class ArmyJsonReader : IArmyJsonReader
             return null;
         }
 
-        var variants = new[]
-            {
-                name,
-                name.ToLowerInvariant(),
-                name.ToUpperInvariant(),
-                char.ToUpperInvariant(name[0]) + name.Substring(1).ToLowerInvariant()
-            }
-            .Distinct(StringComparer.Ordinal)
-            .ToList();
+        List<string> spellings =
+        [
+            name,
+            name.ToLowerInvariant(),
+            name.ToUpperInvariant(),
+            char.ToUpperInvariant(name[0]) + name.Substring(1).ToLowerInvariant()
+        ];
+        var variants = spellings.Distinct(StringComparer.Ordinal).ToList();
 
         foreach (var variant in variants)
         {

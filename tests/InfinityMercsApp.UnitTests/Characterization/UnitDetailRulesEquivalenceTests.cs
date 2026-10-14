@@ -11,7 +11,7 @@ namespace InfinityMercsApp.UnitTests.Characterization;
 /// </summary>
 public sealed class UnitDetailRulesEquivalenceTests
 {
-    private static readonly (string Property, ProfileEntryKind Kind)[] Kinds =
+    private static readonly IReadOnlyList<(string Property, ProfileEntryKind Kind)> Kinds =
     [
         ("chars", ProfileEntryKind.Chars),
         ("skills", ProfileEntryKind.Skills),
@@ -20,13 +20,13 @@ public sealed class UnitDetailRulesEquivalenceTests
         ("peripheral", ProfileEntryKind.Peripheral)
     ];
 
-    public static IEnumerable<object[]> CorpusSources =>
-    [
-        ["army-101.json", false],
-        ["army-101.json", true],
-        ["infinitymercs.db3", false],
-        ["infinitymercs.db3", true]
-    ];
+    public static TheoryData<string, bool> CorpusSources => new()
+    {
+        { "army-101.json", false },
+        { "army-101.json", true },
+        { "infinitymercs.db3", false },
+        { "infinitymercs.db3", true }
+    };
 
     [Theory]
     [InlineData("+5", false)]
@@ -138,7 +138,7 @@ public sealed class UnitDetailRulesEquivalenceTests
                     profile is null ? "none" : Statline(profile));
             }
 
-            foreach (var lieutenantOnly in new[] { false, true })
+            foreach (var lieutenantOnly in (IEnumerable<bool>)[false, true])
             {
                 var legacyFirst = LegacyUnitDetailRules.FindFirstVisiblePeripheralProfile(new LegacyPeripheralSelectionRequest
                 {

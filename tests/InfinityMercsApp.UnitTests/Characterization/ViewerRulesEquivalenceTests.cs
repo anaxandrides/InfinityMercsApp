@@ -11,7 +11,7 @@ namespace InfinityMercsApp.UnitTests.Characterization;
 /// </summary>
 public sealed class ViewerRulesEquivalenceTests
 {
-    private static readonly (string Property, ProfileEntryKind Kind)[] Kinds =
+    private static readonly IReadOnlyList<(string Property, ProfileEntryKind Kind)> Kinds =
     [
         ("chars", ProfileEntryKind.Chars),
         ("skills", ProfileEntryKind.Skills),
@@ -20,13 +20,13 @@ public sealed class ViewerRulesEquivalenceTests
         ("peripheral", ProfileEntryKind.Peripheral)
     ];
 
-    public static IEnumerable<object[]> CorpusSources =>
-    [
-        ["army-101.json", false],
-        ["army-101.json", true],
-        ["infinitymercs.db3", false],
-        ["infinitymercs.db3", true]
-    ];
+    public static TheoryData<string, bool> CorpusSources => new()
+    {
+        { "army-101.json", false },
+        { "army-101.json", true },
+        { "infinitymercs.db3", false },
+        { "infinitymercs.db3", true }
+    };
 
     [Theory]
     [InlineData("+10")]
@@ -39,7 +39,7 @@ public sealed class ViewerRulesEquivalenceTests
     public void RealDistanceExtras_FormatTheSameInViewerAndShared(string distance)
     {
         // Every DISTANCE extra in the bundled data; the viewer's own formatter and DistanceText agree on all.
-        foreach (var inches in new[] { false, true })
+        foreach (var inches in (IEnumerable<bool>)[false, true])
         {
             Assert.Equal(
                 LegacyViewerOptionRules.FormatExtraDisplay(new LegacyViewerOptionRules.ExtraDefinition(distance, "DISTANCE", null), inches),
@@ -110,17 +110,17 @@ public sealed class ViewerRulesEquivalenceTests
                 }
             }
 
-            var legacySets = Enumerable.Range(0, 5).Select(_ => new HashSet<string>(StringComparer.OrdinalIgnoreCase)).ToArray();
+            var legacySets = Enumerable.Range(0, 5).Select(_ => new HashSet<string>(StringComparer.OrdinalIgnoreCase)).ToList();
             var legacyMax = 0;
             LegacyViewerOptionRules.AddFilterOptionsFromProfilesAndOptions(
                 unit.ProfileGroupsJson, lookups.Chars, lookups.Skills, lookups.Equip, lookups.Weapons, lookups.Ammo,
                 legacySets[0], legacySets[1], legacySets[2], legacySets[3], legacySets[4], ref legacyMax);
-            var sets = Enumerable.Range(0, 5).Select(_ => new HashSet<string>(StringComparer.OrdinalIgnoreCase)).ToArray();
+            var sets = Enumerable.Range(0, 5).Select(_ => new HashSet<string>(StringComparer.OrdinalIgnoreCase)).ToList();
             var max = ViewerOptionNames.CollectAllOptionNames(
                 groups, lookups.Chars, lookups.Skills, lookups.Equip, lookups.Weapons, lookups.Ammo,
                 sets[0], sets[1], sets[2], sets[3], sets[4]);
             Compare(mismatches, unit, "filter-popup max points", legacyMax.ToString(), max.ToString());
-            for (var i = 0; i < sets.Length; i++)
+            for (var i = 0; i < sets.Count; i++)
             {
                 Compare(mismatches, unit, $"filter-popup names[{i}]",
                     string.Join("|", legacySets[i].OrderBy(x => x, StringComparer.Ordinal)),

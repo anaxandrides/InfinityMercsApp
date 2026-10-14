@@ -14,7 +14,7 @@ namespace InfinityMercsApp.UnitTests.Characterization;
 /// </summary>
 internal static class ProfileFacts
 {
-    private static readonly (string Property, ProfileEntryKind Kind)[] EntryKinds =
+    private static readonly IReadOnlyList<(string Property, ProfileEntryKind Kind)> EntryKinds =
     [
         ("chars", ProfileEntryKind.Chars),
         ("skills", ProfileEntryKind.Skills),
@@ -25,7 +25,7 @@ internal static class ProfileFacts
         ("ammo", ProfileEntryKind.Ammo)
     ];
 
-    private static readonly string[] StatNames = ["cc", "bs", "ph", "wip", "arm", "bts", "w", "s", "ava"];
+    private static readonly IReadOnlyList<string> StatNames = ["cc", "bs", "ph", "wip", "arm", "bts", "w", "s", "ava"];
 
     public static string FromLegacy(CorpusUnit unit)
     {
@@ -113,11 +113,12 @@ internal static class ProfileFacts
                     .Append(" type=").Append(Int(profile.Type ?? -1))
                     .Append(" str=").Append(Bool(profile.Str))
                     .Append(" mov=").Append(profile.Move);
-                foreach (var (stat, value) in new[]
-                         {
-                             ("cc", profile.Cc), ("bs", profile.Bs), ("ph", profile.Ph), ("wip", profile.Wip),
-                             ("arm", profile.Arm), ("bts", profile.Bts), ("w", profile.W), ("s", profile.S), ("ava", profile.Ava)
-                         })
+                IEnumerable<(string Stat, int? Value)> stats =
+                [
+                    ("cc", profile.Cc), ("bs", profile.Bs), ("ph", profile.Ph), ("wip", profile.Wip),
+                    ("arm", profile.Arm), ("bts", profile.Bts), ("w", profile.W), ("s", profile.S), ("ava", profile.Ava)
+                ];
+                foreach (var (stat, value) in stats)
                 {
                     sb.Append(' ').Append(stat).Append('=').Append(UnitProfile.StatText(value));
                 }

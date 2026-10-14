@@ -20,7 +20,7 @@ public static class FireteamLevels
     private const int UnboundedSlots = int.MaxValue / 2;
 
     // Bonuses gained at each level; level 1 (formed) gives none, levels 2-6 add one each.
-    private static readonly string?[] LevelBonuses =
+    private static readonly IReadOnlyList<string?> LevelBonuses =
     [
         null,
         null,
@@ -34,12 +34,12 @@ public static class FireteamLevels
     /// <summary>All bonuses up to and including the level, comma separated; null when the level has none.</summary>
     public static string? BonusText(int level)
     {
-        if (level <= 0 || level >= LevelBonuses.Length)
+        if (level <= 0 || level >= LevelBonuses.Count)
         {
             return null;
         }
 
-        var bonuses = LevelBonuses[1..(level + 1)].Where(b => b is not null).ToList();
+        var bonuses = LevelBonuses.Skip(1).Take(level).Where(b => b is not null).ToList();
         return bonuses.Count > 0 ? string.Join(", ", bonuses) : null;
     }
 
@@ -60,9 +60,9 @@ public static class FireteamLevels
             .Select(slot => (Keys: SlotNameKeys(slot.Name), Slot: slot))
             .Where(x => x.Keys.Count > 0 || (x.Slot.UnitId.HasValue && x.Slot.FactionId.HasValue))
             .ToList();
-        var remaining = matchers.Select(x => MaxSlots(x.Slot.Max)).ToArray();
+        var remaining = matchers.Select(x => MaxSlots(x.Slot.Max)).ToList();
 
-        var claimed = new bool[members.Count];
+        var claimed = Enumerable.Repeat(false, members.Count).ToList();
         for (var m = 0; m < members.Count; m++)
         {
             var member = members[m];

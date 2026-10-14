@@ -12,10 +12,10 @@ public sealed class ArmyPayloadEquivalenceTests
 {
     private readonly ArmyJsonReader _reader = new();
 
-    public static IEnumerable<object[]> Armies() =>
-        TypedStorageRoundTripTests.ReadLegacyArmies()
+    public static TheoryData<int> Armies() =>
+        new(TypedStorageRoundTripTests.ReadLegacyArmies()
             .Where(army => !string.IsNullOrWhiteSpace(army.RawJson))
-            .Select(army => new object[] { army.FactionId });
+            .Select(army => army.FactionId));
 
     [Fact]
     public void NearlyEveryReferenceArmyKeptItsPayload()
@@ -24,7 +24,7 @@ public sealed class ArmyPayloadEquivalenceTests
         var withoutPayload = TypedStorageRoundTripTests.ReadLegacyArmies()
             .Where(army => string.IsNullOrWhiteSpace(army.RawJson))
             .Select(army => army.FactionId);
-        Assert.Equal(new[] { 2001 }, withoutPayload);
+        Assert.Equal<int>([2001], withoutPayload);
     }
 
     [Theory]

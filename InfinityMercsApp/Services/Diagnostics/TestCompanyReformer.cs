@@ -27,7 +27,7 @@ public sealed class TestCompanyReformer(
     };
 
     /// <summary>Test companies that live only on the device, reformed from their saved copy.</summary>
-    internal static readonly string[] AdditionalCompanyFileNames =
+    internal static readonly IReadOnlyList<string> AdditionalCompanyFileNames =
     [
         "test-correg-tag-0001.json",
         "test-nw-tag-lt-0001.json"

@@ -69,8 +69,8 @@ public static class CaptainUpgradeRules
         return options;
     }
 
-    private sealed record StatDefinition(int[] BonusesByTier, int[] CostsByTier, int? HardCap = null)
+    private sealed record StatDefinition(IReadOnlyList<int> BonusesByTier, IReadOnlyList<int> CostsByTier, int? HardCap = null)
     {
-        public int MaxTier => BonusesByTier.Length - 1;
+        public int MaxTier => BonusesByTier.Count - 1;
     }
 }

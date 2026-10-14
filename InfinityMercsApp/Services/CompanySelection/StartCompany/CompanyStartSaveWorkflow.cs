@@ -329,10 +329,10 @@ internal static class CompanyStartSaveWorkflow
                 improvedCaptainStats.EquipmentChoice3);
         }
 
-        var baseLookupFactions = new[] { entry.SourceFactionId };
-        var currentLookupFactions = entry.IsLieutenant && improvedCaptainStats.OptionFactionId > 0
-            ? new[] { entry.SourceFactionId, improvedCaptainStats.OptionFactionId }
-            : new[] { entry.SourceFactionId };
+        List<int> baseLookupFactions = [entry.SourceFactionId];
+        List<int> currentLookupFactions = entry.IsLieutenant && improvedCaptainStats.OptionFactionId > 0
+            ? [entry.SourceFactionId, improvedCaptainStats.OptionFactionId]
+            : [entry.SourceFactionId];
 
         var baseSkillResolution = ResolveCodes(armyDataService, codeIdLookupCache, extrasIdLookupCache, baseSkillNames, "skills", baseLookupFactions);
         var currentSkillResolution = ResolveCodes(armyDataService, codeIdLookupCache, extrasIdLookupCache, currentSkillNames, "skills", currentLookupFactions);

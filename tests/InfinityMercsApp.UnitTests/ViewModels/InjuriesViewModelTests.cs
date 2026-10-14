@@ -13,7 +13,7 @@ public sealed class InjuriesViewModelTests
     private readonly IDice _dice = Substitute.For<IDice>();
 
     // PH 14 gives an avoid target of 11.
-    private async Task<InjuriesViewModel> OpenAsync(params string[] phValues)
+    private async Task<InjuriesViewModel> OpenAsync(params IReadOnlyList<string> phValues)
     {
         _debrief.PendingInjuries = phValues
             .Select((ph, i) => new PendingInjury { EntryIndex = i, Name = $"Trooper {i}", PhValue = ph })

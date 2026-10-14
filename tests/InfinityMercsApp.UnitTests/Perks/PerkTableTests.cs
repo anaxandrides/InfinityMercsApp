@@ -10,8 +10,8 @@ public sealed class PerkTableTests
     private static PerkNode Node(string id, string name, int tier, string? parentId = null) =>
         new() { Id = id, Name = name, Tier = tier, ParentId = parentId };
 
-    private static PerkNodeList List(params PerkNode[] roots) =>
-        new() { ListId = "test-list", ListName = "Test", Roots = roots };
+    private static PerkNodeList List(params IEnumerable<PerkNode> roots) =>
+        new() { ListId = "test-list", ListName = "Test", Roots = roots.ToList() };
 
     [Fact]
     public void OptionsPutTheAttributeListsFirstWithTheirRolls()

@@ -19,8 +19,8 @@ public sealed class CaptainUpgradeRulesTests
     public void StatOptions_AccumulateCostAcrossTiers()
     {
         var options = CaptainUpgradeRules.StatOptions("CC", 14);
-        Assert.Equal(
-            new[] { (0, 0, 0), (1, 2, 2), (2, 5, 5), (3, 10, 10) },
+        Assert.Equal<(int, int, int)>(
+            [(0, 0, 0), (1, 2, 2), (2, 5, 5), (3, 10, 10)],
             options.Select(o => (o.Tier, o.Bonus, o.Cost)));
     }
 
@@ -29,10 +29,10 @@ public sealed class CaptainUpgradeRulesTests
     {
         // PH caps at 14: from 13, tier 1 reaches 14 and no further tiers are offered.
         var options = CaptainUpgradeRules.StatOptions("PH", 13);
-        Assert.Equal(new[] { (0, 0, 0), (1, 1, 2) }, options.Select(o => (o.Tier, o.Bonus, o.Cost)));
+        Assert.Equal<(int, int, int)>([(0, 0, 0), (1, 1, 2)], options.Select(o => (o.Tier, o.Bonus, o.Cost)));
 
         // From 12, tier 2 would give +3 but is clamped to +2.
-        Assert.Equal(new[] { 0, 1, 2 }, CaptainUpgradeRules.StatOptions("PH", 12).Select(o => o.Bonus));
+        Assert.Equal<int>([0, 1, 2], CaptainUpgradeRules.StatOptions("PH", 12).Select(o => o.Bonus));
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public sealed class CaptainUpgradeRulesTests
 
     [Fact]
     public void StatOptions_ForAnUnknownStatOfferOnlyNoUpgrade() =>
-        Assert.Equal(new[] { 0 }, CaptainUpgradeRules.StatOptions("MOV", 4).Select(o => o.Tier));
+        Assert.Equal<int>([0], CaptainUpgradeRules.StatOptions("MOV", 4).Select(o => o.Tier));
 
     [Fact]
     public void StatOptions_IgnoreCase() =>
@@ -115,7 +115,7 @@ public sealed class ProfileTextTests
 
     [Fact]
     public void Lines_DropBlanksAndPlaceholders() =>
-        Assert.Equal(new[] { "Combi Rifle", "Pistol" }, ProfileText.Lines($" Combi Rifle {NewLine}-{NewLine}{NewLine}Pistol"));
+        Assert.Equal<string>(["Combi Rifle", "Pistol"], ProfileText.Lines($" Combi Rifle {NewLine}-{NewLine}{NewLine}Pistol"));
 
     [Fact]
     public void AppendDistinct_SkipsItemsAlreadyListed() =>
@@ -135,7 +135,7 @@ public sealed class ProfileTextTests
 
     [Fact]
     public void AppendChoices_TrimsAndSkipsBlanksDashesAndDuplicates() =>
-        Assert.Equal(new[] { "Pistol", "Sniper" }, ProfileText.AppendChoices([" Pistol ", ""], "Sniper", "-", null, "pistol"));
+        Assert.Equal<string>(["Pistol", "Sniper"], ProfileText.AppendChoices([" Pistol ", ""], "Sniper", "-", null, "pistol"));
 }
 
 public sealed class StatlineTests
@@ -148,7 +148,7 @@ public sealed class StatlineTests
 
     [Fact]
     public void Entries_KeepEveryKeyValueSegmentInOrder() =>
-        Assert.Equal(
-            new[] { ("MOV", "10-5"), ("CC", "14"), ("AVA", "T") },
+        Assert.Equal<(string, string)>(
+            [("MOV", "10-5"), ("CC", "14"), ("AVA", "T")],
             Statline.Entries("MOV 10-5 | cc 14 | junk | AVA T"));
 }

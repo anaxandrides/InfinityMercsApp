@@ -25,7 +25,7 @@ public sealed class UnitContentRows
 {
     private const int UnitOptionGroupIndex = -1;
 
-    private static readonly ProfileEntryKind[] EntryKinds = Enum.GetValues<ProfileEntryKind>();
+    private static readonly IReadOnlyList<ProfileEntryKind> EntryKinds = Enum.GetValues<ProfileEntryKind>();
 
     public List<UnitProfileGroupRow> Groups { get; } = [];
 

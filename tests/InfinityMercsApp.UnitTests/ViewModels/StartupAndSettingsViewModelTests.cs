@@ -9,7 +9,7 @@ namespace InfinityMercsApp.UnitTests.ViewModels;
 
 internal static class ImportStubs
 {
-    public static async IAsyncEnumerable<SuccessWithStringResult> Messages(params string[] messages)
+    public static async IAsyncEnumerable<SuccessWithStringResult> Messages(params IEnumerable<string> messages)
     {
         foreach (var message in messages)
         {

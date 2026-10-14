@@ -48,7 +48,7 @@ internal sealed record CorpusLookups(
 /// </summary>
 internal static class LegacyProfileSnapshot
 {
-    private static readonly string[] EntryProperties = ["chars", "skills", "equip", "weapons", "peripheral", "ammunition", "ammo"];
+    private static readonly IReadOnlyList<string> EntryProperties = ["chars", "skills", "equip", "weapons", "peripheral", "ammunition", "ammo"];
 
     public static string Build(CorpusUnit unit)
     {

@@ -18,7 +18,7 @@ public sealed class MissionOutcomeViewModelTests
     public MissionOutcomeViewModelTests() =>
         _seasonFiles.UpdateLatestRoundAsync(SeasonPath, Arg.Do<Action<SeasonRound>>(update => _roundUpdate = update)).Returns(true);
 
-    private async Task<MissionOutcomeViewModel> OpenAsync(params int[] roundIndices)
+    private async Task<MissionOutcomeViewModel> OpenAsync(params IEnumerable<int> roundIndices)
     {
         _seasonFiles.LoadAsync(SeasonPath).Returns(new SeasonFile
         {

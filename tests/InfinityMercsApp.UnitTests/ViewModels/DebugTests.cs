@@ -34,12 +34,12 @@ public sealed class TestCompanyReformerTests : IDisposable
         }
         """;
 
-    private void GiveManifest(params string[] companies) =>
+    private void GiveManifest(params IEnumerable<string> companies) =>
         _packageFiles.ReadTextAsync(TestCompanyReformer.ManifestFileName)
             .Returns($$"""{ "companies": [ {{string.Join(",", companies)}} ] }""");
 
-    private static string[] SkippedDeviceFiles =>
-        TestCompanyReformer.AdditionalCompanyFileNames.Select(f => $"{f}: skipped (missing company data)").ToArray();
+    private static List<string> SkippedDeviceFiles =>
+        TestCompanyReformer.AdditionalCompanyFileNames.Select(f => $"{f}: skipped (missing company data)").ToList();
 
     [Fact]
     public async Task RebuildsAManifestCompanyFromTheArmyData()

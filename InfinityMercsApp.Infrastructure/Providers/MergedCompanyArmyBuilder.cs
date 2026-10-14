@@ -15,7 +15,7 @@ namespace InfinityMercsApp.Infrastructure.Providers;
 internal sealed class MergedCompanyArmyBuilder(IFactionProvider factionProvider, string logTag)
 {
     /// <summary>The filter sections a generated army carries, in this order.</summary>
-    private static readonly string[] MergedFilterSections =
+    private static readonly IReadOnlyList<string> MergedFilterSections =
     [
         ArmyFilterSection.Type,
         ArmyFilterSection.Chars,

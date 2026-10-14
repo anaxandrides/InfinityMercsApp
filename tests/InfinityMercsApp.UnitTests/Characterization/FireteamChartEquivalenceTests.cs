@@ -12,12 +12,12 @@ namespace InfinityMercsApp.UnitTests.Characterization;
 /// </summary>
 public sealed class FireteamChartEquivalenceTests
 {
-    public static IEnumerable<object[]> Charts()
+    public static TheoryData<string, string?> Charts()
     {
-        var charts = new List<object[]>();
+        var charts = new TheoryData<string, string?>();
         using (var doc = JsonDocument.Parse(File.ReadAllText(RepoFiles.Resolve(ReferenceCorpus.Army101Path))))
         {
-            charts.Add(["army-101", doc.RootElement.GetProperty("fireteamChart").GetRawText()]);
+            charts.Add("army-101", doc.RootElement.GetProperty("fireteamChart").GetRawText());
         }
 
         using var connection = new SqliteConnection($"Data Source={RepoFiles.Resolve(ReferenceCorpus.DatabasePath)};Mode=ReadOnly");
@@ -27,10 +27,10 @@ public sealed class FireteamChartEquivalenceTests
         using var reader = command.ExecuteReader();
         while (reader.Read())
         {
-            charts.Add([$"db:{reader.GetInt32(0)}", reader.IsDBNull(1) ? null! : reader.GetString(1)]);
+            charts.Add($"db:{reader.GetInt32(0)}", reader.IsDBNull(1) ? null : reader.GetString(1));
         }
 
-        charts.Add(["synthetic-loose", """
+        charts.Add("synthetic-loose", """
             {"spec":{"core":"2","Haris":9,"DUO":"x"},
              "teams":[
                {"name":"  Alpha  ","type":["CORE"," ","haris",5],"units":[
@@ -39,9 +39,9 @@ public sealed class FireteamChartEquivalenceTests
                  {"slug":"","min":null,"required":false}]},
                {"name":"","type":"DUO","units":[]},
                {"type":["DUO"]}]}
-            """]);
-        charts.Add(["synthetic-not-arrays", """{"spec":[1,2],"teams":{"name":"x"}}"""]);
-        charts.Add(["synthetic-invalid", "not json"]);
+            """);
+        charts.Add("synthetic-not-arrays", """{"spec":[1,2],"teams":{"name":"x"}}""");
+        charts.Add("synthetic-invalid", "not json");
         return charts;
     }
 
@@ -62,7 +62,7 @@ public sealed class FireteamChartEquivalenceTests
                        string.Join(" | ", team.Units.Select(x => $"{x.CompanyDisplayName}/{x.Min ?? 0}/{x.Max ?? 0}/{x.CompanySlug ?? "<null>"}/{x.IsMandatory}"));
             });
 
-        Assert.Equal(expected.ToArray(), actual.ToArray());
+        Assert.Equal(expected, actual);
         Assert.NotNull(source);
     }
 
@@ -78,13 +78,13 @@ public sealed class FireteamChartEquivalenceTests
             string.Join(" | ", team.Units.Select(x => $"{x.ViewerName}/{x.Slug ?? string.Empty}/{x.Min ?? 0}/{x.Max ?? 0}")));
         var actualCounts = $"{chart.SpecDisplay("DUO")} {chart.SpecDisplay("HARIS")} {chart.SpecDisplay("CORE")}";
 
-        Assert.Equal(expectedTeams, actualTeams.ToArray());
+        Assert.Equal(expectedTeams, actualTeams);
         Assert.Equal(expectedCounts, actualCounts);
         Assert.NotNull(source);
     }
 
     /// <summary>The legacy viewer's UpdateFireteamTeams/UpdateFireteamCounts loops (mercs filter off) over its frozen helpers.</summary>
-    private static (string[] Teams, string Counts) LegacyViewer(string? json)
+    private static (List<string> Teams, string Counts) LegacyViewer(string? json)
     {
         if (string.IsNullOrWhiteSpace(json))
         {
@@ -111,7 +111,7 @@ public sealed class FireteamChartEquivalenceTests
                     string.Join(" | ", LegacyViewerFireteamRules.ReadUnitLimits(team).Select(x => $"{x.Name}/{x.Slug}/{x.Min}/{x.Max}")));
             }
 
-            return (result.ToArray(), counts);
+            return (result, counts);
         }
         catch (JsonException)
         {

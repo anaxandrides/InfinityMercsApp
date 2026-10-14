@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Infrastructure.Data;
 using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Infrastructure.Models.Database.Army;
@@ -27,7 +28,8 @@ public sealed class TypedStorageRoundTripTests : IDisposable
     public void Dispose()
     {
         SqliteConnection.ClearAllPools();
-        foreach (var suffix in new[] { string.Empty, "-wal", "-shm" })
+        IEnumerable<string> suffixes = [string.Empty, "-wal", "-shm"];
+        foreach (var suffix in suffixes)
         {
             try
             {
@@ -120,7 +122,8 @@ public sealed class TypedStorageRoundTripTests : IDisposable
         foreach (var army in ReadLegacyArmies())
         {
             var specops = _reader.ReadSpecops(army.SpecopsJson);
-            var lists = new[] { ("skill", specops.Skills), ("equip", specops.Equip), ("weapon", specops.Weapons) };
+            IEnumerable<(string Kind, IReadOnlyList<SpecopsChoice>? Choices)> lists =
+                [("skill", specops.Skills), ("equip", specops.Equip), ("weapon", specops.Weapons)];
             foreach (var (kind, choices) in lists)
             {
                 for (var i = 0; i < (choices?.Count ?? 0); i++)

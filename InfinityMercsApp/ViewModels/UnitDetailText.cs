@@ -123,7 +123,8 @@ public static class UnitDetailText
         var parenIndex = displayName.IndexOf(" (", StringComparison.Ordinal);
         var trimmed = parenIndex > 0 ? displayName[..parenIndex] : displayName;
 
-        foreach (var candidate in new[] { displayName, trimmed })
+        IEnumerable<string> candidates = [displayName, trimmed];
+        foreach (var candidate in candidates)
         {
             foreach (var (id, name) in nameLookup)
             {

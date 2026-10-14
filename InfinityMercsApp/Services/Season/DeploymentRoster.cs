@@ -357,7 +357,7 @@ public sealed partial class DeploymentRoster(
         }
 
         /// <summary>The chosen upgrades without their "(+N) - " cost prefix; blanks and dashes are dropped.</summary>
-        internal static IReadOnlyList<string> Choices(params string?[] choices) => choices
+        internal static IReadOnlyList<string> Choices(params IEnumerable<string?> choices) => choices
             .Where(c => !string.IsNullOrWhiteSpace(c) && c.Trim() != "-")
             .Select(c => CaptainChoiceCostPattern().Replace(c!.Trim(), string.Empty).Trim())
             .Where(c => c.Length > 0)

@@ -58,7 +58,7 @@ public static class ProfileText
     /// Item names with chosen items appended: trims everything, drops blanks and "-", and skips choices
     /// already present (ignoring case).
     /// </summary>
-    public static List<string> AppendChoices(IEnumerable<string> existing, params string?[] choices)
+    public static List<string> AppendChoices(IEnumerable<string> existing, params IEnumerable<string?> choices)
     {
         var result = existing.Where(item => !string.IsNullOrWhiteSpace(item)).Select(item => item.Trim()).ToList();
         foreach (var choice in choices)

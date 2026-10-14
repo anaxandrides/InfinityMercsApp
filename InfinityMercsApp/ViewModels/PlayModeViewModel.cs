@@ -109,7 +109,7 @@ public partial class PlayModeViewModel(
         }
 
         var parameters = NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath);
-        parameters[NavigationParameters.DeployedIndices] = deployed.Select(u => u.EntryIndex).ToArray();
+        parameters[NavigationParameters.DeployedIndices] = deployed.Select(u => u.EntryIndex).ToList();
         parameters[NavigationParameters.EliteDeployment] = IsEliteDeployment;
         await NavigationService.PushAsync(nameof(GameModePage), parameters);
     }

@@ -357,7 +357,9 @@ internal sealed class ScalarTextConverter : JsonConverter<string?>
             case JsonTokenType.String:
                 return reader.GetString();
             case JsonTokenType.Number:
-                return System.Text.Encoding.UTF8.GetString(reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan);
+                return reader.HasValueSequence
+                    ? System.Text.EncodingExtensions.GetString(System.Text.Encoding.UTF8, reader.ValueSequence)
+                    : System.Text.Encoding.UTF8.GetString(reader.ValueSpan);
             default:
                 reader.Skip();
                 return null;

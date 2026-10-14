@@ -1184,29 +1184,29 @@ public partial class GameModePage : ContentPage, IQueryAttributable
 
         // Sequential multi-check with equal-width columns.
         // Only the highest-checked and lowest-unchecked checkboxes are enabled.
-        void AddMultiChecks(bool[] arr)
+        void AddMultiChecks(IList<bool> arr)
         {
-            var checkboxes = new CheckBox[arr.Length];
+            var checkboxes = new List<CheckBox>(arr.Count);
 
             void RefreshStates()
             {
                 var highestChecked = -1;
-                for (var i = arr.Length - 1; i >= 0; i--)
+                for (var i = arr.Count - 1; i >= 0; i--)
                     if (arr[i]) { highestChecked = i; break; }
 
                 var lowestUnchecked = -1;
-                for (var i = 0; i < arr.Length; i++)
+                for (var i = 0; i < arr.Count; i++)
                     if (!arr[i]) { lowestUnchecked = i; break; }
 
-                for (var i = 0; i < checkboxes.Length; i++)
+                for (var i = 0; i < checkboxes.Count; i++)
                     checkboxes[i].IsEnabled = i == highestChecked || i == lowestUnchecked;
             }
 
             var grid = new Grid { ColumnSpacing = 4, Margin = new Thickness(0, 2, 0, 0) };
-            for (var i = 0; i < arr.Length; i++)
+            for (var i = 0; i < arr.Count; i++)
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
 
-            for (var i = 0; i < arr.Length; i++)
+            for (var i = 0; i < arr.Count; i++)
             {
                 var idx = i;
                 var cb = MakeCheckBox(arr[idx], v =>
@@ -1214,7 +1214,7 @@ public partial class GameModePage : ContentPage, IQueryAttributable
                     arr[idx] = v;
                     RefreshStates();
                 });
-                checkboxes[idx] = cb;
+                checkboxes.Add(cb);
 
                 var numLbl = new Label
                 {

@@ -15,15 +15,11 @@ namespace InfinityMercsApp.UnitTests.Characterization;
 /// </summary>
 public sealed class UnitOptionFilterEquivalenceTests
 {
-    public static IEnumerable<object[]> CorpusSources =>
-    [
-        ["army-101.json"],
-        ["infinitymercs.db3"]
-    ];
+    public static TheoryData<string> CorpusSources => new() { "army-101.json", "infinitymercs.db3" };
 
     private sealed record FilterSpec(
         string Description,
-        IReadOnlyList<(UnitFilterField Field, string[] Values, UnitFilterMatchMode Mode)> Terms,
+        IReadOnlyList<(UnitFilterField Field, IReadOnlyList<string> Values, UnitFilterMatchMode Mode)> Terms,
         int? MinPoints,
         int? MaxPoints,
         bool RequireLieutenant,
@@ -43,12 +39,13 @@ public sealed class UnitOptionFilterEquivalenceTests
             var filterLookups = new UnitFilterLookups(lookups.Chars, lookups.Skills, lookups.Equip, lookups.Weapons, lookups.Ammo);
             var groups = reader.ReadProfileGroups(unit.ProfileGroupsJson);
 
-            foreach (var (requireLieutenant, requireZeroSwc, maxCost, includeProfiles) in new[]
-                     {
-                         (false, false, (int?)null, true),
-                         (true, true, (int?)25, false),
-                         (false, true, (int?)40, true)
-                     })
+            IEnumerable<(bool RequireLieutenant, bool RequireZeroSwc, int? MaxCost, bool IncludeProfiles)> variants =
+            [
+                (false, false, null, true),
+                (true, true, 25, false),
+                (false, true, 40, true)
+            ];
+            foreach (var (requireLieutenant, requireZeroSwc, maxCost, includeProfiles) in variants)
             {
                 var legacySets = NewSets();
                 LegacyFilter.AddFilterOptionsFromVisibleProfilesAndOptions(
@@ -60,7 +57,7 @@ public sealed class UnitOptionFilterEquivalenceTests
                     groups, filterLookups, requireLieutenant, requireZeroSwc, maxCost, includeProfiles,
                     new UnitFilterOptionSets(sets[0], sets[1], sets[2], sets[3], sets[4]));
 
-                for (var i = 0; i < sets.Length; i++)
+                for (var i = 0; i < sets.Count; i++)
                 {
                     if (!legacySets[i].SetEquals(sets[i]))
                     {
@@ -126,8 +123,8 @@ public sealed class UnitOptionFilterEquivalenceTests
         Assert.True(UnitOptionFilter.MatchesClassification(UnitFilterCriteria.None, unitType, typeLookup));
     }
 
-    private static HashSet<string>[] NewSets() =>
-        Enumerable.Range(0, 5).Select(_ => new HashSet<string>(StringComparer.OrdinalIgnoreCase)).ToArray();
+    private static List<HashSet<string>> NewSets() =>
+        Enumerable.Range(0, 5).Select(_ => new HashSet<string>(StringComparer.OrdinalIgnoreCase)).ToList();
 
     /// <summary>Filter specs built from names this unit (or its army) actually uses, so terms really match.</summary>
     private static IEnumerable<FilterSpec> SpecsFor(CorpusUnit unit, CorpusLookups lookups)
@@ -136,25 +133,25 @@ public sealed class UnitOptionFilterEquivalenceTests
         LegacyFilter.AddFilterOptionsFromVisibleProfilesAndOptions(
             unit.ProfileGroupsJson, lookups.Chars, lookups.Skills, lookups.Equip, lookups.Weapons, lookups.Ammo,
             false, false, null, true, sets[0], sets[1], sets[2], sets[3], sets[4]);
-        var chars = sets[0].OrderBy(x => x, StringComparer.Ordinal).ToArray();
-        var skills = sets[1].OrderBy(x => x, StringComparer.Ordinal).ToArray();
-        var equipment = sets[2].OrderBy(x => x, StringComparer.Ordinal).ToArray();
-        var weapons = sets[3].OrderBy(x => x, StringComparer.Ordinal).ToArray();
-        var ammo = sets[4].OrderBy(x => x, StringComparer.Ordinal).ToArray();
+        var chars = sets[0].OrderBy(x => x, StringComparer.Ordinal).ToList();
+        var skills = sets[1].OrderBy(x => x, StringComparer.Ordinal).ToList();
+        var equipment = sets[2].OrderBy(x => x, StringComparer.Ordinal).ToList();
+        var weapons = sets[3].OrderBy(x => x, StringComparer.Ordinal).ToList();
+        var ammo = sets[4].OrderBy(x => x, StringComparer.Ordinal).ToList();
         var otherWeapon = lookups.Weapons.Values.FirstOrDefault(name => !weapons.Contains(name)) ?? "Not A Weapon";
 
         yield return new FilterSpec("none", [], null, null, false, false, null);
         yield return new FilterSpec("lieutenant", [], null, null, true, false, null);
         yield return new FilterSpec("zero-swc+cap", [], null, null, false, true, 30);
         yield return new FilterSpec("points 20-40", [], 20, 40, false, false, null);
-        yield return new FilterSpec("weapon any", [(UnitFilterField.Weapons, weapons.Take(1).Append(otherWeapon).ToArray(), UnitFilterMatchMode.Any)], null, null, false, false, null);
-        yield return new FilterSpec("weapons all", [(UnitFilterField.Weapons, weapons.Take(2).ToArray(), UnitFilterMatchMode.All)], null, null, false, false, null);
+        yield return new FilterSpec("weapon any", [(UnitFilterField.Weapons, weapons.Take(1).Append(otherWeapon).ToList(), UnitFilterMatchMode.Any)], null, null, false, false, null);
+        yield return new FilterSpec("weapons all", [(UnitFilterField.Weapons, weapons.Take(2).ToList(), UnitFilterMatchMode.All)], null, null, false, false, null);
         yield return new FilterSpec("weapon missing", [(UnitFilterField.Weapons, [otherWeapon], UnitFilterMatchMode.Any)], null, null, false, false, null);
-        yield return new FilterSpec("skills all", [(UnitFilterField.Skills, skills.Take(3).ToArray(), UnitFilterMatchMode.All)], null, null, false, false, null);
+        yield return new FilterSpec("skills all", [(UnitFilterField.Skills, skills.Take(3).ToList(), UnitFilterMatchMode.All)], null, null, false, false, null);
         yield return new FilterSpec("chars+equip", [
-            (UnitFilterField.Characteristics, chars.Take(1).ToArray(), UnitFilterMatchMode.Any),
-            (UnitFilterField.Equipment, equipment.Take(1).ToArray(), UnitFilterMatchMode.Any)], null, null, false, true, null);
-        yield return new FilterSpec("ammo", [(UnitFilterField.Ammo, ammo.Take(2).ToArray(), UnitFilterMatchMode.Any)], null, 35, false, false, null);
+            (UnitFilterField.Characteristics, chars.Take(1).ToList(), UnitFilterMatchMode.Any),
+            (UnitFilterField.Equipment, equipment.Take(1).ToList(), UnitFilterMatchMode.Any)], null, null, false, true, null);
+        yield return new FilterSpec("ammo", [(UnitFilterField.Ammo, ammo.Take(2).ToList(), UnitFilterMatchMode.Any)], null, 35, false, false, null);
         yield return new FilterSpec("classification ignored", [(UnitFilterField.Classification, ["Anything"], UnitFilterMatchMode.Any)], null, null, false, false, null);
     }
 

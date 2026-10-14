@@ -254,7 +254,7 @@ public sealed class ProfileEntryNames
 /// </summary>
 public static class ViewerOptionNames
 {
-    private static readonly string[] DetailTagTokens =
+    private static readonly IReadOnlyList<string> DetailTagTokens =
     [
         "forward observer", "hacker", "hacking device", "specialist", "paramedic",
         "doctor", "engineer", "lieutenant", "nco", "chain of command"

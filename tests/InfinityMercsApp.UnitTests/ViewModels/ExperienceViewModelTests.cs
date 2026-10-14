@@ -19,7 +19,7 @@ public sealed class ExperienceViewModelTests
     public ExperienceViewModelTests() =>
         _seasonFiles.UpdateLatestRoundAsync(SeasonPath, Arg.Do<Action<SeasonRound>>(update => _roundUpdate = update)).Returns(true);
 
-    private async Task<ExperienceViewModel> OpenAsync(params ExperienceUnitResult[] units)
+    private async Task<ExperienceViewModel> OpenAsync(params IEnumerable<ExperienceUnitResult> units)
     {
         _debrief.Units = [.. units];
         var viewModel = new ExperienceViewModel(_navigation, _seasonFiles, _debrief);

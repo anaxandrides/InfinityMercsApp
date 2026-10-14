@@ -28,9 +28,9 @@ public sealed class LegacyJsonRulesCharacterizationTests
         var peripheralIds = Ids(LegacyCompanyProfileOptionService.GetOptionEntriesWithIncludes(root, option, "peripheral"));
 
         // Own weapons [84, 72, 69, 5], then group 2/option 1 [4, 71], then group 2/option 5 [57, 72, 71].
-        Assert.Equal(new[] { 84, 72, 69, 5, 4, 71, 57, 72, 71 }, weaponIds);
-        Assert.Equal(new[] { 307, 311 }, peripheralIds);
-        Assert.Equal(new[] { 307, 311 }, Ids(LegacyCompanyProfileOptionService.GetDisplayPeripheralEntriesForOption(root, group, option)));
+        Assert.Equal<int>([84, 72, 69, 5, 4, 71, 57, 72, 71], weaponIds);
+        Assert.Equal<int>([307, 311], peripheralIds);
+        Assert.Equal<int>([307, 311], Ids(LegacyCompanyProfileOptionService.GetDisplayPeripheralEntriesForOption(root, group, option)));
         Assert.Equal("47", LegacyCompanyProfileOptionService.ReadOptionCost(option));
         Assert.Equal("47", LegacyCompanyProfileOptionService.ReadAdjustedOptionCost(root, group, option));
         Assert.Equal("1", LegacyCompanyProfileOptionService.ReadOptionSwc(option));
@@ -200,9 +200,9 @@ public sealed class LegacyJsonRulesCharacterizationTests
         var group = doc.RootElement[0];
         var options = group.GetProperty("options");
 
-        Assert.Equal(new[] { 9 }, Ids(LegacyCompanyProfileOptionService.GetDisplayPeripheralEntriesForOption(doc.RootElement, group, options[0])));
+        Assert.Equal<int>([9], Ids(LegacyCompanyProfileOptionService.GetDisplayPeripheralEntriesForOption(doc.RootElement, group, options[0])));
         // Nothing survives the filter → falls back to the controller profile's own peripheral entries.
-        Assert.Equal(new[] { 9 }, Ids(LegacyCompanyProfileOptionService.GetDisplayPeripheralEntriesForOption(doc.RootElement, group, options[1])));
+        Assert.Equal<int>([9], Ids(LegacyCompanyProfileOptionService.GetDisplayPeripheralEntriesForOption(doc.RootElement, group, options[1])));
         Assert.True(LegacyCompanyProfileOptionService.IsControllerGroup(doc.RootElement, group));
     }
 
@@ -219,7 +219,7 @@ public sealed class LegacyJsonRulesCharacterizationTests
         using var doc = JsonDocument.Parse(json);
         var option = doc.RootElement[0].GetProperty("options")[0];
 
-        Assert.Equal(new[] { 10, 20, 10 }, Ids(LegacyCompanyProfileOptionService.GetOptionEntriesWithIncludes(doc.RootElement, option, "weapons")));
+        Assert.Equal<int>([10, 20, 10], Ids(LegacyCompanyProfileOptionService.GetOptionEntriesWithIncludes(doc.RootElement, option, "weapons")));
     }
 
     [Fact]
@@ -233,7 +233,7 @@ public sealed class LegacyJsonRulesCharacterizationTests
         using var doc = JsonDocument.Parse(json);
         var option = doc.RootElement[0].GetProperty("options")[0];
 
-        Assert.Equal(new[] { 50 }, Ids(LegacyCompanyProfileOptionService.GetOptionEntriesWithIncludes(doc.RootElement, option, "skills")));
+        Assert.Equal<int>([50], Ids(LegacyCompanyProfileOptionService.GetOptionEntriesWithIncludes(doc.RootElement, option, "skills")));
     }
 
     [Theory]
@@ -248,13 +248,18 @@ public sealed class LegacyJsonRulesCharacterizationTests
         Assert.False(LegacyCompanyUnitFilterService.UnitHasVisibleOption(json, skills, false, false));
     }
 
-    [Theory]
-    [InlineData("[101, \"102\", \"x\", 103.5]", new[] { 101, 102 })]
-    [InlineData("""{"sourceFactionId":1001}""", new int[0])]
-    [InlineData("not json", new int[0])]
-    public void ParseFactionIds_KeepsIntegerAndNumericStringEntries(string json, int[] expected)
+    public static TheoryData<string, List<int>> FactionIdCases => new()
     {
-        Assert.Equal(expected, LegacySharedUtilities.ParseFactionIds(json).ToArray());
+        { "[101, \"102\", \"x\", 103.5]", [101, 102] },
+        { """{"sourceFactionId":1001}""", [] },
+        { "not json", [] }
+    };
+
+    [Theory]
+    [MemberData(nameof(FactionIdCases))]
+    public void ParseFactionIds_KeepsIntegerAndNumericStringEntries(string json, List<int> expected)
+    {
+        Assert.Equal(expected, LegacySharedUtilities.ParseFactionIds(json));
     }
 
     [Fact]
@@ -308,6 +313,6 @@ public sealed class LegacyJsonRulesCharacterizationTests
         throw new InvalidOperationException($"Unit {unitId} has no group {groupId} option {optionId}.");
     }
 
-    private static int[] Ids(IEnumerable<JsonElement> entries) =>
-        entries.Select(entry => LegacySharedUtilities.TryParseId(entry, out var id) ? id : -1).ToArray();
+    private static List<int> Ids(IEnumerable<JsonElement> entries) =>
+        entries.Select(entry => LegacySharedUtilities.TryParseId(entry, out var id) ? id : -1).ToList();
 }

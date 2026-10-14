@@ -17,7 +17,8 @@ internal static class DatabaseReset
                 return;
             }
 
-            foreach (var suffix in new[] { string.Empty, "-wal", "-shm", "-journal" })
+            IEnumerable<string> suffixes = [string.Empty, "-wal", "-shm", "-journal"];
+            foreach (var suffix in suffixes)
             {
                 if (File.Exists(databasePath + suffix))
                 {

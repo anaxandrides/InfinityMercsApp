@@ -31,23 +31,23 @@ public sealed class LieutenantRulesTests
     {
         var withoutLt = new List<string> { "Courage" };
         LieutenantRules.AddSkillIfMissing(withoutLt);
-        Assert.Equal(new[] { "Courage", "Lieutenant" }, withoutLt);
+        Assert.Equal<string>(["Courage", "Lieutenant"], withoutLt);
 
         var withAbbreviation = new List<string> { "Lt" };
         LieutenantRules.AddSkillIfMissing(withAbbreviation);
-        Assert.Equal(new[] { "Lt" }, withAbbreviation);
+        Assert.Equal<string>(["Lt"], withAbbreviation);
     }
 
     [Fact]
     public void WithSkill_SortsDistinctAndAddsLieutenant() =>
-        Assert.Equal(new[] { "Courage", "Lieutenant", "Sniper" }, LieutenantRules.WithSkill(["Sniper", "Courage", "sniper", " "]));
+        Assert.Equal<string>(["Courage", "Lieutenant", "Sniper"], LieutenantRules.WithSkill(["Sniper", "Courage", "sniper", " "]));
 
     [Fact]
     public void MoveLieutenantFirst_MovesTheFirstLieutenantSkill()
     {
         var skills = new List<string> { "Courage", "Lieutenant (+1 Order)", "Sniper" };
         LieutenantRules.MoveLieutenantFirst(skills);
-        Assert.Equal(new[] { "Lieutenant (+1 Order)", "Courage", "Sniper" }, skills);
+        Assert.Equal<string>(["Lieutenant (+1 Order)", "Courage", "Sniper"], skills);
     }
 
     [Theory]
@@ -67,10 +67,10 @@ public sealed class LieutenantRulesTests
     [Fact]
     public void HighlightRuns_SplitOutEveryLieutenant()
     {
-        Assert.Equal(
-            new[] { ("Lieutenant", true), (", ", false), ("LIEUTENANT", true), (" (+1)", false) },
+        Assert.Equal<(string, bool)>(
+            [("Lieutenant", true), (", ", false), ("LIEUTENANT", true), (" (+1)", false)],
             LieutenantRules.HighlightRuns("Lieutenant, LIEUTENANT (+1)"));
-        Assert.Equal(new[] { ("Courage", false) }, LieutenantRules.HighlightRuns("Courage"));
+        Assert.Equal<(string, bool)>([("Courage", false)], LieutenantRules.HighlightRuns("Courage"));
         Assert.Empty(LieutenantRules.HighlightRuns(""));
     }
 

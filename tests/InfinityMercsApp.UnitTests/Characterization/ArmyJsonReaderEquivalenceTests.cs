@@ -10,7 +10,7 @@ namespace InfinityMercsApp.UnitTests.Characterization;
 /// </summary>
 public sealed class ArmyJsonReaderEquivalenceTests
 {
-    private static readonly string[] LookupSections =
+    private static readonly IReadOnlyList<string> LookupSections =
     [
         ArmyFilterSection.Chars,
         ArmyFilterSection.Skills,
@@ -23,11 +23,7 @@ public sealed class ArmyJsonReaderEquivalenceTests
         ArmyFilterSection.Category
     ];
 
-    public static IEnumerable<object[]> CorpusSources =>
-    [
-        ["army-101.json"],
-        ["infinitymercs.db3"]
-    ];
+    public static TheoryData<string> CorpusSources => new() { "army-101.json", "infinitymercs.db3" };
 
     [Theory]
     [MemberData(nameof(CorpusSources))]
@@ -98,16 +94,21 @@ public sealed class ArmyJsonReaderEquivalenceTests
         Assert.False(groups.HasLieutenantOption(new Dictionary<int, string> { [119] = "Lieutenant" }));
     }
 
-    [Theory]
-    [InlineData("[101, \"102\", \"x\", 103.5]", new[] { 101, 102 })]
-    [InlineData("""{"sourceFactionId":1001}""", new int[0])]
-    [InlineData("not json", new int[0])]
-    [InlineData("[1] trailing", new int[0])]
-    [InlineData(null, new int[0])]
-    public void FactionIds_MatchLegacyParsing(string? json, int[] expected)
+    public static TheoryData<string?, List<int>> FactionIdCases => new()
     {
-        Assert.Equal(expected, LegacySharedUtilities.ParseFactionIds(json).ToArray());
-        Assert.Equal(expected, new ArmyJsonReader().ReadFactionIds(json).ToArray());
+        { "[101, \"102\", \"x\", 103.5]", [101, 102] },
+        { """{"sourceFactionId":1001}""", [] },
+        { "not json", [] },
+        { "[1] trailing", [] },
+        { null, [] }
+    };
+
+    [Theory]
+    [MemberData(nameof(FactionIdCases))]
+    public void FactionIds_MatchLegacyParsing(string? json, List<int> expected)
+    {
+        Assert.Equal(expected, LegacySharedUtilities.ParseFactionIds(json));
+        Assert.Equal(expected, new ArmyJsonReader().ReadFactionIds(json));
     }
 
     /// <summary>
@@ -145,10 +146,10 @@ public sealed class ArmyJsonReaderEquivalenceTests
         var filters = new ArmyJsonReader().ReadUnitFilters(
             """{"categories":[3],"types":[1,2],"chars":[5],"skills":["7",8],"equip":[],"weapons":[84,null],"ammunition":{"bad":1}}""");
 
-        Assert.Equal(new[] { 3 }, filters.Categories.ToArray());
-        Assert.Equal(new[] { 1, 2 }, filters.Types.ToArray());
-        Assert.Equal(new[] { 7, 8 }, filters.Skills.ToArray());
-        Assert.Equal(new[] { 84 }, filters.Weapons.ToArray());
+        Assert.Equal<int>([3], filters.Categories);
+        Assert.Equal<int>([1, 2], filters.Types);
+        Assert.Equal<int>([7, 8], filters.Skills);
+        Assert.Equal<int>([84], filters.Weapons);
         Assert.Empty(filters.Ammunition);
     }
 
@@ -185,7 +186,7 @@ public sealed class ArmyJsonReaderEquivalenceTests
 /// </summary>
 public sealed class ArmyJsonReaderIdListTests
 {
-    public static IEnumerable<object[]> StoredExtrasJson()
+    public static TheoryData<string?> StoredExtrasJson()
     {
         var dbPath = RepoFiles.Resolve(ReferenceCorpus.DatabasePath);
         using var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={dbPath};Mode=ReadOnly");
@@ -193,16 +194,16 @@ public sealed class ArmyJsonReaderIdListTests
         using var command = connection.CreateCommand();
         command.CommandText = "SELECT DISTINCT ExtrasJson FROM specops_skills UNION SELECT DISTINCT ExtrasJson FROM specops_equipment";
         using var reader = command.ExecuteReader();
-        var values = new List<object[]>();
+        var values = new TheoryData<string?>();
         while (reader.Read())
         {
-            values.Add([reader.IsDBNull(0) ? null! : reader.GetString(0)]);
+            values.Add(reader.IsDBNull(0) ? null : reader.GetString(0));
         }
 
-        values.Add(["[\"5\", {\"id\":6}, null, \"x\", 7.5, 8]"]);
-        values.Add(["{\"id\":1}"]);
-        values.Add(["not json"]);
-        values.Add(["[1] trailing"]);
+        values.Add("[\"5\", {\"id\":6}, null, \"x\", 7.5, 8]");
+        values.Add("{\"id\":1}");
+        values.Add("not json");
+        values.Add("[1] trailing");
         return values;
     }
 
@@ -210,10 +211,10 @@ public sealed class ArmyJsonReaderIdListTests
     [MemberData(nameof(StoredExtrasJson))]
     public void ReadIdList_MatchesLegacyElementParsing(string? json)
     {
-        Assert.Equal(LegacyIds(json), new ArmyJsonReader().ReadIdList(json).ToArray());
+        Assert.Equal(LegacyIds(json), new ArmyJsonReader().ReadIdList(json));
     }
 
-    private static int[] LegacyIds(string? json)
+    private static List<int> LegacyIds(string? json)
     {
         if (string.IsNullOrWhiteSpace(json))
         {
@@ -237,7 +238,7 @@ public sealed class ArmyJsonReaderIdListTests
                 }
             }
 
-            return ids.ToArray();
+            return ids;
         }
         catch (JsonException)
         {

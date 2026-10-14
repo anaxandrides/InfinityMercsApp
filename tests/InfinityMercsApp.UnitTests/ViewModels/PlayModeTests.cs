@@ -236,7 +236,7 @@ public sealed class PlayModeViewModelTests : IDisposable
         await _navigation.Received(1).PushAsync("GameModePage", Arg.Is<IDictionary<string, object>>(p =>
             (string)p[NavigationParameters.CompanyFilePath] == _companyPath &&
             (string)p[NavigationParameters.SeasonFilePath] == "/s.json" &&
-            ((int[])p[NavigationParameters.DeployedIndices]).SequenceEqual(new[] { 0, 2 }) &&
+            ((IEnumerable<int>)p[NavigationParameters.DeployedIndices]).SequenceEqual(new List<int> { 0, 2 }) &&
             (bool)p[NavigationParameters.EliteDeployment]));
     }
 

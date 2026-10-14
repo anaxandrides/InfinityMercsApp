@@ -63,7 +63,7 @@ public sealed class UnitFilterOptionSets
 /// </summary>
 public static class UnitOptionFilter
 {
-    private static readonly ProfileEntryKind[] AmmoKinds = [ProfileEntryKind.Ammunition, ProfileEntryKind.Ammo];
+    private static readonly IReadOnlyList<ProfileEntryKind> AmmoKinds = [ProfileEntryKind.Ammunition, ProfileEntryKind.Ammo];
 
     /// <summary>
     /// True when at least one option passes the visibility rules (optional name predicate, Lieutenant only,

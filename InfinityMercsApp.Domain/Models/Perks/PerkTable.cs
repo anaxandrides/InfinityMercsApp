@@ -17,7 +17,7 @@ public sealed partial record PerkTable(int TierCount, IReadOnlyList<PerkTableTra
     /// <summary>Tables always show at least this many tier columns.</summary>
     public const int MinimumTierCount = 5;
 
-    private static readonly string[] PreferredListOrder =
+    private static readonly IReadOnlyList<string> PreferredListOrder =
         ["Initiative", "Cool", "Body", "Reflex", "Intelligence", "Empathy", "Mecha"];
 
     /// <summary>Every perk list, attribute lists first in their usual order.</summary>

@@ -35,18 +35,18 @@ public sealed class FireteamLevelsTests
     [Fact]
     public void ClaimSlots_FillEachSlotUpToItsMax()
     {
-        var slots = new[] { new FireteamSlot("Fusilier", null, null, "2") };
+        List<FireteamSlot> slots = [new FireteamSlot("Fusilier", null, null, "2")];
         var members = Enumerable.Range(0, 3).Select(_ => new FireteamMember("Fusiliers", "Fusilier", 1, 1)).ToList();
 
-        Assert.Equal(new[] { true, true, false }, FireteamLevels.ClaimSlots(members, slots));
+        Assert.Equal<bool>([true, true, false], FireteamLevels.ClaimSlots(members, slots));
         Assert.Equal(2, FireteamLevels.Level(members, slots));
     }
 
     [Fact]
     public void ClaimSlots_MatchByResolvedUnitWhenNamesDiffer()
     {
-        var slots = new[] { new FireteamSlot("Something Else", 7, 3, "1") };
-        Assert.Equal(new[] { true, false }, FireteamLevels.ClaimSlots(
+        List<FireteamSlot> slots = [new FireteamSlot("Something Else", 7, 3, "1")];
+        Assert.Equal<bool>([true, false], FireteamLevels.ClaimSlots(
             [new FireteamMember("Orc", "Orc Troops", 7, 3), new FireteamMember("Orc", "Orc Troops", 7, 4)],
             slots));
     }
@@ -54,7 +54,7 @@ public sealed class FireteamLevelsTests
     [Fact]
     public void ClaimSlots_WithoutSlotsLeaveEveryoneIrregular()
     {
-        Assert.Equal(new[] { false }, FireteamLevels.ClaimSlots([new FireteamMember("Orc", null, 1, 1)], []));
+        Assert.Equal<bool>([false], FireteamLevels.ClaimSlots([new FireteamMember("Orc", null, 1, 1)], []));
         Assert.Equal(0, FireteamLevels.Level([new FireteamMember("Orc", null, 1, 1)], []));
     }
 
@@ -72,18 +72,18 @@ public sealed class FireteamLevelsTests
     public void LevelAndIrregularStatus_MatchTheLegacyEvaluator(int seed)
     {
         var random = new Random(seed);
-        string[] names = ["Orc Troops", "Orcs", "Fusilier", "Kamau (Hacker)", "Bolts", "Wildcard", "Moderator", ""];
-        string[] maxes = ["1", "2", "3", "*", "0", "", "x"];
+        List<string> names = ["Orc Troops", "Orcs", "Fusilier", "Kamau (Hacker)", "Bolts", "Wildcard", "Moderator", ""];
+        List<string> maxes = ["1", "2", "3", "*", "0", "", "x"];
 
         var slots = Enumerable.Range(0, random.Next(0, 5))
             .Select(_ => new FireteamSlot(
-                $"{names[random.Next(names.Length)]}{(random.Next(3) == 0 ? " (Orc, Bolt)" : "")}",
+                $"{names[random.Next(names.Count)]}{(random.Next(3) == 0 ? " (Orc, Bolt)" : "")}",
                 random.Next(3) == 0 ? random.Next(1, 4) : null,
                 random.Next(3) == 0 ? random.Next(1, 3) : null,
-                maxes[random.Next(maxes.Length)]))
+                maxes[random.Next(maxes.Count)]))
             .ToList();
         var members = Enumerable.Range(0, random.Next(0, 9))
-            .Select(_ => new FireteamMember(names[random.Next(names.Length)], names[random.Next(names.Length)], random.Next(1, 4), random.Next(1, 3)))
+            .Select(_ => new FireteamMember(names[random.Next(names.Count)], names[random.Next(names.Count)], random.Next(1, 4), random.Next(1, 3)))
             .ToList();
 
         var expectedLevel = Math.Clamp(LegacyFireteamLevelWorkflow.EvaluateLevelByCapacity(
@@ -99,8 +99,8 @@ public sealed class FireteamLevelsTests
 
         Assert.Equal(expectedLevel, FireteamLevels.Level(members, slots));
         Assert.Equal(
-            members.Select(m => expectedIrregular[m]).ToArray(),
-            FireteamLevels.ClaimSlots(members, slots).Select(claimed => !claimed).ToArray());
+            members.Select(m => expectedIrregular[m]),
+            FireteamLevels.ClaimSlots(members, slots).Select(claimed => !claimed));
     }
 }
 
@@ -141,7 +141,7 @@ public sealed class FireteamMatchingTests
     [Fact]
     public void ResolveUnitForTeamEntry_PrefersSlugThenNormalisedSlugThenName()
     {
-        TestUnit[] units = [new("Orc Troops", "orc-troops"), new("Fusiliers", "fusiliers"), new("Bolts", null)];
+        List<TestUnit> units = [new("Orc Troops", "orc-troops"), new("Fusiliers", "fusiliers"), new("Bolts", null)];
 
         Assert.Same(units[0], Resolve("Anything", "ORC-TROOPS", units));
         Assert.Same(units[1], Resolve("Fusiliers", "reinf_fusiliers", units));
@@ -153,7 +153,7 @@ public sealed class FireteamMatchingTests
     [Fact]
     public void ResolveUnitForTeamEntry_PrefersReinforcementUnitsForReinforcementSlots()
     {
-        TestUnit[] units = [new("Orc Troops", "orc-troops"), new("Orc Troops REINF", "orc-troops-reinf")];
+        List<TestUnit> units = [new("Orc Troops", "orc-troops"), new("Orc Troops REINF", "orc-troops-reinf")];
 
         Assert.Same(units[1], Resolve("Orc Troops REINF", "orc-troops", units));
         Assert.Same(units[0], Resolve("REINF Orc Troops", "orc-troops", [units[0]]));
