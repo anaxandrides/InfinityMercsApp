@@ -1,15 +1,17 @@
-﻿namespace InfinityMercsApp.Views.Common;
+using InfinityMercsApp.Domain.Fireteams;
+
+namespace InfinityMercsApp.Views.Common;
 
 internal static class CompanyTeamProfilesWorkflow
 {
-    internal static Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> FilterCharacterUnitLimits<TUnit>(
-        Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> unitLimits,
+    internal static Dictionary<string, MergedUnitLimit> FilterCharacterUnitLimits<TUnit>(
+        Dictionary<string, MergedUnitLimit> unitLimits,
         IEnumerable<TUnit> sourceUnits,
         Func<string?, string?, IEnumerable<TUnit>, TUnit?> resolveUnitForTeamEntry,
         Func<TUnit, bool> readIsCharacter)
         where TUnit : class
     {
-        var filtered = new Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)>(StringComparer.OrdinalIgnoreCase);
+        var filtered = new Dictionary<string, MergedUnitLimit>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var unitLimit in unitLimits)
         {
@@ -25,8 +27,8 @@ internal static class CompanyTeamProfilesWorkflow
         return filtered;
     }
 
-    internal static Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> FilterCharacterUnitLimits(
-        Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> unitLimits,
+    internal static Dictionary<string, MergedUnitLimit> FilterCharacterUnitLimits(
+        Dictionary<string, MergedUnitLimit> unitLimits,
         IEnumerable<ArmyUnitSelectionItem> sourceUnits,
         Func<ArmyUnitSelectionItem, bool> readIsCharacter)
     {
@@ -42,10 +44,10 @@ internal static class CompanyTeamProfilesWorkflow
             readIsCharacter);
     }
 
-    internal static Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> FilterWildcardUnitLimits(
-        Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> unitLimits)
+    internal static Dictionary<string, MergedUnitLimit> FilterWildcardUnitLimits(
+        Dictionary<string, MergedUnitLimit> unitLimits)
     {
-        var filtered = new Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)>(StringComparer.OrdinalIgnoreCase);
+        var filtered = new Dictionary<string, MergedUnitLimit>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var unitLimit in unitLimits)
         {
@@ -61,54 +63,31 @@ internal static class CompanyTeamProfilesWorkflow
     }
 
     internal static List<TTeamUnitLimitItem> BuildAllowedTeamProfiles<TUnit, TTeamUnitLimitItem>(
-        Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> unitLimits,
+        Dictionary<string, MergedUnitLimit> unitLimits,
         IEnumerable<TUnit> sourceUnits,
         Func<string, string, string, string?, IEnumerable<TUnit>, TTeamUnitLimitItem> buildTeamUnitLimitItem)
         where TUnit : class
         where TTeamUnitLimitItem : class
     {
-        var merged = new Dictionary<string, (string Name, int Min, int Max, string? Slug, bool MinAsterisk, bool IsWildcard)>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var entry in unitLimits)
+        // Every wildcard slot shares one row, listed after the named units.
+        var merged = new Dictionary<string, AllowedProfile>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (name, limit) in unitLimits)
         {
-            var name = entry.Key;
-            var value = entry.Value;
-            var isWildcard = FireteamMatching.IsWildcardEntry(name, value.Slug);
-            var key = isWildcard ? "__WILDCARD__" : name.Trim();
-            var normalizedName = isWildcard ? "Wildcards" : name;
-
-            if (merged.TryGetValue(key, out var existing))
-            {
-                merged[key] = (
-                    existing.Name,
-                    Math.Min(existing.Min, value.Min),
-                    Math.Max(existing.Max, value.Max),
-                    string.IsNullOrWhiteSpace(existing.Slug) ? value.Slug : existing.Slug,
-                    existing.MinAsterisk || value.MinAsterisk,
-                    existing.IsWildcard || isWildcard);
-                continue;
-            }
-
-            merged[key] = (
-                normalizedName,
-                value.Min,
-                value.Max,
-                value.Slug,
-                value.MinAsterisk,
-                isWildcard);
+            var isWildcard = FireteamMatching.IsWildcardEntry(name, limit.Slug);
+            var key = isWildcard ? MergedUnitLimit.WildcardsTeamName : name.Trim();
+            merged[key] = merged.TryGetValue(key, out var existing)
+                ? existing with { Limit = existing.Limit.MergeWith(limit), IsWildcard = existing.IsWildcard || isWildcard }
+                : new AllowedProfile(isWildcard ? MergedUnitLimit.WildcardsTeamName : name, limit, isWildcard);
         }
 
         return merged.Values
             .OrderBy(x => x.IsWildcard ? 1 : 0)
             .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
-            .Select(x => buildTeamUnitLimitItem(
-                x.Name,
-                x.MinAsterisk ? "*" : x.Min.ToString(),
-                x.Max.ToString(),
-                x.Slug,
-                sourceUnits))
+            .Select(x => buildTeamUnitLimitItem(x.Name, x.Limit.MinText, x.Limit.MaxText, x.Limit.Slug, sourceUnits))
             .ToList();
     }
+
+    private sealed record AllowedProfile(string Name, MergedUnitLimit Limit, bool IsWildcard);
 
     internal static TTeamUnitLimitItem BuildTeamUnitLimitItem<TUnit, TTeamUnitLimitItem>(
         string displayName,

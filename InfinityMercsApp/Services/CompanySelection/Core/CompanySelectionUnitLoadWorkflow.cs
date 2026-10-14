@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using InfinityMercsApp.Domain.Fireteams;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Utilities;
 using InfinityMercsApp.Services;
@@ -84,11 +85,11 @@ internal static class CompanySelectionUnitLoadWorkflow
         }
     }
 
-    internal static Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> BuildWildcardUnitLimits(
+    internal static Dictionary<string, MergedUnitLimit> BuildWildcardUnitLimits(
         IEnumerable<MergedFireteam> mergedTeams,
         IEnumerable<ArmyUnitSelectionItem> mergedUnits)
     {
-        var wildcardUnitLimits = new Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)>(StringComparer.OrdinalIgnoreCase);
+        var wildcardUnitLimits = new Dictionary<string, MergedUnitLimit>(StringComparer.OrdinalIgnoreCase);
         foreach (var team in mergedTeams)
         {
             var isWildcardTeam = FireteamMatching.IsWildcardTeamName(team.Name);
@@ -105,18 +106,9 @@ internal static class CompanySelectionUnitLoadWorkflow
                     continue;
                 }
 
-                if (wildcardUnitLimits.TryGetValue(unitName, out var existing))
-                {
-                    wildcardUnitLimits[unitName] = (
-                        Math.Min(existing.Min, value.Min),
-                        Math.Max(existing.Max, value.Max),
-                        string.IsNullOrWhiteSpace(existing.Slug) ? value.Slug : existing.Slug,
-                        existing.MinAsterisk || value.MinAsterisk);
-                }
-                else
-                {
-                    wildcardUnitLimits[unitName] = value;
-                }
+                wildcardUnitLimits[unitName] = wildcardUnitLimits.TryGetValue(unitName, out var existing)
+                    ? existing.MergeWith(value)
+                    : value;
             }
         }
 
@@ -124,7 +116,7 @@ internal static class CompanySelectionUnitLoadWorkflow
     }
 
     internal static void AppendWildcardTeamEntry(
-        Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> wildcardUnitLimits,
+        Dictionary<string, MergedUnitLimit> wildcardUnitLimits,
         IEnumerable<ArmyUnitSelectionItem> mergedUnits,
         ICollection<ArmyTeamListItem> teamEntries,
         Func<string, string, string, string?, IEnumerable<ArmyUnitSelectionItem>, ArmyTeamUnitLimitItem> buildTeamUnitLimitItem,
@@ -139,8 +131,8 @@ internal static class CompanySelectionUnitLoadWorkflow
             .OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
             .Select(x => buildTeamUnitLimitItem(
                 x.Key,
-                x.Value.MinAsterisk ? "*" : x.Value.Min.ToString(),
-                x.Value.Max.ToString(),
+                x.Value.MinText,
+                x.Value.MaxText,
                 x.Value.Slug,
                 mergedUnits))
             .Where(x => !x.IsCharacter)
@@ -152,7 +144,7 @@ internal static class CompanySelectionUnitLoadWorkflow
         }
 
         teamEntries.Add(createTeam(
-            "Wildcards",
+            MergedUnitLimit.WildcardsTeamName,
             string.Empty,
             true,
             true,

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using InfinityMercsApp.Domain.Fireteams;
 using ArmyFactionRecord = InfinityMercsApp.Domain.Models.Army.Faction;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecopsUnit;
@@ -71,7 +72,7 @@ public abstract partial class CompanySelectionPageBase
     /// Builds a dictionary of wildcard (non-team-specific) unit limits derived from the merged
     /// team aggregates, keyed by unit key. Used to populate the wildcard catch-all team entry.
     /// </summary>
-    protected static Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> BuildWildcardUnitLimits(
+    protected static Dictionary<string, MergedUnitLimit> BuildWildcardUnitLimits(
         IEnumerable<MergedFireteam> mergedTeams,
         IEnumerable<ArmyUnitSelectionItem> mergedUnits)
     {
@@ -83,7 +84,7 @@ public abstract partial class CompanySelectionPageBase
     /// any fireteam slot. Only adds the entry when at least one wildcard limit exists.
     /// </summary>
     protected static void AppendWildcardTeamEntry(
-        Dictionary<string, (int Min, int Max, string? Slug, bool MinAsterisk)> wildcardUnitLimits,
+        Dictionary<string, MergedUnitLimit> wildcardUnitLimits,
         IEnumerable<ArmyUnitSelectionItem> mergedUnits,
         ICollection<ArmyTeamListItem> teamEntries,
         Func<string, string, string, string?, IEnumerable<ArmyUnitSelectionItem>, ArmyTeamUnitLimitItem> buildTeamUnitLimitItem,
