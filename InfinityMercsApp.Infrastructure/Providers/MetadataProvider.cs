@@ -66,7 +66,7 @@ public sealed class MetadataProvider(ISQLiteRepository sqliteRepository) : IMeta
             weaponProperties.AddRange(weapon.Properties.Select((property, position) =>
                 new WeaponPropertyRow { WeaponKey = weaponKey, Position = position, Property = property }));
             weaponBands.AddRange((weapon.Distance?.Bands ?? []).Select((band, position) =>
-                new WeaponDistanceBandRow { WeaponKey = weaponKey, Position = position, Band = band.Name, Max = band.Band.Max, Mod = band.Band.Mod }));
+                new WeaponDistanceBandRow { WeaponKey = weaponKey, Position = position, Band = band.Name, Max = band.Max, Mod = band.Mod }));
         }
 
         var skills = metadata.Skills.Select(x => new DbSkill
@@ -238,7 +238,7 @@ public sealed class MetadataProvider(ISQLiteRepository sqliteRepository) : IMeta
     {
         var bandList = bands
             .OrderBy(row => row.Position)
-            .Select(row => (row.Band, new WeaponDistanceBand { Max = row.Max, Mod = row.Mod }))
+            .Select(row => new WeaponDistanceBand { Name = row.Band, Max = row.Max, Mod = row.Mod })
             .ToList();
         return new DomainWeapon
         {

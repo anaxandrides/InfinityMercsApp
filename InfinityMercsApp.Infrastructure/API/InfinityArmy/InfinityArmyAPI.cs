@@ -186,7 +186,7 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
     {
         var bands = distance?
             .Where(band => band.Value is not null)
-            .Select(band => (band.Key, new WeaponDistanceBand { Max = band.Value!.Max, Mod = band.Value.Mod ?? "0" }))
+            .Select(band => new WeaponDistanceBand { Name = band.Key, Max = band.Value!.Max, Mod = band.Value.Mod ?? "0" })
             .ToList();
         return bands is null || bands.Count == 0 ? null : new WeaponDistance { Bands = bands };
     }

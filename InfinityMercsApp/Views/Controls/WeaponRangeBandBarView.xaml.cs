@@ -77,7 +77,7 @@ public partial class WeaponRangeBandBarView : ContentView
         if (bands.Count == 0)
             return;
 
-        float totalRange = bands[^1].RangeEnd;
+        float totalRange = bands[^1].EndCm;
         if (totalRange <= 0)
             return;
 
@@ -113,7 +113,7 @@ public partial class WeaponRangeBandBarView : ContentView
         for (int i = 0; i < bands.Count; i++)
         {
             var band = bands[i];
-            float bandWidth = (band.RangeEnd - band.RangeStart) / totalRange * canvasWidth;
+            float bandWidth = (band.EndCm - band.StartCm) / totalRange * canvasWidth;
 
             var displayMod = ApplyXVisorMod(band.Mod, XVisorActive);
             fillPaint.Color = GetBandColor(displayMod);
@@ -125,7 +125,7 @@ public partial class WeaponRangeBandBarView : ContentView
             canvas.DrawText(displayMod, centerX, centerY, SKTextAlign.Center, modFont, modPaint);
 
             x += bandWidth;
-            boundaries.Add((x, band.RangeEnd));
+            boundaries.Add((x, band.EndCm));
         }
 
         // White label strip
