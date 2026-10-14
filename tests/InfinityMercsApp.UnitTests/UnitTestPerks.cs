@@ -54,8 +54,8 @@ public sealed class UnitTestPerks
             .GetPerkNodeLists()
             .First(x => string.Equals(x.ListId, list.Id, StringComparison.OrdinalIgnoreCase));
         var nodesByTrack = Flatten(nodeList.Roots)
-            .Where(node => TryParseTrackTier(node.Id, out _, out _))
-            .GroupBy(node => GetTrackTier(node.Id).Track)
+            .Where(node => PerkPosition.Parse(node.Id) is not null)
+            .GroupBy(node => (PerkPosition.Parse(node.Id)?.Track ?? 0))
             .ToDictionary(group => group.Key, group => group.ToList());
 
         foreach (var track in list.Tracks.Where(track => track.RollRanges.Any(range => range.Contains(trackRoll))))
@@ -76,7 +76,7 @@ public sealed class UnitTestPerks
                             return (int?)null;
                         }
 
-                        return TryParseTrackTier(node.ParentId, out var parentTrack, out var parentTier) &&
+                        return PerkPosition.Parse(node.ParentId) is (var parentTrack, var parentTier) &&
                                parentTrack == track.TrackNumber &&
                                parentTier < tier
                             ? parentTier
@@ -100,29 +100,6 @@ public sealed class UnitTestPerks
         }
 
         return expected;
-    }
-
-    private static bool TryParseTrackTier(string nodeId, out int track, out int tier)
-    {
-        track = 0;
-        tier = 0;
-        var match = System.Text.RegularExpressions.Regex.Match(
-            nodeId,
-            @"-track-(?<track>\d+)-tier-(?<tier>\d+)",
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-        if (!match.Success)
-        {
-            return false;
-        }
-
-        return int.TryParse(match.Groups["track"].Value, out track) &&
-               int.TryParse(match.Groups["tier"].Value, out tier);
-    }
-
-    private static (int Track, int Tier) GetTrackTier(string nodeId)
-    {
-        TryParseTrackTier(nodeId, out var track, out var tier);
-        return (track, tier);
     }
 
     private static IEnumerable<PerkNode> Flatten(IEnumerable<PerkNode> roots)

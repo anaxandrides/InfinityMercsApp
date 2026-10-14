@@ -61,8 +61,8 @@ public sealed partial record PerkTable(int TierCount, IReadOnlyList<PerkTableTra
             .Select(group => group.First())
             .ToList();
         var nodesByTrack = nodes
-            .Where(node => TryParseTrackTier(node.Id, out _, out _))
-            .GroupBy(node => { TryParseTrackTier(node.Id, out var track, out _); return track; })
+            .Where(node => PerkPosition.Parse(node.Id) is not null)
+            .GroupBy(node => PerkPosition.Parse(node.Id)!.Track)
             .OrderBy(group => group.Key)
             .ToList();
         if (nodesByTrack.Count == 0)
@@ -108,41 +108,25 @@ public sealed partial record PerkTable(int TierCount, IReadOnlyList<PerkTableTra
         return parts.Length <= 1 ? name.Replace(",", string.Empty).Trim() : string.Join(Environment.NewLine, parts);
     }
 
-    /// <summary>Reads the track and tier from an id such as "cool-track-4-tier-2".</summary>
-    public static bool TryParseTrackTier(string? nodeId, out int track, out int tier)
-    {
-        track = 0;
-        tier = 0;
-        if (string.IsNullOrWhiteSpace(nodeId))
-        {
-            return false;
-        }
-
-        var match = TrackTierPattern().Match(nodeId);
-        return match.Success &&
-               int.TryParse(match.Groups["track"].Value, out track) &&
-               int.TryParse(match.Groups["tier"].Value, out tier);
-    }
-
     // Parent and child references describe the same dependency, so each link is kept once.
     private static List<PerkTableLink> CollectLinks(IEnumerable<PerkNode> nodes)
     {
         var links = new List<PerkTableLink>();
         foreach (var node in nodes)
         {
-            if (!TryParseTrackTier(node.Id, out var track, out var tier))
+            if (PerkPosition.Parse(node.Id) is not (var track, var tier))
             {
                 continue;
             }
 
-            if (TryParseTrackTier(node.ParentId, out var parentTrack, out var parentTier) && parentTrack == track)
+            if (PerkPosition.Parse(node.ParentId) is (var parentTrack, var parentTier) && parentTrack == track)
             {
                 links.Add(new PerkTableLink(track, parentTier, tier));
             }
 
             foreach (var child in node.Children)
             {
-                if (TryParseTrackTier(child.Id, out var childTrack, out var childTier) && childTrack == track)
+                if (PerkPosition.Parse(child.Id) is (var childTrack, var childTier) && childTrack == track)
                 {
                     links.Add(new PerkTableLink(track, tier, childTier));
                 }
@@ -151,7 +135,4 @@ public sealed partial record PerkTable(int TierCount, IReadOnlyList<PerkTableTra
 
         return links.Distinct().ToList();
     }
-
-    [GeneratedRegex(@"-track-(?<track>\d+)-tier-(?<tier>\d+)", RegexOptions.IgnoreCase)]
-    private static partial Regex TrackTierPattern();
 }

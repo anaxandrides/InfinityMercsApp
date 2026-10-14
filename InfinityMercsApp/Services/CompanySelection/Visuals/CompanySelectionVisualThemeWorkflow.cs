@@ -1,4 +1,4 @@
-﻿using InfinityMercsApp.Domain.Utilities;
+using InfinityMercsApp.Domain.Utilities;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Controls;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
@@ -6,6 +6,15 @@ using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 namespace InfinityMercsApp.Views.Common;
 
 internal readonly record struct CompanyHeaderColors(Color Primary, Color Secondary, Color PrimaryText, Color SecondaryText);
+
+/// <summary>A faction's primary and secondary colours.</summary>
+internal sealed record FactionTheme(Color Primary, Color Secondary);
+
+/// <summary>The accent colours of the equipment and skills summaries.</summary>
+internal sealed record SummaryAccents(Color Equipment, Color Skills);
+
+/// <summary>A unit's formatted equipment and special-skills summaries.</summary>
+internal sealed record UnitSummaries(FormattedString Equipment, FormattedString Skills);
 
 internal static class CompanySelectionVisualThemeWorkflow
 {
@@ -118,50 +127,52 @@ internal static class CompanySelectionVisualThemeWorkflow
         return new CompanyHeaderColors(primary, secondary, primaryText, secondaryText);
     }
 
-    internal static (FormattedString EquipmentSummary, FormattedString SkillsSummary) BuildSummaryFormatted(
+    internal static UnitSummaries BuildSummaryFormatted(
         UnitDisplayConfigurationsView unitDisplayConfigurationsView,
         Color secondaryBackgroundColor,
         bool highlightLieutenant)
     {
-        var (equipmentAccent, skillsAccent) = GetSummaryAccentColorsForSecondaryBackground(secondaryBackgroundColor);
+        var accents = GetSummaryAccentColorsForSecondaryBackground(secondaryBackgroundColor);
         var equipmentSummary = CompanyProfileTextService.BuildNamedSummaryFormatted(
             "Equipment",
             unitDisplayConfigurationsView.SelectedUnitCommonEquipment,
-            equipmentAccent);
+            accents.Equipment);
         var skillsSummary = CompanyProfileTextService.BuildNamedSummaryFormatted(
             "Special Skills",
             unitDisplayConfigurationsView.SelectedUnitCommonSkills,
-            skillsAccent,
+            accents.Skills,
             highlightLieutenantPurple: highlightLieutenant);
-        return (equipmentSummary, skillsSummary);
+        return new UnitSummaries(equipmentSummary, skillsSummary);
     }
 
-    internal static (Color EquipmentAccent, Color SkillsAccent) GetSummaryAccentColorsForSecondaryBackground(Color secondaryBackground)
+    internal static SummaryAccents GetSummaryAccentColorsForSecondaryBackground(Color secondaryBackground)
     {
         return CompanySelectionSharedUtilities.IsLightColor(secondaryBackground)
-            ? (UnitDisplayConfigurationsView.EquipmentAccentOnLightSecondary, UnitDisplayConfigurationsView.SkillsAccentOnLightSecondary)
-            : (UnitDisplayConfigurationsView.EquipmentAccentOnDarkSecondary, UnitDisplayConfigurationsView.SkillsAccentOnDarkSecondary);
+            ? new SummaryAccents(UnitDisplayConfigurationsView.EquipmentAccentOnLightSecondary, UnitDisplayConfigurationsView.SkillsAccentOnLightSecondary)
+            : new SummaryAccents(UnitDisplayConfigurationsView.EquipmentAccentOnDarkSecondary, UnitDisplayConfigurationsView.SkillsAccentOnDarkSecondary);
     }
 
-    internal static (Color Primary, Color Secondary) GetFactionTheme(string? factionName, Color defaultPrimary, Color defaultSecondary)
+    // Faction colours by normalized vanilla faction name.
+    private static readonly IReadOnlyDictionary<string, FactionTheme> FactionThemes = new Dictionary<string, FactionTheme>
     {
-        var key = CompanySelectionSharedUtilities.NormalizeFactionName(factionName);
-        return key switch
-        {
-            "panoceania" => (Color.FromArgb("#239ac2"), Color.FromArgb("#006a91")),
-            "yujing" => (Color.FromArgb("#ff9000"), Color.FromArgb("#995601")),
-            "ariadna" => (Color.FromArgb("#007d27"), Color.FromArgb("#005825")),
-            "haqqislam" => (Color.FromArgb("#e6da9b"), Color.FromArgb("#8a835d")),
-            "nomads" => (Color.FromArgb("#ce181e"), Color.FromArgb("#7c0e13")),
-            "combinedarmy" => (Color.FromArgb("#400b5f"), Color.FromArgb("#260739")),
-            "aleph" => (Color.FromArgb("#aea6bb"), Color.FromArgb("#696471")),
-            "tohaa" => (Color.FromArgb("#3b3b3b"), Color.FromArgb("#252525")),
-            "nonalignedarmy" => (Color.FromArgb("#728868"), Color.FromArgb("#728868")),
-            "o12" => (Color.FromArgb("#005470"), Color.FromArgb("#dead33")),
-            "jsa" => (Color.FromArgb("#a6112b"), Color.FromArgb("#757575")),
-            _ => (defaultPrimary, defaultSecondary)
-        };
-    }
+        ["panoceania"] = new(Color.FromArgb("#239ac2"), Color.FromArgb("#006a91")),
+        ["yujing"] = new(Color.FromArgb("#ff9000"), Color.FromArgb("#995601")),
+        ["ariadna"] = new(Color.FromArgb("#007d27"), Color.FromArgb("#005825")),
+        ["haqqislam"] = new(Color.FromArgb("#e6da9b"), Color.FromArgb("#8a835d")),
+        ["nomads"] = new(Color.FromArgb("#ce181e"), Color.FromArgb("#7c0e13")),
+        ["combinedarmy"] = new(Color.FromArgb("#400b5f"), Color.FromArgb("#260739")),
+        ["aleph"] = new(Color.FromArgb("#aea6bb"), Color.FromArgb("#696471")),
+        ["tohaa"] = new(Color.FromArgb("#3b3b3b"), Color.FromArgb("#252525")),
+        ["nonalignedarmy"] = new(Color.FromArgb("#728868"), Color.FromArgb("#728868")),
+        ["o12"] = new(Color.FromArgb("#005470"), Color.FromArgb("#dead33")),
+        ["jsa"] = new(Color.FromArgb("#a6112b"), Color.FromArgb("#757575"))
+    };
+
+    /// <summary>The faction's colours, or the defaults for factions without a theme.</summary>
+    internal static FactionTheme GetFactionTheme(string? factionName, Color defaultPrimary, Color defaultSecondary) =>
+        FactionThemes.TryGetValue(CompanySelectionSharedUtilities.NormalizeFactionName(factionName), out var theme)
+            ? theme
+            : new FactionTheme(defaultPrimary, defaultSecondary);
 
     internal static string? InferThemeFactionNameFromFactionId(int factionId)
     {

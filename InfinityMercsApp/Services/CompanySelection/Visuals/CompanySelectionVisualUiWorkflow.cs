@@ -1,4 +1,4 @@
-﻿using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Controls;
 using SkiaSharp;
@@ -90,8 +90,8 @@ internal static class CompanySelectionVisualUiWorkflow
             unitDisplayConfigurationsView,
             unitHeaderSecondaryColor,
             highlightLieutenant);
-        setEquipmentSummaryFormatted(summaries.EquipmentSummary);
-        setSkillsSummaryFormatted(summaries.SkillsSummary);
+        setEquipmentSummaryFormatted(summaries.Equipment);
+        setSkillsSummaryFormatted(summaries.Skills);
     }
 
     internal static bool GetShowUnitsInInchesFromProvider(

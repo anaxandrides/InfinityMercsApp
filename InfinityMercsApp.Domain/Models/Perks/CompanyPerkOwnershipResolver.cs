@@ -372,7 +372,7 @@ public static class CompanyPerkOwnershipResolver
                     continue;
                 }
 
-                if (!TryParseTrackTier(node.Id, out var trackNumber, out var tier))
+                if (PerkPosition.Parse(node.Id) is not (var trackNumber, var tier))
                 {
                     continue;
                 }
@@ -416,7 +416,6 @@ public static class CompanyPerkOwnershipResolver
         // Keep Burst ("+1B") distinct from Ballistic Skill ("+1 BS").
         var value = Regex.Replace(input, @"\+?\s*(\d+)\s*bs\b", " ballistic_skill_plus_$1 ");
         value = Regex.Replace(value, @"\+?\s*(\d+)\s*b\b", " burst_plus_$1 ");
-
 
         // Preserve signed numeric modifiers (for example "+3", "-3") so
         // "Infiltration" does not match "Infiltration (+3)".
@@ -690,20 +689,6 @@ public static class CompanyPerkOwnershipResolver
         }
 
         return false;
-    }
-
-    private static bool TryParseTrackTier(string nodeId, out int track, out int tier)
-    {
-        track = 0;
-        tier = 0;
-        var match = Regex.Match(nodeId, @"-track-(?<track>\d+)-tier-(?<tier>\d+)", RegexOptions.IgnoreCase);
-        if (!match.Success)
-        {
-            return false;
-        }
-
-        return int.TryParse(match.Groups["track"].Value, out track) &&
-               int.TryParse(match.Groups["tier"].Value, out tier);
     }
 
     private static IEnumerable<PerkNode> Flatten(IEnumerable<PerkNode> roots)

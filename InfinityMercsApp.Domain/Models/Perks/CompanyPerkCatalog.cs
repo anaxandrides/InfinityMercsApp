@@ -135,8 +135,8 @@ public static partial class CompanyPerkCatalog
             }
 
             var nodeLookup = FlattenPerkNodes(nodeList.Roots)
-                .Where(node => TryParseNodeTrackTier(node.Id, out _, out _))
-                .ToLookup(node => GetTrackTier(node.Id).Track);
+                .Where(node => PerkPosition.Parse(node.Id) is not null)
+                .ToLookup(node => (PerkPosition.Parse(node.Id)?.Track ?? 0));
 
             foreach (var track in list.Tracks.Where(track => track.RollRanges.Any(range => range.Contains(trackRoll))))
             {
@@ -198,7 +198,7 @@ public static partial class CompanyPerkCatalog
                 continue;
             }
 
-            if (TryParseNodeTrackTier(node.ParentId, out var parentTrack, out var parentTier) &&
+            if (PerkPosition.Parse(node.ParentId) is (var parentTrack, var parentTier) &&
                 parentTrack == trackNumber &&
                 parentTier < tier)
             {
@@ -226,7 +226,7 @@ public static partial class CompanyPerkCatalog
                     continue;
                 }
 
-                if (!TryParseNodeTrackTier(node.Id, out var trackNumber, out var tierNumber))
+                if (PerkPosition.Parse(node.Id) is not (var trackNumber, var tierNumber))
                 {
                     continue;
                 }
@@ -245,34 +245,6 @@ public static partial class CompanyPerkCatalog
             .GroupBy(x => x.Id, StringComparer.OrdinalIgnoreCase)
             .Select(group => group.First())
             .ToList();
-    }
-
-    private static (int Track, int Tier) GetTrackTier(string nodeId)
-    {
-        TryParseNodeTrackTier(nodeId, out var track, out var tier);
-        return (track, tier);
-    }
-
-    private static bool TryParseNodeTrackTier(string? nodeId, out int trackNumber, out int tierNumber)
-    {
-        trackNumber = 0;
-        tierNumber = 0;
-        if (string.IsNullOrWhiteSpace(nodeId))
-        {
-            return false;
-        }
-
-        var match = Regex.Match(
-            nodeId,
-            @"-track-(?<track>\d+)-tier-(?<tier>\d+)",
-            RegexOptions.IgnoreCase);
-        if (!match.Success)
-        {
-            return false;
-        }
-
-        return int.TryParse(match.Groups["track"].Value, out trackNumber) &&
-               int.TryParse(match.Groups["tier"].Value, out tierNumber);
     }
 
     private static IEnumerable<PerkNode> FlattenPerkNodes(IEnumerable<PerkNode> roots)
@@ -300,10 +272,10 @@ public static partial class CompanyPerkCatalog
             };
 
             var nodes = FlattenPerkNodes(nodeList.Roots)
-                .Where(node => TryParseNodeTrackTier(node.Id, out _, out _))
+                .Where(node => PerkPosition.Parse(node.Id) is not null)
                 .ToList();
 
-            var trackNumbers = new HashSet<int>(nodes.Select(node => GetTrackTier(node.Id).Track));
+            var trackNumbers = new HashSet<int>(nodes.Select(node => (PerkPosition.Parse(node.Id)?.Track ?? 0)));
             foreach (var trackNumber in metadata.TrackRollSpecByNumber.Keys)
             {
                 trackNumbers.Add(trackNumber);
