@@ -278,7 +278,7 @@ public sealed class ArmyJsonReader : IArmyJsonReader
 
         return new FireteamChart
         {
-            Spec = dto.Spec?.Entries.Select(entry => (entry.Key, entry.Value.AsInvariantInt32())).ToList() ?? [],
+            Spec = dto.Spec?.Entries.Select(entry => new FireteamSpecEntry(entry.Key, entry.Value.AsInvariantInt32())).ToList() ?? [],
             Teams = dto.Teams?.Select(team => new FireteamTeam
             {
                 Name = team.Name,

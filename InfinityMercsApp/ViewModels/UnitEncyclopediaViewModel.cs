@@ -384,9 +384,9 @@ public partial class UnitEncyclopediaViewModel(
     private void ShowFireteams(FireteamChart? chart, IEnumerable<string?> unitSlugs, IEnumerable<string?> unitNames)
     {
         var fireteamChart = chart ?? FireteamChart.Empty;
-        FireteamDuoCount = fireteamChart.SpecDisplay("DUO");
-        FireteamHarisCount = fireteamChart.SpecDisplay("HARIS");
-        FireteamCoreCount = fireteamChart.SpecDisplay("CORE");
+        FireteamDuoCount = fireteamChart.SpecDisplay(FireteamType.Duo);
+        FireteamHarisCount = fireteamChart.SpecDisplay(FireteamType.Haris);
+        FireteamCoreCount = fireteamChart.SpecDisplay(FireteamType.Core);
 
         var allowedSlugs = unitSlugs
             .Where(x => !string.IsNullOrWhiteSpace(x))

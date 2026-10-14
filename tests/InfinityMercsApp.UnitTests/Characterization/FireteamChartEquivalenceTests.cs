@@ -76,7 +76,7 @@ public sealed class FireteamChartEquivalenceTests
         var actualTeams = chart.Teams.Select(team =>
             $"{team.ViewerName} [{(string.IsNullOrWhiteSpace(team.TypesDisplay) ? "-" : team.TypesDisplay)}] " +
             string.Join(" | ", team.Units.Select(x => $"{x.ViewerName}/{x.Slug ?? string.Empty}/{x.Min ?? 0}/{x.Max ?? 0}")));
-        var actualCounts = $"{chart.SpecDisplay("DUO")} {chart.SpecDisplay("HARIS")} {chart.SpecDisplay("CORE")}";
+        var actualCounts = $"{chart.SpecDisplay(FireteamType.Duo)} {chart.SpecDisplay(FireteamType.Haris)} {chart.SpecDisplay(FireteamType.Core)}";
 
         Assert.Equal(expectedTeams, actualTeams);
         Assert.Equal(expectedCounts, actualCounts);

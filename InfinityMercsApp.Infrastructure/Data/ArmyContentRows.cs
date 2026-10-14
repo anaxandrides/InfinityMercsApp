@@ -152,8 +152,8 @@ public sealed class ArmyContentRows
     {
         for (var position = 0; position < chart.Spec.Count; position++)
         {
-            var (key, value) = chart.Spec[position];
-            Specs.Add(new FireteamChartSpecRow { FactionId = factionId, Position = position, Key = key, Value = value });
+            var spec = chart.Spec[position];
+            Specs.Add(new FireteamChartSpecRow { FactionId = factionId, Position = position, Key = spec.Key, Value = spec.Count });
         }
 
         for (var teamIndex = 0; teamIndex < chart.Teams.Count; teamIndex++)
@@ -239,7 +239,7 @@ public sealed class ArmyContentRows
         IEnumerable<FireteamChartTeamTypeRow> teamTypes,
         IEnumerable<FireteamChartTeamUnitRow> teamUnits)
     {
-        var specList = specs.OrderBy(row => row.Position).Select(row => (row.Key, row.Value)).ToList();
+        var specList = specs.OrderBy(row => row.Position).Select(row => new FireteamSpecEntry(row.Key, row.Value)).ToList();
         var teamList = teams.OrderBy(row => row.TeamIndex).ToList();
         if (specList.Count == 0 && teamList.Count == 0)
         {

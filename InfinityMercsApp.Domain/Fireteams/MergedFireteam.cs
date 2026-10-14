@@ -61,10 +61,10 @@ public sealed class MergedFireteam(string name)
                 target[name] = merged;
             }
 
-            var (duo, haris, core) = team.TypeCounts;
-            merged.Duo += duo;
-            merged.Haris += haris;
-            merged.Core += core;
+            var counts = team.TypeCounts;
+            merged.Duo += counts.Duo;
+            merged.Haris += counts.Haris;
+            merged.Core += counts.Core;
             foreach (var unit in team.Units)
             {
                 merged.MergeUnitLimit(

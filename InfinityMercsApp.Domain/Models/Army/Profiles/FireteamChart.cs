@@ -2,6 +2,52 @@ using System.Globalization;
 
 namespace InfinityMercsApp.Domain.Models.Army.Profiles;
 
+/// <summary>The kinds of fireteam an army can field.</summary>
+public enum FireteamType
+{
+    Duo,
+    Haris,
+    Core
+}
+
+public static class FireteamTypes
+{
+    /// <summary>The type as the API writes it: "DUO", "HARIS" or "CORE".</summary>
+    public static string Key(this FireteamType type) => type.ToString().ToUpperInvariant();
+
+    /// <summary>Reads "DUO", "haris" and so on, ignoring case only.</summary>
+    public static bool TryParse(string? key, out FireteamType type)
+    {
+        foreach (var candidate in Enum.GetValues<FireteamType>())
+        {
+            if (string.Equals(candidate.Key(), key, StringComparison.OrdinalIgnoreCase))
+            {
+                type = candidate;
+                return true;
+            }
+        }
+
+        type = default;
+        return false;
+    }
+}
+
+/// <summary>One entry of a chart's <c>spec</c>, e.g. CORE 1; the count is null when not a number.</summary>
+public sealed record FireteamSpecEntry(string Key, int? Count);
+
+/// <summary>How many times each fireteam type appears.</summary>
+public sealed record FireteamTypeCounts(int Duo, int Haris, int Core)
+{
+    public static FireteamTypeCounts Of(IEnumerable<string>? types)
+    {
+        var parsed = (types ?? []).Select(type => FireteamTypes.TryParse(type, out var parsedType) ? parsedType : (FireteamType?)null).ToList();
+        return new FireteamTypeCounts(
+            parsed.Count(type => type == FireteamType.Duo),
+            parsed.Count(type => type == FireteamType.Haris),
+            parsed.Count(type => type == FireteamType.Core));
+    }
+}
+
 /// <summary>
 /// An army's <c>fireteamChart</c>: how many fireteams of each kind it may field and which teams exist.
 /// </summary>
@@ -9,8 +55,8 @@ public sealed class FireteamChart
 {
     public static FireteamChart Empty { get; } = new();
 
-    /// <summary>The <c>spec</c> entries in payload order, e.g. <c>("CORE", 1)</c>; the value is null when not a number.</summary>
-    public IReadOnlyList<(string Key, int? Value)> Spec { get; init; } = [];
+    /// <summary>The <c>spec</c> entries in payload order.</summary>
+    public IReadOnlyList<FireteamSpecEntry> Spec { get; init; } = [];
 
     public IReadOnlyList<FireteamTeam> Teams { get; init; } = [];
 
@@ -18,19 +64,12 @@ public sealed class FireteamChart
     /// A spec count as shown in the viewer: the first entry whose key matches (ignoring case),
     /// <c>"T"</c> above 5 (unlimited), <c>"-"</c> when absent or not a number.
     /// </summary>
-    public string SpecDisplay(string key)
+    public string SpecDisplay(FireteamType type)
     {
-        foreach (var (entryKey, value) in Spec)
-        {
-            if (string.Equals(entryKey, key, StringComparison.OrdinalIgnoreCase))
-            {
-                return value is int count
-                    ? count > 5 ? "T" : count.ToString(CultureInfo.InvariantCulture)
-                    : "-";
-            }
-        }
-
-        return "-";
+        var entry = Spec.FirstOrDefault(entry => string.Equals(entry.Key, type.Key(), StringComparison.OrdinalIgnoreCase));
+        return entry?.Count is int count
+            ? count > 5 ? "T" : count.ToString(CultureInfo.InvariantCulture)
+            : "-";
     }
 }
 
@@ -49,30 +88,7 @@ public sealed class FireteamTeam
     public IReadOnlyList<FireteamUnitLimit> Units { get; init; } = [];
 
     /// <summary>How many times DUO, HARIS and CORE appear in the type list.</summary>
-    public (int Duo, int Haris, int Core) TypeCounts
-    {
-        get
-        {
-            int duo = 0, haris = 0, core = 0;
-            foreach (var type in TypeList ?? [])
-            {
-                if (type.Equals("DUO", StringComparison.OrdinalIgnoreCase))
-                {
-                    duo++;
-                }
-                else if (type.Equals("HARIS", StringComparison.OrdinalIgnoreCase))
-                {
-                    haris++;
-                }
-                else if (type.Equals("CORE", StringComparison.OrdinalIgnoreCase))
-                {
-                    core++;
-                }
-            }
-
-            return (duo, haris, core);
-        }
-    }
+    public FireteamTypeCounts TypeCounts => FireteamTypeCounts.Of(TypeList);
 
     /// <summary>The name for company team matching: trimmed, empty when missing or blank.</summary>
     public string CompanyName => string.IsNullOrWhiteSpace(Name) ? string.Empty : Name.Trim();
