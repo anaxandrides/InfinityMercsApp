@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Views.Controls;
 
@@ -39,12 +40,12 @@ internal static class SeasonDisplayUnitFormatter
     {
         if (firstCm is > 0 && secondCm is > 0)
         {
-            return UnitDisplayConfigurationsView.FormatMoveValue(firstCm, secondCm, showUnitsInInches);
+            return Movement.Format(Movement.From(firstCm, secondCm), showUnitsInInches);
         }
 
-        if (TryParseMoveToCentimeters(savedMove, out var parsedFirstCm, out var parsedSecondCm))
+        if (Movement.TryParse(savedMove, out var parsed))
         {
-            return UnitDisplayConfigurationsView.FormatMoveValue(parsedFirstCm, parsedSecondCm, showUnitsInInches);
+            return parsed.Format(showUnitsInInches);
         }
 
         return string.IsNullOrWhiteSpace(savedMove) ? "-" : savedMove.Trim();
@@ -84,44 +85,6 @@ internal static class SeasonDisplayUnitFormatter
 
             return $"{FormatSignedValue(converted, signToken)}{(showUnitsInInches ? "\"" : "cm")}";
         });
-    }
-
-    private static bool TryParseMoveToCentimeters(string? moveText, out int firstCm, out int secondCm)
-    {
-        firstCm = 0;
-        secondCm = 0;
-
-        if (string.IsNullOrWhiteSpace(moveText))
-        {
-            return false;
-        }
-
-        var match = Regex.Match(
-            moveText.Trim(),
-            "^(?<a>\\d+)\\s*(?<au>cm|\"|in|inch|inches)?\\s*[-/]\\s*(?<b>\\d+)\\s*(?<bu>cm|\"|in|inch|inches)?$",
-            RegexOptions.IgnoreCase);
-        if (!match.Success ||
-            !int.TryParse(match.Groups["a"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var a) ||
-            !int.TryParse(match.Groups["b"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var b))
-        {
-            return false;
-        }
-
-        var aUnit = match.Groups["au"].Success ? match.Groups["au"].Value.Trim().ToLowerInvariant() : string.Empty;
-        var bUnit = match.Groups["bu"].Success ? match.Groups["bu"].Value.Trim().ToLowerInvariant() : string.Empty;
-        var hasExplicitUnits = !string.IsNullOrWhiteSpace(aUnit) || !string.IsNullOrWhiteSpace(bUnit);
-        var useInches = hasExplicitUnits
-            ? IsInchUnit(aUnit) || IsInchUnit(bUnit)
-            : a <= 8 && b <= 8;
-
-        firstCm = useInches ? (int)Math.Round(a * CmPerGameInch, MidpointRounding.AwayFromZero) : a;
-        secondCm = useInches ? (int)Math.Round(b * CmPerGameInch, MidpointRounding.AwayFromZero) : b;
-        return true;
-    }
-
-    private static bool IsInchUnit(string unit)
-    {
-        return unit is "\"" or "in" or "inch" or "inches";
     }
 
     private static string FormatSignedValue(decimal value, string originalSign)

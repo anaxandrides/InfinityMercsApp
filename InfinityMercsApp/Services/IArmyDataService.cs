@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using ArmyFactionRecord = InfinityMercsApp.Domain.Models.Army.Faction;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
@@ -18,6 +19,9 @@ public interface IArmyDataService
     IReadOnlyList<ArmyResumeRecord> GetResumeByFactionMercsOnly(int factionId, CancellationToken cancellationToken = default);
     ArmyUnitRecord? GetUnit(int factionId, int unitId, CancellationToken cancellationToken = default);
     IReadOnlyList<MercsArmyListEntry> GetMergedMercsArmyList(IReadOnlyCollection<int> factionIds, CancellationToken cancellationToken = default);
-    (int? FirstCm, int? SecondCm, string DisplayValue) ReadMoveValue(InfinityMercsApp.Domain.Models.Army.Profiles.UnitProfile profile);
-    string FormatMoveValue(int? firstCm, int? secondCm);
+    /// <summary>Movement in the user's chosen units (inches or cm); "-" when there is none.</summary>
+    string FormatMovement(Movement? movement);
+
+    /// <summary>As <see cref="FormatMovement"/>, from the two values in cm.</summary>
+    string FormatMoveValue(int? firstCm, int? secondCm) => FormatMovement(Movement.From(firstCm, secondCm));
 }

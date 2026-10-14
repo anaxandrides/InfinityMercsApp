@@ -29,8 +29,7 @@ public partial class UnitDetailViewModel(
 {
     private const string NoUnit = "Select a unit";
 
-    private int? _unitMoveFirstCm;
-    private int? _unitMoveSecondCm;
+    private Movement? _unitMovement;
     private IReadOnlyDictionary<int, string> _equipmentLookup = new Dictionary<int, string>();
     private IReadOnlyDictionary<int, string> _equipmentLinks = new Dictionary<int, string>();
     private IReadOnlyDictionary<int, string> _skillsLookup = new Dictionary<int, string>();
@@ -83,7 +82,7 @@ public partial class UnitDetailViewModel(
         set => ShowUnitsInInches = !value;
     }
 
-    partial void OnShowUnitsInInchesChanged(bool value) => UnitMov = armyData.FormatMoveValue(_unitMoveFirstCm, _unitMoveSecondCm);
+    partial void OnShowUnitsInInchesChanged(bool value) => UnitMov = armyData.FormatMovement(_unitMovement);
 
     /// <summary>Picks up the inches/centimetres preference from Settings.</summary>
     public void RefreshDisplayUnits()
@@ -234,17 +233,8 @@ public partial class UnitDetailViewModel(
         static string OrDash(string value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
 
         UnitNameHeading = string.IsNullOrWhiteSpace(unitNameHeading) ? "Unit" : unitNameHeading;
-        if (UnitDetailText.TryParseMoveToCentimeters(mov, out var firstCm, out var secondCm))
-        {
-            _unitMoveFirstCm = firstCm;
-            _unitMoveSecondCm = secondCm;
-            UnitMov = armyData.FormatMoveValue(firstCm, secondCm);
-        }
-        else
-        {
-            _unitMoveFirstCm = _unitMoveSecondCm = null;
-            UnitMov = OrDash(mov);
-        }
+        _unitMovement = Movement.TryParse(mov, out var movement) ? movement : null;
+        UnitMov = _unitMovement is null ? OrDash(mov) : armyData.FormatMovement(_unitMovement);
 
         UnitCc = OrDash(cc);
         UnitBs = OrDash(bs);
@@ -269,7 +259,7 @@ public partial class UnitDetailViewModel(
 
     private void ResetStats()
     {
-        _unitMoveFirstCm = _unitMoveSecondCm = null;
+        _unitMovement = null;
         ShowRegularOrderIcon = ShowIrregularOrderIcon = ShowImpetuousIcon = ShowTacticalAwarenessIcon = false;
         ShowCubeIcon = ShowCube2Icon = ShowHackableIcon = false;
         ImpetuousIconUrl = TacticalAwarenessIconUrl = CubeIconUrl = Cube2IconUrl = HackableIconUrl = null;
@@ -287,10 +277,8 @@ public partial class UnitDetailViewModel(
             return;
         }
 
-        var move = armyData.ReadMoveValue(profile);
-        _unitMoveFirstCm = move.FirstCm;
-        _unitMoveSecondCm = move.SecondCm;
-        UnitMov = move.DisplayValue;
+        _unitMovement = profile.Movement;
+        UnitMov = armyData.FormatMovement(_unitMovement);
         UnitCc = UnitProfile.StatText(profile.Cc);
         UnitBs = UnitProfile.StatText(profile.Bs);
         UnitPh = UnitProfile.StatText(profile.Ph);

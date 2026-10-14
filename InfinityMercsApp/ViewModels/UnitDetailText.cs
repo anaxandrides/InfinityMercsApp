@@ -286,42 +286,6 @@ public static class UnitDetailText
         return deduped;
     }
 
-    /// <summary>
-    /// Reads a saved MOV value ("10-10", "4-4", "4\"-2\"", "10cm-5cm") into centimetres. Without units,
-    /// values of 8 or less are taken as inches.
-    /// </summary>
-    public static bool TryParseMoveToCentimeters(string? moveText, out int? firstCm, out int? secondCm)
-    {
-        firstCm = null;
-        secondCm = null;
-
-        if (string.IsNullOrWhiteSpace(moveText))
-        {
-            return false;
-        }
-
-        var match = Regex.Match(
-            moveText.Trim(),
-            @"^(?<a>\d+)\s*(?<au>cm|""|in|inch|inches)?\s*[-/]\s*(?<b>\d+)\s*(?<bu>cm|""|in|inch|inches)?$",
-            RegexOptions.IgnoreCase);
-        if (!match.Success ||
-            !int.TryParse(match.Groups["a"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var a) ||
-            !int.TryParse(match.Groups["b"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var b))
-        {
-            return false;
-        }
-
-        var aUnit = match.Groups["au"].Value.Trim().ToLowerInvariant();
-        var bUnit = match.Groups["bu"].Value.Trim().ToLowerInvariant();
-        var useInches = aUnit.Length > 0 || bUnit.Length > 0
-            ? aUnit is "\"" or "in" or "inch" or "inches" || bUnit is "\"" or "in" or "inch" or "inches"
-            : a <= 8 && b <= 8;
-
-        firstCm = useInches ? (int)Math.Round(a * 2.5, MidpointRounding.AwayFromZero) : a;
-        secondCm = useInches ? (int)Math.Round(b * 2.5, MidpointRounding.AwayFromZero) : b;
-        return true;
-    }
-
     /// <summary>"Type - Category", falling back to the ids (or "?") when the filters don't name them.</summary>
     public static string UnitSubtitle(int? type, int? category, IReadOnlyDictionary<int, string> typeLookup, IReadOnlyDictionary<int, string> categoryLookup)
     {

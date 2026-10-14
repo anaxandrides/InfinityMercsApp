@@ -1,5 +1,6 @@
-using InfinityMercsApp.Infrastructure.Providers;
 using System.Globalization;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Infrastructure.Providers;
 using ArmyFactionRecord = InfinityMercsApp.Domain.Models.Army.Faction;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
@@ -103,29 +104,8 @@ internal sealed class ArmyDataService(
         return queryResult.MergedMercsListEntries;
     }
 
-    public (int? FirstCm, int? SecondCm, string DisplayValue) ReadMoveValue(InfinityMercsApp.Domain.Models.Army.Profiles.UnitProfile profile)
-    {
-        var (firstCm, secondCm) = profile.MoveFirstSecondCm;
-        return (firstCm, secondCm, FormatMoveValue(firstCm, secondCm));
-    }
-
-    public string FormatMoveValue(int? firstCm, int? secondCm)
-    {
-        if (firstCm is null || secondCm is null || firstCm <= 0 || secondCm <= 0)
-        {
-            return "-";
-        }
-
-        var showUnitsInInches = appSettingsProvider?.GetShowUnitsInInches() ?? false;
-        if (showUnitsInInches)
-        {
-            var firstInches = firstCm.Value / 2.54d;
-            var secondInches = secondCm.Value / 2.54d;
-            return $"{Math.Round(firstInches):0}-{Math.Round(secondInches):0}";
-        }
-
-        return $"{firstCm.Value.ToString(CultureInfo.InvariantCulture)}-{secondCm.Value.ToString(CultureInfo.InvariantCulture)}";
-    }
+    public string FormatMovement(Movement? movement) =>
+        Movement.Format(movement, appSettingsProvider?.GetShowUnitsInInches() ?? false);
 
     private static FactionRecord CloneMetadataFaction(FactionRecord faction)
     {

@@ -889,22 +889,8 @@ public partial class UnitDisplayConfigurationsView : ContentView
     /// <summary>
     /// Formats movement values as inches or centimeters for display.
     /// </summary>
-    public static string FormatMoveValue(int? firstCm, int? secondCm, bool showUnitsInInches)
-    {
-        if (firstCm is null || secondCm is null || firstCm <= 0 || secondCm <= 0)
-        {
-            return "-";
-        }
-
-        if (showUnitsInInches)
-        {
-            var firstInches = firstCm.Value / 2.54d;
-            var secondInches = secondCm.Value / 2.54d;
-            return $"{Math.Round(firstInches):0}-{Math.Round(secondInches):0}";
-        }
-
-        return $"{firstCm.Value.ToString(CultureInfo.InvariantCulture)}-{secondCm.Value.ToString(CultureInfo.InvariantCulture)}";
-    }
+    public static string FormatMoveValue(int? firstCm, int? secondCm, bool showUnitsInInches) =>
+        Movement.Format(Movement.From(firstCm, secondCm), showUnitsInInches);
 
     private void OnHeaderIconsCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {

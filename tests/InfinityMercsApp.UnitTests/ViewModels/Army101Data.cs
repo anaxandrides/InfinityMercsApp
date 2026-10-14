@@ -42,12 +42,9 @@ internal static class Army101Data
             army.Units.FirstOrDefault(u => u.Id == call.ArgAt<int>(1)) is { } unit
                 ? new Unit { FactionId = PanOceania, UnitId = unit.Id, Name = unit.Name, ProfileGroups = unit.ProfileGroups }
                 : null);
-        data.ReadMoveValue(Arg.Any<UnitProfile>()).Returns(call =>
-        {
-            var (first, second) = call.Arg<UnitProfile>().MoveFirstSecondCm;
-            return (first, second, $"{first}-{second}");
-        });
-        data.FormatMoveValue(Arg.Any<int?>(), Arg.Any<int?>()).Returns(call => $"{call.ArgAt<int?>(0)}-{call.ArgAt<int?>(1)}");
+        data.FormatMovement(Arg.Any<Movement?>()).Returns(call => Movement.Format(call.Arg<Movement?>(), inInches: false));
+        data.FormatMoveValue(Arg.Any<int?>(), Arg.Any<int?>()).Returns(call =>
+            Movement.Format(Movement.From(call.ArgAt<int?>(0), call.ArgAt<int?>(1)), inInches: false));
         return data;
     }
 }

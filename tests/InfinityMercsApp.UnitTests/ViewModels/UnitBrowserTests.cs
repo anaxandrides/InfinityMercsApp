@@ -74,20 +74,6 @@ public sealed class UnitDetailTextTests
     public void Hackable(string? equipment, string? skills, bool expected) =>
         Assert.Equal(expected, UnitDetailText.ContainsHackable(equipment, skills));
 
-    [Theory]
-    [InlineData("4-4", 10, 10)]
-    [InlineData("10-10", 10, 10)]
-    [InlineData("6\"-2\"", 15, 5)]
-    [InlineData("15cm-5cm", 15, 5)]
-    public void SavedMoveIsReadInCentimetres(string move, int first, int second)
-    {
-        Assert.True(UnitDetailText.TryParseMoveToCentimeters(move, out var a, out var b));
-        Assert.Equal((first, second), (a, b));
-    }
-
-    [Fact]
-    public void UnreadableMoveIsRejected() => Assert.False(UnitDetailText.TryParseMoveToCentimeters("-", out _, out _));
-
     [Fact]
     public void CubeNames()
     {

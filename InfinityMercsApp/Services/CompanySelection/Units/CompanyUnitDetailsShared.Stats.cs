@@ -25,7 +25,8 @@ internal static partial class CompanyUnitDetailsShared
         UnitProfile profile,
         Func<int?, int?, string> formatMoveValue)
     {
-        var (moveFirstCm, moveSecondCm) = profile.MoveFirstSecondCm;
+        var moveFirstCm = profile.Movement?.FirstCm;
+        var moveSecondCm = profile.Movement?.SecondCm;
         var (vitalityStat, vitalityValue) = profile.Vitality;
         var vitalityHeader = vitalityStat.Key();
         return new CompanyUnitStatProjection(
