@@ -2,18 +2,85 @@
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
+             xmlns:metadata="clr-namespace:InfinityMercsApp.Domain.Models.Metadata;assembly=InfinityMercsApp.Domain"
              x:Class="InfinityMercsApp.Views.MarketplacesPage"
-             x:Name="MarketplacesRoot"
+             x:DataType="viewModels:MarketplacesViewModel"
              Title="Marketplaces">
+
+    <ContentPage.Resources>
+        <Style x:Key="RowCard" TargetType="Border">
+            <Setter Property="Stroke" Value="{StaticResource Hairline}" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 4" />
+            <Setter Property="BackgroundColor" Value="{StaticResource Plate}" />
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="MinimumHeightRequest" Value="52" />
+        </Style>
+        <Style x:Key="SectionBorder" TargetType="Border">
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="VerticalOptions" Value="Start" />
+        </Style>
+        <Style x:Key="QuantityButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="{StaticResource HairlineBright}" />
+            <Setter Property="BorderColor" Value="{StaticResource HairlineBright}" />
+            <Setter Property="BorderWidth" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeSubHeadline}" />
+            <Setter Property="WidthRequest" Value="44" />
+            <Setter Property="HeightRequest" Value="44" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style x:Key="QuantityLabel" TargetType="Label">
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
+            <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+            <Setter Property="VerticalTextAlignment" Value="Center" />
+            <Setter Property="HorizontalTextAlignment" Value="Center" />
+            <Setter Property="MinimumWidthRequest" Value="28" />
+        </Style>
+        <Style x:Key="RowName" TargetType="Label">
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+        </Style>
+        <Style x:Key="RowCost" TargetType="Label">
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
+            <Setter Property="TextColor" Value="{StaticResource Signal}" />
+        </Style>
+        <Style x:Key="RowMuted" TargetType="Label">
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
+            <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
+        </Style>
+
+        <!-- The − quantity + controls on every row; shown only when buying is offered. -->
+        <ControlTemplate x:Key="QuantityControls" x:DataType="viewModels:MarketplaceRow">
+            <HorizontalStackLayout Spacing="6"
+                                   VerticalOptions="Center"
+                                   IsVisible="{Binding ShowQuantityControls, Source={RelativeSource AncestorType={x:Type viewModels:MarketplacesViewModel}}, x:DataType=viewModels:MarketplacesViewModel}">
+                <Button Text="−"
+                        Style="{StaticResource QuantityButton}"
+                        TextColor="{StaticResource Danger}"
+                        Command="{Binding DecrementCommand, Source={RelativeSource AncestorType={x:Type viewModels:MarketplacesViewModel}}, x:DataType=viewModels:MarketplacesViewModel}"
+                        CommandParameter="{Binding}" />
+                <Label Text="{Binding Quantity}" Style="{StaticResource QuantityLabel}" />
+                <Button Text="+"
+                        Style="{StaticResource QuantityButton}"
+                        TextColor="{StaticResource Signal}"
+                        Command="{Binding IncrementCommand, Source={RelativeSource AncestorType={x:Type viewModels:MarketplacesViewModel}}, x:DataType=viewModels:MarketplacesViewModel}"
+                        CommandParameter="{Binding}" />
+            </HorizontalStackLayout>
+        </ControlTemplate>
+    </ContentPage.Resources>
 
     <Grid Padding="16" RowDefinitions="Auto,*" RowSpacing="12">
 
         <!-- Marketplace selector dropdown -->
         <Border Grid.Row="0" StrokeThickness="1" Padding="8,4">
-            <Picker x:Name="MarketplacePicker"
-                    Title="Select a Marketplace"
-                    ItemsSource="{Binding Source={x:Reference MarketplacesRoot}, Path=StoreNames}"
-                    SelectedIndexChanged="OnStorePickerSelectedIndexChanged"
+            <Picker Title="Select a Marketplace"
+                    ItemsSource="{Binding StoreNames}"
+                    SelectedItem="{Binding SelectedStoreName}"
                     FontSize="{DynamicResource FontSizeSectionHeader}" />
         </Border>
 
@@ -23,6 +90,7 @@
             <!-- Placeholder shown before any selection -->
             <Label x:Name="PlaceholderLabel"
                    Text="Select a marketplace from the dropdown above."
+                   IsVisible="{Binding HasStore, Converter={StaticResource InvertedBoolConverter}}"
                    HorizontalTextAlignment="Center"
                    VerticalOptions="Start"
                    Margin="0,24,0,0"
@@ -31,112 +99,50 @@
 
             <!-- Store info header / metadata rail -->
             <Border x:Name="StoreInfoBorder"
-                    IsVisible="False"
+                    IsVisible="{Binding HasStore}"
                     VerticalOptions="Start"
                     StrokeThickness="1"
                     Padding="12">
                 <VerticalStackLayout Spacing="4">
-                    <Label Text="{Binding Source={x:Reference MarketplacesRoot}, Path=StoreName}"
+                    <Label Text="{Binding StoreName}"
                            FontSize="{DynamicResource FontSizeTitleSmall}"
                            FontAttributes="Bold" />
-                    <Label Text="{Binding Source={x:Reference MarketplacesRoot}, Path=StoreFactionsDisplay}"
-                           FontSize="{DynamicResource FontSizeBody}"
-                           TextColor="{StaticResource TextMuted}" />
-                    <Label Text="{Binding Source={x:Reference MarketplacesRoot}, Path=StoreMetaDisplay}"
-                           FontSize="{DynamicResource FontSizeBody}"
-                           TextColor="{StaticResource TextMuted}" />
+                    <Label Text="{Binding StoreFactionsDisplay}" Style="{StaticResource RowMuted}" />
+                    <Label Text="{Binding StoreMetaDisplay}" Style="{StaticResource RowMuted}" />
                 </VerticalStackLayout>
             </Border>
 
             <!-- Marketplace sections -->
-            <ScrollView x:Name="SectionsScroll" IsVisible="False">
+            <ScrollView x:Name="SectionsScroll" IsVisible="{Binding HasStore}">
                 <Grid x:Name="SectionsHost" RowSpacing="12" ColumnSpacing="12">
 
                     <!-- Items section -->
-                    <Border x:Name="ItemsBorder"
-                            StrokeThickness="1"
-                            Padding="12"
-                            VerticalOptions="Start"
-                            IsVisible="False">
+                    <Border x:Name="ItemsBorder" Style="{StaticResource SectionBorder}" IsVisible="{Binding HasItems}">
                         <VerticalStackLayout Spacing="8">
                             <Label Text="Items" FontSize="{DynamicResource FontSizeSubHeadline}" FontAttributes="Bold" />
-
-                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Source={x:Reference MarketplacesRoot}, Path=ItemGroups}"
-                                                 Spacing="12">
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding ItemGroups}" Spacing="12">
                                 <BindableLayout.ItemTemplate>
-                                    <DataTemplate>
+                                    <DataTemplate x:DataType="viewModels:StoreItemGroup">
                                         <VerticalStackLayout Spacing="4">
-                                            <!-- Category label -->
                                             <Label Text="{Binding Category}"
                                                    FontSize="{DynamicResource FontSizeBody}"
                                                    FontAttributes="Bold,Italic"
                                                    TextColor="{StaticResource TextSecondary}"
                                                    Padding="2,4,2,0" />
-
-                                            <!-- Item button cards -->
-                                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}"
-                                                                 Spacing="4">
+                                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}" Spacing="4">
                                                 <BindableLayout.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border Stroke="{StaticResource Hairline}"
-                                                                StrokeThickness="1"
-                                                                StrokeShape="RoundRectangle 4"
-                                                                BackgroundColor="{StaticResource Plate}"
-                                                                Padding="12,10"
-                                                                Margin="0,0,0,0"
-                                                                MinimumHeightRequest="52">
+                                                    <DataTemplate x:DataType="viewModels:StoreItemRow">
+                                                        <Border Style="{StaticResource RowCard}">
                                                             <Border.GestureRecognizers>
-                                                                <TapGestureRecognizer
-                                                                    Command="{Binding Source={x:Reference MarketplacesRoot}, Path=ShowItemCommand}"
-                                                                    CommandParameter="{Binding}" />
+                                                                <TapGestureRecognizer Command="{Binding ShowDetailCommand, Source={RelativeSource AncestorType={x:Type viewModels:MarketplacesViewModel}}, x:DataType=viewModels:MarketplacesViewModel}"
+                                                                                      CommandParameter="{Binding}" />
                                                             </Border.GestureRecognizers>
                                                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                                                <VerticalStackLayout Grid.Column="0"
-                                                                                     Spacing="2"
-                                                                                     VerticalOptions="Center">
-                                                                    <Label Text="{Binding Name}"
-                                                                           FontSize="{DynamicResource FontSizeBody}"
-                                                                           FontAttributes="Bold"
-                                                                           TextColor="{StaticResource TextPrimary}" />
-                                                                    <Label Text="{Binding CostDisplay}"
-                                                                           FontSize="{DynamicResource FontSizeBody}"
-                                                                           TextColor="{StaticResource Signal}" />
+                                                                <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                                                                    <Label Text="{Binding Name}" Style="{StaticResource RowName}" />
+                                                                    <Label Text="{Binding CostDisplay}" Style="{StaticResource RowCost}" />
                                                                 </VerticalStackLayout>
-                                                                <HorizontalStackLayout Grid.Column="1"
-                                                                                       IsVisible="{Binding Source={x:Reference MarketplacesRoot}, Path=ShowQuantityControls}"
-                                                                                       Spacing="6"
-                                                                                       VerticalOptions="Center">
-                                                                    <Button Text="−"
-                                                                            BackgroundColor="{StaticResource HairlineBright}"
-                                                                            TextColor="{StaticResource Danger}"
-                                                                            BorderColor="{StaticResource HairlineBright}"
-                                                                            BorderWidth="1"
-                                                                            CornerRadius="4"
-                                                                            FontSize="{DynamicResource FontSizeSubHeadline}"
-                                                                            WidthRequest="44"
-                                                                            HeightRequest="44"
-                                                                            Padding="0"
-                                                                            CommandParameter="{Binding}"
-                                                                            Clicked="OnItemDecrement" />
-                                                                    <Label Text="{Binding Quantity}"
-                                                                           FontSize="{DynamicResource FontSizeBody}"
-                                                                           TextColor="{StaticResource TextPrimary}"
-                                                                           VerticalTextAlignment="Center"
-                                                                           HorizontalTextAlignment="Center"
-                                                                           MinimumWidthRequest="28" />
-                                                                    <Button Text="+"
-                                                                            BackgroundColor="{StaticResource HairlineBright}"
-                                                                            TextColor="{StaticResource Signal}"
-                                                                            BorderColor="{StaticResource HairlineBright}"
-                                                                            BorderWidth="1"
-                                                                            CornerRadius="4"
-                                                                            FontSize="{DynamicResource FontSizeSubHeadline}"
-                                                                            WidthRequest="44"
-                                                                            HeightRequest="44"
-                                                                            Padding="0"
-                                                                            CommandParameter="{Binding}"
-                                                                            Clicked="OnItemIncrement" />
-                                                                </HorizontalStackLayout>
+                                                                <ContentView Grid.Column="1" ControlTemplate="{StaticResource QuantityControls}" />
                                                             </Grid>
                                                         </Border>
                                                     </DataTemplate>
@@ -150,84 +156,29 @@
                     </Border>
 
                     <!-- Troop Types section -->
-                    <Border x:Name="TroopTypesBorder"
-                            StrokeThickness="1"
-                            Padding="12"
-                            VerticalOptions="Start"
-                            IsVisible="False">
+                    <Border x:Name="TroopTypesBorder" Style="{StaticResource SectionBorder}" IsVisible="{Binding HasTroopTypes}">
                         <VerticalStackLayout Spacing="8">
                             <Label Text="Troop Types" FontSize="{DynamicResource FontSizeSubHeadline}" FontAttributes="Bold" />
-
-                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Source={x:Reference MarketplacesRoot}, Path=TroopTypeRows}"
-                                                 Spacing="4">
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding TroopTypeRows}" Spacing="4">
                                 <BindableLayout.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Stroke="{StaticResource Hairline}"
-                                                StrokeThickness="1"
-                                                StrokeShape="RoundRectangle 4"
-                                                BackgroundColor="{StaticResource Plate}"
-                                                Padding="12,10"
-                                                MinimumHeightRequest="52">
+                                    <DataTemplate x:DataType="viewModels:TroopTypeRow">
+                                        <Border Style="{StaticResource RowCard}">
                                             <Border.GestureRecognizers>
-                                                <TapGestureRecognizer
-                                                    Command="{Binding Source={x:Reference MarketplacesRoot}, Path=ShowTroopTypeCommand}"
-                                                    CommandParameter="{Binding}" />
+                                                <TapGestureRecognizer Command="{Binding ShowDetailCommand, Source={RelativeSource AncestorType={x:Type viewModels:MarketplacesViewModel}}, x:DataType=viewModels:MarketplacesViewModel}"
+                                                                      CommandParameter="{Binding}" />
                                             </Border.GestureRecognizers>
                                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                                <VerticalStackLayout Grid.Column="0"
-                                                                     Spacing="2"
-                                                                     VerticalOptions="Center">
-                                                    <Label Text="{Binding DisplayName}"
-                                                           FontSize="{DynamicResource FontSizeBody}"
-                                                           FontAttributes="Bold"
-                                                           TextColor="{StaticResource TextPrimary}" />
-                                                    <Label Text="{Binding StatDisplay}"
-                                                           FontSize="{DynamicResource FontSizeBody}"
-                                                           TextColor="{StaticResource TextMuted}" />
-                                                    <Label Text="{Binding CostDisplay}"
-                                                           FontSize="{DynamicResource FontSizeBody}"
-                                                           TextColor="{StaticResource Signal}" />
+                                                <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                                                    <Label Text="{Binding DisplayName}" Style="{StaticResource RowName}" />
+                                                    <Label Text="{Binding StatDisplay}" Style="{StaticResource RowMuted}" />
+                                                    <Label Text="{Binding CostDisplay}" Style="{StaticResource RowCost}" />
                                                     <Label Text="{Binding Abilities}"
                                                            FontSize="{DynamicResource FontSizeCaption}"
                                                            TextColor="{StaticResource TextMuted}"
                                                            LineBreakMode="WordWrap"
                                                            IsVisible="{Binding HasAbilities}" />
                                                 </VerticalStackLayout>
-                                                <HorizontalStackLayout Grid.Column="1"
-                                                                       IsVisible="{Binding Source={x:Reference MarketplacesRoot}, Path=ShowQuantityControls}"
-                                                                       Spacing="6"
-                                                                       VerticalOptions="Center">
-                                                    <Button Text="−"
-                                                            BackgroundColor="{StaticResource HairlineBright}"
-                                                            TextColor="{StaticResource Danger}"
-                                                            BorderColor="{StaticResource HairlineBright}"
-                                                            BorderWidth="1"
-                                                            CornerRadius="4"
-                                                            FontSize="{DynamicResource FontSizeSubHeadline}"
-                                                            WidthRequest="44"
-                                                            HeightRequest="44"
-                                                            Padding="0"
-                                                            CommandParameter="{Binding}"
-                                                            Clicked="OnTroopDecrement" />
-                                                    <Label Text="{Binding Quantity}"
-                                                           FontSize="{DynamicResource FontSizeBody}"
-                                                           TextColor="{StaticResource TextPrimary}"
-                                                           VerticalTextAlignment="Center"
-                                                           HorizontalTextAlignment="Center"
-                                                           MinimumWidthRequest="28" />
-                                                    <Button Text="+"
-                                                            BackgroundColor="{StaticResource HairlineBright}"
-                                                            TextColor="{StaticResource Signal}"
-                                                            BorderColor="{StaticResource HairlineBright}"
-                                                            BorderWidth="1"
-                                                            CornerRadius="4"
-                                                            FontSize="{DynamicResource FontSizeSubHeadline}"
-                                                            WidthRequest="44"
-                                                            HeightRequest="44"
-                                                            Padding="0"
-                                                            CommandParameter="{Binding}"
-                                                            Clicked="OnTroopIncrement" />
-                                                </HorizontalStackLayout>
+                                                <ContentView Grid.Column="1" ControlTemplate="{StaticResource QuantityControls}" />
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
@@ -237,80 +188,26 @@
                     </Border>
 
                     <!-- Augments section -->
-                    <Border x:Name="AugmentsBorder"
-                            StrokeThickness="1"
-                            Padding="12"
-                            VerticalOptions="Start"
-                            IsVisible="False">
+                    <Border x:Name="AugmentsBorder" Style="{StaticResource SectionBorder}" IsVisible="{Binding HasAugments}">
                         <VerticalStackLayout Spacing="8">
                             <Label Text="Augments" FontSize="{DynamicResource FontSizeSubHeadline}" FontAttributes="Bold" />
-
-                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Source={x:Reference MarketplacesRoot}, Path=AugmentRows}"
-                                                 Spacing="4">
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding AugmentRows}" Spacing="4">
                                 <BindableLayout.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Stroke="{StaticResource Hairline}"
-                                                StrokeThickness="1"
-                                                StrokeShape="RoundRectangle 4"
-                                                BackgroundColor="{StaticResource Plate}"
-                                                Padding="12,10"
-                                                MinimumHeightRequest="52">
+                                    <DataTemplate x:DataType="viewModels:AugmentRow">
+                                        <Border Style="{StaticResource RowCard}">
                                             <Border.GestureRecognizers>
-                                                <TapGestureRecognizer
-                                                    Command="{Binding Source={x:Reference MarketplacesRoot}, Path=ShowAugmentCommand}"
-                                                    CommandParameter="{Binding}" />
+                                                <TapGestureRecognizer Command="{Binding ShowDetailCommand, Source={RelativeSource AncestorType={x:Type viewModels:MarketplacesViewModel}}, x:DataType=viewModels:MarketplacesViewModel}"
+                                                                      CommandParameter="{Binding}" />
                                             </Border.GestureRecognizers>
                                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                                <VerticalStackLayout Grid.Column="0"
-                                                                     Spacing="2"
-                                                                     VerticalOptions="Center">
-                                                    <Label Text="{Binding Name}"
-                                                           FontSize="{DynamicResource FontSizeBody}"
-                                                           FontAttributes="Bold"
-                                                           TextColor="{StaticResource TextPrimary}" />
+                                                <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                                                    <Label Text="{Binding Name}" Style="{StaticResource RowName}" />
                                                     <Label Text="{Binding RequirementDisplay}"
-                                                           FontSize="{DynamicResource FontSizeBody}"
-                                                           TextColor="{StaticResource TextMuted}"
+                                                           Style="{StaticResource RowMuted}"
                                                            IsVisible="{Binding HasRequirement}" />
-                                                    <Label Text="{Binding CostDisplay}"
-                                                           FontSize="{DynamicResource FontSizeBody}"
-                                                           TextColor="{StaticResource Signal}" />
+                                                    <Label Text="{Binding CostDisplay}" Style="{StaticResource RowCost}" />
                                                 </VerticalStackLayout>
-                                                <HorizontalStackLayout Grid.Column="1"
-                                                                       IsVisible="{Binding Source={x:Reference MarketplacesRoot}, Path=ShowQuantityControls}"
-                                                                       Spacing="6"
-                                                                       VerticalOptions="Center">
-                                                    <Button Text="−"
-                                                            BackgroundColor="{StaticResource HairlineBright}"
-                                                            TextColor="{StaticResource Danger}"
-                                                            BorderColor="{StaticResource HairlineBright}"
-                                                            BorderWidth="1"
-                                                            CornerRadius="4"
-                                                            FontSize="{DynamicResource FontSizeSubHeadline}"
-                                                            WidthRequest="44"
-                                                            HeightRequest="44"
-                                                            Padding="0"
-                                                            CommandParameter="{Binding}"
-                                                            Clicked="OnAugmentDecrement" />
-                                                    <Label Text="{Binding Quantity}"
-                                                           FontSize="{DynamicResource FontSizeBody}"
-                                                           TextColor="{StaticResource TextPrimary}"
-                                                           VerticalTextAlignment="Center"
-                                                           HorizontalTextAlignment="Center"
-                                                           MinimumWidthRequest="28" />
-                                                    <Button Text="+"
-                                                            BackgroundColor="{StaticResource HairlineBright}"
-                                                            TextColor="{StaticResource Signal}"
-                                                            BorderColor="{StaticResource HairlineBright}"
-                                                            BorderWidth="1"
-                                                            CornerRadius="4"
-                                                            FontSize="{DynamicResource FontSizeSubHeadline}"
-                                                            WidthRequest="44"
-                                                            HeightRequest="44"
-                                                            Padding="0"
-                                                            CommandParameter="{Binding}"
-                                                            Clicked="OnAugmentIncrement" />
-                                                </HorizontalStackLayout>
+                                                <ContentView Grid.Column="1" ControlTemplate="{StaticResource QuantityControls}" />
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
@@ -318,13 +215,12 @@
                             </VerticalStackLayout>
                         </VerticalStackLayout>
                     </Border>
-
                 </Grid>
             </ScrollView>
 
             <!-- Wide-only cart / quantity summary rail -->
             <Border x:Name="CartBorder"
-                    IsVisible="False"
+                    IsVisible="{Binding ShowCart}"
                     StrokeThickness="1"
                     Padding="12">
                 <Grid RowDefinitions="Auto,*,Auto" RowSpacing="8">
@@ -335,48 +231,37 @@
                     <Label Grid.Row="1"
                            Text="Tap + on any item to add it here."
                            VerticalOptions="Start"
-                           FontSize="{DynamicResource FontSizeBody}"
-                           TextColor="{StaticResource TextMuted}"
-                           IsVisible="{Binding Source={x:Reference MarketplacesRoot}, Path=IsCartEmpty}" />
-                    <ScrollView Grid.Row="1"
-                                IsVisible="{Binding Source={x:Reference MarketplacesRoot}, Path=HasCartLines}">
-                        <VerticalStackLayout Spacing="6"
-                                             BindableLayout.ItemsSource="{Binding Source={x:Reference MarketplacesRoot}, Path=CartLines}">
+                           Style="{StaticResource RowMuted}"
+                           IsVisible="{Binding IsCartEmpty}" />
+                    <ScrollView Grid.Row="1" IsVisible="{Binding HasCartLines}">
+                        <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding CartLines}">
                             <BindableLayout.ItemTemplate>
-                                <DataTemplate>
+                                <DataTemplate x:DataType="viewModels:MarketplaceCartLine">
                                     <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                                         <Label Grid.Column="0"
                                                Text="{Binding Name}"
                                                FontSize="{DynamicResource FontSizeBody}"
                                                TextColor="{StaticResource TextPrimary}"
                                                LineBreakMode="TailTruncation" />
-                                        <Label Grid.Column="1"
-                                               Text="{Binding QuantityDisplay}"
-                                               FontSize="{DynamicResource FontSizeBody}"
-                                               TextColor="{StaticResource TextMuted}" />
-                                        <Label Grid.Column="2"
-                                               Text="{Binding CostDisplay}"
-                                               FontSize="{DynamicResource FontSizeBody}"
-                                               TextColor="{StaticResource Signal}" />
+                                        <Label Grid.Column="1" Text="{Binding QuantityDisplay}" Style="{StaticResource RowMuted}" />
+                                        <Label Grid.Column="2" Text="{Binding CostDisplay}" Style="{StaticResource RowCost}" />
                                     </Grid>
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
                     </ScrollView>
                     <Label Grid.Row="2"
-                           Text="{Binding Source={x:Reference MarketplacesRoot}, Path=CartTotalDisplay}"
+                           Text="{Binding CartTotalDisplay}"
                            FontSize="{DynamicResource FontSizeBody}"
                            FontAttributes="Bold"
                            TextColor="{StaticResource TextPrimary}" />
                 </Grid>
             </Border>
-
         </Grid>
 
-        <!-- Item detail popup overlay — covers the full page -->
-        <Grid x:Name="MarketplacePopupOverlay"
-              Grid.Row="0" Grid.RowSpan="2"
-              IsVisible="False"
+        <!-- Detail popup overlay — covers the full page -->
+        <Grid Grid.Row="0" Grid.RowSpan="2"
+              IsVisible="{Binding IsDetailOpen}"
               BackgroundColor="#D00E1116">
             <Border BackgroundColor="{StaticResource Plate}"
                     Stroke="{StaticResource Hairline}"
@@ -388,17 +273,16 @@
                           ColumnDefinitions="Auto,*"
                           BackgroundColor="{StaticResource HairlineBright}"
                           Padding="4,4">
-                        <Button x:Name="PopupBackButton"
-                                Grid.Column="0"
+                        <Button Grid.Column="0"
                                 Text="← Back"
                                 BackgroundColor="Transparent"
                                 BorderColor="Transparent"
                                 TextColor="{StaticResource Signal}"
                                 FontAttributes="Bold"
                                 Padding="8,0"
-                                Clicked="OnPopupBackClicked" />
-                        <Label x:Name="PopupTitleLabel"
-                               Grid.Column="1"
+                                Command="{Binding CloseDetailCommand}" />
+                        <Label Grid.Column="1"
+                               Text="{Binding Detail.Title}"
                                FontSize="{DynamicResource FontSizeBody}"
                                FontAttributes="Bold"
                                TextColor="{StaticResource TextPrimary}"
@@ -407,14 +291,83 @@
                                LineBreakMode="TailTruncation" />
                     </Grid>
                     <ScrollView Grid.Row="1">
-                        <VerticalStackLayout x:Name="PopupContentArea"
-                                             Padding="16,12"
-                                             Spacing="6" />
+                        <VerticalStackLayout Padding="16,12" Spacing="6">
+
+                            <!-- Facts: Cost, Category, ARM, ... -->
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Detail.Rows}" Spacing="6">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="viewModels:DetailRow">
+                                        <Grid ColumnDefinitions="90,*" Margin="0,2">
+                                            <Label Text="{Binding Label}"
+                                                   Style="{StaticResource LabelBody}"
+                                                   TextColor="{StaticResource TextMuted}"
+                                                   VerticalTextAlignment="Center" />
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding Value}"
+                                                   Style="{StaticResource LabelBody}"
+                                                   TextColor="{StaticResource TextPrimary}"
+                                                   VerticalTextAlignment="Center"
+                                                   LineBreakMode="WordWrap" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+
+                            <!-- Troop type abilities; known skills link to the wiki -->
+                            <Label Text="ABILITIES &amp; EQUIPMENT"
+                                   IsVisible="{Binding Detail.HasAbilities}"
+                                   Style="{StaticResource LabelCaption}"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextMuted}"
+                                   Margin="0,8,0,4" />
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Detail.Abilities}" Spacing="6">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="metadata:AbilityLink">
+                                        <Label Text="{Binding Text, StringFormat='• {0}'}"
+                                               Style="{StaticResource LabelBody}"
+                                               TextColor="{StaticResource TextPrimary}"
+                                               LineBreakMode="WordWrap">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsSkill}" Value="True">
+                                                    <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+                                                    <Setter Property="TextDecorations" Value="Underline" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                            <Label.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding OpenLinkCommand, Source={RelativeSource AncestorType={x:Type viewModels:MarketplacesViewModel}}, x:DataType=viewModels:MarketplacesViewModel}"
+                                                                      CommandParameter="{Binding WikiUrl}" />
+                                            </Label.GestureRecognizers>
+                                        </Label>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+
+                            <!-- Item wiki description -->
+                            <VerticalStackLayout Spacing="4" Margin="0,6,0,0" IsVisible="{Binding HasWiki}">
+                                <Label Text="Loading…"
+                                       IsVisible="{Binding IsWikiLoading}"
+                                       Style="{StaticResource LabelBody}"
+                                       TextColor="{StaticResource TextMuted}"
+                                       Margin="0,2,0,0" />
+                                <Label Text="(No description available)"
+                                       IsVisible="{Binding IsWikiEmpty}"
+                                       Style="{StaticResource LabelBody}"
+                                       TextColor="{StaticResource TextMuted}" />
+                                <controls:WikiBlocksView Blocks="{Binding WikiBlocks}" IsVisible="{Binding HasWikiBlocks}" />
+                            </VerticalStackLayout>
+
+                            <!-- Weapon profiles matching the item -->
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Detail.Weapons}">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="metadata:Weapon">
+                                        <controls:WeaponDetailCardView Weapon="{Binding}" Margin="0,0,0,8" />
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
                     </ScrollView>
                 </Grid>
             </Border>
         </Grid>
-
     </Grid>
-
 </layout:AdaptiveContentPage>

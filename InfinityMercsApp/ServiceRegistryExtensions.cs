@@ -19,6 +19,7 @@ public static class ServiceRegistryExtensions
                 .AddTransient<LoadSeasonViewModel>()
                 .AddTransient<LoadCompanyViewModel>()
                 .AddTransient<PerksTablesViewModel>()
+                .AddTransient<MarketplacesViewModel>()
                 .AddTransient<PlayModeViewModel>()
                 .AddTransient<DebugViewModel>()
                 .AddTransient<ExperienceViewModel>()

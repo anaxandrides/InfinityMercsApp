@@ -6,6 +6,7 @@ using System.Windows.Input;
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season;
@@ -1040,17 +1041,15 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
     private void ShowWeaponPopup(string weaponName)
     {
-        var baseName = Regex.Match(weaponName, @"^[^(]+").Value.Trim();
         PopupTitleLabel.Text = weaponName;
         PopupContentArea.Children.Clear();
-        AppendWeaponDetails(baseName);
+        AppendWeaponDetails(weaponName);
         MarketplacePopupOverlay.IsVisible = true;
     }
 
     private void AppendWeaponDetails(string weaponName)
     {
-        var baseName = Regex.Match(weaponName, @"^[^(]+").Value.Trim();
-        var weapons = FindAllWeaponsByName(baseName);
+        var weapons = _metadataProvider?.WeaponsFor(weaponName) ?? [];
         foreach (var weapon in weapons)
         {
             PopupContentArea.Children.Add(new WeaponDetailCardView
@@ -1464,38 +1463,6 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         _showUnitsInInches = showUnitsInInches;
         _viewerViewModel.ShowUnitsInInches = showUnitsInInches;
         return changed;
-    }
-
-    private IReadOnlyList<Domain.Models.Metadata.Weapon> FindAllWeaponsByName(string name)
-    {
-        var matches = _metadataProvider?.SearchWeaponsByName(name) ?? [];
-        var exact = matches.Where(w => string.Equals(w.Name, name, StringComparison.OrdinalIgnoreCase)).ToList();
-        return exact.Count > 0 ? exact : [.. matches];
-    }
-
-    private static string BuildPropertyWikiUrl(string propertyName)
-    {
-        var baseName = Regex.Match(propertyName, @"^[^(]+").Value.Trim();
-        return $"https://infinitythewiki.com/{baseName.Replace(' ', '_')}?version=n4";
-    }
-
-    private Dictionary<string, string?> BuildSkillsWikiLookup()
-    {
-        var skills = _metadataProvider?.GetSkills() ?? [];
-        var lookup = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-        foreach (var s in skills)
-        {
-            var url = string.IsNullOrWhiteSpace(s.Wiki) ? BuildPropertyWikiUrl(s.Name) : s.Wiki;
-            lookup.TryAdd(s.Name.Trim(), url);
-        }
-        return lookup;
-    }
-
-    private static string ExtractSkillBaseName(string ability)
-    {
-        // Strip parenthetical level/modifier, then strip trailing non-word chars (e.g. asterisks)
-        var beforeParen = Regex.Match(ability, @"^[^(]+").Value.Trim();
-        return Regex.Replace(beforeParen, @"\W+$", string.Empty).Trim();
     }
 
     private static bool IsStatDash(string? value) =>
@@ -2130,13 +2097,10 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
                 Margin = new Thickness(0, 8, 0, 4)
             });
 
-            var skillsLookup = BuildSkillsWikiLookup();
-            var abilities = troop.Abilities
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            foreach (var ability in abilities)
+            var skillLinks = SkillWikiLinks.From(_metadataProvider?.GetSkills() ?? []);
+            foreach (var (ability, wikiUrl) in skillLinks.Links(troop.Abilities))
             {
-                var baseName = ExtractSkillBaseName(ability);
-                var isSkill = skillsLookup.TryGetValue(baseName, out var wikiUrl);
+                var isSkill = wikiUrl is not null;
 
                 var label = new Label
                 {

@@ -207,7 +207,7 @@ public partial class WeaponDetailCardView : ContentView
             for (int i = 0; i < properties.Count; i++)
             {
                 var prop = properties[i];
-                var url = BuildWikiUrl(prop);
+                var url = WikiLinks.ForName(prop);
                 var label = new Label
                 {
                     Text = prop,
@@ -448,12 +448,6 @@ public partial class WeaponDetailCardView : ContentView
 
     private static IReadOnlyList<string> SpecialRules(IReadOnlyList<string> properties) =>
         properties.Where(p => !AsteriskBracketPattern.IsMatch(p.Trim())).ToList();
-
-    private static string BuildWikiUrl(string name)
-    {
-        var baseName = Regex.Match(name, @"^[^(]+").Value.Trim();
-        return $"https://infinitythewiki.com/{baseName.Replace(' ', '_')}?version=n4";
-    }
 
     private static string? ApplyDamageReduction(string? damage, int reduction)
     {
