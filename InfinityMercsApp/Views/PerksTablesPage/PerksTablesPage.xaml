@@ -3,14 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              x:Class="InfinityMercsApp.Views.PerksTablesPage"
-             x:Name="PerksTablesRoot"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
+             xmlns:perks="clr-namespace:InfinityMercsApp.Domain.Models.Perks;assembly=InfinityMercsApp.Domain"
+             x:DataType="viewModels:PerksTablesViewModel"
              Title="Perks Tables">
 
     <Grid Padding="16" RowDefinitions="Auto,Auto,*" RowSpacing="12">
         <Picker Grid.Row="0"
                 x:Name="PerkTablePicker"
                 ItemsSource="{Binding PerkTableOptions}"
-                ItemDisplayBinding="{Binding DisplayName}"
+                ItemDisplayBinding="{Binding DisplayName, x:DataType=perks:PerkTableOption}"
                 SelectedItem="{Binding SelectedPerkTableOption, Mode=TwoWay}" />
 
         <!-- Inline legend strip (compact / medium) -->
