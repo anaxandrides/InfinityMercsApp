@@ -1,4 +1,5 @@
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Views.Controls;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 

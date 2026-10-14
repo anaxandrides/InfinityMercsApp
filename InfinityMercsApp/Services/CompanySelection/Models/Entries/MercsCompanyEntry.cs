@@ -1,6 +1,7 @@
-using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.UnitBrowser;
 
 namespace InfinityMercsApp.Views.Common;
 

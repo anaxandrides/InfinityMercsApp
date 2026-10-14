@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:records="clr-namespace:InfinityMercsApp.Services.Records"
+             xmlns:companyViewModels="clr-namespace:InfinityMercsApp.ViewModels.Company"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
@@ -8,13 +10,13 @@
              xmlns:services="clr-namespace:InfinityMercsApp.Services"
              x:Class="InfinityMercsApp.Views.LoadCompanyPage"
              x:Name="Root"
-             x:DataType="viewModels:LoadCompanyViewModel"
+             x:DataType="companyViewModels:LoadCompanyViewModel"
              Title="Load Company">
 
     <ContentPage.Behaviors>
         <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
         <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference Root}, x:DataType=ContentPage}"
-                                        x:DataType="viewModels:LoadCompanyViewModel"
+                                        x:DataType="companyViewModels:LoadCompanyViewModel"
                                         EventName="LayoutModeChanged"
                                         Command="{Binding ApplyLayoutCommand}"
                                         CommandParameter="{Binding LayoutMode, Source={x:Reference Root}, x:DataType=layout:AdaptiveContentPage}" />
@@ -45,10 +47,10 @@
                     <GridItemsLayout Orientation="Vertical" Span="{Binding Layout.Columns}" HorizontalItemSpacing="8" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="services:CompanyRecord">
+                    <DataTemplate x:DataType="records:CompanyRecord">
                         <Border StrokeThickness="1" Padding="10" Margin="0,0,0,8">
                             <Border.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding OpenCompanyCommand, Source={RelativeSource AncestorType={x:Type viewModels:LoadCompanyViewModel}}, x:DataType=viewModels:LoadCompanyViewModel}"
+                                <TapGestureRecognizer Command="{Binding OpenCompanyCommand, Source={RelativeSource AncestorType={x:Type companyViewModels:LoadCompanyViewModel}}, x:DataType=companyViewModels:LoadCompanyViewModel}"
                                                       CommandParameter="{Binding .}" />
                             </Border.GestureRecognizers>
                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
@@ -88,7 +90,7 @@
                                     StrokeThickness="0"
                                     Padding="4">
                                     <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding DeleteCompanyCommand, Source={RelativeSource AncestorType={x:Type viewModels:LoadCompanyViewModel}}, x:DataType=viewModels:LoadCompanyViewModel}"
+                                        <TapGestureRecognizer Command="{Binding DeleteCompanyCommand, Source={RelativeSource AncestorType={x:Type companyViewModels:LoadCompanyViewModel}}, x:DataType=companyViewModels:LoadCompanyViewModel}"
                                                               CommandParameter="{Binding .}" />
                                     </Border.GestureRecognizers>
                                     <controls:SvgIcon

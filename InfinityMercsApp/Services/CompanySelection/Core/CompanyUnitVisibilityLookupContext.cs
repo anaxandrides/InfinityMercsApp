@@ -1,5 +1,4 @@
-using InfinityMercsApp.Domain.Models.Filtering;
-using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecopsUnit;
+using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecOps.SpecopsUnit;
 
 namespace InfinityMercsApp.Views.Common;
 

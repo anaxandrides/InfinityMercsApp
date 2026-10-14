@@ -1,4 +1,4 @@
-using InfinityMercsApp.Domain.Models.Metadata;
+using InfinityMercsApp.Domain.Models.Metadata.Ranges;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 

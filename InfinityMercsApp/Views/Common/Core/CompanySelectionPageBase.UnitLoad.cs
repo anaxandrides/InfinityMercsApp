@@ -1,8 +1,7 @@
 using System.Collections.ObjectModel;
-using InfinityMercsApp.Domain.Fireteams;
 using ArmyFactionRecord = InfinityMercsApp.Domain.Models.Army.Faction;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
-using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecopsUnit;
+using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecOps.SpecopsUnit;
 
 namespace InfinityMercsApp.Views.Common;
 

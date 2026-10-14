@@ -2,9 +2,12 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Captain;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Domain.Models.Season;
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Domain.Models.Season.Gear;
+using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.CompanyProfiles;
+using InfinityMercsApp.Services.Logos;
+using InfinityMercsApp.ViewModels.Season;
 using InfinityMercsApp.Views.Common;
 using InfinityMercsApp.Views.Season;
 

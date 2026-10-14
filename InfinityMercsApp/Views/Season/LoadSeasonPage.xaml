@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:seasonViewModels="clr-namespace:InfinityMercsApp.ViewModels.Season"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
              xmlns:season="clr-namespace:InfinityMercsApp.Services.Season"
              x:Class="InfinityMercsApp.Views.Season.LoadSeasonPage"
              x:Name="Root"
-             x:DataType="viewModels:LoadSeasonViewModel"
+             x:DataType="seasonViewModels:LoadSeasonViewModel"
              Title="Load Season"
              BackgroundColor="{StaticResource Void}">
 
     <ContentPage.Behaviors>
         <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
         <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference Root}, x:DataType=ContentPage}"
-                                        x:DataType="viewModels:LoadSeasonViewModel"
+                                        x:DataType="seasonViewModels:LoadSeasonViewModel"
                                         EventName="LayoutModeChanged"
                                         Command="{Binding ApplyLayoutCommand}"
                                         CommandParameter="{Binding LayoutMode, Source={x:Reference Root}, x:DataType=layout:AdaptiveContentPage}" />
@@ -57,7 +58,7 @@
                                 <RoundRectangle CornerRadius="{DynamicResource CornerRadiusDefault}" />
                             </Border.StrokeShape>
                             <Border.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding OpenSeasonCommand, Source={RelativeSource AncestorType={x:Type viewModels:LoadSeasonViewModel}}, x:DataType=viewModels:LoadSeasonViewModel}"
+                                <TapGestureRecognizer Command="{Binding OpenSeasonCommand, Source={RelativeSource AncestorType={x:Type seasonViewModels:LoadSeasonViewModel}}, x:DataType=seasonViewModels:LoadSeasonViewModel}"
                                                       CommandParameter="{Binding .}" />
                             </Border.GestureRecognizers>
                             <VerticalStackLayout Spacing="2">

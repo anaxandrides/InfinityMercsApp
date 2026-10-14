@@ -1,3 +1,4 @@
+
 namespace InfinityMercsApp.Domain.Models.Filtering;
 
 // Unit list filter criteria chosen in the filter popup. Moved from Views/Controls/UnitFilterPopupView

@@ -1,4 +1,4 @@
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 using NSubstitute;
 

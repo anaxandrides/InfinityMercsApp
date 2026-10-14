@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:seasonViewModels="clr-namespace:InfinityMercsApp.ViewModels.Season"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
              x:Class="InfinityMercsApp.Views.Season.MercsSeasonPage"
-             x:DataType="viewModels:MercsSeasonPageViewModel"
+             x:DataType="seasonViewModels:MercsSeasonPageViewModel"
              x:Name="SeasonRoot"
              Title="Home"
              Shell.NavBarIsVisible="False"
@@ -14,7 +15,7 @@
     <ContentPage.Behaviors>
         <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
         <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference SeasonRoot}, x:DataType=ContentPage}"
-                                        x:DataType="viewModels:MercsSeasonPageViewModel"
+                                        x:DataType="seasonViewModels:MercsSeasonPageViewModel"
                                         EventName="LayoutModeChanged"
                                         Command="{Binding ApplyLayoutCommand}"
                                         CommandParameter="{Binding LayoutMode, Source={x:Reference SeasonRoot}, x:DataType=layout:AdaptiveContentPage}" />

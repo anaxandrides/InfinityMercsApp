@@ -1,6 +1,9 @@
 using InfinityMercsApp.Infrastructure.Providers;
-using InfinityMercsApp.Services;
 using InfinityMercsApp.Services.Diagnostics;
+using InfinityMercsApp.Services.Dialogs;
+using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.Services.Packaging;
+using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;

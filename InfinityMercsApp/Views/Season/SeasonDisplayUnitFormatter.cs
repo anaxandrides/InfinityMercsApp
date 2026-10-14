@@ -1,8 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Infrastructure.Providers;
-using InfinityMercsApp.Views.Controls;
 
 namespace InfinityMercsApp.Views.Season;
 

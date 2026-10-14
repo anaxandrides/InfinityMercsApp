@@ -1,4 +1,4 @@
-using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.UnitTests.Legacy;
 

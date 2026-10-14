@@ -1,5 +1,5 @@
 using System.Text.Json;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Army.Fireteams;
 using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.UnitTests.Legacy;
 using Microsoft.Data.Sqlite;

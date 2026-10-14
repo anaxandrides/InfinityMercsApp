@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.Input;
-using InfinityMercsApp.Services;
 using InfinityMercsApp.Services.Diagnostics;
+using InfinityMercsApp.Services.Dialogs;
+using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 
 namespace InfinityMercsApp.ViewModels;

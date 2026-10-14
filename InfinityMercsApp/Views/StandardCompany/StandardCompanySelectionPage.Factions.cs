@@ -1,8 +1,8 @@
 using InfinityMercsApp.Views.Common;
 using InfinityMercsApp.Views.Controls;
-using AirborneGen = InfinityMercsApp.Infrastructure.Providers.AirborneCompanyFactionGenerator;
-using InspiringGen = InfinityMercsApp.Infrastructure.Providers.InspiringCompanyFactionGenerator;
-using TagGen = InfinityMercsApp.Infrastructure.Providers.TagCompanyFactionGenerator;
+using AirborneGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.AirborneCompanyFactionGenerator;
+using InspiringGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.InspiringCompanyFactionGenerator;
+using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 
 namespace InfinityMercsApp.Views.StandardCompany;
 

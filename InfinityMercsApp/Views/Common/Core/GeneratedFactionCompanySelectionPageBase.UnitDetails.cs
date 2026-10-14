@@ -1,15 +1,9 @@
-using System.Globalization;
-using System.Text;
-using System.Text.RegularExpressions;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Services;
-using InfinityMercsApp.ViewModels;
-using InfinityMercsApp.Views.Common;
-using InfinityMercsApp.Views.Controls;
-using Svg.Skia;
+using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Services.CompanyProfiles;
+using InfinityMercsApp.Services.Logos;
 using static InfinityMercsApp.Views.Common.CompanyUnitDetailsShared;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
-using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecopsUnit;
 
 namespace InfinityMercsApp.Views.Common;
 

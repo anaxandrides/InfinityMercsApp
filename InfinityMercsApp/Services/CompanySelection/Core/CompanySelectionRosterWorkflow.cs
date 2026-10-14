@@ -1,7 +1,7 @@
-using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Services;
-using InfinityMercsApp.ViewModels;
-using InfinityMercsApp.Views.Controls;
+using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Services.CompanyProfiles;
+using InfinityMercsApp.ViewModels.UnitBrowser;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
 
 namespace InfinityMercsApp.Views.Common;

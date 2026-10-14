@@ -1,12 +1,9 @@
 using System.Globalization;
-using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Lieutenants;
-using InfinityMercsApp.Domain.Models.Army;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Infrastructure.Providers;
-using InfinityMercsApp.Services;
-using InfinityMercsApp.Views.Common;
+using InfinityMercsApp.Services.ArmyData;
 
 namespace InfinityMercsApp.Views.Common.Captain;
 

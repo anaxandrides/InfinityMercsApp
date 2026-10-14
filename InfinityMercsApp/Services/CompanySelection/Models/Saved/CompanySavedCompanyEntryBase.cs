@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using InfinityMercsApp.Domain.Models.Army.Stats;
 
 namespace InfinityMercsApp.Views.Common;
 

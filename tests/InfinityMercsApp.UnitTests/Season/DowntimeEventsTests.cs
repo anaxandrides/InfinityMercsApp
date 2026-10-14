@@ -1,5 +1,5 @@
-using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Domain.Season;
+using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Domain.Season.Downtime;
 
 namespace InfinityMercsApp.UnitTests.Season;
 

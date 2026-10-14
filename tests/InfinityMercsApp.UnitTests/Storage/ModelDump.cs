@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Army.Filters;
 
 namespace InfinityMercsApp.UnitTests.Storage;
 

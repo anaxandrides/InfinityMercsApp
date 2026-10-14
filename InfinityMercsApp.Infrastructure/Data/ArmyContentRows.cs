@@ -1,6 +1,8 @@
 using InfinityMercsApp.Domain.Models.Army;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Domain.Models.Army.Fireteams;
 using InfinityMercsApp.Infrastructure.Models.Database.Army;
+using InfinityMercsApp.Infrastructure.Models.Database.Army.Fireteams;
 
 namespace InfinityMercsApp.Infrastructure.Data;
 

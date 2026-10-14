@@ -1,4 +1,4 @@
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.Adaptive;
 
 namespace InfinityMercsApp.Views.UnitEncyclopedia;

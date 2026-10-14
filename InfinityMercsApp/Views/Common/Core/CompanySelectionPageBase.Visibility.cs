@@ -1,6 +1,5 @@
-using InfinityMercsApp.Views.Controls;
 using ArmyFactionRecord = InfinityMercsApp.Domain.Models.Army.Faction;
-using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecopsUnit;
+using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecOps.SpecopsUnit;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
 
 namespace InfinityMercsApp.Views.Common;

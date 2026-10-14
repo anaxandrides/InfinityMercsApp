@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Army.Traits;
 
 namespace InfinityMercsApp.UnitTests.Stats;
 

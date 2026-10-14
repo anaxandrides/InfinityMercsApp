@@ -1,6 +1,6 @@
 using InfinityMercsApp.ViewModels.Base;
 
-namespace InfinityMercsApp.ViewModels;
+namespace InfinityMercsApp.ViewModels.Layouts;
 
 /// <summary>
 /// The saved-records lists (companies, seasons): compact fills the screen; wider widths centre the list at a

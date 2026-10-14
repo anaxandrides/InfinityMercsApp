@@ -1,4 +1,4 @@
-using InfinityMercsApp.Domain.Season;
+using InfinityMercsApp.Domain.Season.Injuries;
 
 namespace InfinityMercsApp.UnitTests.Season;
 

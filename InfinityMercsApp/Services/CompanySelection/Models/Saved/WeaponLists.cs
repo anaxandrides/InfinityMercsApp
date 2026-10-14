@@ -1,4 +1,4 @@
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.CompanyProfiles;
 
 namespace InfinityMercsApp.Views.Common;
 

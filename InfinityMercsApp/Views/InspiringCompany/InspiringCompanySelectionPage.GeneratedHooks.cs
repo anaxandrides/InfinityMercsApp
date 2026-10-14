@@ -1,7 +1,7 @@
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.Common;
 using InfinityMercsApp.Views.Controls;
-using InspiringGen = InfinityMercsApp.Infrastructure.Providers.InspiringCompanyFactionGenerator;
+using InspiringGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.InspiringCompanyFactionGenerator;
 
 namespace InfinityMercsApp.Views.InspiringCompany;
 

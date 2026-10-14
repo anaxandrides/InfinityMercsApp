@@ -1,5 +1,5 @@
-using InfinityMercsApp.Domain.Models.Army;
-using InfinityMercsApp.Infrastructure.Models.Database.Army;
+using InfinityMercsApp.Domain.Models.Army.SpecOps;
+using InfinityMercsApp.Infrastructure.Models.Database.Army.SpecOps;
 
 namespace InfinityMercsApp.Infrastructure.Data;
 

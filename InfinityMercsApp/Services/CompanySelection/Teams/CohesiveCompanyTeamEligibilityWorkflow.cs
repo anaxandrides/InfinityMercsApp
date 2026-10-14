@@ -1,6 +1,4 @@
-using InfinityMercsApp.Domain.Models.Filtering;
-using InfinityMercsApp.Services;
-using InfinityMercsApp.Views.Controls;
+using InfinityMercsApp.Domain.Models.Army.Fireteams;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
 

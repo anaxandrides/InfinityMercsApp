@@ -1,6 +1,8 @@
 using InfinityMercsApp.Infrastructure.Providers;
-using InfinityMercsApp.Services;
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
+using InfinityMercsApp.Infrastructure.Providers.Metadata;
+using InfinityMercsApp.Services.Logos;
+using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.Controls;
 
 namespace InfinityMercsApp.Views.Common;

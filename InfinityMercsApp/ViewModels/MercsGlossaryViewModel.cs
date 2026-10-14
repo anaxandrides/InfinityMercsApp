@@ -1,8 +1,11 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.Glossary;
+using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.ViewModels.Base;
+using InfinityMercsApp.ViewModels.Layouts;
 
 namespace InfinityMercsApp.ViewModels;
 

@@ -1,6 +1,7 @@
-using InfinityMercsApp.Domain.Models.Metadata;
-using Microsoft.Maui.Controls.Shapes;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Models.Metadata;
+using InfinityMercsApp.Domain.Models.Metadata.Wiki;
+using Microsoft.Maui.Controls.Shapes;
 
 namespace InfinityMercsApp.Views.Controls;
 

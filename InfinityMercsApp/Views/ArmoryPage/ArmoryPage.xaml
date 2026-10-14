@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:armory="clr-namespace:InfinityMercsApp.ViewModels.Armory"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
@@ -8,13 +9,13 @@
              xmlns:domain="clr-namespace:InfinityMercsApp.Domain.Models.Metadata;assembly=InfinityMercsApp.Domain"
              x:Class="InfinityMercsApp.Views.ArmoryPage"
              x:Name="Root"
-             x:DataType="viewModels:ArmoryViewModel"
+             x:DataType="armory:ArmoryViewModel"
              Title="Armory">
 
     <ContentPage.Behaviors>
         <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
         <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference Root}, x:DataType=ContentPage}"
-                                        x:DataType="viewModels:ArmoryViewModel"
+                                        x:DataType="armory:ArmoryViewModel"
                                         EventName="LayoutModeChanged"
                                         Command="{Binding ApplyLayoutCommand}"
                                         CommandParameter="{Binding LayoutMode, Source={x:Reference Root}, x:DataType=layout:AdaptiveContentPage}" />
@@ -39,7 +40,7 @@
                                 SelectionMode="Single"
                                 SelectedItem="{Binding SelectedWeaponGroup, Mode=TwoWay}">
                     <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="viewModels:WeaponGroup">
+                        <DataTemplate x:DataType="armory:WeaponGroup">
                             <Grid Padding="6,4">
                                 <Label Text="{Binding Name}"
                                        FontSize="{DynamicResource FontSizeBody}"

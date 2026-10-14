@@ -1,5 +1,5 @@
 using TemplateCaptain = InfinityMercsApp.Views.Common.Captain;
-using TagGen = InfinityMercsApp.Infrastructure.Providers.TagCompanyFactionGenerator;
+using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 
 namespace InfinityMercsApp.Views.Common.UICommon;
 

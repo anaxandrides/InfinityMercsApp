@@ -1,10 +1,13 @@
 using System.Windows.Input;
 using InfinityMercsApp.Infrastructure.Providers;
-using InfinityMercsApp.Services;
-using InspiringGen = InfinityMercsApp.Infrastructure.Providers.InspiringCompanyFactionGenerator;
-using InfinityMercsApp.ViewModels;
-using InfinityMercsApp.Views.Controls;
+using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
+using InfinityMercsApp.Infrastructure.Providers.Metadata;
+using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.Logos;
+using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.Common;
+using InfinityMercsApp.Views.Controls;
+using InspiringGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.InspiringCompanyFactionGenerator;
 
 namespace InfinityMercsApp.Views.InspiringCompany;
 

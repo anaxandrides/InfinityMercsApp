@@ -1,7 +1,9 @@
-﻿using InfinityMercsApp.Infrastructure.API.InfinityArmy;
+using InfinityMercsApp.Infrastructure.API.InfinityArmy;
 using InfinityMercsApp.Infrastructure.Data;
 using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
+using InfinityMercsApp.Infrastructure.Providers.Metadata;
 using InfinityMercsApp.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -1,5 +1,5 @@
 using InfinityMercsApp.Domain.Fireteams;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Army.Fireteams;
 
 namespace InfinityMercsApp.UnitTests.Fireteams;
 

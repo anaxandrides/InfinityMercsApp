@@ -1,3 +1,5 @@
+using InfinityMercsApp.Domain.Models.Season.Gear;
+
 namespace InfinityMercsApp.Domain.Models.Season;
 
 public class SeasonFile

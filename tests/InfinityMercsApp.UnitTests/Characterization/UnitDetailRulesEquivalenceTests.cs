@@ -1,5 +1,7 @@
 using System.Text.Json;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Domain.Models.Army.Traits;
 using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.UnitTests.Legacy;
 

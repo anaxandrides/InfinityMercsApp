@@ -1,6 +1,4 @@
-using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Views.Common;
-using InfinityMercsApp.Views.Controls;
+using InfinityMercsApp.Domain.Models.Army.Filters;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
 namespace InfinityMercsApp.Views.Common;

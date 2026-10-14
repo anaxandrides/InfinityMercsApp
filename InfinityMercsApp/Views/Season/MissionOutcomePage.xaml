@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <views:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:seasonViewModels="clr-namespace:InfinityMercsApp.ViewModels.Season"
              xmlns:views="clr-namespace:InfinityMercsApp.Views"
              xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
              x:Class="InfinityMercsApp.Views.Season.MissionOutcomePage"
-             x:DataType="viewModels:MissionOutcomeViewModel"
+             x:DataType="seasonViewModels:MissionOutcomeViewModel"
              Title="Mission Outcome"
              BackgroundColor="{StaticResource Void}">
 

@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Domain.Models.Perks.Catalog;
+using InfinityMercsApp.Domain.Models.Perks.Tables;
 
 namespace InfinityMercsApp.Domain.Models.Perks;
 

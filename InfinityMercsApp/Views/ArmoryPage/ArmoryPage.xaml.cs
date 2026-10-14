@@ -1,4 +1,4 @@
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.Armory;
 using InfinityMercsApp.Views.Adaptive;
 
 namespace InfinityMercsApp.Views;

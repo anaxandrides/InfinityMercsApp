@@ -1,4 +1,4 @@
-using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Domain.Models.Season.Gear;
 
 namespace InfinityMercsApp.UnitTests.Season;
 

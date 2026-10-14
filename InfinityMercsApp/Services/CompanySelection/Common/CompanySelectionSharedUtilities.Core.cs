@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Models.Army.Filters;
 
 namespace InfinityMercsApp.Views.Common;
 

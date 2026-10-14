@@ -1,4 +1,4 @@
-using InfinityMercsApp.Domain.Models.Metadata;
+using InfinityMercsApp.Domain.Models.Metadata.Ranges;
 
 namespace InfinityMercsApp.UnitTests.Stats;
 

@@ -1,7 +1,10 @@
-using InfinityMercsApp.Domain.Models.Army;
+using InfinityMercsApp.Domain.Models.Army.SpecOps;
 using InfinityMercsApp.Infrastructure.Data;
 using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Infrastructure.Models.Database.Army;
+using InfinityMercsApp.Infrastructure.Models.Database.Army.Fireteams;
+using InfinityMercsApp.Infrastructure.Models.Database.Army.SpecOps;
+using InfinityMercsApp.Infrastructure.Models.Database.Army.Units;
 using InfinityMercsApp.Infrastructure.Options;
 using InfinityMercsApp.Infrastructure.Repositories;
 using InfinityMercsApp.UnitTests.Characterization;

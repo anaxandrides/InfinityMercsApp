@@ -1,16 +1,14 @@
 using InfinityMercsApp.Infrastructure.Providers;
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
+using InfinityMercsApp.Infrastructure.Providers.Metadata;
+using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.Views;
 using InfinityMercsApp.Views.Adaptive;
 using InfinityMercsApp.Views.Controls;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
-using ArmyFactionRecord = InfinityMercsApp.Domain.Models.Army.Faction;
-using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
-using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
-using MercsArmyListEntry = InfinityMercsApp.Domain.Models.Army.MercsArmyListEntry;
 
 namespace InfinityMercsApp.Views.Common;
 

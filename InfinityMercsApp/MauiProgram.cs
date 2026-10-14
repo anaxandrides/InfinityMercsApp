@@ -1,10 +1,7 @@
 using CommunityToolkit.Maui;
 using InfinityMercsApp.Infrastructure;
 using InfinityMercsApp.Infrastructure.Options;
-using InfinityMercsApp.Services;
-using InfinityMercsApp.ViewModels;
-using InfinityMercsApp.Views;
-using InfinityMercsApp.Views.UnitEncyclopedia;
+using InfinityMercsApp.Services.Import;
 using Microsoft.Extensions.Logging;
 using SkiaSharp.Views.Maui.Controls.Hosting;
 

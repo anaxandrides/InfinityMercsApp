@@ -1,4 +1,4 @@
-﻿namespace InfinityMercsApp.Infrastructure.Models.API.Metadata;
+namespace InfinityMercsApp.Infrastructure.Models.API.Metadata;
 
 using System.Text.Json.Serialization;
 
@@ -9,6 +9,6 @@ public class WeaponDistanceBand
     public int Max { get; set; }
 
     [JsonPropertyName("mod")]
-    [JsonConverter(typeof(InfinityMercsApp.Infrastructure.Json.ScalarTextConverter))]
+    [JsonConverter(typeof(InfinityMercsApp.Infrastructure.Json.Converters.ScalarTextConverter))]
     public string? Mod { get; set; }
 }

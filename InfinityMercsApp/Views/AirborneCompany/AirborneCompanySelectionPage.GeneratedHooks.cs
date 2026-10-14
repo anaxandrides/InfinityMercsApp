@@ -1,8 +1,8 @@
-using InfinityMercsApp.Services;
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.Services.CompanyProfiles;
+using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.Common;
 using InfinityMercsApp.Views.Controls;
-using AirborneGen = InfinityMercsApp.Infrastructure.Providers.AirborneCompanyFactionGenerator;
+using AirborneGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.AirborneCompanyFactionGenerator;
 
 namespace InfinityMercsApp.Views.AirborneCompany;
 

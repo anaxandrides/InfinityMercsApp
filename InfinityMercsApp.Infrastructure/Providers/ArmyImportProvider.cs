@@ -1,12 +1,13 @@
 using InfinityMercsApp.Domain.Models.Army;
+using InfinityMercsApp.Domain.Models.Army.SpecOps;
 using InfinityMercsApp.Infrastructure.Data;
 using InfinityMercsApp.Infrastructure.Repositories;
 using DbFaction = InfinityMercsApp.Infrastructure.Models.Database.Army.Faction;
 using DbResume = InfinityMercsApp.Infrastructure.Models.Database.Army.Resume;
-using DbSpecopsEquipment = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsEquipment;
-using DbSpecopsSkill = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsSkill;
-using DbSpecopsUnit = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsUnit;
-using DbSpecopsWeapon = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsWeapon;
+using DbSpecopsEquipment = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecOps.SpecopsEquipment;
+using DbSpecopsSkill = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecOps.SpecopsSkill;
+using DbSpecopsUnit = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecOps.SpecopsUnit;
+using DbSpecopsWeapon = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecOps.SpecopsWeapon;
 using DbUnit = InfinityMercsApp.Infrastructure.Models.Database.Army.Unit;
 
 namespace InfinityMercsApp.Infrastructure.Providers;

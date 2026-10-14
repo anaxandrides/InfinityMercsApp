@@ -1,6 +1,4 @@
-using InfinityMercsApp.ViewModels;
-using InfinityMercsApp.Views.Common;
-using InfinityMercsApp.Services;
+using InfinityMercsApp.ViewModels.UnitBrowser;
 
 namespace InfinityMercsApp.Views.Common;
 

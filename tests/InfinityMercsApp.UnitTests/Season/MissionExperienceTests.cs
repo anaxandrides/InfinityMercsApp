@@ -1,4 +1,4 @@
-using InfinityMercsApp.Domain.Season;
+using InfinityMercsApp.Domain.Season.Experience;
 
 namespace InfinityMercsApp.UnitTests.Season;
 

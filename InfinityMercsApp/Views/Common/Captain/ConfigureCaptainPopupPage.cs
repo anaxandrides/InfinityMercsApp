@@ -1,9 +1,7 @@
 using System.Globalization;
-using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Lieutenants;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
-using Microsoft.Maui.Devices;
+using InfinityMercsApp.Domain.Models.Army.Stats;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;

@@ -1,3 +1,5 @@
+using InfinityMercsApp.Domain.Models.Army.Stats;
+
 namespace InfinityMercsApp.Views.Common.Captain;
 
 /// <summary>A captain stat upgrade level as a picker item.</summary>

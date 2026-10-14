@@ -1,5 +1,5 @@
 using System.Collections.ObjectModel;
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.Controls;
 
 namespace InfinityMercsApp.Views.Common;

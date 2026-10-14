@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
 
 namespace InfinityMercsApp.Domain.Models.Army;

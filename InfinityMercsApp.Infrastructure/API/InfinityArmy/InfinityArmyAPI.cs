@@ -1,7 +1,8 @@
+using InfinityMercsApp.Domain.Models.Metadata.Ranges;
+
 namespace InfinityMercsApp.Infrastructure.API.InfinityArmy;
 
 using InfinityMercsApp.Domain.Models.Army;
-using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Infrastructure.Json;
 using DomainMetadataAmmunition = InfinityMercsApp.Domain.Models.Metadata.Ammunition;
 using DomainMetadataBooty = InfinityMercsApp.Domain.Models.Metadata.Booty;

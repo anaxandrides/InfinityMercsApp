@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:unitFilter="clr-namespace:InfinityMercsApp.Views.Controls.UnitFilter"
+             xmlns:unitBrowser="clr-namespace:InfinityMercsApp.ViewModels.UnitBrowser"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
@@ -13,7 +15,7 @@
     <ContentPage.Behaviors>
         <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
         <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference UnitEncyclopediaPageRoot}, x:DataType=ContentPage}"
-                                        x:DataType="viewModels:UnitEncyclopediaViewModel"
+                                        x:DataType="unitBrowser:UnitEncyclopediaViewModel"
                                         EventName="LayoutModeChanged"
                                         Command="{Binding ApplyLayoutCommand}"
                                         CommandParameter="{Binding LayoutMode, Source={x:Reference UnitEncyclopediaPageRoot}, x:DataType=layout:AdaptiveContentPage}" />
@@ -257,20 +259,20 @@
             InputTransparent="False"
             ZIndex="100">
             <!-- Takes 90% of the height; applying or closing it goes straight to the ViewModel. -->
-            <controls:UnitFilterPopupView
+            <unitFilter:UnitFilterPopupView
                 Grid.Row="1"
                 HorizontalOptions="Center"
                 MaximumWidthRequest="700"
                 Request="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext.UnitFilterRequest}">
-                <controls:UnitFilterPopupView.Behaviors>
+                <unitFilter:UnitFilterPopupView.Behaviors>
                     <toolkit:EventToCommandBehavior BindingContext="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext}"
                                                     EventName="FilterArmyApplied"
                                                     Command="{Binding ApplyUnitFilterCommand}" />
                     <toolkit:EventToCommandBehavior BindingContext="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext}"
                                                     EventName="CloseRequested"
                                                     Command="{Binding CloseUnitFilterCommand}" />
-                </controls:UnitFilterPopupView.Behaviors>
-            </controls:UnitFilterPopupView>
+                </unitFilter:UnitFilterPopupView.Behaviors>
+            </unitFilter:UnitFilterPopupView>
         </Grid>
     </Grid>
 

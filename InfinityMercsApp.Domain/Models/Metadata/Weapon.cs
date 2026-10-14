@@ -1,4 +1,6 @@
-﻿namespace InfinityMercsApp.Domain.Models.Metadata;
+using InfinityMercsApp.Domain.Models.Metadata.Ranges;
+
+namespace InfinityMercsApp.Domain.Models.Metadata;
 
 public class Weapon
 {

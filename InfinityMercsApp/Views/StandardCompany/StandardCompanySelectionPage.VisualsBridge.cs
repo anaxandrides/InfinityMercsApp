@@ -1,4 +1,4 @@
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Views.Controls;
 using SkiaSharp.Views.Maui.Controls;
 

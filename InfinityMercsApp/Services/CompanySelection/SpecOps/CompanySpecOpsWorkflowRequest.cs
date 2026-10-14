@@ -1,5 +1,5 @@
 using InfinityMercsApp.Infrastructure.Providers;
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.ArmyData;
 
 namespace InfinityMercsApp.Views.Common.UICommon;
 

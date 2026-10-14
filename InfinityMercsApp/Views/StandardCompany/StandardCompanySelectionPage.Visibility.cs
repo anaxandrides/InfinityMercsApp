@@ -1,5 +1,4 @@
-using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Domain.Models.Army.Traits;
 using InfinityMercsApp.Views.Common;
 
 namespace InfinityMercsApp.Views.StandardCompany;

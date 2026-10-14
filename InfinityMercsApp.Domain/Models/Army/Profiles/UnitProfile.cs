@@ -1,3 +1,5 @@
+using InfinityMercsApp.Domain.Models.Army.Stats;
+
 namespace InfinityMercsApp.Domain.Models.Army.Profiles;
 
 /// <summary>

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.UnitTests.Legacy;

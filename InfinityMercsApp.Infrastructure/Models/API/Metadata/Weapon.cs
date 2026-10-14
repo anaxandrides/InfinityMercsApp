@@ -1,4 +1,4 @@
-﻿namespace InfinityMercsApp.Infrastructure.Models.API.Metadata;
+namespace InfinityMercsApp.Infrastructure.Models.API.Metadata;
 
 using System.Text.Json.Serialization;
 

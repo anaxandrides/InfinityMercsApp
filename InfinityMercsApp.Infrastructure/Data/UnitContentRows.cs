@@ -1,5 +1,6 @@
+using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Infrastructure.Models.Database.Army;
+using InfinityMercsApp.Infrastructure.Models.Database.Army.Units;
 
 namespace InfinityMercsApp.Infrastructure.Data;
 

@@ -4,9 +4,11 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Lieutenants;
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Views.Common.UICommon;
-using TagGen = InfinityMercsApp.Infrastructure.Providers.TagCompanyFactionGenerator;
+using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 
 namespace InfinityMercsApp.Views.Common;
 

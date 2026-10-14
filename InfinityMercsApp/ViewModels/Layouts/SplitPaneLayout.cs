@@ -1,6 +1,6 @@
 using InfinityMercsApp.ViewModels.Base;
 
-namespace InfinityMercsApp.ViewModels;
+namespace InfinityMercsApp.ViewModels.Layouts;
 
 /// <summary>
 /// A list beside its detail. Compact shows one pane at a time with a back button on the detail; wider screens

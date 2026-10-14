@@ -1,3 +1,5 @@
+using InfinityMercsApp.Domain.Models.Perks.Catalog;
+
 namespace InfinityMercsApp.Domain.Models.Perks;
 
 /// <summary>

@@ -1,12 +1,13 @@
 using InfinityMercsApp.Domain.Models.Army;
+using InfinityMercsApp.Domain.Models.Army.SpecOps;
 using InfinityMercsApp.Infrastructure.Data;
-using CCFactionValidCoreFireteamRow = InfinityMercsApp.Infrastructure.Models.Database.Army.CCFactionValidCoreFireteamRow;
 using InfinityMercsApp.Infrastructure.Repositories;
-using DbCCFireteamValidity = InfinityMercsApp.Infrastructure.Models.Database.Army.CCFactionFireteamValidity;
-using DbSpecopsEquipment = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsEquipment;
-using DbSpecopsSkill = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsSkill;
-using DbSpecopsUnit = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsUnit;
-using DbSpecopsWeapon = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsWeapon;
+using CCFactionValidCoreFireteamRow = InfinityMercsApp.Infrastructure.Models.Database.Army.Fireteams.CCFactionValidCoreFireteamRow;
+using DbCCFireteamValidity = InfinityMercsApp.Infrastructure.Models.Database.Army.Fireteams.CCFactionFireteamValidity;
+using DbSpecopsEquipment = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecOps.SpecopsEquipment;
+using DbSpecopsSkill = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecOps.SpecopsSkill;
+using DbSpecopsUnit = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecOps.SpecopsUnit;
+using DbSpecopsWeapon = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecOps.SpecopsWeapon;
 
 namespace InfinityMercsApp.Infrastructure.Providers;
 

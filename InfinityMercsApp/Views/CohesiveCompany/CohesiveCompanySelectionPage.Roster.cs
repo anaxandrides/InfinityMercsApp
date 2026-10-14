@@ -1,4 +1,4 @@
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.Common;
 
 namespace InfinityMercsApp.Views.CohesiveCompany;

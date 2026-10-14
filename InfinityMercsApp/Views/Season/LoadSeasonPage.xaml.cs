@@ -1,4 +1,4 @@
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.Season;
 using InfinityMercsApp.Views.Adaptive;
 
 namespace InfinityMercsApp.Views.Season;

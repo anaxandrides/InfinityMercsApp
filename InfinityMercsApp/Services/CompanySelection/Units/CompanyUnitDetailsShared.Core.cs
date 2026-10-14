@@ -1,9 +1,7 @@
-using System.Globalization;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army;
-using InfinityMercsApp.Domain.Models.Filtering;
-using InfinityMercsApp.Services;
-using InfinityMercsApp.Views.Controls;
+using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Services.Logos;
 
 namespace InfinityMercsApp.Views.Common;
 

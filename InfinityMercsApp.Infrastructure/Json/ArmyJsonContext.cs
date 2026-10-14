@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using InfinityMercsApp.Infrastructure.Json.Dtos;
 
 namespace InfinityMercsApp.Infrastructure.Json;
 

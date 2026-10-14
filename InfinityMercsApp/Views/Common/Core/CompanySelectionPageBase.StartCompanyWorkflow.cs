@@ -1,6 +1,5 @@
 using InfinityMercsApp.Infrastructure.Providers;
-using InfinityMercsApp.Services;
-using InfinityMercsApp.Views;
+using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Views.Season;
 
 namespace InfinityMercsApp.Views.Common;

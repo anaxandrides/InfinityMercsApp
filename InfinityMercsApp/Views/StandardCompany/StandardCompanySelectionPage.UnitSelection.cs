@@ -1,9 +1,6 @@
-using System.Collections.ObjectModel;
-using InfinityMercsApp.Domain.Utilities;
-using InfinityMercsApp.Services;
-using InfinityMercsApp.Views.Controls;
 using InfinityMercsApp.Views.Common;
-using TagGen = InfinityMercsApp.Infrastructure.Providers.TagCompanyFactionGenerator;
+using InfinityMercsApp.Views.Controls.UnitFilter;
+using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 
 namespace InfinityMercsApp.Views.StandardCompany;
 

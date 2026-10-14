@@ -1,9 +1,7 @@
-using System.Globalization;
-using System.Linq;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Domain.Models.Army.Stats;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
-using SkiaSharp.Views.Maui.Controls;
 
 namespace InfinityMercsApp.Views.Controls;
 

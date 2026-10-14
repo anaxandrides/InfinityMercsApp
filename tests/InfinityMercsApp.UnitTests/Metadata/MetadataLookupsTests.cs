@@ -1,5 +1,5 @@
 using InfinityMercsApp.Domain.Models.Metadata;
-using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Infrastructure.Providers.Metadata;
 using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.Metadata;

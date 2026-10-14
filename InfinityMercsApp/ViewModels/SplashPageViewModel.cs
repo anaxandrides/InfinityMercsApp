@@ -1,10 +1,9 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Messages;
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.Import;
+using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.Views;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace InfinityMercsApp.ViewModels;
 

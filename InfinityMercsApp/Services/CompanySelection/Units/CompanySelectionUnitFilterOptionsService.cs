@@ -1,7 +1,5 @@
-using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Domain.Models.Filtering;
-using InfinityMercsApp.Services;
-using InfinityMercsApp.Views.Controls;
+using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Views.Controls.UnitFilter;
 using MercsArmyListEntry = InfinityMercsApp.Domain.Models.Army.MercsArmyListEntry;
 
 namespace InfinityMercsApp.Views.Common;

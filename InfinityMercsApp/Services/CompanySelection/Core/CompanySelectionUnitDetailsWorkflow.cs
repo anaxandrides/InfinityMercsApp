@@ -1,4 +1,4 @@
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Views.Controls;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 

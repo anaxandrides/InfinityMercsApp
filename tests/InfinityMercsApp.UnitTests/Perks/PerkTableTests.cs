@@ -1,4 +1,6 @@
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Domain.Models.Perks.Catalog;
+using InfinityMercsApp.Domain.Models.Perks.Tables;
+using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels;
 using NSubstitute;
 

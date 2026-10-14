@@ -1,5 +1,5 @@
 using System.Windows.Input;
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.Season;
 
 namespace InfinityMercsApp.Views.Season;
 

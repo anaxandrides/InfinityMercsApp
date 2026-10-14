@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using InfinityMercsApp.Domain.Models.Perks;
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Domain.Models.Perks.Tables;
+using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 
 namespace InfinityMercsApp.ViewModels;

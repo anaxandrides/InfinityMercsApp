@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
-using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.Logos;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
 namespace InfinityMercsApp.Views.Common;

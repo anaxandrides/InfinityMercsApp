@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Models.Army;
+using InfinityMercsApp.Domain.Models.Army.SpecOps;
 
 namespace InfinityMercsApp.Infrastructure.Providers;
 

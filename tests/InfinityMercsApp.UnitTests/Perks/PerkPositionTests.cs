@@ -1,3 +1,5 @@
+using InfinityMercsApp.Domain.Models.Perks.Tables;
+
 namespace InfinityMercsApp.UnitTests.Perks;
 
 public sealed class PerkPositionTests
