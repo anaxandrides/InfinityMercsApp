@@ -3,12 +3,11 @@ namespace InfinityMercsApp.Domain.Models.Stores;
 public interface IStoreProvider
 {
     /// <summary>
-    /// Returns metadata tuples for all stores available to the given factions.
-    /// Neutral is always included. Each store's faction list is matched directly
-    /// against the supplied names (case-insensitive).
+    /// The stores available to the given factions. Stores tied to no faction are always included; otherwise a
+    /// store's faction list is matched against the supplied names (case-insensitive).
     /// </summary>
     /// <param name="factionNames">Faction names to match against store availability.</param>
-    Task<IReadOnlyList<(string Name, string? AssociatedType, string Alignment, IReadOnlyList<string> AssociatedFactions)>> GetAvailableStoresAsync(
+    Task<IReadOnlyList<Store>> GetAvailableStoresAsync(
         IReadOnlyList<string> factionNames,
         CancellationToken cancellationToken = default);
 

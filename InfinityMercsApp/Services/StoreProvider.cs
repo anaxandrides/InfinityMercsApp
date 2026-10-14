@@ -10,8 +10,8 @@ public sealed class StoreProvider : IStoreProvider
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             ["Base Market"]       = "Stores/store-neutral.json",
-            ["Medical Services"] = "Stores/store-medical-services.json",
-            ["Additional Recruitment"] = "Stores/store-additional-recruitment.json",
+            [ServiceStoreNames.MedicalServices] = "Stores/store-medical-services.json",
+            [ServiceStoreNames.AdditionalRecruitment] = "Stores/store-additional-recruitment.json",
             ["Number One"]       = "Stores/store-number-one.json",
             ["Jade Temu"]        = "Stores/store-jade-temu.json",
             ["Arachne Req"]      = "Stores/store-arachne-req.json",
@@ -36,13 +36,13 @@ public sealed class StoreProvider : IStoreProvider
     public IReadOnlyList<string> GetAllStoreNames() => StoreAssetPaths.Keys.ToList();
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<(string Name, string? AssociatedType, string Alignment, IReadOnlyList<string> AssociatedFactions)>> GetAvailableStoresAsync(
+    public async Task<IReadOnlyList<Store>> GetAvailableStoresAsync(
         IReadOnlyList<string> factionNames,
         CancellationToken cancellationToken = default)
     {
         var nameSet = new HashSet<string>(factionNames, StringComparer.OrdinalIgnoreCase);
 
-        var results = new List<(string Name, string? AssociatedType, string Alignment, IReadOnlyList<string> AssociatedFactions)>();
+        var results = new List<Store>();
         foreach (var storeName in StoreAssetPaths.Keys)
         {
             var store = await LoadStoreAsync(storeName, cancellationToken).ConfigureAwait(false);
@@ -53,7 +53,7 @@ public sealed class StoreProvider : IStoreProvider
             var matchesFaction = store.AssociatedFactions.Any(nameSet.Contains);
 
             if (isNeutral || matchesFaction)
-                results.Add((store.Name, store.AssociatedType, store.Alignment, store.AssociatedFactions));
+                results.Add(store);
         }
 
         return results;

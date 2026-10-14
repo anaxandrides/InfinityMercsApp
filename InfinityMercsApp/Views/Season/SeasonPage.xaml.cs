@@ -40,12 +40,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
     private readonly IStoreProvider? _storeProvider;
     private readonly IMetadataProvider? _metadataProvider;
     private readonly IAppSettingsProvider? _appSettingsProvider;
-    private static readonly HashSet<string> InventoryExcludedStores = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "Medical Services",
-        "Additional Recruitment"
-    };
-    private IReadOnlyList<(string Name, string? AssociatedType, string Alignment, IReadOnlyList<string> AssociatedFactions)> _availableStores = [];
+    private IReadOnlyList<Store> _availableStores = [];
     private readonly Dictionary<string, int> _inventoryCounts = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, (int CostCr, double CostSwc)> _inventoryItemCosts = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<Action<int, double>> _marketplaceRecolorActions = [];
@@ -76,20 +71,21 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         ["Ikari"]                        = null,
     };
 
-    private static string BuildStorePickerLabel(string name, string? associatedType, string alignment, IReadOnlyList<string> associatedFactions)
+    private static string BuildStorePickerLabel(Store store)
     {
-        if (string.Equals(name, "Medical Services", StringComparison.OrdinalIgnoreCase))
-            return "🩺 Medical Services";
+        var name = store.Name;
+        if (string.Equals(name, ServiceStoreNames.MedicalServices, StringComparison.OrdinalIgnoreCase))
+            return $"🩺 {ServiceStoreNames.MedicalServices}";
 
-        if (string.Equals(name, "Additional Recruitment", StringComparison.OrdinalIgnoreCase))
-            return "Additional Recruitment";
+        if (string.Equals(name, ServiceStoreNames.AdditionalRecruitment, StringComparison.OrdinalIgnoreCase))
+            return ServiceStoreNames.AdditionalRecruitment;
 
-        if (associatedFactions.Count == 0 && string.Equals(alignment, "Neutral", StringComparison.OrdinalIgnoreCase))
-            return $"{name} [Neutral]";
+        if (store.AssociatedFactions.Count == 0 && store.IsNeutral)
+            return $"{name} [{StoreAlignments.Neutral}]";
 
         var parts = new List<string>();
 
-        var abbrevs = associatedFactions
+        var abbrevs = store.AssociatedFactions
             .Select(f => FactionAbbreviations.TryGetValue(f, out var a) ? a : f)
             .Where(a => a is not null)
             .Cast<string>()
@@ -98,12 +94,11 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         if (abbrevs.Count > 0)
             parts.Add(string.Join("/", abbrevs));
 
-        if (!string.IsNullOrWhiteSpace(associatedType))
-            parts.Add(associatedType.Replace(", ", " | "));
+        if (!string.IsNullOrWhiteSpace(store.AssociatedType))
+            parts.Add(store.AssociatedType.Replace(", ", " | "));
 
-        if (!string.IsNullOrWhiteSpace(alignment) &&
-            !string.Equals(alignment, "Always Available", StringComparison.OrdinalIgnoreCase))
-            parts.Add(alignment);
+        if (!string.IsNullOrWhiteSpace(store.Alignment) && !store.IsAlwaysAvailable)
+            parts.Add(store.Alignment);
 
         return parts.Count > 0 ? $"{name} [{string.Join(", ", parts)}]" : name;
     }
@@ -1217,7 +1212,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
             }
 
             var storeName = NormalizeInventoryStoreName(transaction.OriginStore);
-            if (InventoryExcludedStores.Contains(storeName)) return;
+            if (ServiceStoreNames.Contains(storeName)) return;
 
             var storeKey = MakeInventoryCatalogKey(storeName, transaction.ItemName);
             if (!catalogByStoreAndName.TryGetValue(storeKey, out var catalogItem) &&
@@ -1286,7 +1281,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         foreach (var storeName in _storeProvider.GetAllStoreNames())
         {
             var normalizedStoreName = NormalizeInventoryStoreName(storeName);
-            if (InventoryExcludedStores.Contains(normalizedStoreName)) continue;
+            if (ServiceStoreNames.Contains(normalizedStoreName)) continue;
 
             var store = await _storeProvider.GetStoreByNameAsync(normalizedStoreName);
             if (store is null) continue;
@@ -1782,14 +1777,13 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         _availableStores = await _storeProvider.GetAvailableStoresAsync(factionNames.ToList());
 
         // Split "always at end" stores from regular stores.
-        var endStoreNames = new HashSet<string>(new[] { "Medical Services", "Additional Recruitment" }, StringComparer.OrdinalIgnoreCase);
-        var regularStores = _availableStores.Where(s => !endStoreNames.Contains(s.Name)).ToList();
-        var endStores     = _availableStores.Where(s => endStoreNames.Contains(s.Name))
-                                            .OrderBy(s => s.Name.Equals("Medical Services", StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+        var regularStores = _availableStores.Where(s => !s.IsServiceStore).ToList();
+        var endStores     = _availableStores.Where(s => s.IsServiceStore)
+                                            .OrderBy(s => s.Name.Equals(ServiceStoreNames.MedicalServices, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
                                             .ToList();
 
-        foreach (var (name, type, alignment, factions) in regularStores)
-            StoreSelectorPicker.Items.Add(BuildStorePickerLabel(name, type, alignment, factions));
+        foreach (var store in regularStores)
+            StoreSelectorPicker.Items.Add(BuildStorePickerLabel(store));
 
         // Append the latest round's temporary store as an extra entry (if any).
         var seasonFile = await SeasonFileService.LoadSeasonFileAsync(_seasonFilePath);
@@ -1812,8 +1806,8 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         }
 
         // Medical Services and Additional Recruitment always last.
-        foreach (var (name, type, alignment, factions) in endStores)
-            StoreSelectorPicker.Items.Add(BuildStorePickerLabel(name, type, alignment, factions));
+        foreach (var store in endStores)
+            StoreSelectorPicker.Items.Add(BuildStorePickerLabel(store));
 
         if (StoreSelectorPicker.Items.Count > 0)
             StoreSelectorPicker.SelectedIndex = 0;
@@ -1841,8 +1835,8 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         if (store is null) return;
 
         // Notoriety adjusts CR price for Lawful (+surcharge) and Chaotic (-discount) markets.
-        var isLawful  = string.Equals(store.Alignment, "Lawful",  StringComparison.OrdinalIgnoreCase);
-        var isChaotic = string.Equals(store.Alignment, "Chaotic", StringComparison.OrdinalIgnoreCase);
+        var isLawful  = store.IsLawful;
+        var isChaotic = store.IsChaotic;
         var notoriety = 0;
         var rawNotoriety = 0;
         if (isLawful || isChaotic)
@@ -2779,7 +2773,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         foreach (var storeName in _storeProvider.GetAllStoreNames())
         {
             var normalized = NormalizeInventoryStoreName(storeName);
-            if (InventoryExcludedStores.Contains(normalized)) continue;
+            if (ServiceStoreNames.Contains(normalized)) continue;
 
             var store = await _storeProvider.GetStoreByNameAsync(normalized);
             if (store is null) continue;
@@ -2829,7 +2823,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         void AddPurchased(string originStore, string itemName)
         {
             var storeName = NormalizeInventoryStoreName(originStore);
-            if (InventoryExcludedStores.Contains(storeName)) return;
+            if (ServiceStoreNames.Contains(storeName)) return;
             var key = MakeInventoryCatalogKey(storeName, itemName);
             if (!_inventoryItemCategories.TryGetValue(key, out var cat)) return;
             var normalized = NormalizeInventoryCategory(cat);
