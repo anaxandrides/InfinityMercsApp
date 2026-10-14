@@ -3,6 +3,14 @@ using InfinityMercsApp.Domain.Captain;
 
 namespace InfinityMercsApp.Domain.Lieutenants;
 
+/// <summary>A piece of display text, flagged when it is the word "Lieutenant" so screens can highlight it.</summary>
+public sealed record TextRun(string Text, bool IsLieutenant)
+{
+    public static TextRun Plain(string text) => new(text, false);
+
+    public static TextRun Lieutenant(string text) => new(text, true);
+}
+
 /// <summary>
 /// Rules for recognising, adding and counting lieutenants in the text-based profile data the company
 /// screens work with (skill names, skill lines, saved skill lists).
@@ -93,9 +101,9 @@ public static class LieutenantRules
     /// The text split into runs for display, each flagged when it is the word "Lieutenant" (any case),
     /// so screens can highlight it. Empty text gives no runs.
     /// </summary>
-    public static IReadOnlyList<(string Text, bool IsLieutenant)> HighlightRuns(string? text)
+    public static IReadOnlyList<TextRun> HighlightRuns(string? text)
     {
-        var runs = new List<(string, bool)>();
+        var runs = new List<TextRun>();
         if (string.IsNullOrEmpty(text))
         {
             return runs;
@@ -109,7 +117,7 @@ public static class LieutenantRules
             {
                 if (start < text.Length)
                 {
-                    runs.Add((text[start..], false));
+                    runs.Add(TextRun.Plain(text[start..]));
                 }
 
                 return runs;
@@ -117,10 +125,10 @@ public static class LieutenantRules
 
             if (index > start)
             {
-                runs.Add((text[start..index], false));
+                runs.Add(TextRun.Plain(text[start..index]));
             }
 
-            runs.Add((text.Substring(index, HighlightToken.Length), true));
+            runs.Add(TextRun.Lieutenant(text.Substring(index, HighlightToken.Length)));
             start = index + HighlightToken.Length;
         }
     }

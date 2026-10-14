@@ -1,11 +1,14 @@
-using InfinityMercsApp.Domain.Lieutenants;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Services;
 
 namespace InfinityMercsApp.ViewModels;
+
+/// <summary>A line of unit detail text and the wiki page it links to, if any.</summary>
+public sealed record LinkedText(string Text, string? Url);
 
 /// <summary>
 /// Text rules for the unit-detail display: summary lines, weapon splitting, wiki links for traits and
@@ -51,9 +54,9 @@ public static class UnitDetailText
     /// A configuration's skills, distinct and sorted. Common spec-ops skills are dropped, except that a
     /// lieutenant skill contributes what it adds (e.g. "+1 Order").
     /// </summary>
-    public static List<(int Id, string Name)> ConfigurationSkillEntries(IEnumerable<(int Id, string Name)> rawEntries)
+    public static List<NamedEntry> ConfigurationSkillEntries(IEnumerable<NamedEntry> rawEntries)
     {
-        var normalized = new List<(int Id, string Name)>();
+        var normalized = new List<NamedEntry>();
         foreach (var entry in rawEntries)
         {
             if (string.IsNullOrWhiteSpace(entry.Name))
@@ -64,13 +67,14 @@ public static class UnitDetailText
             var skillName = entry.Name.Trim();
             if (!LieutenantRules.IsCommonSpecOpsSkill(skillName))
             {
-                normalized.Add((entry.Id, skillName));
+                normalized.Add(entry with { Name = skillName });
                 continue;
             }
 
+            // What the lieutenant skill adds has no wiki entry of its own, so it carries no id.
             if (LieutenantRules.SkillDetail(skillName) is { Length: > 0 } detail)
             {
-                normalized.Add((0, detail));
+                normalized.Add(new NamedEntry(0, detail));
             }
         }
 
@@ -82,11 +86,11 @@ public static class UnitDetailText
     }
 
     /// <summary>Entries paired with their wiki links, merging repeats and keeping the first link found.</summary>
-    public static List<(string Text, string? Url)> LinkedLines(
-        IEnumerable<(int Id, string Name)> entries,
+    public static List<LinkedText> LinkedLines(
+        IEnumerable<NamedEntry> entries,
         IReadOnlyDictionary<int, string> links)
     {
-        var result = new List<(string Text, string? Url)>();
+        var result = new List<LinkedText>();
         foreach (var entry in entries)
         {
             if (string.IsNullOrWhiteSpace(entry.Name))
@@ -98,11 +102,11 @@ public static class UnitDetailText
             var existingIndex = result.FindIndex(x => string.Equals(x.Text, entry.Name, StringComparison.OrdinalIgnoreCase));
             if (existingIndex < 0)
             {
-                result.Add((entry.Name, url));
+                result.Add(new LinkedText(entry.Name, url));
             }
             else if (string.IsNullOrWhiteSpace(result[existingIndex].Url) && !string.IsNullOrWhiteSpace(url))
             {
-                result[existingIndex] = (result[existingIndex].Text, url);
+                result[existingIndex] = result[existingIndex] with { Url = url };
             }
         }
 

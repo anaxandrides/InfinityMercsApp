@@ -403,9 +403,7 @@ public partial class UnitDetailViewModel(
                 var equipmentEntries = entryNames.InApiOrder(profileGroups.GetEntriesWithIncludes(option, ProfileEntryKind.Equip), _equipmentLookup).ToList();
                 var skillEntries = UnitDetailText.ConfigurationSkillEntries(
                     entryNames.InApiOrder(profileGroups.GetEntriesWithIncludes(option, ProfileEntryKind.Skills), _skillsLookup));
-                var peripheralEntries = entryNames.CountedWithIds(profileGroups.GetDisplayPeripheralEntries(group, option), peripheralLookup)
-                    .Select(x => (x.Id, x.Name))
-                    .ToList();
+                var peripheralEntries = entryNames.CountedWithIds(profileGroups.GetDisplayPeripheralEntries(group, option), peripheralLookup);
 
                 var rangedWeapons = UnitDetailText.JoinOrDash(rangedEntries.Select(x => x.Name));
                 var meleeWeapons = UnitDetailText.JoinOrDash(meleeEntries.Select(x => x.Name));

@@ -1124,9 +1124,9 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     private static FormattedString BuildLieutenantHighlightedFormattedText(string text, Color defaultColor)
     {
         var formatted = new FormattedString();
-        foreach (var (run, isLieutenant) in LieutenantRules.HighlightRuns(text))
+        foreach (var run in LieutenantRules.HighlightRuns(text))
         {
-            formatted.Spans.Add(new Span { Text = run, TextColor = isLieutenant ? LieutenantHighlightColor : defaultColor });
+            formatted.Spans.Add(new Span { Text = run.Text, TextColor = run.IsLieutenant ? LieutenantHighlightColor : defaultColor });
         }
 
         return formatted;

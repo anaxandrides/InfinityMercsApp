@@ -138,7 +138,7 @@ public sealed class ViewerRulesEquivalenceTests
         Assert.True(mismatches.Count == 0, string.Join(Environment.NewLine, mismatches));
     }
 
-    private static void Compare(List<string> mismatches, CorpusUnit unit, string what, List<(int Id, string Name)> legacy, List<(int Id, string Name)> actual)
+    private static void Compare(List<string> mismatches, CorpusUnit unit, string what, List<(int Id, string Name)> legacy, List<NamedEntry> actual)
     {
         Compare(mismatches, unit, what,
             string.Join(" | ", legacy.Select(x => $"{x.Id}:{x.Name}")),

@@ -1,5 +1,6 @@
-using InfinityMercsApp.Domain.Lieutenants;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Lieutenants;
+using InfinityMercsApp.ViewModels;
 
 namespace InfinityMercsApp.Services;
 
@@ -119,7 +120,7 @@ public static class CompanyProfileTextService
         formatted.Spans.Add(new Span
         {
             Text = name.Substring(match.Index, match.Length),
-            TextColor = Color.FromArgb("#C084FC")
+            TextColor = UnitDetailFormatting.LieutenantColor
         });
 
         var suffixStart = match.Index + match.Length;
@@ -157,7 +158,7 @@ public static class CompanyProfileTextService
             }
 
             var lineColor = highlightLieutenantPurple && LieutenantRules.Mentions(lines[i])
-                ? Color.FromArgb("#C084FC")
+                ? UnitDetailFormatting.LieutenantColor
                 : textColor;
             formatted.Spans.Add(new Span { Text = lines[i], TextColor = lineColor });
         }
@@ -199,7 +200,7 @@ public static class CompanyProfileTextService
             {
                 Text = list[i],
                 TextColor = highlightLieutenantPurple && LieutenantRules.Mentions(list[i])
-                    ? Color.FromArgb("#C084FC")
+                    ? UnitDetailFormatting.LieutenantColor
                     : accentColor
             });
         }
@@ -311,9 +312,9 @@ public static class CompanyProfileTextService
     /// </summary>
     private static void AppendWithLieutenantHighlight(FormattedString formatted, string text, Color defaultColor)
     {
-        foreach (var (run, isLieutenant) in LieutenantRules.HighlightRuns(text))
+        foreach (var run in LieutenantRules.HighlightRuns(text))
         {
-            formatted.Spans.Add(new Span { Text = run, TextColor = isLieutenant ? Color.FromArgb("#C084FC") : defaultColor });
+            formatted.Spans.Add(new Span { Text = run.Text, TextColor = run.IsLieutenant ? UnitDetailFormatting.LieutenantColor : defaultColor });
         }
     }
 }

@@ -31,9 +31,19 @@ public sealed class UnitDetailTextTests
     public void ConfigurationSkillsKeepWhatALieutenantSkillAdds()
     {
         var entries = UnitDetailText.ConfigurationSkillEntries(
-            [(1, "Sniper"), (2, "Lieutenant (+1 Order)"), (3, "Lieutenant"), (4, "sniper"), (5, " ")]);
+            [new(1, "Sniper"), new(2, "Lieutenant (+1 Order)"), new(3, "Lieutenant"), new(4, "sniper"), new(5, " ")]);
 
-        Assert.Equal([(0, "+1 Order"), (1, "Sniper")], entries);
+        Assert.Equal([new NamedEntry(0, "+1 Order"), new NamedEntry(1, "Sniper")], entries);
+    }
+
+    [Fact]
+    public void LinkedLinesMergeRepeatsAndKeepTheFirstLinkFound()
+    {
+        var links = new Dictionary<int, string> { [2] = "wiki/mimetism" };
+
+        var lines = UnitDetailText.LinkedLines([new(1, "Mimetism"), new(2, "mimetism"), new(3, "Hacker"), new(4, " ")], links);
+
+        Assert.Equal([new LinkedText("Mimetism", "wiki/mimetism"), new LinkedText("Hacker", null)], lines);
     }
 
     [Fact]

@@ -4,6 +4,9 @@ using InfinityMercsApp.Domain.Models.Filtering;
 
 namespace InfinityMercsApp.Domain.Models.Army.Profiles;
 
+/// <summary>A looked-up entry name with the id it came from (used to find its wiki link).</summary>
+public sealed record NamedEntry(int Id, string Name);
+
 /// <summary>
 /// Converts a distance such as <c>"+5cm"</c>, <c>"10"</c> or <c>"4\""</c> to the display unit.
 /// </summary>
@@ -200,20 +203,14 @@ public sealed class ProfileEntryNames
     /// <summary>
     /// Display names with their ids in API order (entries without an order last, then by name). Not de-duplicated.
     /// </summary>
-    public List<(int Id, string Name)> InApiOrder(IEnumerable<ProfileEntry> entries, IReadOnlyDictionary<int, string> lookup) =>
-        entries
-            .Where(entry => entry.Id.HasValue)
-            .Select(entry => (entry.SortOrder, Id: entry.Id!.Value, Name: DisplayName(entry, lookup)!))
-            .OrderBy(x => x.SortOrder)
-            .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
-            .Select(x => (x.Id, x.Name))
-            .ToList();
+    public List<NamedEntry> InApiOrder(IEnumerable<ProfileEntry> entries, IReadOnlyDictionary<int, string> lookup) =>
+        InApiOrder(entries, entry => DisplayName(entry, lookup)!);
 
     /// <summary>
     /// Display names with summed quantities (e.g. <c>"Drone (2)"</c>) and the id of the first entry of each,
     /// sorted alphabetically.
     /// </summary>
-    public List<(int Id, string Name)> CountedWithIds(IEnumerable<ProfileEntry> entries, IReadOnlyDictionary<int, string> lookup)
+    public List<NamedEntry> CountedWithIds(IEnumerable<ProfileEntry> entries, IReadOnlyDictionary<int, string> lookup)
     {
         var counts = new Dictionary<string, (int Id, int Count)>(StringComparer.OrdinalIgnoreCase);
         foreach (var entry in entries)
@@ -230,20 +227,24 @@ public sealed class ProfileEntryNames
 
         return counts
             .OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
-            .Select(x => (x.Value.Id, $"{x.Key} ({x.Value.Count})"))
+            .Select(x => new NamedEntry(x.Value.Id, $"{x.Key} ({x.Value.Count})"))
             .ToList();
     }
 
     /// <summary>
     /// Plain looked-up names (the id itself when unknown, no extras) with their ids, in API order.
     /// </summary>
-    public static List<(int Id, string Name)> PlainNamesInApiOrder(IEnumerable<ProfileEntry> entries, IReadOnlyDictionary<int, string> lookup) =>
+    public static List<NamedEntry> PlainNamesInApiOrder(IEnumerable<ProfileEntry> entries, IReadOnlyDictionary<int, string> lookup) =>
+        InApiOrder(entries, entry => lookup.TryGetValue(entry.Id!.Value, out var name) ? name : entry.Id!.Value.ToString());
+
+    // Entries with an id, by API order and then by name (entries without an order sort last).
+    private static List<NamedEntry> InApiOrder(IEnumerable<ProfileEntry> entries, Func<ProfileEntry, string> nameOf) =>
         entries
             .Where(entry => entry.Id.HasValue)
-            .Select(entry => (entry.SortOrder, Id: entry.Id!.Value, Name: lookup.TryGetValue(entry.Id!.Value, out var name) ? name : entry.Id!.Value.ToString()))
+            .Select(entry => new { entry.SortOrder, Entry = new NamedEntry(entry.Id!.Value, nameOf(entry)) })
             .OrderBy(x => x.SortOrder)
-            .ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
-            .Select(x => (x.Id, x.Name))
+            .ThenBy(x => x.Entry.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(x => x.Entry)
             .ToList();
 
     private string FormatExtra(ExtraDefinition definition) =>
@@ -274,7 +275,7 @@ public static class ViewerOptionNames
         var details = new List<string>();
         var normalizedBase = baseName.ToLowerInvariant();
 
-        foreach (var (_, skillName) in ProfileEntryNames.PlainNamesInApiOrder(option.Skills, skillNames))
+        foreach (var skillName in ProfileEntryNames.PlainNamesInApiOrder(option.Skills, skillNames).Select(entry => entry.Name))
         {
             if (IsDetailTag(skillName) && !normalizedBase.Contains(skillName.ToLowerInvariant()))
             {
@@ -282,7 +283,7 @@ public static class ViewerOptionNames
             }
         }
 
-        foreach (var (_, equipName) in ProfileEntryNames.PlainNamesInApiOrder(option.Equip, equipNames))
+        foreach (var equipName in ProfileEntryNames.PlainNamesInApiOrder(option.Equip, equipNames).Select(entry => entry.Name))
         {
             if (IsDetailTag(equipName) && !normalizedBase.Contains(equipName.ToLowerInvariant()))
             {
@@ -344,7 +345,7 @@ public static class ViewerOptionNames
 
     private static void AddPlainNames(IEnumerable<ProfileEntry> entries, IReadOnlyDictionary<int, string> lookup, ISet<string> target)
     {
-        foreach (var (_, name) in ProfileEntryNames.PlainNamesInApiOrder(entries, lookup))
+        foreach (var name in ProfileEntryNames.PlainNamesInApiOrder(entries, lookup).Select(entry => entry.Name))
         {
             if (!string.IsNullOrWhiteSpace(name))
             {

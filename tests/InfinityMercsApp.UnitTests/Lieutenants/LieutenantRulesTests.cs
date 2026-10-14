@@ -67,10 +67,10 @@ public sealed class LieutenantRulesTests
     [Fact]
     public void HighlightRuns_SplitOutEveryLieutenant()
     {
-        Assert.Equal<(string, bool)>(
-            [("Lieutenant", true), (", ", false), ("LIEUTENANT", true), (" (+1)", false)],
+        Assert.Equal(
+            [TextRun.Lieutenant("Lieutenant"), TextRun.Plain(", "), TextRun.Lieutenant("LIEUTENANT"), TextRun.Plain(" (+1)")],
             LieutenantRules.HighlightRuns("Lieutenant, LIEUTENANT (+1)"));
-        Assert.Equal<(string, bool)>([("Courage", false)], LieutenantRules.HighlightRuns("Courage"));
+        Assert.Equal([TextRun.Plain("Courage")], LieutenantRules.HighlightRuns("Courage"));
         Assert.Empty(LieutenantRules.HighlightRuns(""));
     }
 

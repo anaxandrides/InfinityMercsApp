@@ -12,7 +12,8 @@ public static class UnitDetailFormatting
     public static readonly Color RangedColor = Color.FromArgb("#EF4444");
     public static readonly Color MeleeColor = Color.FromArgb("#22C55E");
     public static readonly Color PeripheralColor = Color.FromArgb("#FACC15");
-    private static readonly Color LieutenantColor = Color.FromArgb("#C084FC");
+    /// <summary>The purple the word "Lieutenant" is highlighted in on unit details.</summary>
+    internal static readonly Color LieutenantColor = Color.FromArgb("#C084FC");
 
     /// <summary>"Label: a, b" in <paramref name="textColor"/>, each value linked when the lookup knows it.</summary>
     public static FormattedString NamedSummary(
@@ -45,7 +46,7 @@ public static class UnitDetailFormatting
     }
 
     /// <summary>One entry per line, or "-".</summary>
-    public static FormattedString Lines(IEnumerable<(string Text, string? Url)> lines, Color textColor)
+    public static FormattedString Lines(IEnumerable<LinkedText> lines, Color textColor)
     {
         var formatted = new FormattedString();
         var list = lines.ToList();
@@ -77,9 +78,9 @@ public static class UnitDetailFormatting
             return formatted;
         }
 
-        foreach (var (run, isLieutenant) in LieutenantRules.HighlightRuns(name))
+        foreach (var run in LieutenantRules.HighlightRuns(name))
         {
-            formatted.Spans.Add(isLieutenant ? new Span { Text = run, TextColor = LieutenantColor } : new Span { Text = run });
+            formatted.Spans.Add(run.IsLieutenant ? new Span { Text = run.Text, TextColor = LieutenantColor } : new Span { Text = run.Text });
         }
 
         return formatted;
@@ -87,9 +88,9 @@ public static class UnitDetailFormatting
 
     private static void AppendHighlighted(FormattedString formatted, string text, Color defaultColor, string? link)
     {
-        foreach (var (run, isLieutenant) in LieutenantRules.HighlightRuns(text))
+        foreach (var run in LieutenantRules.HighlightRuns(text))
         {
-            var span = new Span { Text = run, TextColor = isLieutenant ? LieutenantColor : defaultColor };
+            var span = new Span { Text = run.Text, TextColor = run.IsLieutenant ? LieutenantColor : defaultColor };
             if (!string.IsNullOrWhiteSpace(link))
             {
                 var tap = new TapGestureRecognizer();
