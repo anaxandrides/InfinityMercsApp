@@ -1,3 +1,4 @@
+using CommunityToolkit.Maui;
 using InfinityMercsApp.Infrastructure;
 using InfinityMercsApp.Infrastructure.Options;
 using InfinityMercsApp.Services;
@@ -11,11 +12,14 @@ namespace InfinityMercsApp;
 
 public static class MauiProgram
 {
+	// The plain net10.0 target exists only so the unit tests can reference the app; it never runs MauiProgram.
+#pragma warning disable CA1416
 	public static MauiApp CreateMauiApp()
 	{
 		var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
+			.UseMauiCommunityToolkit()
 			.UseSkiaSharp()
 			.ConfigureFonts(fonts =>
 			{
@@ -43,4 +47,5 @@ public static class MauiProgram
 
 		return builder.Build();
 	}
+#pragma warning restore CA1416
 }

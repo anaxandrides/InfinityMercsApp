@@ -42,8 +42,15 @@ public abstract class AdaptiveContentPage : ContentPage
             OnPropertyChanged(nameof(IsMediumOrWider));
             OnPropertyChanged(nameof(IsExpandedOrWider));
             OnLayoutModeChanged(value);
+            LayoutModeChanged?.Invoke(this, EventArgs.Empty);
         }
     }
+
+    /// <summary>
+    /// Raised after <see cref="LayoutMode"/> changes, so a ViewModel can lay itself out through an
+    /// <c>EventToCommandBehavior</c> whose parameter is bound to <see cref="LayoutMode"/>.
+    /// </summary>
+    public event EventHandler? LayoutModeChanged;
 
     public bool IsCompact => _layoutMode == AdaptiveLayoutMode.Compact;
     public bool IsMedium => _layoutMode == AdaptiveLayoutMode.Medium;

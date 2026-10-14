@@ -3,6 +3,8 @@ using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.Base;
+using InfinityMercsApp.Views.Adaptive;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
@@ -396,5 +398,66 @@ public sealed class MarketplacesViewModelTests
         await viewModel.OpenLinkCommand.ExecuteAsync("https://wiki/mimetism");
 
         await _launcher.Received(1).OpenAsync(Arg.Any<Uri>());
+    }
+
+    [Fact]
+    public void StartsStackedForAPhone()
+    {
+        var viewModel = CreateViewModel();
+
+        Assert.Equal("*", viewModel.ContentColumns);
+        Assert.Equal("Auto,*", viewModel.ContentRows);
+        Assert.Equal(new GridCell(1, 0), viewModel.SectionsCell);
+        Assert.Equal(new GridCell(0, 0, RowSpan: 2), viewModel.PlaceholderCell);
+        Assert.Equal("Auto,Auto,Auto", viewModel.SectionsRows);
+        Assert.Equal(new GridCell(2, 0), viewModel.AugmentsCell);
+        Assert.False(viewModel.ShowQuantityControls);
+    }
+
+    [Fact]
+    public void MediumStacksTheStoreInfoButSplitsTheSections()
+    {
+        var viewModel = CreateViewModel();
+
+        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Medium);
+
+        Assert.Equal("Auto,*", viewModel.ContentRows);
+        Assert.Equal("*,*", viewModel.SectionsColumns);
+        Assert.Equal(new GridCell(0, 0, RowSpan: 2), viewModel.ItemsCell);
+        Assert.Equal(new GridCell(0, 1), viewModel.TroopTypesCell);
+        Assert.Equal(new GridCell(1, 1), viewModel.AugmentsCell);
+    }
+
+    [Fact]
+    public void ExpandedPutsTheStoreInfoInARail()
+    {
+        var viewModel = CreateViewModel();
+
+        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Expanded);
+
+        Assert.Equal("280,*", viewModel.ContentColumns);
+        Assert.Equal("*", viewModel.ContentRows);
+        Assert.Equal(12, viewModel.ContentColumnSpacing);
+        Assert.Equal(0, viewModel.ContentRowSpacing);
+        Assert.Equal(new GridCell(0, 1), viewModel.SectionsCell);
+        Assert.Equal(new GridCell(0, 0, ColumnSpan: 2), viewModel.PlaceholderCell);
+        Assert.False(viewModel.ShowQuantityControls);
+    }
+
+    [Fact]
+    public void WideAddsTheCartRailAndBuying()
+    {
+        var viewModel = CreateViewModel();
+
+        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Wide);
+
+        Assert.Equal("280,*,320", viewModel.ContentColumns);
+        Assert.Equal(new GridCell(0, 2), viewModel.CartCell);
+        Assert.Equal(new GridCell(0, 0, ColumnSpan: 3), viewModel.PlaceholderCell);
+        Assert.True(viewModel.ShowQuantityControls);
+
+        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Compact);
+        Assert.False(viewModel.ShowQuantityControls);
+        Assert.Equal(new GridCell(1, 0), viewModel.SectionsCell);
     }
 }
