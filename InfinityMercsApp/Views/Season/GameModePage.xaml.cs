@@ -1,5 +1,4 @@
 using InfinityMercsApp.Domain.Captain;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Perks;
@@ -20,13 +19,6 @@ namespace InfinityMercsApp.Views.Season;
 
 public partial class GameModePage : ContentPage, IQueryAttributable
 {
-    private const int TagCompanyFactionId = 2003;
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
-
     private static readonly SKColorFilter GreyFilter = SKColorFilter.CreateColorMatrix(
     [
         0.21f, 0.72f, 0.07f, 0, 0,
@@ -35,8 +27,6 @@ public partial class GameModePage : ContentPage, IQueryAttributable
         0,     0,     0,     1, 0
     ]);
 
-    private readonly IArmyDataService? _armyDataService;
-    private readonly FactionLogoCacheService? _factionLogoCacheService;
     private readonly IAppSettingsProvider? _appSettingsProvider;
     private readonly IMetadataProvider? _metadataProvider;
     private string _companyFilePath = string.Empty;
@@ -72,18 +62,17 @@ public partial class GameModePage : ContentPage, IQueryAttributable
     private bool _isEliteDeployment;
 
     private readonly MissionDebrief _debrief;
+    private readonly DeploymentRoster _roster;
 
     public GameModePage(
         MissionDebrief debrief,
-        IArmyDataService? armyDataService = null,
-        FactionLogoCacheService? factionLogoCacheService = null,
+        DeploymentRoster roster,
         IAppSettingsProvider? appSettingsProvider = null,
         IMetadataProvider? metadataProvider = null)
     {
         InitializeComponent();
         _debrief = debrief;
-        _armyDataService = armyDataService;
-        _factionLogoCacheService = factionLogoCacheService;
+        _roster = roster;
         _appSettingsProvider = appSettingsProvider;
         _metadataProvider = metadataProvider;
     }
@@ -234,119 +223,18 @@ public partial class GameModePage : ContentPage, IQueryAttributable
 
         try
         {
-            var json = await File.ReadAllTextAsync(filePath);
-            var payload = JsonSerializer.Deserialize<SavedCompanyFile>(json, JsonOptions);
-            if (payload?.Entries is null) return;
-
-            var captainStats = payload.ImprovedCaptainStats ?? new SavedImprovedCaptainStats();
-            var captainWeaponChoices = captainStats.IsEnabled
-                ? CollectCaptainChoices(captainStats.WeaponChoice1, captainStats.WeaponChoice2, captainStats.WeaponChoice3)
-                : [];
-            var captainSkillChoices = captainStats.IsEnabled
-                ? CollectCaptainChoices(captainStats.SkillChoice1, captainStats.SkillChoice2, captainStats.SkillChoice3)
-                : [];
-            var captainEquipmentChoices = captainStats.IsEnabled
-                ? CollectCaptainChoices(captainStats.EquipmentChoice1, captainStats.EquipmentChoice2, captainStats.EquipmentChoice3)
-                : [];
-
-            var entries = payload.Entries
-                .Where(e => !e.IsPeripheralUnit)
-                .Where(e => _deployedEntryIndices is null || _deployedEntryIndices.Contains(e.EntryIndex))
-                .OrderByDescending(x => x.IsLieutenant)
-                .ThenBy(x => x.EntryIndex)
-                .ToList();
-
-            var seasonGear = await LoadSeasonGearAsync();
+            var units = await _roster.LoadAsync(filePath, _seasonFilePath, _showUnitsInInches, _deployedEntryIndices);
 
             int ltCount = 0, regCount = 0, irrCount = 0, impCount = 0;
 
-            foreach (var entry in entries)
+            foreach (var unit in units)
             {
-                var effectiveSourceFactionId = ResolveEffectiveSourceFactionId(entry);
-                var baseUnitName = string.IsNullOrWhiteSpace(entry.BaseUnitName) ? entry.Name : entry.BaseUnitName;
-                var displayName = string.IsNullOrWhiteSpace(entry.CustomName)
-                    ? baseUnitName
-                    : entry.CustomName.Trim();
+                if (unit.IsLieutenant) ltCount++;
+                if (unit.IsImpetuous) impCount++;
+                if (unit.IsIrregular) irrCount++;
+                if (!unit.IsIrregular) regCount++;
 
-                var skills = ResolveSavedSkills(effectiveSourceFactionId, entry);
-                var equipment = ResolveSavedEquipment(effectiveSourceFactionId, entry);
-                var (rangedWeapons, meleeWeapons) = ResolveSavedWeapons(effectiveSourceFactionId, entry);
-                var characteristics = ResolveSavedCharacteristics(effectiveSourceFactionId, entry);
-                var isIrregular = HasOrderKeyword(characteristics, "Irregular");
-                var isImpetuous = HasOrderKeyword(characteristics, "Impetuous");
-                var hasNwi = HasSkill(skills, "No Wound Incapacitation");
-                var hasRemotePresence = HasSkill(skills, "Remote Presence");
-                var startingVitality = Math.Max(1, int.TryParse(entry.CurrentVitaOrStr, out var svParsed) ? svParsed : 1);
-
-                if (entry.IsLieutenant) ltCount++;
-                if (isImpetuous) impCount++;
-                if (isIrregular) irrCount++;
-                if (!isIrregular) regCount++;
-
-                if (entry.IsLieutenant && captainStats.IsEnabled)
-                {
-                    rangedWeapons = AppendKeepingText(rangedWeapons,
-                        captainWeaponChoices.Where(w => !CompanyProfileTextService.IsMeleeWeaponName(w)).ToList());
-                    meleeWeapons = AppendKeepingText(meleeWeapons,
-                        captainWeaponChoices.Where(CompanyProfileTextService.IsMeleeWeaponName).ToList());
-                    skills = AppendKeepingText(skills, captainSkillChoices);
-                    equipment = AppendKeepingText(equipment, captainEquipmentChoices);
-                }
-
-                var logoFactionId = entry.LogoSourceFactionId > 0 ? entry.LogoSourceFactionId : entry.SourceFactionId;
-                var logoUnitId    = entry.LogoSourceUnitId   > 0 ? entry.LogoSourceUnitId   : entry.SourceUnitId;
-
-                var unitCc       = entry.CurrentCc;
-                var unitBs       = entry.CurrentBs;
-                var unitPh       = entry.CurrentPh;
-                var unitWip      = entry.CurrentWip;
-                var unitArm      = entry.CurrentArm;
-                var unitBts      = entry.CurrentBts;
-                var unitS        = entry.CurrentS;
-                var unitVitality = entry.CurrentVitaOrStr;
-
-                ApplySeasonGearToUnit(entry.EntryIndex, seasonGear,
-                    ref rangedWeapons, ref meleeWeapons, ref skills,
-                    ref unitCc, ref unitBs, ref unitPh, ref unitWip,
-                    ref unitArm, ref unitBts, ref unitS, ref unitVitality);
-
-                var unit = new DeploymentUnitItem
-                {
-                    EntryIndex = entry.EntryIndex,
-                    Name = displayName,
-                    BaseUnitDisplayName = BuildUnitBaseDisplayName(baseUnitName),
-                    IsLieutenant = entry.IsLieutenant,
-                    IsIrregular = isIrregular,
-                    IsImpetuous = isImpetuous,
-                    CaptainIconPackagedPath = entry.IsLieutenant
-                        ? "SVGCache/NonCBIcons/noun-captain-8115950.svg"
-                        : string.Empty,
-                    ExperienceIconPackagedPath = string.Empty,
-                    CachedLogoPath   = _factionLogoCacheService?.TryGetCachedUnitLogoPath(logoFactionId, logoUnitId),
-                    PackagedLogoPath = _factionLogoCacheService?.GetPackagedUnitLogoPath(logoFactionId, logoUnitId)
-                        ?? $"SVGCache/units/{logoFactionId}-{logoUnitId}.svg",
-                    UnitMov = SeasonDisplayUnitFormatter.FormatMoveValue(
-                        entry.CurrentMov, entry.CurrentMoveFirstCm, entry.CurrentMoveSecondCm, _showUnitsInInches),
-                    UnitCc       = unitCc,
-                    UnitBs       = unitBs,
-                    UnitPh       = unitPh,
-                    UnitWip      = unitWip,
-                    UnitArm      = unitArm,
-                    UnitBts      = unitBts,
-                    UnitVitality = unitVitality,
-                    UnitS        = unitS,
-                    Renown       = entry.Cost + entry.ExperiencePoints,
-                    VitalityHeader    = InferVitalityHeader(entry.UnitTypeCode),
-                    StartingVitality  = startingVitality,
-                    HasNwi            = hasNwi,
-                    HasRemotePresence = hasRemotePresence,
-                    Equipment     = SeasonDisplayUnitFormatter.ConvertExplicitDistances(equipment,     _showUnitsInInches),
-                    Skills        = SeasonDisplayUnitFormatter.ConvertExplicitDistances(skills,        _showUnitsInInches),
-                    RangedWeapons = SeasonDisplayUnitFormatter.ConvertExplicitDistances(rangedWeapons, _showUnitsInInches),
-                    MeleeWeapons  = SeasonDisplayUnitFormatter.ConvertExplicitDistances(meleeWeapons,  _showUnitsInInches)
-                };
-
-                _unitTracker.Add((unit, entry.IsLieutenant, isImpetuous, isIrregular));
+                _unitTracker.Add((unit, unit.IsLieutenant, unit.IsImpetuous, unit.IsIrregular));
                 AccordionStack.Children.Add(BuildAccordionRow(unit));
             }
 
@@ -501,7 +389,7 @@ public partial class GameModePage : ContentPage, IQueryAttributable
 
         // Tactical icon: shown to the left of the wound icon when this is an elite deployment.
         SKCanvasView? tacticalCanvas = null;
-        if (_isEliteDeployment && (!unit.IsLieutenant || HasSkill(unit.Skills, "Tactical Awareness")))
+        if (_isEliteDeployment && (!unit.IsLieutenant || DeploymentRoster.HasLine(unit.Skills, "Tactical Awareness")))
         {
             var isGrey = new bool[] { false };
             var tc = new SKCanvasView
@@ -1503,22 +1391,6 @@ public partial class GameModePage : ContentPage, IQueryAttributable
 
     // ── Resolution helpers ────────────────────────────────────────────────────
 
-    private string ResolveSavedCharacteristics(int sourceFactionId, SavedCompanyEntry entry)
-    {
-        var names = ResolveCodeNames(sourceFactionId, entry.CurrentCharacteristicCodes, "chars");
-        names.AddRange(entry.CustomCharacteristics ?? []);
-        return JoinOrDash(names);
-    }
-
-    private static bool HasOrderKeyword(string characteristics, string keyword) =>
-        characteristics
-            .Split(['\r', '\n', ','], StringSplitOptions.RemoveEmptyEntries)
-            .Any(s => s.Trim().Equals(keyword, StringComparison.OrdinalIgnoreCase));
-
-    private static bool HasSkill(string skills, string skillName) =>
-        skills.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-              .Any(s => s.Trim().Equals(skillName, StringComparison.OrdinalIgnoreCase));
-
     private SKPicture? GetWoundPicture(string stateKey) => stateKey switch
     {
         "Healthy"                              => _woundHealthyPicture,
@@ -1527,112 +1399,6 @@ public partial class GameModePage : ContentPage, IQueryAttributable
         "KnockedOut" or "KnockedOutBody2"      => _woundKoPicture,
         _                                      => _woundDeadPicture
     };
-
-    private string ResolveSavedSkills(int sourceFactionId, SavedCompanyEntry entry)
-    {
-        var names = ResolveCodeNames(sourceFactionId, entry.CurrentSkillCodes, "skills");
-        names.AddRange(entry.CustomSkills ?? []);
-        return JoinOrDash(names);
-    }
-
-    private string ResolveSavedEquipment(int sourceFactionId, SavedCompanyEntry entry)
-    {
-        var names = ResolveCodeNames(sourceFactionId, entry.CurrentEquipmentCodes, "equip");
-        names.AddRange(entry.CustomEquipment ?? []);
-        return JoinOrDash(names);
-    }
-
-    private (string Ranged, string Melee) ResolveSavedWeapons(int sourceFactionId, SavedCompanyEntry entry)
-    {
-        var weapons = ResolveCodeNames(sourceFactionId, entry.CurrentWeaponCodes, "weapons")
-            .Where(x => !string.IsNullOrWhiteSpace(x) && x.Trim() != "-")
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        weapons.AddRange((entry.CustomWeapons ?? [])
-            .Where(x => !string.IsNullOrWhiteSpace(x) && x.Trim() != "-"));
-        weapons = weapons.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-
-        if (weapons.Count == 0) return ("-", "-");
-        var ranged = weapons.Where(x => !CompanyProfileTextService.IsMeleeWeaponName(x)).ToList();
-        var melee  = weapons.Where(CompanyProfileTextService.IsMeleeWeaponName).ToList();
-        return (JoinOrDash(ranged), JoinOrDash(melee));
-    }
-
-    private List<string> ResolveCodeNames(int sourceFactionId, IEnumerable<CompanySavedCodeRef> codes, string section)
-    {
-        var list = (codes ?? []).Where(x => x is not null && x.Id > 0).ToList();
-        if (list.Count == 0) return [];
-
-        var snapshot = _armyDataService?.GetFactionSnapshot(sourceFactionId);
-        var lookup   = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, section);
-        var extras   = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "extras");
-        var resolved = new List<string>();
-
-        foreach (var code in list)
-        {
-            if (!lookup.TryGetValue(code.Id, out var name) || string.IsNullOrWhiteSpace(name)) continue;
-            var display = name.Trim();
-            var extraParts = (code.Extra ?? [])
-                .Distinct()
-                .Select(id => extras.TryGetValue(id, out var n) ? n?.Trim() : null)
-                .Where(n => !string.IsNullOrWhiteSpace(n))
-                .Cast<string>()
-                .ToList();
-            if (extraParts.Count > 0)
-                display = $"{display} ({string.Join(", ", extraParts)})";
-            resolved.Add(display);
-        }
-        return resolved;
-    }
-
-    private static string JoinOrDash(IEnumerable<string> values)
-    {
-        var lines = values
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Select(x => x.Trim())
-            .Where(x => x != "-")
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        return lines.Count == 0 ? "-" : string.Join(Environment.NewLine, lines);
-    }
-
-    private static IReadOnlyList<string> CollectCaptainChoices(params string[] choices) =>
-        choices.Select(NormalizeCaptainChoice)
-               .Where(x => !string.IsNullOrWhiteSpace(x))
-               .Distinct(StringComparer.OrdinalIgnoreCase)
-               .ToList();
-
-    private static string NormalizeCaptainChoice(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value) || value.Trim() == "-") return string.Empty;
-        return System.Text.RegularExpressions.Regex
-            .Replace(value.Trim(), @"^\s*\([-+]?\d+\)\s*-\s*", string.Empty).Trim();
-    }
-
-    private static int ResolveEffectiveSourceFactionId(SavedCompanyEntry entry)
-    {
-        if (entry.SourceFactionId == TagCompanyFactionId || entry.LogoSourceFactionId == TagCompanyFactionId)
-            return TagCompanyFactionId;
-        var base_ = entry.BaseUnitName ?? string.Empty;
-        if (base_.Contains("Repurposed Mining Equipment", StringComparison.OrdinalIgnoreCase) ||
-            base_.Contains("Turtlemek", StringComparison.OrdinalIgnoreCase))
-            return TagCompanyFactionId;
-        return entry.SourceFactionId;
-    }
-
-    private static string InferVitalityHeader(string? unitTypeCode)
-    {
-        var n = unitTypeCode?.Trim().ToUpperInvariant();
-        return n is "TAG" or "REM" or "PERIPHERAL" ? "STR" : "VITA";
-    }
-
-    private static string BuildUnitBaseDisplayName(string? name)
-    {
-        if (string.IsNullOrWhiteSpace(name)) return "Unit";
-        var s = System.Text.RegularExpressions.Regex.Replace(name, @"\s*\([^)]*\)\s*", " ").Trim();
-        s = System.Text.RegularExpressions.Regex.Replace(s, @"\s{2,}", " ").Trim();
-        return string.IsNullOrWhiteSpace(s) ? "Unit" : s;
-    }
 
     private static bool ContainsXVisor(string? text)
     {
@@ -1723,70 +1489,4 @@ public partial class GameModePage : ContentPage, IQueryAttributable
         }
         return 0;
     }
-
-    private async Task<Dictionary<int, List<InfinityMercsApp.Domain.Models.Season.SeasonUnitGear>>> LoadSeasonGearAsync()
-    {
-        var seasonFile = await InfinityMercsApp.Services.Season.SeasonFileService.LoadSeasonFileAsync(_seasonFilePath);
-        return seasonFile?.UnitGear ?? [];
-    }
-
-    private static void ApplySeasonGearToUnit(
-        int entryIndex,
-        Dictionary<int, List<InfinityMercsApp.Domain.Models.Season.SeasonUnitGear>> seasonGear,
-        ref string rangedWeapons, ref string meleeWeapons, ref string skills,
-        ref string unitCc, ref string unitBs, ref string unitPh, ref string unitWip,
-        ref string unitArm, ref string unitBts, ref string unitS, ref string unitVitality)
-    {
-        if (!seasonGear.TryGetValue(entryIndex, out var gearList)) return;
-
-        foreach (var gear in gearList)
-        {
-            if (string.IsNullOrWhiteSpace(gear.ItemName)) continue;
-            switch (gear.Slot)
-            {
-                case "Primary":
-                case "Secondary":
-                case "Sidearm":
-                case "Accessories":
-                    if (CompanyProfileTextService.IsMeleeWeaponName(gear.ItemName))
-                        meleeWeapons = AppendKeepingText(meleeWeapons, [gear.ItemName]);
-                    else
-                        rangedWeapons = AppendKeepingText(rangedWeapons, [gear.ItemName]);
-                    break;
-
-                case "Roles":
-                    skills = AppendKeepingText(skills, [gear.ItemName]);
-                    break;
-
-                case "Augments":
-                    var m = System.Text.RegularExpressions.Regex.Match(
-                        gear.ItemName.Trim(), @"^([A-Za-z]+)\s*=\s*(\d+)$");
-                    if (m.Success)
-                    {
-                        var val = m.Groups[2].Value;
-                        switch (m.Groups[1].Value.ToUpperInvariant())
-                        {
-                            case "CC":   unitCc       = val; break;
-                            case "BS":   unitBs       = val; break;
-                            case "PH":   unitPh       = val; break;
-                            case "WIP":  unitWip      = val; break;
-                            case "ARM":  unitArm      = val; break;
-                            case "BTS":  unitBts      = val; break;
-                            case "S":    unitS        = val; break;
-                            case "VITA": unitVitality = val; break;
-                            case "STR":  unitVitality = val; break;
-                        }
-                    }
-                    else
-                    {
-                        skills = AppendKeepingText(skills, [gear.ItemName]);
-                    }
-                    break;
-            }
-        }
-    }
-
-    // Adds items to a profile section; with nothing to add, the section's text is left as it is.
-    private static string AppendKeepingText(string? baseText, IReadOnlyList<string> additions) =>
-        ProfileText.AppendDistinct(baseText, additions, keepTextWhenNothingAdded: true);
 }

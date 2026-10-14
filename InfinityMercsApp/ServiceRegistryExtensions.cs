@@ -18,6 +18,7 @@ public static class ServiceRegistryExtensions
                 .AddTransient<LoadSeasonViewModel>()
                 .AddTransient<LoadCompanyViewModel>()
                 .AddTransient<PerksTablesViewModel>()
+                .AddTransient<PlayModeViewModel>()
                 .AddTransient<ExperienceViewModel>()
                 .AddTransient<InjuriesViewModel>()
                 .AddTransient<MercsGlossaryViewModel>()
@@ -80,6 +81,7 @@ public static class ServiceRegistryExtensions
                 .AddSingleton(_ => RecordPaths.ForAppData(FileSystem.Current.AppDataDirectory))
                 .AddSingleton<SeasonRecordCatalog>()
                 .AddSingleton<CompanyRecordCatalog>()
+                .AddSingleton<DeploymentRoster>()
                 .AddSingleton<MissionDebrief>()
                 .AddSingleton<IDice, Dice>()
                 .AddSingleton<IAppPackageFiles, AppPackageFiles>();
