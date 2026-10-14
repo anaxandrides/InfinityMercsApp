@@ -24,13 +24,14 @@ internal sealed class CompanyStartSaveRequest<TFaction, TEntry>
     public required IEnumerable<TFaction> Factions { get; init; }
     public required IArmyDataService ArmyDataService { get; init; }
     public required ISpecOpsProvider SpecOpsProvider { get; init; }
-    public required INavigation Navigation { get; init; }
+    /// <summary>Hosts the captain popup; only <see cref="CompanyStartSaveWorkflow.RunAsync{TFaction, TEntry}"/> needs it.</summary>
+    public INavigation? Navigation { get; init; }
     public required bool ShowUnitsInInches { get; init; }
     public required string SelectedStartSeasonPoints { get; init; }
     public required string SeasonPointsCapText { get; init; }
-    public required Func<int, string?> TryGetMetadataFactionName { get; init; }
-    public required Func<string, string, string, Task> DisplayAlertAsync { get; init; }
-    public required Func<string, Task> NavigateToCompanyViewerAsync { get; init; }
+    public Func<int, string?> TryGetMetadataFactionName { get; init; } = _ => null;
+    public Func<string, string, string, Task> DisplayAlertAsync { get; init; } = (_, _, _) => Task.CompletedTask;
+    public Func<string, Task> NavigateToCompanyViewerAsync { get; init; } = _ => Task.CompletedTask;
 }
 
 internal static class CompanyStartSaveWorkflow
@@ -48,6 +49,8 @@ internal static class CompanyStartSaveWorkflow
             return;
         }
 
+        var navigation = request.Navigation
+            ?? throw new InvalidOperationException("Starting a company needs a navigation host for the captain popup.");
         var sourceFactions = CompanyUnitDetailsShared.BuildUnitSourceFactions(
             request.ShowRightSelectionBox,
             request.LeftSlotFaction,
@@ -80,7 +83,7 @@ internal static class CompanyStartSaveWorkflow
             improvedCaptainStats = await CompanySpecOpsWorkflowService.ShowTagSpecOpsConfigurationAsync(
                 new CompanySpecOpsWorkflowRequest
                 {
-                    Navigation = request.Navigation,
+                    Navigation = navigation,
                     PreferredOtherFactionId = preferredOtherFactionId > 0 ? preferredOtherFactionId : null,
                     FallbackSourceFactionId = captainEntry.SourceFactionId,
                     FirstSourceFactionId = firstSourceFactionId,
@@ -108,7 +111,7 @@ internal static class CompanyStartSaveWorkflow
             improvedCaptainStats = await CompanyCaptainWorkflowService.ShowCaptainConfigurationAsync(
                 new CompanyCaptainWorkflowRequest
                 {
-                    Navigation = request.Navigation,
+                    Navigation = navigation,
                     FallbackSourceFactionId = captainEntry.SourceFactionId,
                     FirstSourceFactionId = firstSourceFactionId,
                     UnitName = captainEntry.Name,
@@ -133,68 +136,37 @@ internal static class CompanyStartSaveWorkflow
             return;
         }
 
-        var now = DateTimeOffset.UtcNow;
-        var companyName = request.CompanyName.Trim();
-        var safeFileName = Regex.Replace(companyName.ToLowerInvariant(), @"[^a-z0-9]+", "-").Trim('-');
+        var saveDir = Path.Combine(FileSystem.Current.AppDataDirectory, "MercenaryRecords");
+        var filePath = Path.Combine(saveDir, NextCompanyFileName(saveDir, request.CompanyName));
+        await WriteCompanyFileAsync(request, improvedCaptainStats, filePath);
+        await request.NavigateToCompanyViewerAsync(filePath);
+    }
+
+    /// <summary>The next free <c>{name}-{index:D4}.json</c> file name for a company in <paramref name="saveDir"/>.</summary>
+    internal static string NextCompanyFileName(string saveDir, string companyName)
+    {
+        var trimmedName = companyName.Trim();
+        var safeFileName = Regex.Replace(trimmedName.ToLowerInvariant(), @"[^a-z0-9]+", "-").Trim('-');
         if (string.IsNullOrWhiteSpace(safeFileName))
         {
             safeFileName = "company";
         }
 
-        var saveDir = Path.Combine(FileSystem.Current.AppDataDirectory, "MercenaryRecords");
         Directory.CreateDirectory(saveDir);
-        var companyIndex = CompanySelectionSharedUtilities.GetNextCompanyIndex(saveDir, companyName, safeFileName);
-        var fileName = $"{safeFileName}-{companyIndex:D4}.json";
-
-        var captainName = improvedCaptainStats.CaptainName;
-        var normalizedCaptainName = string.IsNullOrWhiteSpace(captainName) ? "Captain" : captainName.Trim();
-        var startSeasonPoints = int.TryParse(request.SelectedStartSeasonPoints, out var parsedStartSeasonPoints)
-            ? parsedStartSeasonPoints
-            : 0;
-        var payload = new
-        {
-            CompanyName = companyName,
-            CompanyType = request.CompanyType,
-            CompanyIdentifier = CompanySelectionSharedUtilities.ComputeCompanyIdentifier(fileName),
-            CompanyIndex = companyIndex,
-            CreatedUtc = now.ToString("O", CultureInfo.InvariantCulture),
-            StartSeasonPoints = startSeasonPoints,
-            PointsLimit = startSeasonPoints,
-            CurrentPoints = int.TryParse(request.SeasonPointsCapText, out var currentPoints) ? currentPoints : 0,
-            SourceFactions = sourceFactions
-                .Select(faction => new
-                {
-                    FactionId = faction.Id,
-                    FactionName = faction.Name
-                })
-                .ToList(),
-            Entries = BuildSerializedEntries(entries, normalizedCaptainName, improvedCaptainStats, request.ArmyDataService)
-        };
-
-        var filePath = Path.Combine(saveDir, fileName);
-        await File.WriteAllTextAsync(
-            filePath,
-            JsonSerializer.Serialize(payload, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            }));
-
-        await request.NavigateToCompanyViewerAsync(filePath);
+        var companyIndex = CompanySelectionSharedUtilities.GetNextCompanyIndex(saveDir, trimmedName, safeFileName);
+        return $"{safeFileName}-{companyIndex:D4}.json";
     }
 
-    internal static async Task<string> RunWithProvidedCaptainStatsAsync<TFaction, TEntry>(
+    /// <summary>Writes the company to <paramref name="filePath"/> with the captain stats already chosen.</summary>
+    internal static async Task WriteCompanyFileAsync<TFaction, TEntry>(
         CompanyStartSaveRequest<TFaction, TEntry> request,
         SavedImprovedCaptainStats improvedCaptainStats,
-        string? outputFilePath = null,
-        bool navigateToViewer = false)
+        string filePath)
         where TFaction : class, ICompanySourceFaction
         where TEntry : class, ICompanyMercsEntry
     {
         var entries = request.MercsCompanyEntries as IList<TEntry> ?? request.MercsCompanyEntries.ToList();
-        var factions = request.Factions as IList<TFaction> ?? request.Factions.ToList();
-        var captainEntry = entries.FirstOrDefault(x => x.IsLieutenant) ?? entries.FirstOrDefault();
-        if (captainEntry is null)
+        if (entries.Count == 0)
         {
             throw new InvalidOperationException("Add at least one unit before starting a company.");
         }
@@ -204,39 +176,13 @@ internal static class CompanyStartSaveWorkflow
             request.LeftSlotFaction,
             request.RightSlotFaction,
             faction => faction.Id);
-        var now = DateTimeOffset.UtcNow;
-        var companyName = request.CompanyName.Trim();
-        var safeFileName = Regex.Replace(companyName.ToLowerInvariant(), @"[^a-z0-9]+", "-").Trim('-');
-        if (string.IsNullOrWhiteSpace(safeFileName))
+        var outputDir = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrWhiteSpace(outputDir))
         {
-            safeFileName = "company";
+            Directory.CreateDirectory(outputDir);
         }
 
-        var saveDir = Path.Combine(FileSystem.Current.AppDataDirectory, "MercenaryRecords");
-        Directory.CreateDirectory(saveDir);
-
-        string filePath;
-        string fileName;
-        int companyIndex;
-        if (!string.IsNullOrWhiteSpace(outputFilePath))
-        {
-            filePath = outputFilePath;
-            var outputDir = Path.GetDirectoryName(outputFilePath);
-            if (!string.IsNullOrWhiteSpace(outputDir))
-            {
-                Directory.CreateDirectory(outputDir);
-            }
-
-            fileName = Path.GetFileName(outputFilePath);
-            companyIndex = ParseCompanyIndexFromFileName(outputFilePath);
-        }
-        else
-        {
-            companyIndex = CompanySelectionSharedUtilities.GetNextCompanyIndex(saveDir, companyName, safeFileName);
-            fileName = $"{safeFileName}-{companyIndex:D4}.json";
-            filePath = Path.Combine(saveDir, fileName);
-        }
-
+        var fileName = Path.GetFileName(filePath);
         var captainName = improvedCaptainStats.CaptainName;
         var normalizedCaptainName = string.IsNullOrWhiteSpace(captainName) ? "Captain" : captainName.Trim();
         var startSeasonPoints = int.TryParse(request.SelectedStartSeasonPoints, out var parsedStartSeasonPoints)
@@ -244,11 +190,11 @@ internal static class CompanyStartSaveWorkflow
             : 0;
         var payload = new
         {
-            CompanyName = companyName,
+            CompanyName = request.CompanyName.Trim(),
             CompanyType = request.CompanyType,
             CompanyIdentifier = CompanySelectionSharedUtilities.ComputeCompanyIdentifier(fileName),
-            CompanyIndex = companyIndex,
-            CreatedUtc = now.ToString("O", CultureInfo.InvariantCulture),
+            CompanyIndex = ParseCompanyIndexFromFileName(filePath),
+            CreatedUtc = DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture),
             StartSeasonPoints = startSeasonPoints,
             PointsLimit = startSeasonPoints,
             CurrentPoints = int.TryParse(request.SeasonPointsCapText, out var currentPoints) ? currentPoints : 0,
@@ -269,13 +215,6 @@ internal static class CompanyStartSaveWorkflow
                 WriteIndented = true,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             }));
-
-        if (navigateToViewer)
-        {
-            await request.NavigateToCompanyViewerAsync(filePath);
-        }
-
-        return filePath;
     }
 
     private static List<SerializedCompanyEntry> BuildSerializedEntries<TEntry>(

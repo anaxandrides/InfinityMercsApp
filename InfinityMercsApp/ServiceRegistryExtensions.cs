@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Services;
+using InfinityMercsApp.Services.Diagnostics;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views;
@@ -19,6 +20,7 @@ public static class ServiceRegistryExtensions
                 .AddTransient<LoadCompanyViewModel>()
                 .AddTransient<PerksTablesViewModel>()
                 .AddTransient<PlayModeViewModel>()
+                .AddTransient<DebugViewModel>()
                 .AddTransient<ExperienceViewModel>()
                 .AddTransient<InjuriesViewModel>()
                 .AddTransient<MercsGlossaryViewModel>()
@@ -82,6 +84,7 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<SeasonRecordCatalog>()
                 .AddSingleton<CompanyRecordCatalog>()
                 .AddSingleton<DeploymentRoster>()
+                .AddSingleton<TestCompanyReformer>()
                 .AddSingleton<MissionDebrief>()
                 .AddSingleton<IDice, Dice>()
                 .AddSingleton<IAppPackageFiles, AppPackageFiles>();
