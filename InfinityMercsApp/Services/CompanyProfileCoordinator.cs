@@ -131,11 +131,9 @@ internal sealed class CompanyProfileCoordinator
                         unit.GetEntriesWithIncludes(option, ProfileEntryKind.Chars),
                         request.CharsLookup)
                     .ToList();
-                var (hasRegular, hasIrregular, hasImpetuous, hasTacticalAwareness) = ReadOptionOrderTraits(option);
-                var (hasCube, hasCube2, hasHackable) = ReadOptionTechTraits(
-                    optionEquipmentNames,
-                    optionSkillNames,
-                    optionCharacteristicNames);
+                var (hasRegular, hasIrregular, hasImpetuous, hasTacticalAwareness) = UnitTraits.ReadOrderTraits(option);
+                var (hasCube, hasCube2, hasHackable) = UnitTraits.ReadTechTraits(
+                    optionEquipmentNames.Concat(optionSkillNames).Concat(optionCharacteristicNames));
                 EnsureCharacteristic(optionCharacteristicNames, hasRegular, "Regular");
                 EnsureCharacteristic(optionCharacteristicNames, hasIrregular, "Irregular");
                 EnsureCharacteristic(optionCharacteristicNames, hasImpetuous, "Impetuous");
@@ -374,115 +372,6 @@ internal sealed class CompanyProfileCoordinator
                value.Contains("lieutenant", StringComparison.OrdinalIgnoreCase) ||
                value.Contains("nco", StringComparison.OrdinalIgnoreCase) ||
                value.Contains("chain of command", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static (bool HasRegular, bool HasIrregular, bool HasImpetuous, bool HasTacticalAwareness) ReadOptionOrderTraits(ProfileOption option)
-    {
-        var hasRegular = false;
-        var hasIrregular = false;
-        var hasImpetuous = false;
-        var hasTacticalAwareness = false;
-
-        foreach (var order in option.Orders)
-        {
-            var type = order.Type;
-            if (string.IsNullOrWhiteSpace(type))
-            {
-                continue;
-            }
-
-            if (string.Equals(type, "REGULAR", StringComparison.OrdinalIgnoreCase))
-            {
-                hasRegular = true;
-            }
-            else if (string.Equals(type, "IRREGULAR", StringComparison.OrdinalIgnoreCase))
-            {
-                hasIrregular = true;
-            }
-            else if (string.Equals(type, "IMPETUOUS", StringComparison.OrdinalIgnoreCase))
-            {
-                hasImpetuous = true;
-            }
-            else if (string.Equals(type, "TACTICAL", StringComparison.OrdinalIgnoreCase))
-            {
-                hasTacticalAwareness = true;
-            }
-        }
-
-        return (hasRegular, hasIrregular, hasImpetuous, hasTacticalAwareness);
-    }
-
-    private static (bool HasCube, bool HasCube2, bool HasHackable) ReadOptionTechTraits(
-        IReadOnlyCollection<string> optionEquipmentNames,
-        IReadOnlyCollection<string> optionSkillNames,
-        IReadOnlyCollection<string> optionCharacteristicNames)
-    {
-        var hasCube = false;
-        var hasCube2 = false;
-        var hasHackable = false;
-
-        foreach (var name in optionEquipmentNames.Concat(optionSkillNames).Concat(optionCharacteristicNames))
-        {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                continue;
-            }
-
-            var normalized = NormalizeTokenText(name);
-            if (Regex.IsMatch(normalized, @"\bhackable\b", RegexOptions.IgnoreCase) ||
-                Regex.IsMatch(normalized, @"\bhacking\s*device\b", RegexOptions.IgnoreCase) ||
-                Regex.IsMatch(normalized, @"\bkiller\s*hacking\s*device\b", RegexOptions.IgnoreCase) ||
-                Regex.IsMatch(normalized, @"\bevo\s*hacking\s*device\b", RegexOptions.IgnoreCase) ||
-                Regex.IsMatch(normalized, @"\bhacking\s*device\s*plus\b|\bhd\s*\+\b", RegexOptions.IgnoreCase))
-            {
-                hasHackable = true;
-            }
-
-            var hasNegativeCube = Regex.IsMatch(
-                normalized,
-                @"\b(no[\s-]*cube|without[\s-]*cube|cube[\s-]*none)\b",
-                RegexOptions.IgnoreCase);
-            if (hasNegativeCube)
-            {
-                continue;
-            }
-
-            var isCube2 = Regex.IsMatch(
-                normalized,
-                @"\bcube\s*2(?:\.0)?\b|\bcube2(?:\.0)?\b",
-                RegexOptions.IgnoreCase);
-            if (isCube2)
-            {
-                hasCube2 = true;
-                continue;
-            }
-
-            if (Regex.IsMatch(normalized, @"\bcube\b", RegexOptions.IgnoreCase))
-            {
-                hasCube = true;
-            }
-        }
-
-        return (hasCube, hasCube2, hasHackable);
-    }
-
-    private static string NormalizeTokenText(string value)
-    {
-        var lowered = value.ToLowerInvariant();
-        var sb = new System.Text.StringBuilder(lowered.Length);
-        foreach (var c in lowered)
-        {
-            if (char.IsLetterOrDigit(c) || c == '.')
-            {
-                sb.Append(c);
-            }
-            else
-            {
-                sb.Append(' ');
-            }
-        }
-
-        return Regex.Replace(sb.ToString(), @"\s+", " ").Trim();
     }
 
     private static void EnsureCharacteristic(ICollection<string> characteristics, bool condition, string name)

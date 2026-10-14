@@ -153,7 +153,7 @@ public sealed class UnitDetailRulesEquivalenceTests
                 var first = groups.FindFirstVisiblePeripheral(lookups.Peripheral, lookups.Skills, forceLieutenant, lieutenantOnly);
                 Compare(mismatches, unit, $"first-peripheral[lt-only={lieutenantOnly}]",
                     legacyFirst is null ? "none" : $"{legacyFirst.PeripheralName}: {LegacyStatline(legacyFirst.PeripheralProfile)}",
-                    first is null ? "none" : $"{first.Value.Name}: {Statline(first.Value.Profile)}");
+                    first is null ? "none" : $"{first.Name}: {Statline(first.Profile)}");
             }
 
             if (mismatches.Count > 20)

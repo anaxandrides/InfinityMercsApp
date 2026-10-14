@@ -2,6 +2,12 @@ using System.Globalization;
 
 namespace InfinityMercsApp.Domain.Models.Army.Profiles;
 
+/// <summary>An option together with the profile group it belongs to.</summary>
+public sealed record GroupedOption(ProfileGroup Group, ProfileOption Option);
+
+/// <summary>A profile and the name it is shown under (e.g. a peripheral's name).</summary>
+public sealed record NamedProfile(string Name, UnitProfile Profile);
+
 /// <summary>
 /// Everything a unit's <c>profileGroups</c> payload describes, parsed once into typed data, plus the rules
 /// that need the whole unit to answer (options that include other options, controllers and their peripherals,
@@ -21,16 +27,8 @@ public sealed class UnitProfileGroups
     public bool IsEmpty => Groups.Count == 0;
 
     /// <summary>Every option of every group, with its group, in payload order.</summary>
-    public IEnumerable<(ProfileGroup Group, ProfileOption Option)> AllOptions()
-    {
-        foreach (var group in Groups)
-        {
-            foreach (var option in group.Options)
-            {
-                yield return (group, option);
-            }
-        }
-    }
+    public IEnumerable<GroupedOption> AllOptions() =>
+        Groups.SelectMany(group => group.Options.Select(option => new GroupedOption(group, option)));
 
     /// <summary>
     /// Finds an option by group and option id. When several groups share the id, the first group that
@@ -190,7 +188,7 @@ public sealed class UnitProfileGroups
     /// only when the unit has any, no positive SWC, and Lieutenant options only when the list is restricted
     /// to Lieutenants (unless the Lieutenant role is forced).
     /// </summary>
-    public (string Name, UnitProfile Profile)? FindFirstVisiblePeripheral(
+    public NamedProfile? FindFirstVisiblePeripheral(
         IReadOnlyDictionary<int, string> peripheralNames,
         IReadOnlyDictionary<int, string> skillNames,
         bool forceLieutenant,
@@ -228,7 +226,7 @@ public sealed class UnitProfileGroups
                         : peripheralId.ToString(CultureInfo.InvariantCulture);
                     if (FindPeripheralProfile(name) is { } profile)
                     {
-                        return (name, profile);
+                        return new NamedProfile(name, profile);
                     }
                 }
             }

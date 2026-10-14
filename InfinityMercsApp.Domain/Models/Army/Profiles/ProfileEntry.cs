@@ -40,5 +40,5 @@ public sealed record IncludeReference(int GroupId, int OptionId);
 /// </summary>
 public sealed record OrderEntry(string? Type, int? List, int? Total)
 {
-    public bool IsLieutenant => string.Equals(Type, "LIEUTENANT", StringComparison.OrdinalIgnoreCase);
+    public bool IsLieutenant => string.Equals(Type, OrderTypes.Lieutenant, StringComparison.OrdinalIgnoreCase);
 }
