@@ -1,7 +1,6 @@
 using DomainFaction = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using DomainArmyImportResume = InfinityMercsApp.Domain.Models.Army.ArmyImportResume;
 using DomainResume = InfinityMercsApp.Domain.Models.Army.Resume;
-using Microsoft.Maui.Storage;
 
 namespace InfinityMercsApp.Services;
 
@@ -329,32 +328,4 @@ public class FactionLogoCacheService
         Downloaded,
         NotAvailable
     }
-}
-
-public class LogoCacheResult
-{
-    public int TotalFactions { get; set; }
-
-    public int Downloaded { get; set; }
-
-    public int Failed { get; set; }
-
-    public int MissingLogoUrl { get; set; }
-
-    public int InvalidLogoUrl { get; set; }
-
-    public int CachedReuse { get; set; }
-}
-
-public class LogoCacheDebugInfo
-{
-    public int FactionId { get; set; }
-
-    public string? ExpectedLogoUrl { get; set; }
-
-    public string LocalPath { get; set; } = string.Empty;
-
-    public bool Exists { get; set; }
-
-    public long SizeBytes { get; set; }
 }

@@ -76,12 +76,3 @@ public sealed class PerkNode
             .FirstOrDefault(node => string.Equals(node.Id, id, StringComparison.OrdinalIgnoreCase));
     }
 }
-
-public sealed class PerkNodeList
-{
-    public string ListId { get; init; } = string.Empty;
-    public string ListName { get; init; } = string.Empty;
-    public bool IsRandomlyGenerated { get; init; }
-    public IReadOnlyList<CompanyPerkRollRange> ListRollRanges { get; init; } = [];
-    public IReadOnlyList<PerkNode> Roots { get; init; } = [];
-}

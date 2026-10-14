@@ -1,20 +1,8 @@
-using InfinityMercsApp.Domain.Utilities;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Controls;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
 namespace InfinityMercsApp.Views.Common;
-
-internal readonly record struct CompanyHeaderColors(Color Primary, Color Secondary, Color PrimaryText, Color SecondaryText);
-
-/// <summary>A faction's primary and secondary colours.</summary>
-internal sealed record FactionTheme(Color Primary, Color Secondary);
-
-/// <summary>The accent colours of the equipment and skills summaries.</summary>
-internal sealed record SummaryAccents(Color Equipment, Color Skills);
-
-/// <summary>A unit's formatted equipment and special-skills summaries.</summary>
-internal sealed record UnitSummaries(FormattedString Equipment, FormattedString Skills);
 
 internal static class CompanySelectionVisualThemeWorkflow
 {
@@ -199,5 +187,3 @@ internal static class CompanySelectionVisualThemeWorkflow
         };
     }
 }
-
-

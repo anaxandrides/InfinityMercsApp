@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
 
 namespace InfinityMercsApp.Views.Common;
 
@@ -119,14 +118,4 @@ public abstract class CompanySavedCompanyEntryBase
 
     [JsonPropertyName("Current S")]
     public string CurrentS { get; init; } = "-";
-}
-
-public sealed class CompanySavedCodeRef
-{
-    [JsonPropertyName("id")]
-    public int Id { get; init; }
-
-    [JsonPropertyName("extra")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<int>? Extra { get; init; }
 }

@@ -2,13 +2,9 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Lieutenants;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Services;
 
 namespace InfinityMercsApp.ViewModels;
-
-/// <summary>A line of unit detail text and the wiki page it links to, if any.</summary>
-public sealed record LinkedText(string Text, string? Url);
 
 /// <summary>
 /// Text rules for the unit-detail display: summary lines, weapon splitting, wiki links for traits and

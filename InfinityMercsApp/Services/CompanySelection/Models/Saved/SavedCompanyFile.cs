@@ -8,11 +8,3 @@ namespace InfinityMercsApp.Views.Common;
 public sealed class SavedCompanyFile : CompanySavedCompanyFileBase<SavedCompanyFaction, SavedCompanyEntry>
 {
 }
-
-public sealed class SavedCompanyFaction : CompanySavedCompanyFactionBase
-{
-}
-
-public sealed class SavedCompanyEntry : CompanySavedCompanyEntryBase
-{
-}

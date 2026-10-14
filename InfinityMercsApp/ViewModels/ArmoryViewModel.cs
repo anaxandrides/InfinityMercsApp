@@ -8,9 +8,6 @@ using InfinityMercsApp.ViewModels.Base;
 
 namespace InfinityMercsApp.ViewModels;
 
-/// <summary>A weapon and all of its firing modes.</summary>
-public sealed record WeaponGroup(string Name, IReadOnlyList<Weapon> Modes);
-
 /// <summary>Searchable list of weapons, each opening its profiles in a detail pane.</summary>
 public partial class ArmoryViewModel(
     INavigationService navigationService,

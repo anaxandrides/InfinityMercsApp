@@ -14,10 +14,3 @@ public class SeasonDowntimeEntry
     public string OtherEffects { get; set; } = string.Empty;
     public List<SeasonInventoryItem> WonItems { get; set; } = [];
 }
-
-public class SeasonInventoryItem
-{
-    public string Name { get; set; } = string.Empty;
-    public string Category { get; set; } = string.Empty;
-    public string Source { get; set; } = string.Empty;
-}

@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Services;
@@ -8,38 +7,6 @@ using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
 
 namespace InfinityMercsApp.ViewModels;
-
-/// <summary>One deployed trooper's XP card; exactly one trooper can be the MVP.</summary>
-public partial class ExperienceUnitItem(ExperienceUnitResult unit) : ObservableObject
-{
-    public ExperienceUnitResult Unit { get; } = unit;
-
-    public string Name => Unit.Name;
-
-    public string? LogoSource { get; } = UnitLogo.Source(unit.CachedLogoPath, unit.PackagedLogoPath);
-
-    public IReadOnlyList<XpLine> XpLines { get; } = MissionExperience.Lines(unit);
-
-    public int MvpXp => MissionExperience.MvpXp;
-
-    public string TotalText => $"Total: {Unit.TotalXp} XP";
-
-    public bool IsMvp
-    {
-        get => Unit.IsMvp;
-        set
-        {
-            if (Unit.IsMvp == value)
-            {
-                return;
-            }
-
-            Unit.IsMvp = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(TotalText));
-        }
-    }
-}
 
 /// <summary>
 /// Shows the XP each deployed trooper earned, lets the player pick the MVP, and records the XP on the

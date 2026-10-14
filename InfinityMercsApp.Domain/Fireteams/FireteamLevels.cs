@@ -2,12 +2,6 @@ using System.Text.RegularExpressions;
 
 namespace InfinityMercsApp.Domain.Fireteams;
 
-/// <summary>One allowed-profile slot of a tracked fireteam: its name, the unit it resolved to (if any) and its Max.</summary>
-public sealed record FireteamSlot(string? Name, int? UnitId, int? FactionId, string? Max);
-
-/// <summary>One trooper of the company, as matched against fireteam slots.</summary>
-public sealed record FireteamMember(string? BaseUnitName, string? Name, int UnitId, int FactionId);
-
 /// <summary>
 /// Fireteam level and irregular-trooper rules for a cohesive company: members claim the slots of the
 /// tracked fireteam, the number that fit is the level, and those that don't fit are irregular.

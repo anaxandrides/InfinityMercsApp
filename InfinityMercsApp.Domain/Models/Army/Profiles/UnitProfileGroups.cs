@@ -2,12 +2,6 @@ using System.Globalization;
 
 namespace InfinityMercsApp.Domain.Models.Army.Profiles;
 
-/// <summary>An option together with the profile group it belongs to.</summary>
-public sealed record GroupedOption(ProfileGroup Group, ProfileOption Option);
-
-/// <summary>A profile and the name it is shown under (e.g. a peripheral's name).</summary>
-public sealed record NamedProfile(string Name, UnitProfile Profile);
-
 /// <summary>
 /// Everything a unit's <c>profileGroups</c> payload describes, parsed once into typed data, plus the rules
 /// that need the whole unit to answer (options that include other options, controllers and their peripherals,

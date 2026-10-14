@@ -7,9 +7,6 @@ using InfinityMercsApp.Services;
 
 namespace InfinityMercsApp.ViewModels;
 
-/// <summary>A perk the chosen configuration qualifies for.</summary>
-public sealed record QualifiedPerkItem(string PerkText, string Meta, string Granted);
-
 /// <summary>
 /// The unit browser plus the perks a chosen configuration qualifies for, to check the perk rules.
 /// Choosing a unit selects its first configuration.

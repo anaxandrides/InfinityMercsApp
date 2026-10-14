@@ -16,12 +16,3 @@ public sealed class CompanyTrooperPerk
     [JsonPropertyName("maxRank")]
     public int MaxRank { get; init; } = 1;
 }
-
-public sealed class CompanyTrooperPerkState
-{
-    [JsonPropertyName("id")]
-    public string Id { get; init; } = string.Empty;
-
-    [JsonPropertyName("rank")]
-    public int Rank { get; init; } = 1;
-}

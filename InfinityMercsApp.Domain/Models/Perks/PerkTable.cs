@@ -1,15 +1,4 @@
-using System.Text.RegularExpressions;
-
 namespace InfinityMercsApp.Domain.Models.Perks;
-
-/// <summary>A perk list offered for display, labelled with the d20 range that selects it.</summary>
-public sealed record PerkTableOption(string ListName, string DisplayName);
-
-/// <summary>One track of a perk table: its roll label and the perk text in each tier column.</summary>
-public sealed record PerkTableTrack(int TrackNumber, string RollLabel, IReadOnlyList<string> TierTexts);
-
-/// <summary>A dependency within a track, from the tier that unlocks to the tier unlocked.</summary>
-public readonly record struct PerkTableLink(int Track, int FromTier, int ToTier);
 
 /// <summary>A perk list laid out as tracks (rows) by tiers (columns), with the dependencies between tiers.</summary>
 public sealed partial record PerkTable(int TierCount, IReadOnlyList<PerkTableTrack> Tracks, IReadOnlyList<PerkTableLink> Links)

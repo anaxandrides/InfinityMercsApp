@@ -1,14 +1,7 @@
 using System.Text.RegularExpressions;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Services;
 
 namespace InfinityMercsApp.Views.Common;
-
-/// <summary>
-/// Names turned into saved codes: <see cref="Codes"/> for every name found in the army filters, and
-/// <see cref="CustomNames"/> for names (or bracketed extras) that had no code and are kept as text.
-/// </summary>
-public sealed record CodedNames(List<CompanySavedCodeRef> Codes, List<string> CustomNames);
 
 /// <summary>
 /// The reverse of <see cref="SavedCodeNames"/>: finds the filter ids for display names such as

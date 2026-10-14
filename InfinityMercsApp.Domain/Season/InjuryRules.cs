@@ -1,11 +1,5 @@
 namespace InfinityMercsApp.Domain.Season;
 
-/// <summary>A row of the injury table: a d20 range and the injury it gives.</summary>
-public sealed record InjuryTableEntry(int Min, int Max, string Label)
-{
-    public override string ToString() => $"{Min}-{Max} | {Label}";
-}
-
 /// <summary>Rules for a trooper taken out during a game: avoiding injury and which injury it takes.</summary>
 public static class InjuryRules
 {

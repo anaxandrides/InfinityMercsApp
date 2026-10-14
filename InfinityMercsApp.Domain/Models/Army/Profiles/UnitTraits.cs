@@ -3,23 +3,6 @@ using System.Text.RegularExpressions;
 
 namespace InfinityMercsApp.Domain.Models.Army.Profiles;
 
-public readonly record struct UnitOrderTraits(bool HasRegular, bool HasIrregular, bool HasImpetuous, bool HasTacticalAwareness);
-
-public readonly record struct UnitTechTraits(bool HasCube, bool HasCube2, bool HasHackable);
-
-/// <summary>Order types as the API writes them on an option's orders.</summary>
-public static class OrderTypes
-{
-    public const string Regular = "REGULAR";
-    public const string Irregular = "IRREGULAR";
-    public const string Impetuous = "IMPETUOUS";
-
-    /// <summary>A tactical order: the trooper has Tactical Awareness.</summary>
-    public const string Tactical = "TACTICAL";
-
-    public const string Lieutenant = "LIEUTENANT";
-}
-
 /// <summary>
 /// Unit-wide badges shown next to a unit: its order types and its Cube/Hackable traits.
 /// </summary>

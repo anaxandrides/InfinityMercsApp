@@ -4,12 +4,6 @@ using InfinityMercsApp.Infrastructure.Models.Database.Army;
 
 namespace InfinityMercsApp.Infrastructure.Data;
 
-/// <summary>The typed content of one army: its filter catalogue, unit relations and fireteam chart.</summary>
-public sealed record ArmyContent(ArmyFilterCatalog Filters, IReadOnlyList<ArmyRelation> Relations, FireteamChart FireteamChart)
-{
-    public static ArmyContent Empty { get; } = new(ArmyFilterCatalog.Empty, [], FireteamChart.Empty);
-}
-
 /// <summary>
 /// The rows of the army content tables, and the mapping between them and <see cref="ArmyContent"/>.
 /// </summary>

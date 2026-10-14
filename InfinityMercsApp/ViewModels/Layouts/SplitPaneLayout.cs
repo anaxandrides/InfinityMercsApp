@@ -2,9 +2,6 @@ using InfinityMercsApp.ViewModels.Base;
 
 namespace InfinityMercsApp.ViewModels;
 
-/// <summary>A list pane's width at each split width, and the widest the detail content should read on wide screens.</summary>
-public sealed record SplitPaneSizes(double MediumListWidth, double ExpandedListWidth, double WideListWidth, double WideReadingWidth);
-
 /// <summary>
 /// A list beside its detail. Compact shows one pane at a time with a back button on the detail; wider screens
 /// put the list in a fixed-width column beside the detail, and the widest cap the detail at a reading width.

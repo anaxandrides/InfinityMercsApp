@@ -1,7 +1,5 @@
 namespace InfinityMercsApp.Services;
 
-public enum WikiBlockType { SectionHeader, Paragraph, BulletItem }
-
 public sealed class WikiContentBlock
 {
     public WikiBlockType Type { get; init; }

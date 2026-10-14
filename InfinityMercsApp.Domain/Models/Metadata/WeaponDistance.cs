@@ -1,21 +1,5 @@
 namespace InfinityMercsApp.Domain.Models.Metadata;
 
-/// <summary>
-/// One range band of a weapon as the API names it (e.g. "short"): its upper bound in cm and the modifier
-/// that applies within it.
-/// </summary>
-public class WeaponDistanceBand
-{
-    public string Name { get; set; } = string.Empty;
-
-    public int Max { get; set; }
-
-    public string Mod { get; set; } = "0";
-}
-
-/// <summary>A range band laid out on the range bar: where it starts and ends (in cm) and its modifier.</summary>
-public sealed record RangeBand(string Label, int StartCm, int EndCm, string Mod);
-
 /// <summary>A weapon's range bands, as the API's <c>distance</c> object describes them.</summary>
 public class WeaponDistance
 {

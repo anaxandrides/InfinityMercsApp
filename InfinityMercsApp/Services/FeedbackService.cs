@@ -3,11 +3,6 @@ using System.Text.Json;
 
 namespace InfinityMercsApp.Services;
 
-public interface IFeedbackService
-{
-    Task<FeedbackSubmitResult> SubmitAsync(FeedbackSubmission submission, CancellationToken cancellationToken = default);
-}
-
 public sealed class FeedbackService : IFeedbackService
 {
     private const string FeedbackRecipientEmail = "jeremiahpatrick@protonmail.com";
@@ -82,65 +77,4 @@ public sealed class FeedbackService : IFeedbackService
             submission.Description.Trim()
         ]);
     }
-}
-
-public sealed class FeedbackSubmission
-{
-    public string Category { get; init; } = string.Empty;
-    public string Title { get; init; } = string.Empty;
-    public string Description { get; init; } = string.Empty;
-    public string UserEmail { get; init; } = string.Empty;
-}
-
-public sealed class FeedbackSubmitResult
-{
-    public bool Success { get; init; }
-    public string Message { get; init; } = string.Empty;
-    public string? IssueUrl { get; init; }
-
-    public static FeedbackSubmitResult Ok(string? issueUrl)
-    {
-        var message = string.IsNullOrWhiteSpace(issueUrl)
-            ? "Feedback email sent successfully."
-            : $"Feedback email sent successfully: {issueUrl}";
-
-        return new FeedbackSubmitResult
-        {
-            Success = true,
-            Message = message,
-            IssueUrl = issueUrl
-        };
-    }
-
-    public static FeedbackSubmitResult Fail(string message)
-    {
-        return new FeedbackSubmitResult
-        {
-            Success = false,
-            Message = message
-        };
-    }
-}
-
-public sealed class FeedbackApiRequest
-{
-    public string Name { get; init; } = string.Empty;
-    public string Email { get; init; } = string.Empty;
-    public string Subject { get; init; } = string.Empty;
-    public string Message { get; init; } = string.Empty;
-
-    [System.Text.Json.Serialization.JsonPropertyName("_replyto")]
-    public string ReplyTo { get; init; } = string.Empty;
-
-    [System.Text.Json.Serialization.JsonPropertyName("_captcha")]
-    public string Captcha { get; init; } = "false";
-
-    [System.Text.Json.Serialization.JsonPropertyName("_template")]
-    public string Template { get; init; } = "table";
-}
-
-public sealed class FeedbackApiResponse
-{
-    public string? IssueUrl { get; init; }
-    public int? IssueNumber { get; init; }
 }

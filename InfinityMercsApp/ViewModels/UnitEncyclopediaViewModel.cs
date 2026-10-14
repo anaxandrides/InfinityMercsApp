@@ -1,8 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Domain.Models.Filtering;
 using InfinityMercsApp.Domain.Utilities;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels.Base;
@@ -10,22 +8,6 @@ using InfinityMercsApp.Views.Controls;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
 namespace InfinityMercsApp.ViewModels;
-
-/// <summary>Which factions the list shows.</summary>
-public enum FactionListFilter
-{
-    All,
-    Factions,
-    Sectorials
-}
-
-/// <summary>On phones the browser shows one step at a time.</summary>
-public enum BrowseStep
-{
-    Factions,
-    Units,
-    Detail
-}
 
 /// <summary>
 /// Browses every faction's units and fireteams; choosing a unit shows it in <see cref="Detail"/>.

@@ -12,13 +12,3 @@ public sealed class MissionDebrief
     /// <summary>Troopers taken out during the game, who must check for injury.</summary>
     public List<PendingInjury> PendingInjuries { get; set; } = [];
 }
-
-/// <summary>A trooper taken out during the game.</summary>
-public sealed class PendingInjury
-{
-    public int EntryIndex { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string PhValue { get; set; } = "-";
-    public string? CachedLogoPath { get; set; }
-    public string? PackagedLogoPath { get; set; }
-}

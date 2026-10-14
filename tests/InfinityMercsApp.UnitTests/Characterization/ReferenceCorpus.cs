@@ -4,22 +4,6 @@ using Microsoft.Data.Sqlite;
 namespace InfinityMercsApp.UnitTests.Characterization;
 
 /// <summary>
-/// One unit's stored JSON blobs, exactly as the app keeps them (the SQLite <c>units</c> table columns),
-/// plus the owning army's <c>filters</c> blob used to build id → name lookups.
-/// </summary>
-internal sealed record CorpusUnit(
-    string Key,
-    string Source,
-    int FactionId,
-    string ProfileGroupsJson,
-    string? FiltersJson,
-    string? FactionsJson,
-    string? ArmyFiltersJson)
-{
-    public override string ToString() => Key;
-}
-
-/// <summary>
 /// Real Infinity Army API payloads checked into the repo:
 /// <list type="bullet">
 /// <item><c>ReferenceData/army-101.json</c> — a raw <c>/army/units/en/101</c> response (PanOceania).</item>
@@ -117,44 +101,5 @@ internal static class ReferenceCorpus
         }
 
         return units;
-    }
-}
-
-internal static class RepoFiles
-{
-    public static string Resolve(string relativePath)
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current is not null)
-        {
-            var candidate = Path.Combine(current.FullName, relativePath.Replace('/', Path.DirectorySeparatorChar));
-            if (File.Exists(candidate))
-            {
-                return candidate;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new FileNotFoundException($"Could not locate '{relativePath}' above '{AppContext.BaseDirectory}'.");
-    }
-
-    /// <summary>
-    /// Resolves the repository root (the directory holding InfinityMercsApp.sln).
-    /// </summary>
-    public static string RepoRoot()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current is not null)
-        {
-            if (File.Exists(Path.Combine(current.FullName, "InfinityMercsApp.sln")))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException($"Could not locate the repository root above '{AppContext.BaseDirectory}'.");
     }
 }

@@ -2,9 +2,6 @@ using InfinityMercsApp.Domain.Models.Army.Profiles;
 
 namespace InfinityMercsApp.Domain.Captain;
 
-/// <summary>One choosable upgrade level of a captain stat: its total bonus and total experience cost.</summary>
-public sealed record CaptainStatOption(Stat Stat, int Tier, int Bonus, int Cost);
-
 /// <summary>
 /// The rules for improving a company captain: which stat upgrades exist, what they cost, and how much
 /// experience a captain starts with.

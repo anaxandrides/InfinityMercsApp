@@ -3,12 +3,6 @@ using System.Text.Json;
 
 namespace InfinityMercsApp.Services.Season;
 
-/// <summary>A saved season as listed for loading.</summary>
-public sealed record SeasonRecord(string SeasonFilePath, string CompanyFilePath, string CompanyName, DateTimeOffset StartedUtc)
-{
-    public string Subtitle => $"Started {StartedUtc:yyyy-MM-dd}";
-}
-
 /// <summary>Lists the saved seasons and finds the company file each belongs to.</summary>
 public sealed class SeasonRecordCatalog(RecordPaths paths)
 {

@@ -2,17 +2,6 @@ using InfinityMercsApp.Views;
 
 namespace InfinityMercsApp.Services;
 
-/// <summary>The kinds of company that have their own unit-selection screen.</summary>
-public enum CompanyKind
-{
-    Standard,
-    Tag,
-    LoneWolf,
-    Cohesive,
-    Inspiring,
-    Airborne
-}
-
 /// <summary>Opens the unit-selection screen for a new company.</summary>
 public interface ICompanySelectionNavigator
 {

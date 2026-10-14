@@ -284,11 +284,3 @@ public sealed class MetadataProvider(ISQLiteRepository sqliteRepository) : IMeta
         return $"{weapon.WeaponId}:{weapon.Name}:{weapon.Mode ?? string.Empty}";
     }
 }
-
-/// <summary><see cref="HackingProgramValueRow.ListKind"/> values.</summary>
-internal static class HackingProgramLists
-{
-    public const string SkillType = "skillType";
-    public const string Devices = "devices";
-    public const string Target = "target";
-}
