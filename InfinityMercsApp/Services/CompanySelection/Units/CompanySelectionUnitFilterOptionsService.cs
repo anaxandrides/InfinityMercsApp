@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Controls;
 using MercsArmyListEntry = InfinityMercsApp.Domain.Models.Army.MercsArmyListEntry;
@@ -112,12 +113,12 @@ internal static class CompanySelectionUnitFilterOptionsService
                 continue;
             }
 
-            CompanySelectionSharedUtilities.MergeLookup(typeLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, "type"));
-            CompanySelectionSharedUtilities.MergeLookup(charsLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, "chars"));
-            CompanySelectionSharedUtilities.MergeLookup(skillsLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, "skills"));
-            CompanySelectionSharedUtilities.MergeLookup(equipLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, "equip"));
-            CompanySelectionSharedUtilities.MergeLookup(weaponsLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, "weapons"));
-            CompanySelectionSharedUtilities.MergeLookup(ammoLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, "ammunition"));
+            CompanySelectionSharedUtilities.MergeLookup(typeLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, ArmyFilterSection.Type));
+            CompanySelectionSharedUtilities.MergeLookup(charsLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, ArmyFilterSection.Chars));
+            CompanySelectionSharedUtilities.MergeLookup(skillsLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, ArmyFilterSection.Skills));
+            CompanySelectionSharedUtilities.MergeLookup(equipLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, ArmyFilterSection.Equip));
+            CompanySelectionSharedUtilities.MergeLookup(weaponsLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, ArmyFilterSection.Weapons));
+            CompanySelectionSharedUtilities.MergeLookup(ammoLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, ArmyFilterSection.Ammunition));
         }
 
         var mergedMercsList = getMergedMercsArmyList(sourceFactionIds, cancellationToken);

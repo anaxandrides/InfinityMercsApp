@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Views.Common;
 using InfinityMercsApp.Views.Controls;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
@@ -39,7 +40,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
         foreach (var faction in factions)
         {
             var snapshot = ArmyDataService.GetFactionSnapshot(faction.Id, cancellationToken);
-            var skillsLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(snapshot?.Filters, "skills");
+            var skillsLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Skills);
             var mercsEntries = ArmyDataService.GetMergedMercsArmyList([faction.Id], cancellationToken);
 
             var hasLieutenant = mercsEntries.Any(entry =>

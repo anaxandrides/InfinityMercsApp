@@ -1,8 +1,9 @@
-using InfinityMercsApp.Domain.Lieutenants;
-using InfinityMercsApp.Domain.Captain;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Common;
@@ -86,9 +87,9 @@ internal static class CaptainPopupInputBuilder
         {
             var snapshot = armyDataService.GetFactionSnapshot(factionId, cancellationToken);
             var filters = snapshot?.Filters;
-            var skillLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, "skills");
-            var equipLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, "equip");
-            var weaponLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, "weapons");
+            var skillLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, ArmyFilterSection.Skills);
+            var equipLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, ArmyFilterSection.Equip);
+            var weaponLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, ArmyFilterSection.Weapons);
             var extrasLookup = BuildExtrasLookup(filters);
 
             var skillRecords = specOpsProvider.GetSpecopsSkillsByFaction(factionId, cancellationToken);

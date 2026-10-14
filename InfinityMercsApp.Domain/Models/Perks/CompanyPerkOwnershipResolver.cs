@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 
 namespace InfinityMercsApp.Domain.Models.Perks;
 
@@ -61,18 +62,18 @@ public static class CompanyPerkOwnershipResolver
         IReadOnlyDictionary<int, string>? charsLookup = null,
         IReadOnlyDictionary<int, string>? extrasLookup = null)
     {
-        var skillNames = ExtractLookupNames(profile, "skills", skillsLookup, extrasLookup);
-        var equipNames = ExtractLookupNames(profile, "equip", equipLookup, extrasLookup);
-        var weaponNames = ExtractLookupNames(profile, "weapons", weaponsLookup, extrasLookup);
-        var charNames = ExtractLookupNames(profile, "chars", charsLookup, extrasLookup);
+        var skillNames = ExtractLookupNames(profile, ArmyFilterSection.Skills, skillsLookup, extrasLookup);
+        var equipNames = ExtractLookupNames(profile, ArmyFilterSection.Equip, equipLookup, extrasLookup);
+        var weaponNames = ExtractLookupNames(profile, ArmyFilterSection.Weapons, weaponsLookup, extrasLookup);
+        var charNames = ExtractLookupNames(profile, ArmyFilterSection.Chars, charsLookup, extrasLookup);
 
         if (option.HasValue)
         {
             var optionValue = option.Value;
-            skillNames.UnionWith(ExtractLookupNames(optionValue, "skills", skillsLookup, extrasLookup));
-            equipNames.UnionWith(ExtractLookupNames(optionValue, "equip", equipLookup, extrasLookup));
-            weaponNames.UnionWith(ExtractLookupNames(optionValue, "weapons", weaponsLookup, extrasLookup));
-            charNames.UnionWith(ExtractLookupNames(optionValue, "chars", charsLookup, extrasLookup));
+            skillNames.UnionWith(ExtractLookupNames(optionValue, ArmyFilterSection.Skills, skillsLookup, extrasLookup));
+            equipNames.UnionWith(ExtractLookupNames(optionValue, ArmyFilterSection.Equip, equipLookup, extrasLookup));
+            weaponNames.UnionWith(ExtractLookupNames(optionValue, ArmyFilterSection.Weapons, weaponsLookup, extrasLookup));
+            charNames.UnionWith(ExtractLookupNames(optionValue, ArmyFilterSection.Chars, charsLookup, extrasLookup));
         }
 
         var includeMechaTrack = IsTagProfile(profile);

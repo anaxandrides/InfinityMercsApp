@@ -481,10 +481,13 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
                 var subtitle = entry.IsPeripheralUnit
                     ? "Peripheral"
                     : (entry.IsLieutenant ? "Lieutenant" : string.Empty);
-                var (savedRangedWeapons, savedCcWeapons) = ResolveSavedWeapons(effectiveSourceFactionId, entry);
-                var savedSkills = ResolveSavedSkills(effectiveSourceFactionId, entry);
-                var savedEquipment = ResolveSavedEquipment(effectiveSourceFactionId, entry);
-                var savedCharacteristics = ResolveSavedCharacteristics(effectiveSourceFactionId, entry);
+                var filters = effectiveSourceFactionId > 0 ? _armyDataService?.GetFactionSnapshot(effectiveSourceFactionId)?.Filters : null;
+                var weapons = SavedCodeNames.Weapons(filters, entry);
+                var savedRangedWeapons = SavedCodeNames.JoinOrDash(weapons.Ranged);
+                var savedCcWeapons = SavedCodeNames.JoinOrDash(weapons.Melee);
+                var savedSkills = SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Skills));
+                var savedEquipment = SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Equip));
+                var savedCharacteristics = SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Chars));
                 if (entry.IsLieutenant && captainStats.IsEnabled)
                 {
                     savedRangedWeapons = ProfileText.AppendDistinct(savedRangedWeapons, captainWeaponChoices);
@@ -1001,127 +1004,6 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         return CompanySelectionVisualThemeWorkflow.InferThemeFactionNameFromFactionId(sourceFactionId);
     }
 
-    private string ResolveSavedSkills(int sourceFactionId, SavedCompanyEntry entry)
-    {
-        var names = ResolveCodeNames(sourceFactionId, entry.CurrentSkillCodes, "skills");
-        names.AddRange(entry.CustomSkills ?? []);
-        return JoinCodesOrDash(names);
-    }
-
-    private string ResolveSavedEquipment(int sourceFactionId, SavedCompanyEntry entry)
-    {
-        var names = ResolveCodeNames(sourceFactionId, entry.CurrentEquipmentCodes, "equip");
-        names.AddRange(entry.CustomEquipment ?? []);
-        return JoinCodesOrDash(names);
-    }
-
-    private string ResolveSavedCharacteristics(int sourceFactionId, SavedCompanyEntry entry)
-    {
-        var names = ResolveCodeNames(sourceFactionId, entry.CurrentCharacteristicCodes, "chars");
-        names.AddRange(entry.CustomCharacteristics ?? []);
-        return JoinCodesOrDash(names);
-    }
-
-    private (string SavedRangedWeapons, string SavedCcWeapons) ResolveSavedWeapons(int sourceFactionId, SavedCompanyEntry entry)
-    {
-        var currentWeapons = ResolveCodeNames(sourceFactionId, entry.CurrentWeaponCodes, "weapons")
-            .Where(x => !string.IsNullOrWhiteSpace(x) && x.Trim() != "-")
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        currentWeapons.AddRange((entry.CustomWeapons ?? [])
-            .Where(x => !string.IsNullOrWhiteSpace(x) && x.Trim() != "-"));
-
-        currentWeapons = currentWeapons
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        if (currentWeapons.Count == 0)
-        {
-            return ("-", "-");
-        }
-
-        var rangedWeapons = currentWeapons
-            .Where(x => !CompanyProfileTextService.IsMeleeWeaponName(x))
-            .ToList();
-        var ccWeapons = currentWeapons
-            .Where(CompanyProfileTextService.IsMeleeWeaponName)
-            .ToList();
-
-        return (JoinCodesOrDash(rangedWeapons), JoinCodesOrDash(ccWeapons));
-    }
-
-    private List<string> ResolveCodeNames(int sourceFactionId, IEnumerable<CompanySavedCodeRef> codes, string sectionName)
-    {
-        var codeList = (codes ?? [])
-            .Where(x => x is not null && x.Id > 0)
-            .ToList();
-        if (codeList.Count == 0)
-        {
-            return [];
-        }
-
-        var lookup = BuildCodeNameLookup(sourceFactionId, sectionName);
-        var extrasLookup = BuildExtraNameLookup(sourceFactionId);
-        var resolved = new List<string>();
-        foreach (var code in codeList)
-        {
-            if (!lookup.TryGetValue(code.Id, out var name) || string.IsNullOrWhiteSpace(name))
-            {
-                continue;
-            }
-
-            var display = name.Trim();
-            var extras = (code.Extra ?? [])
-                .Distinct()
-                .Select(extraId => extrasLookup.TryGetValue(extraId, out var extraName) ? extraName?.Trim() : null)
-                .Where(extraName => !string.IsNullOrWhiteSpace(extraName))
-                .Cast<string>()
-                .ToList();
-
-            if (extras.Count > 0)
-            {
-                display = $"{display} ({string.Join(", ", extras)})";
-            }
-
-            resolved.Add(display);
-        }
-
-        return resolved;
-    }
-
-    private Dictionary<int, string> BuildCodeNameLookup(int sourceFactionId, string sectionName)
-    {
-        if (_armyDataService is null || sourceFactionId <= 0)
-        {
-            return [];
-        }
-
-        var snapshot = _armyDataService.GetFactionSnapshot(sourceFactionId);
-        return CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, sectionName);
-    }
-
-    private Dictionary<int, string> BuildExtraNameLookup(int sourceFactionId)
-    {
-        if (_armyDataService is null || sourceFactionId <= 0)
-        {
-            return [];
-        }
-
-        var snapshot = _armyDataService.GetFactionSnapshot(sourceFactionId);
-        return CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "extras");
-    }
-
-    private static string JoinCodesOrDash(IEnumerable<string> values)
-    {
-        var lines = values
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Select(x => x.Trim())
-            .Where(x => x != "-")
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        return lines.Count == 0 ? "-" : string.Join(Environment.NewLine, lines);
-    }
 
     private static FormattedString BuildSimpleFormatted(string? text, Color color)
     {

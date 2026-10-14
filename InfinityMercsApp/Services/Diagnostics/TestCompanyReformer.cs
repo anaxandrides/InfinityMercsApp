@@ -209,10 +209,13 @@ public sealed class TestCompanyReformer(
                 peripheralVitality = NormalizeStat(sourcePeripheralEntry.CurrentVitaOrStr);
                 peripheralS = NormalizeStat(sourcePeripheralEntry.CurrentS);
                 peripheralVitalityHeader = StatKeys.VitalityFor(sourcePeripheralEntry.UnitTypeCode).Key();
-                savedPeripheralEquipment = ResolveSavedCodes(sourcePeripheralEntry, "equip");
-                savedPeripheralSkills = ResolveSavedCodes(sourcePeripheralEntry, "skills");
-                savedPeripheralCharacteristics = ResolveSavedCodes(sourcePeripheralEntry, "chars");
-                (savedPeripheralRangedWeapons, savedPeripheralCcWeapons) = ResolveSavedWeapons(sourcePeripheralEntry);
+                var peripheralFilters = FiltersFor(sourcePeripheralEntry);
+                savedPeripheralEquipment = SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(peripheralFilters, sourcePeripheralEntry, ProfileEntryKind.Equip));
+                savedPeripheralSkills = SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(peripheralFilters, sourcePeripheralEntry, ProfileEntryKind.Skills));
+                savedPeripheralCharacteristics = SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(peripheralFilters, sourcePeripheralEntry, ProfileEntryKind.Chars));
+                var peripheralWeapons = SavedCodeNames.Weapons(peripheralFilters, sourcePeripheralEntry);
+                savedPeripheralRangedWeapons = SavedCodeNames.JoinOrDash(peripheralWeapons.Ranged);
+                savedPeripheralCcWeapons = SavedCodeNames.JoinOrDash(peripheralWeapons.Melee);
             }
 
             result.Add(new DebugMercsEntry
@@ -426,114 +429,11 @@ public sealed class TestCompanyReformer(
         return string.IsNullOrWhiteSpace(value) ? "-" : value.Trim();
     }
 
-    private (string SavedRangedWeapons, string SavedCcWeapons) ResolveSavedWeapons(DebugSavedEntry entry)
+    // The army filters for the faction an entry came from; none when the entry names no faction.
+    private ArmyFilterCatalog? FiltersFor(DebugSavedEntry entry)
     {
         var factionId = entry.SourceFactionId > 0 ? entry.SourceFactionId : entry.FactionId;
-        if (factionId <= 0)
-        {
-            return ("-", "-");
-        }
-
-        var snapshot = armyData.GetFactionSnapshot(factionId);
-        var weaponLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "weapons");
-        var extrasLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "extras");
-
-        var resolved = new List<string>();
-        foreach (var code in entry.CurrentWeaponCodes)
-        {
-            if (code is null || code.Id <= 0 || !weaponLookup.TryGetValue(code.Id, out var name) || string.IsNullOrWhiteSpace(name))
-            {
-                continue;
-            }
-
-            var displayName = name.Trim();
-            var extras = (code.Extra ?? [])
-                .Distinct()
-                .Select(extraId => extrasLookup.TryGetValue(extraId, out var extraName) ? extraName?.Trim() : null)
-                .Where(extraName => !string.IsNullOrWhiteSpace(extraName))
-                .Cast<string>()
-                .ToList();
-            if (extras.Count > 0)
-            {
-                displayName = $"{displayName} ({string.Join(", ", extras)})";
-            }
-
-            resolved.Add(displayName);
-        }
-
-        foreach (var customName in entry.CustomWeapons.Where(x => !string.IsNullOrWhiteSpace(x)))
-        {
-            resolved.Add(customName.Trim());
-        }
-
-        resolved = resolved
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        var ranged = resolved.Where(x => !CompanyProfileTextService.IsMeleeWeaponName(x)).ToList();
-        var cc = resolved.Where(CompanyProfileTextService.IsMeleeWeaponName).ToList();
-        return (CompanyProfileTextService.JoinOrDash(ranged), CompanyProfileTextService.JoinOrDash(cc));
-    }
-
-    private string ResolveSavedCodes(DebugSavedEntry entry, string sectionName)
-    {
-        var factionId = entry.SourceFactionId > 0 ? entry.SourceFactionId : entry.FactionId;
-        if (factionId <= 0)
-        {
-            return "-";
-        }
-
-        var snapshot = armyData.GetFactionSnapshot(factionId);
-        var sectionLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, sectionName);
-        var extrasLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "extras");
-
-        IEnumerable<CompanySavedCodeRef> codes = sectionName switch
-        {
-            "skills" => entry.CurrentSkillCodes,
-            "equip" => entry.CurrentEquipmentCodes,
-            "chars" => entry.CurrentCharacteristicCodes,
-            _ => []
-        };
-
-        IEnumerable<string> custom = sectionName switch
-        {
-            "skills" => entry.CustomSkills,
-            "equip" => entry.CustomEquipment,
-            "chars" => entry.CustomCharacteristics,
-            _ => []
-        };
-
-        var resolved = new List<string>();
-        foreach (var code in codes)
-        {
-            if (code is null || code.Id <= 0 || !sectionLookup.TryGetValue(code.Id, out var name) || string.IsNullOrWhiteSpace(name))
-            {
-                continue;
-            }
-
-            var displayName = name.Trim();
-            var extras = (code.Extra ?? [])
-                .Distinct()
-                .Select(extraId => extrasLookup.TryGetValue(extraId, out var extraName) ? extraName?.Trim() : null)
-                .Where(extraName => !string.IsNullOrWhiteSpace(extraName))
-                .Cast<string>()
-                .ToList();
-            if (extras.Count > 0)
-            {
-                displayName = $"{displayName} ({string.Join(", ", extras)})";
-            }
-
-            resolved.Add(displayName);
-        }
-
-        foreach (var customName in custom.Where(x => !string.IsNullOrWhiteSpace(x)))
-        {
-            resolved.Add(customName.Trim());
-        }
-
-        resolved = resolved
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        return CompanyProfileTextService.JoinOrDash(resolved);
+        return factionId > 0 ? armyData.GetFactionSnapshot(factionId)?.Filters : null;
     }
 
     private static ViewerProfileItem? TryFindProfileByLooseKeyMatch(

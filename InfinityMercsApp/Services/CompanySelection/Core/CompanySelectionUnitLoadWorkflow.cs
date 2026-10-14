@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Utilities;
 using InfinityMercsApp.Services;
 using ArmyFactionRecord = InfinityMercsApp.Domain.Models.Army.Faction;
@@ -32,8 +33,8 @@ internal static class CompanySelectionUnitLoadWorkflow
                 .ToDictionary(x => x.Key, x => x.First());
             var specopsUnits = getSpecopsByFaction(factionId, cancellationToken);
             var snapshot = getFactionSnapshot(factionId, cancellationToken);
-            var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "type");
-            var categoryLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "category");
+            var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Type);
+            var categoryLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Category);
             MergedFireteam.MergeChart(snapshot?.FireteamChart, mergedTeams);
 
             await cacheUnitLogosAsync(factionId, units, cancellationToken);

@@ -226,8 +226,7 @@ internal static class CompanyStartSaveWorkflow
         where TEntry : class, ICompanyMercsEntry
     {
         var result = new List<SerializedCompanyEntry>(entries.Count * 2);
-        var codeIdLookupCache = new Dictionary<(int FactionId, string Section), Dictionary<string, int>>();
-        var extrasIdLookupCache = new Dictionary<int, Dictionary<string, int>>();
+        var encoder = new SavedCodeEncoder(armyDataService);
         var entryIndex = 0;
 
         foreach (var entry in entries)
@@ -239,8 +238,7 @@ internal static class CompanyStartSaveWorkflow
                 normalizedCaptainName,
                 improvedCaptainStats,
                 armyDataService,
-                codeIdLookupCache,
-                extrasIdLookupCache));
+                encoder));
 
             if (!entry.HasPeripheralStatBlock)
             {
@@ -252,8 +250,7 @@ internal static class CompanyStartSaveWorkflow
                 entryIndex++,
                 primaryEntryIndex,
                 armyDataService,
-                codeIdLookupCache,
-                extrasIdLookupCache));
+                encoder));
         }
 
         return result;
@@ -265,8 +262,7 @@ internal static class CompanyStartSaveWorkflow
         string normalizedCaptainName,
         SavedImprovedCaptainStats improvedCaptainStats,
         IArmyDataService armyDataService,
-        Dictionary<(int FactionId, string Section), Dictionary<string, int>> codeIdLookupCache,
-        Dictionary<int, Dictionary<string, int>> extrasIdLookupCache)
+        SavedCodeEncoder encoder)
         where TEntry : class, ICompanyMercsEntry
     {
         var baseMov = ReadStatValue(entry.Subtitle, Stat.Mov, entry.UnitMoveDisplay);
@@ -335,14 +331,14 @@ internal static class CompanyStartSaveWorkflow
             ? [entry.SourceFactionId, improvedCaptainStats.OptionFactionId]
             : [entry.SourceFactionId];
 
-        var baseSkillResolution = ResolveCodes(armyDataService, codeIdLookupCache, extrasIdLookupCache, baseSkillNames, "skills", baseLookupFactions);
-        var currentSkillResolution = ResolveCodes(armyDataService, codeIdLookupCache, extrasIdLookupCache, currentSkillNames, "skills", currentLookupFactions);
-        var baseCharacteristicResolution = ResolveCodes(armyDataService, codeIdLookupCache, extrasIdLookupCache, baseCharacteristicNames, "chars", baseLookupFactions);
-        var currentCharacteristicResolution = ResolveCodes(armyDataService, codeIdLookupCache, extrasIdLookupCache, currentCharacteristicNames, "chars", currentLookupFactions);
-        var baseEquipmentResolution = ResolveCodes(armyDataService, codeIdLookupCache, extrasIdLookupCache, baseEquipmentNames, "equip", baseLookupFactions);
-        var currentEquipmentResolution = ResolveCodes(armyDataService, codeIdLookupCache, extrasIdLookupCache, currentEquipmentNames, "equip", currentLookupFactions);
-        var baseWeaponResolution = ResolveCodes(armyDataService, codeIdLookupCache, extrasIdLookupCache, baseWeaponNames, "weapons", baseLookupFactions);
-        var currentWeaponResolution = ResolveCodes(armyDataService, codeIdLookupCache, extrasIdLookupCache, currentWeaponNames, "weapons", currentLookupFactions);
+        var baseSkillResolution = encoder.Encode(baseSkillNames, ProfileEntryKind.Skills, baseLookupFactions);
+        var currentSkillResolution = encoder.Encode(currentSkillNames, ProfileEntryKind.Skills, currentLookupFactions);
+        var baseCharacteristicResolution = encoder.Encode(baseCharacteristicNames, ProfileEntryKind.Chars, baseLookupFactions);
+        var currentCharacteristicResolution = encoder.Encode(currentCharacteristicNames, ProfileEntryKind.Chars, currentLookupFactions);
+        var baseEquipmentResolution = encoder.Encode(baseEquipmentNames, ProfileEntryKind.Equip, baseLookupFactions);
+        var currentEquipmentResolution = encoder.Encode(currentEquipmentNames, ProfileEntryKind.Equip, currentLookupFactions);
+        var baseWeaponResolution = encoder.Encode(baseWeaponNames, ProfileEntryKind.Weapons, baseLookupFactions);
+        var currentWeaponResolution = encoder.Encode(currentWeaponNames, ProfileEntryKind.Weapons, currentLookupFactions);
         var resolvedUnitTypeCode = ResolveUnitTypeCode(entry, armyDataService);
 
         var customSkills = baseSkillResolution.CustomNames
@@ -444,42 +440,29 @@ internal static class CompanyStartSaveWorkflow
         int entryIndex,
         int parentEntryIndex,
         IArmyDataService armyDataService,
-        Dictionary<(int FactionId, string Section), Dictionary<string, int>> codeIdLookupCache,
-        Dictionary<int, Dictionary<string, int>> extrasIdLookupCache)
+        SavedCodeEncoder encoder)
         where TEntry : class, ICompanyMercsEntry
     {
         var peripheralName = ResolvePeripheralEntryName(entry.PeripheralNameHeading, entry.Name);
-        var peripheralSkillResolution = ResolveCodes(
-            armyDataService,
-            codeIdLookupCache,
-            extrasIdLookupCache,
+        var peripheralSkillResolution = encoder.Encode(
             SplitCodes(entry.SavedPeripheralSkills),
-            "skills",
+            ProfileEntryKind.Skills,
             [entry.SourceFactionId]);
-        var peripheralEquipmentResolution = ResolveCodes(
-            armyDataService,
-            codeIdLookupCache,
-            extrasIdLookupCache,
+        var peripheralEquipmentResolution = encoder.Encode(
             SplitCodes(entry.SavedPeripheralEquipment),
-            "equip",
+            ProfileEntryKind.Equip,
             [entry.SourceFactionId]);
-        var peripheralCharacteristicResolution = ResolveCodes(
-            armyDataService,
-            codeIdLookupCache,
-            extrasIdLookupCache,
+        var peripheralCharacteristicResolution = encoder.Encode(
             SplitCodes(entry.SavedPeripheralCharacteristics),
-            "chars",
+            ProfileEntryKind.Chars,
             [entry.SourceFactionId]);
         var peripheralWeaponNames = SplitCodes(entry.SavedPeripheralRangedWeapons)
             .Concat(SplitCodes(entry.SavedPeripheralCcWeapons))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
-        var peripheralWeaponResolution = ResolveCodes(
-            armyDataService,
-            codeIdLookupCache,
-            extrasIdLookupCache,
+        var peripheralWeaponResolution = encoder.Encode(
             peripheralWeaponNames,
-            "weapons",
+            ProfileEntryKind.Weapons,
             [entry.SourceFactionId]);
         return new SerializedCompanyEntry
         {
@@ -637,344 +620,6 @@ internal static class CompanyStartSaveWorkflow
             .ToList();
     }
 
-    private static (List<CompanySavedCodeRef> Codes, List<string> CustomNames) ResolveCodes(
-        IArmyDataService armyDataService,
-        Dictionary<(int FactionId, string Section), Dictionary<string, int>> codeIdLookupCache,
-        Dictionary<int, Dictionary<string, int>> extrasIdLookupCache,
-        IEnumerable<string> names,
-        string section,
-        IEnumerable<int> factionIds)
-    {
-        var distinctFactionIds = factionIds
-            .Where(x => x > 0)
-            .Distinct()
-            .ToList();
-        var resolved = new List<CompanySavedCodeRef>();
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        var custom = new List<string>();
-        var seenCustom = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var name in names.Where(x => !string.IsNullOrWhiteSpace(x)))
-        {
-            var trimmedName = name.Trim();
-            var fullyConverted = false;
-            var resolvedId = TryResolveCodeId(
-                armyDataService,
-                codeIdLookupCache,
-                NormalizeLookupKey(trimmedName),
-                section,
-                distinctFactionIds);
-
-            if (resolvedId.HasValue)
-            {
-                var code = new CompanySavedCodeRef { Id = resolvedId.Value };
-                var key = BuildCodeRefKey(code);
-                if (seen.Add(key))
-                {
-                    resolved.Add(code);
-                }
-
-                fullyConverted = true;
-                continue;
-            }
-
-            var parsed = TrySplitBaseAndExtraNames(trimmedName);
-            if (parsed is null)
-            {
-                fullyConverted = false;
-            }
-            else
-            {
-                var baseResolvedId = TryResolveCodeId(
-                    armyDataService,
-                    codeIdLookupCache,
-                    NormalizeLookupKey(parsed.Value.BaseName),
-                    section,
-                    distinctFactionIds);
-
-                if (!baseResolvedId.HasValue)
-                {
-                    fullyConverted = false;
-                }
-                else
-                {
-                    var unresolvedExtra = false;
-                    var extraIds = new List<int>();
-                    foreach (var extraName in parsed.Value.ExtraNames)
-                    {
-                        var resolvedExtraId = TryResolveExtraId(
-                            armyDataService,
-                            extrasIdLookupCache,
-                            extraName,
-                            distinctFactionIds);
-                        if (!resolvedExtraId.HasValue)
-                        {
-                            unresolvedExtra = true;
-                            continue;
-                        }
-
-                        extraIds.Add(resolvedExtraId.Value);
-                    }
-
-                    var distinctExtraIds = extraIds
-                        .Distinct()
-                        .OrderBy(x => x)
-                        .ToList();
-                    var parsedCode = new CompanySavedCodeRef
-                    {
-                        Id = baseResolvedId.Value,
-                        Extra = distinctExtraIds.Count == 0 ? null : distinctExtraIds
-                    };
-
-                    var parsedKey = BuildCodeRefKey(parsedCode);
-                    if (seen.Add(parsedKey))
-                    {
-                        resolved.Add(parsedCode);
-                    }
-
-                    fullyConverted = !unresolvedExtra;
-                }
-            }
-
-            // Keep custom text only when conversion was incomplete.
-            if (!fullyConverted && seenCustom.Add(trimmedName))
-            {
-                custom.Add(trimmedName);
-            }
-        }
-
-        return (resolved, custom);
-    }
-
-    private static int? TryResolveCodeId(
-        IArmyDataService armyDataService,
-        Dictionary<(int FactionId, string Section), Dictionary<string, int>> codeIdLookupCache,
-        string normalizedName,
-        string section,
-        IReadOnlyList<int> factionIds)
-    {
-        foreach (var factionId in factionIds)
-        {
-            var lookup = GetCodeIdLookupForFaction(armyDataService, codeIdLookupCache, factionId, section);
-            if (lookup.TryGetValue(normalizedName, out var id))
-            {
-                return id;
-            }
-        }
-
-        return null;
-    }
-
-    private static int? TryResolveExtraId(
-        IArmyDataService armyDataService,
-        Dictionary<int, Dictionary<string, int>> extrasIdLookupCache,
-        string rawName,
-        IReadOnlyList<int> factionIds)
-    {
-        if (string.IsNullOrWhiteSpace(rawName))
-        {
-            return null;
-        }
-
-        var normalizedCandidates = BuildExtraLookupCandidates(rawName);
-        if (normalizedCandidates.Count == 0)
-        {
-            return null;
-        }
-
-        foreach (var factionId in factionIds)
-        {
-            var lookup = GetExtraIdLookupForFaction(armyDataService, extrasIdLookupCache, factionId);
-            foreach (var normalizedName in normalizedCandidates)
-            {
-                if (lookup.TryGetValue(normalizedName, out var id))
-                {
-                    return id;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private static Dictionary<string, int> GetCodeIdLookupForFaction(
-        IArmyDataService armyDataService,
-        Dictionary<(int FactionId, string Section), Dictionary<string, int>> codeIdLookupCache,
-        int factionId,
-        string section)
-    {
-        var key = (FactionId: factionId, Section: section);
-        if (codeIdLookupCache.TryGetValue(key, out var existing))
-        {
-            return existing;
-        }
-
-        var snapshot = armyDataService.GetFactionSnapshot(factionId);
-        var idToName = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, section);
-        var nameToId = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var (id, name) in idToName)
-        {
-            var normalized = NormalizeLookupKey(name);
-            if (string.IsNullOrWhiteSpace(normalized) || nameToId.ContainsKey(normalized))
-            {
-                continue;
-            }
-
-            nameToId[normalized] = id;
-        }
-
-        codeIdLookupCache[key] = nameToId;
-        return nameToId;
-    }
-
-    private static Dictionary<string, int> GetExtraIdLookupForFaction(
-        IArmyDataService armyDataService,
-        Dictionary<int, Dictionary<string, int>> extrasIdLookupCache,
-        int factionId)
-    {
-        if (extrasIdLookupCache.TryGetValue(factionId, out var existing))
-        {
-            return existing;
-        }
-
-        var snapshot = armyDataService.GetFactionSnapshot(factionId);
-        var idToName = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "extras");
-        var nameToId = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var (id, name) in idToName)
-        {
-            var normalized = NormalizeLookupKey(name);
-            if (string.IsNullOrWhiteSpace(normalized) || nameToId.ContainsKey(normalized))
-            {
-                continue;
-            }
-
-            nameToId[normalized] = id;
-        }
-
-        extrasIdLookupCache[factionId] = nameToId;
-        return nameToId;
-    }
-
-    private static (string BaseName, List<string> ExtraNames)? TrySplitBaseAndExtraNames(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        var trimmed = value.Trim();
-        var openParenIndex = trimmed.IndexOf(" (", StringComparison.Ordinal);
-        if (openParenIndex <= 0 || !trimmed.EndsWith(')'))
-        {
-            return null;
-        }
-
-        var baseName = trimmed[..openParenIndex].Trim();
-        var inside = trimmed[(openParenIndex + 2)..^1].Trim();
-        if (string.IsNullOrWhiteSpace(baseName) || string.IsNullOrWhiteSpace(inside))
-        {
-            return null;
-        }
-
-        var extras = SplitTopLevelExtras(inside);
-        if (extras.Count == 0)
-        {
-            return null;
-        }
-
-        return (baseName, extras);
-    }
-
-    private static List<string> SplitTopLevelExtras(string value)
-    {
-        var result = new List<string>();
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return result;
-        }
-
-        var depth = 0;
-        var tokenStart = 0;
-        for (var i = 0; i < value.Length; i++)
-        {
-            var c = value[i];
-            switch (c)
-            {
-                case '(':
-                    depth++;
-                    break;
-                case ')':
-                    if (depth > 0)
-                    {
-                        depth--;
-                    }
-
-                    break;
-                case ',' when depth == 0:
-                {
-                    var token = value[tokenStart..i].Trim();
-                    if (!string.IsNullOrWhiteSpace(token))
-                    {
-                        result.Add(token);
-                    }
-
-                    tokenStart = i + 1;
-                    break;
-                }
-            }
-        }
-
-        var last = value[tokenStart..].Trim();
-        if (!string.IsNullOrWhiteSpace(last))
-        {
-            result.Add(last);
-        }
-
-        return result;
-    }
-
-    private static string BuildCodeRefKey(CompanySavedCodeRef value)
-    {
-        var extra = value.Extra is null || value.Extra.Count == 0
-            ? string.Empty
-            : string.Join(",", value.Extra.OrderBy(x => x));
-        return $"{value.Id}|{extra}";
-    }
-
-    private static string NormalizeLookupKey(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return string.Empty;
-        }
-
-        var normalized = Regex.Replace(value.Trim(), @"\s+", " ");
-        return normalized.ToLowerInvariant();
-    }
-
-    private static List<string> BuildExtraLookupCandidates(string rawValue)
-    {
-        var candidates = new List<string>();
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        void Add(string? value)
-        {
-            var normalized = NormalizeLookupKey(value);
-            if (string.IsNullOrWhiteSpace(normalized) || !seen.Add(normalized))
-            {
-                return;
-            }
-
-            candidates.Add(normalized);
-        }
-
-        Add(rawValue);
-        Add(CompanySelectionSharedUtilities.ConvertDistanceText(rawValue, showUnitsInInches: true));
-        Add(CompanySelectionSharedUtilities.ConvertDistanceText(rawValue, showUnitsInInches: false));
-
-        return candidates;
-    }
-
     private static string ResolveUnitTypeCode<TEntry>(TEntry entry, IArmyDataService armyDataService)
         where TEntry : class, ICompanyMercsEntry
     {
@@ -1003,7 +648,7 @@ internal static class CompanyStartSaveWorkflow
         }
 
         var snapshot = armyDataService.GetFactionSnapshot(entry.SourceFactionId);
-        var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "type");
+        var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Type);
         if (!typeLookup.TryGetValue(resumeType, out var typeName) || string.IsNullOrWhiteSpace(typeName))
         {
             return string.Empty;

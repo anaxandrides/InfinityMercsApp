@@ -46,6 +46,26 @@ public abstract class CompanySavedCompanyEntryBase
     [JsonPropertyName("Custom Weapons")]
     public List<string> CustomWeapons { get; init; } = [];
 
+    /// <summary>The saved codes for one kind of entry (characteristics, skills, equipment or weapons).</summary>
+    public IReadOnlyList<CompanySavedCodeRef> CurrentCodes(ProfileEntryKind kind) => kind switch
+    {
+        ProfileEntryKind.Chars => CurrentCharacteristicCodes ?? [],
+        ProfileEntryKind.Skills => CurrentSkillCodes ?? [],
+        ProfileEntryKind.Equip => CurrentEquipmentCodes ?? [],
+        ProfileEntryKind.Weapons => CurrentWeaponCodes ?? [],
+        _ => []
+    };
+
+    /// <summary>Names saved as text for one kind of entry because they had no code.</summary>
+    public IReadOnlyList<string> CustomNames(ProfileEntryKind kind) => kind switch
+    {
+        ProfileEntryKind.Chars => CustomCharacteristics ?? [],
+        ProfileEntryKind.Skills => CustomSkills ?? [],
+        ProfileEntryKind.Equip => CustomEquipment ?? [],
+        ProfileEntryKind.Weapons => CustomWeapons ?? [],
+        _ => []
+    };
+
     public bool HasPeripheralStatBlock { get; init; }
     public string PeripheralNameHeading { get; init; } = string.Empty;
     public string PeripheralMov { get; init; } = "-";

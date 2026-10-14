@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Controls;
 using ArmyFactionRecord = InfinityMercsApp.Domain.Models.Army.Faction;
@@ -32,12 +33,12 @@ internal static class CompanySelectionVisibilityWorkflow
         {
             var factionId = readFactionId(faction);
             var snapshot = getFactionSnapshot(factionId, cancellationToken);
-            context.SkillsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "skills");
-            context.TypeByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "type");
-            context.CharsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "chars");
-            context.EquipByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "equip");
-            context.WeaponsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "weapons");
-            context.AmmoByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, "ammunition");
+            context.SkillsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Skills);
+            context.TypeByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Type);
+            context.CharsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Chars);
+            context.EquipByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Equip);
+            context.WeaponsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Weapons);
+            context.AmmoByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Ammunition);
 
             var specopsUnits = getSpecopsUnitsByFaction(factionId, cancellationToken);
             context.SpecopsByFactionId[factionId] = specopsUnits

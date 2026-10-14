@@ -73,11 +73,14 @@ public sealed partial class DeploymentRoster(
         bool showUnitsInInches)
     {
         var factionId = EffectiveSourceFactionId(entry);
+        var filters = armyData.GetFactionSnapshot(factionId)?.Filters;
         var profile = UnitProfile.From(entry);
-        profile.Skills = ResolveSection(factionId, entry.CurrentSkillCodes, "skills", entry.CustomSkills);
-        profile.Equipment = ResolveSection(factionId, entry.CurrentEquipmentCodes, "equip", entry.CustomEquipment);
-        (profile.RangedWeapons, profile.MeleeWeapons) = ResolveWeapons(factionId, entry);
-        var characteristics = ResolveSection(factionId, entry.CurrentCharacteristicCodes, "chars", entry.CustomCharacteristics);
+        profile.Skills = SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Skills));
+        profile.Equipment = SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Equip));
+        var weapons = SavedCodeNames.Weapons(filters, entry);
+        profile.RangedWeapons = SavedCodeNames.JoinOrDash(weapons.Ranged);
+        profile.MeleeWeapons = SavedCodeNames.JoinOrDash(weapons.Melee);
+        var characteristics = SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Chars));
 
         if (entry.IsLieutenant)
         {
@@ -128,60 +131,6 @@ public sealed partial class DeploymentRoster(
             RangedWeapons = SeasonDisplayUnitFormatter.ConvertExplicitDistances(profile.RangedWeapons, showUnitsInInches),
             MeleeWeapons = SeasonDisplayUnitFormatter.ConvertExplicitDistances(profile.MeleeWeapons, showUnitsInInches)
         };
-    }
-
-    private string ResolveSection(int factionId, IEnumerable<CompanySavedCodeRef> codes, string section, IEnumerable<string>? custom)
-    {
-        var names = ResolveCodeNames(factionId, codes, section);
-        names.AddRange(custom ?? []);
-        return JoinOrDash(names);
-    }
-
-    private (string Ranged, string Melee) ResolveWeapons(int factionId, SavedCompanyEntry entry)
-    {
-        var weapons = ResolveCodeNames(factionId, entry.CurrentWeaponCodes, "weapons")
-            .Concat(entry.CustomWeapons ?? [])
-            .Where(w => !string.IsNullOrWhiteSpace(w) && w.Trim() != "-")
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        if (weapons.Count == 0)
-        {
-            return ("-", "-");
-        }
-
-        return (JoinOrDash(weapons.Where(w => !CompanyProfileTextService.IsMeleeWeaponName(w))),
-                JoinOrDash(weapons.Where(CompanyProfileTextService.IsMeleeWeaponName)));
-    }
-
-    /// <summary>Names for the saved codes of one filter section, with any extras in brackets.</summary>
-    private List<string> ResolveCodeNames(int factionId, IEnumerable<CompanySavedCodeRef>? codes, string section)
-    {
-        var codeList = (codes ?? []).Where(code => code is not null && code.Id > 0).ToList();
-        if (codeList.Count == 0)
-        {
-            return [];
-        }
-
-        var filters = armyData.GetFactionSnapshot(factionId)?.Filters;
-        var names = CompanyUnitDetailsShared.BuildIdNameLookup(filters, section);
-        var extraNames = CompanyUnitDetailsShared.BuildIdNameLookup(filters, "extras");
-        var resolved = new List<string>();
-        foreach (var code in codeList)
-        {
-            if (!names.TryGetValue(code.Id, out var name) || string.IsNullOrWhiteSpace(name))
-            {
-                continue;
-            }
-
-            var extras = (code.Extra ?? [])
-                .Distinct()
-                .Select(id => extraNames.TryGetValue(id, out var extra) ? extra?.Trim() : null)
-                .Where(extra => !string.IsNullOrWhiteSpace(extra))
-                .ToList();
-            resolved.Add(extras.Count > 0 ? $"{name.Trim()} ({string.Join(", ", extras)})" : name.Trim());
-        }
-
-        return resolved;
     }
 
     /// <summary>
@@ -256,17 +205,6 @@ public sealed partial class DeploymentRoster(
     internal static bool HasLine(string text, string value, bool splitOnCommas = false) =>
         text.Split(splitOnCommas ? ['\r', '\n', ','] : ['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
             .Any(line => line.Trim().Equals(value, StringComparison.OrdinalIgnoreCase));
-
-    internal static string JoinOrDash(IEnumerable<string> values)
-    {
-        var lines = values
-            .Where(v => !string.IsNullOrWhiteSpace(v))
-            .Select(v => v.Trim())
-            .Where(v => v != "-")
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        return lines.Count == 0 ? "-" : string.Join(Environment.NewLine, lines);
-    }
 
     // Adds items to a profile section; with nothing to add, the section's text is left as it is.
     private static string AppendKeepingText(string? baseText, IReadOnlyList<string> additions) =>
