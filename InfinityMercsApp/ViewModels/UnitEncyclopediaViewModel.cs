@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Filtering;
 using InfinityMercsApp.Domain.Utilities;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels.Base;
@@ -252,6 +253,7 @@ public partial class UnitEncyclopediaViewModel(
 
             var filters = snapshot?.Filters ?? ArmyFilterCatalog.Empty;
             var typeLookup = filters.Names(ArmyFilterSection.Type);
+            var lookups = UnitFilterLookups.From(filters);
             var categoryLookup = filters.Names(ArmyFilterSection.Category);
             var filterLookups = UnitFilterLookups.From(filters);
 
@@ -308,17 +310,14 @@ public partial class UnitEncyclopediaViewModel(
     public UnitFilterPopupOptions BuildUnitFilterPopupOptions(CancellationToken cancellationToken = default)
     {
         var classification = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var characteristics = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var skills = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var equipment = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var weapons = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var ammo = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var names = UnitFilterOptionSets.IgnoringCase();
         var maxPoints = 200;
 
         if (SelectedFaction is { } faction)
         {
             var filters = armyData.GetFactionSnapshot(faction.Id, cancellationToken)?.Filters ?? ArmyFilterCatalog.Empty;
             var typeLookup = filters.Names(ArmyFilterSection.Type);
+            var lookups = UnitFilterLookups.From(filters);
 
             foreach (var unit in armyData.GetResumeByFaction(faction.Id, cancellationToken))
             {
@@ -334,32 +333,19 @@ public partial class UnitEncyclopediaViewModel(
                     continue;
                 }
 
-                var unitMaxCost = ViewerOptionNames.CollectAllOptionNames(
-                    profileGroups,
-                    filters.Names(ArmyFilterSection.Chars),
-                    filters.Names(ArmyFilterSection.Skills),
-                    filters.Names(ArmyFilterSection.Equip),
-                    filters.Names(ArmyFilterSection.Weapons),
-                    filters.Names(ArmyFilterSection.Ammunition),
-                    characteristics,
-                    skills,
-                    equipment,
-                    weapons,
-                    ammo);
+                var unitMaxCost = ViewerOptionNames.CollectAllOptionNames(profileGroups, lookups, names);
                 maxPoints = Math.Max(maxPoints, unitMaxCost);
             }
         }
 
-        static List<string> Sorted(HashSet<string> values) => values.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
-
         return new UnitFilterPopupOptions
         {
-            Classification = Sorted(classification),
-            Characteristics = Sorted(characteristics),
-            Skills = Sorted(skills),
-            Equipment = Sorted(equipment),
-            Weapons = Sorted(weapons),
-            Ammo = Sorted(ammo),
+            Classification = UnitFilterOptionSets.Sorted(classification),
+            Characteristics = UnitFilterOptionSets.Sorted(names.Characteristics),
+            Skills = UnitFilterOptionSets.Sorted(names.Skills),
+            Equipment = UnitFilterOptionSets.Sorted(names.Equipment),
+            Weapons = UnitFilterOptionSets.Sorted(names.Weapons),
+            Ammo = UnitFilterOptionSets.Sorted(names.Ammo),
             MinPoints = 0,
             MaxPoints = SelectedFaction is null ? maxPoints : Math.Max(1, maxPoints)
         };

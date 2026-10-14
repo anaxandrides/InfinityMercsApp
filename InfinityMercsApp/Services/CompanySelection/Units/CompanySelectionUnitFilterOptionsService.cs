@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Filtering;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Controls;
 using MercsArmyListEntry = InfinityMercsApp.Domain.Models.Army.MercsArmyListEntry;
@@ -82,11 +83,7 @@ internal static class CompanySelectionUnitFilterOptionsService
         where TFaction : class
     {
         var classification = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var characteristics = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var skills = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var equipment = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var weapons = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var ammo = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var names = UnitFilterOptionSets.IgnoringCase();
 
         var sourceFactions = CompanyUnitDetailsShared.BuildUnitSourceFactions(
             showRightSelectionBox,
@@ -97,29 +94,18 @@ internal static class CompanySelectionUnitFilterOptionsService
             .Select(readFactionId)
             .Distinct()
             .ToArray();
-        var typeLookup = new Dictionary<int, string>();
-        var charsLookup = new Dictionary<int, string>();
-        var skillsLookup = new Dictionary<int, string>();
-        var equipLookup = new Dictionary<int, string>();
-        var weaponsLookup = new Dictionary<int, string>();
-        var ammoLookup = new Dictionary<int, string>();
-
+        var catalogs = new List<ArmyFilterCatalog>();
         foreach (var factionId in sourceFactionIds)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var filters = getFiltersByFactionId(factionId, cancellationToken);
-            if (filters is null)
+            if (getFiltersByFactionId(factionId, cancellationToken) is { } filters)
             {
-                continue;
+                catalogs.Add(filters);
             }
-
-            CompanySelectionSharedUtilities.MergeLookup(typeLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, ArmyFilterSection.Type));
-            CompanySelectionSharedUtilities.MergeLookup(charsLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, ArmyFilterSection.Chars));
-            CompanySelectionSharedUtilities.MergeLookup(skillsLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, ArmyFilterSection.Skills));
-            CompanySelectionSharedUtilities.MergeLookup(equipLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, ArmyFilterSection.Equip));
-            CompanySelectionSharedUtilities.MergeLookup(weaponsLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, ArmyFilterSection.Weapons));
-            CompanySelectionSharedUtilities.MergeLookup(ammoLookup, CompanyUnitDetailsShared.BuildIdNameLookup(filters, ArmyFilterSection.Ammunition));
         }
+
+        var typeLookup = UnitFilterLookups.MergeNames(catalogs.Select(c => c.Names(ArmyFilterSection.Type)));
+        var lookups = UnitFilterLookups.Merge(catalogs);
 
         var mergedMercsList = getMergedMercsArmyList(sourceFactionIds, cancellationToken);
         foreach (var entry in mergedMercsList)
@@ -137,32 +123,24 @@ internal static class CompanySelectionUnitFilterOptionsService
                 continue;
             }
 
-            CompanyUnitFilterService.AddFilterOptionsFromVisibleProfilesAndOptions(
+            UnitOptionFilter.CollectFilterOptions(
                 entry.ProfileGroups,
-                charsLookup,
-                skillsLookup,
-                equipLookup,
-                weaponsLookup,
-                ammoLookup,
+                lookups,
                 requireLieutenant: false,
                 requireZeroSwc: true,
                 maxCost: null,
                 includeProfileValues: true,
-                characteristics,
-                skills,
-                equipment,
-                weapons,
-                ammo);
+                names);
         }
 
         var options = new UnitFilterPopupOptions
         {
             Classification = classification.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList(),
-            Characteristics = characteristics.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList(),
-            Skills = skills.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList(),
-            Equipment = equipment.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList(),
-            Weapons = weapons.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList(),
-            Ammo = ammo.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList(),
+            Characteristics = UnitFilterOptionSets.Sorted(names.Characteristics),
+            Skills = UnitFilterOptionSets.Sorted(names.Skills),
+            Equipment = UnitFilterOptionSets.Sorted(names.Equipment),
+            Weapons = UnitFilterOptionSets.Sorted(names.Weapons),
+            Ammo = UnitFilterOptionSets.Sorted(names.Ammo),
             MinPoints = 0,
             MaxPoints = maxPoints
         };

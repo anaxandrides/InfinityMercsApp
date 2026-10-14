@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Filtering;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Common;
 using Svg.Skia;
@@ -20,11 +21,6 @@ public partial class CohesiveCompanySelectionPage
             return Task.FromResult(validCoreFireteams);
         }
 
-        var skillsLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, ArmyFilterSection.Skills);
-        var charsLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, ArmyFilterSection.Chars);
-        var equipLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, ArmyFilterSection.Equip);
-        var weaponsLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, ArmyFilterSection.Weapons);
-        var ammoLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, ArmyFilterSection.Ammunition);
         var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, ArmyFilterSection.Type);
         var categoryLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, ArmyFilterSection.Category);
         var units = GetResumeByFactionMercsOnlyFromProvider(faction.Id, cancellationToken);
@@ -33,11 +29,7 @@ public partial class CohesiveCompanySelectionPage
             CohesiveCompanyTeamEligibilityWorkflow.EvaluateValidCoreFireteams(
                 snapshot.FireteamChart,
                 units,
-                skillsLookup,
-                charsLookup,
-                equipLookup,
-                weaponsLookup,
-                ammoLookup,
+                UnitFilterLookups.From(snapshot.Filters),
                 typeLookup,
                 _filterState.ActiveUnitFilter,
                 maxCost,

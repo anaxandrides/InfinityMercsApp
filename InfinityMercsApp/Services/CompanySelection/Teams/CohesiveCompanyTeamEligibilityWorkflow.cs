@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Models.Filtering;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Controls;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
@@ -19,11 +20,7 @@ internal static class CohesiveCompanyTeamEligibilityWorkflow
     internal static List<string> EvaluateValidCoreFireteams(
         FireteamChart? fireteamChart,
         IReadOnlyList<ArmyResumeRecord> units,
-        IReadOnlyDictionary<int, string> skillsLookup,
-        IReadOnlyDictionary<int, string> charsLookup,
-        IReadOnlyDictionary<int, string> equipLookup,
-        IReadOnlyDictionary<int, string> weaponsLookup,
-        IReadOnlyDictionary<int, string> ammoLookup,
+        UnitFilterLookups lookups,
         IReadOnlyDictionary<int, string> typeLookup,
         UnitFilterCriteria activeUnitFilter,
         int maxCost,
@@ -74,13 +71,9 @@ internal static class CohesiveCompanyTeamEligibilityWorkflow
                 }
 
                 var requiresFtoProfile = FireteamMatching.IsFtoLabel(unitLimit.Key);
-                var hasAnyVisibleProfile = CompanyUnitFilterService.UnitHasVisibleOptionWithFilter(
+                var hasAnyVisibleProfile = UnitOptionFilter.HasVisibleOption(
                     unitRecord.ProfileGroups,
-                    skillsLookup,
-                    charsLookup,
-                    equipLookup,
-                    weaponsLookup,
-                    ammoLookup,
+                    lookups,
                     activeUnitFilter,
                     requireLieutenant: false,
                     requireZeroSwc: true,
@@ -91,13 +84,9 @@ internal static class CohesiveCompanyTeamEligibilityWorkflow
                     continue;
                 }
 
-                var hasVisibleLieutenantProfile = CompanyUnitFilterService.UnitHasVisibleOptionWithFilter(
+                var hasVisibleLieutenantProfile = UnitOptionFilter.HasVisibleOption(
                     unitRecord.ProfileGroups,
-                    skillsLookup,
-                    charsLookup,
-                    equipLookup,
-                    weaponsLookup,
-                    ammoLookup,
+                    lookups,
                     activeUnitFilter,
                     requireLieutenant: true,
                     requireZeroSwc: true,

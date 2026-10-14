@@ -80,19 +80,6 @@ internal static partial class CompanySelectionSharedUtilities
         return maxIndex + 1;
     }
 
-    internal static void MergeLookup(Dictionary<int, string> target, IReadOnlyDictionary<int, string> source)
-    {
-        foreach (var pair in source)
-        {
-            if (target.ContainsKey(pair.Key) || string.IsNullOrWhiteSpace(pair.Value))
-            {
-                continue;
-            }
-
-            target[pair.Key] = pair.Value.Trim();
-        }
-    }
-
     /// <summary>
     /// Id → name for one section of an army's filters (a fresh, mutable copy of the catalogue's lookup).
     /// </summary>

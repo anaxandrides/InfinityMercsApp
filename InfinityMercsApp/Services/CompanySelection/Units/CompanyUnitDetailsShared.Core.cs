@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army;
+using InfinityMercsApp.Domain.Models.Filtering;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Controls;
 
@@ -136,7 +137,7 @@ internal static partial class CompanyUnitDetailsShared
         int? unitType,
         IReadOnlyDictionary<int, string> typeLookup)
     {
-        return CompanyUnitFilterService.MatchesClassificationFilter(activeUnitFilter, unitType, typeLookup);
+        return UnitOptionFilter.MatchesClassification(activeUnitFilter, unitType, typeLookup);
     }
 
     internal static void ApplyGlobalDisplayUnitsPreference(

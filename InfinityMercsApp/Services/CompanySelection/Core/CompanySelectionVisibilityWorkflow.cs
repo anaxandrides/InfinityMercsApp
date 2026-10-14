@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Filtering;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Controls;
 using ArmyFactionRecord = InfinityMercsApp.Domain.Models.Army.Faction;
@@ -33,12 +34,8 @@ internal static class CompanySelectionVisibilityWorkflow
         {
             var factionId = readFactionId(faction);
             var snapshot = getFactionSnapshot(factionId, cancellationToken);
-            context.SkillsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Skills);
+            context.LookupsByFactionId[factionId] = UnitFilterLookups.From(snapshot?.Filters);
             context.TypeByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Type);
-            context.CharsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Chars);
-            context.EquipByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Equip);
-            context.WeaponsByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Weapons);
-            context.AmmoByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Ammunition);
 
             var specopsUnits = getSpecopsUnitsByFaction(factionId, cancellationToken);
             context.SpecopsByFactionId[factionId] = specopsUnits
@@ -61,17 +58,13 @@ internal static class CompanySelectionVisibilityWorkflow
         foreach (var unit in units)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!lookupContext.SkillsByFactionId.TryGetValue(unit.SourceFactionId, out var skillsLookup))
+            if (!lookupContext.LookupsByFactionId.TryGetValue(unit.SourceFactionId, out var lookups))
             {
                 unit.IsVisible = false;
                 continue;
             }
 
             lookupContext.TypeByFactionId.TryGetValue(unit.SourceFactionId, out var typeLookup);
-            lookupContext.CharsByFactionId.TryGetValue(unit.SourceFactionId, out var charsLookup);
-            lookupContext.EquipByFactionId.TryGetValue(unit.SourceFactionId, out var equipLookup);
-            lookupContext.WeaponsByFactionId.TryGetValue(unit.SourceFactionId, out var weaponsLookup);
-            lookupContext.AmmoByFactionId.TryGetValue(unit.SourceFactionId, out var ammoLookup);
 
             if (!CompanyUnitDetailsShared.MatchesClassificationFilter(activeUnitFilter, unit.Type, typeLookup ?? new Dictionary<int, string>()))
             {
@@ -90,13 +83,9 @@ internal static class CompanySelectionVisibilityWorkflow
                 }
             }
 
-            unit.IsVisible = CompanyUnitFilterService.UnitHasVisibleOptionWithFilter(
+            unit.IsVisible = UnitOptionFilter.HasVisibleOption(
                 profileGroups,
-                skillsLookup,
-                charsLookup ?? new Dictionary<int, string>(),
-                equipLookup ?? new Dictionary<int, string>(),
-                weaponsLookup ?? new Dictionary<int, string>(),
-                ammoLookup ?? new Dictionary<int, string>(),
+                lookups,
                 activeUnitFilter,
                 requireLieutenant: lieutenantOnlyUnits && !unit.IsSpecOps,
                 requireZeroSwc: true,

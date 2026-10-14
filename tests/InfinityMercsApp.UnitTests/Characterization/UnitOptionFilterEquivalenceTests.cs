@@ -47,21 +47,16 @@ public sealed class UnitOptionFilterEquivalenceTests
             ];
             foreach (var (requireLieutenant, requireZeroSwc, maxCost, includeProfiles) in variants)
             {
-                var legacySets = NewSets();
-                LegacyFilter.AddFilterOptionsFromVisibleProfilesAndOptions(
-                    unit.ProfileGroupsJson, lookups.Chars, lookups.Skills, lookups.Equip, lookups.Weapons, lookups.Ammo,
-                    requireLieutenant, requireZeroSwc, maxCost, includeProfiles,
-                    legacySets[0], legacySets[1], legacySets[2], legacySets[3], legacySets[4]);
-                var sets = NewSets();
+                var legacySets = CollectLegacy(unit, lookups, requireLieutenant, requireZeroSwc, maxCost, includeProfiles);
+                var sets = new OptionNameSets();
                 UnitOptionFilter.CollectFilterOptions(
-                    groups, filterLookups, requireLieutenant, requireZeroSwc, maxCost, includeProfiles,
-                    new UnitFilterOptionSets(sets[0], sets[1], sets[2], sets[3], sets[4]));
+                    groups, filterLookups, requireLieutenant, requireZeroSwc, maxCost, includeProfiles, sets.ToDomain());
 
-                for (var i = 0; i < sets.Count; i++)
+                foreach (var (name, legacy) in legacySets.ByName)
                 {
-                    if (!legacySets[i].SetEquals(sets[i]))
+                    if (!legacy.SetEquals(sets.ByName[name]))
                     {
-                        mismatches.Add($"{unit.Key} filter-options[{i}] lt={requireLieutenant} swc0={requireZeroSwc} max={maxCost}");
+                        mismatches.Add($"{unit.Key} filter-options {name} lt={requireLieutenant} swc0={requireZeroSwc} max={maxCost}");
                     }
                 }
             }
@@ -123,21 +118,26 @@ public sealed class UnitOptionFilterEquivalenceTests
         Assert.True(UnitOptionFilter.MatchesClassification(UnitFilterCriteria.None, unitType, typeLookup));
     }
 
-    private static List<HashSet<string>> NewSets() =>
-        Enumerable.Range(0, 5).Select(_ => new HashSet<string>(StringComparer.OrdinalIgnoreCase)).ToList();
+    private static OptionNameSets CollectLegacy(
+        CorpusUnit unit, CorpusLookups lookups, bool requireLieutenant, bool requireZeroSwc, int? maxCost, bool includeProfiles)
+    {
+        var sets = new OptionNameSets();
+        LegacyFilter.AddFilterOptionsFromVisibleProfilesAndOptions(
+            unit.ProfileGroupsJson, lookups.Chars, lookups.Skills, lookups.Equip, lookups.Weapons, lookups.Ammo,
+            requireLieutenant, requireZeroSwc, maxCost, includeProfiles,
+            sets.Characteristics, sets.Skills, sets.Equipment, sets.Weapons, sets.Ammo);
+        return sets;
+    }
 
     /// <summary>Filter specs built from names this unit (or its army) actually uses, so terms really match.</summary>
     private static IEnumerable<FilterSpec> SpecsFor(CorpusUnit unit, CorpusLookups lookups)
     {
-        var sets = NewSets();
-        LegacyFilter.AddFilterOptionsFromVisibleProfilesAndOptions(
-            unit.ProfileGroupsJson, lookups.Chars, lookups.Skills, lookups.Equip, lookups.Weapons, lookups.Ammo,
-            false, false, null, true, sets[0], sets[1], sets[2], sets[3], sets[4]);
-        var chars = sets[0].OrderBy(x => x, StringComparer.Ordinal).ToList();
-        var skills = sets[1].OrderBy(x => x, StringComparer.Ordinal).ToList();
-        var equipment = sets[2].OrderBy(x => x, StringComparer.Ordinal).ToList();
-        var weapons = sets[3].OrderBy(x => x, StringComparer.Ordinal).ToList();
-        var ammo = sets[4].OrderBy(x => x, StringComparer.Ordinal).ToList();
+        var sets = CollectLegacy(unit, lookups, requireLieutenant: false, requireZeroSwc: false, maxCost: null, includeProfiles: true);
+        var chars = sets.Characteristics.OrderBy(x => x, StringComparer.Ordinal).ToList();
+        var skills = sets.Skills.OrderBy(x => x, StringComparer.Ordinal).ToList();
+        var equipment = sets.Equipment.OrderBy(x => x, StringComparer.Ordinal).ToList();
+        var weapons = sets.Weapons.OrderBy(x => x, StringComparer.Ordinal).ToList();
+        var ammo = sets.Ammo.OrderBy(x => x, StringComparer.Ordinal).ToList();
         var otherWeapon = lookups.Weapons.Values.FirstOrDefault(name => !weapons.Contains(name)) ?? "Not A Weapon";
 
         yield return new FilterSpec("none", [], null, null, false, false, null);

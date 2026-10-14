@@ -1,5 +1,6 @@
 using System.Text.Json;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Filtering;
 using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.UnitTests.Legacy;
 
@@ -110,21 +111,22 @@ public sealed class ViewerRulesEquivalenceTests
                 }
             }
 
-            var legacySets = Enumerable.Range(0, 5).Select(_ => new HashSet<string>(StringComparer.OrdinalIgnoreCase)).ToList();
+            var legacySets = new OptionNameSets();
             var legacyMax = 0;
             LegacyViewerOptionRules.AddFilterOptionsFromProfilesAndOptions(
                 unit.ProfileGroupsJson, lookups.Chars, lookups.Skills, lookups.Equip, lookups.Weapons, lookups.Ammo,
-                legacySets[0], legacySets[1], legacySets[2], legacySets[3], legacySets[4], ref legacyMax);
-            var sets = Enumerable.Range(0, 5).Select(_ => new HashSet<string>(StringComparer.OrdinalIgnoreCase)).ToList();
+                legacySets.Characteristics, legacySets.Skills, legacySets.Equipment, legacySets.Weapons, legacySets.Ammo, ref legacyMax);
+            var sets = new OptionNameSets();
             var max = ViewerOptionNames.CollectAllOptionNames(
-                groups, lookups.Chars, lookups.Skills, lookups.Equip, lookups.Weapons, lookups.Ammo,
-                sets[0], sets[1], sets[2], sets[3], sets[4]);
+                groups,
+                new UnitFilterLookups(lookups.Chars, lookups.Skills, lookups.Equip, lookups.Weapons, lookups.Ammo),
+                sets.ToDomain());
             Compare(mismatches, unit, "filter-popup max points", legacyMax.ToString(), max.ToString());
-            for (var i = 0; i < sets.Count; i++)
+            foreach (var (name, legacy) in legacySets.ByName)
             {
-                Compare(mismatches, unit, $"filter-popup names[{i}]",
-                    string.Join("|", legacySets[i].OrderBy(x => x, StringComparer.Ordinal)),
-                    string.Join("|", sets[i].OrderBy(x => x, StringComparer.Ordinal)));
+                Compare(mismatches, unit, $"filter-popup {name}",
+                    string.Join("|", legacy.OrderBy(x => x, StringComparer.Ordinal)),
+                    string.Join("|", sets.ByName[name].OrderBy(x => x, StringComparer.Ordinal)));
             }
 
             if (mismatches.Count > 20)

@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Models.Filtering;
 
 namespace InfinityMercsApp.Domain.Models.Army.Profiles;
 
@@ -313,16 +314,8 @@ public static class ViewerOptionNames
     /// </summary>
     public static int CollectAllOptionNames(
         UnitProfileGroups groups,
-        IReadOnlyDictionary<int, string> charNames,
-        IReadOnlyDictionary<int, string> skillNames,
-        IReadOnlyDictionary<int, string> equipNames,
-        IReadOnlyDictionary<int, string> weaponNames,
-        IReadOnlyDictionary<int, string> ammoNames,
-        ISet<string> characteristics,
-        ISet<string> skills,
-        ISet<string> equipment,
-        ISet<string> weapons,
-        ISet<string> ammo)
+        UnitFilterLookups lookups,
+        UnitFilterOptionSets names)
     {
         var maxCost = 0;
         foreach (var group in groups.Groups)
@@ -330,19 +323,19 @@ public static class ViewerOptionNames
             foreach (var option in group.Options)
             {
                 maxCost = Math.Max(maxCost, groups.GetAdjustedCostValue(group, option));
-                AddPlainNames(option.Chars, charNames, characteristics);
-                AddPlainNames(option.Skills, skillNames, skills);
-                AddPlainNames(option.Equip, equipNames, equipment);
-                AddPlainNames(option.Weapons, weaponNames, weapons);
-                AddPlainNames(option.Ammunition, ammoNames, ammo);
-                AddPlainNames(option.Ammo, ammoNames, ammo);
+                AddPlainNames(option.Chars, lookups.Chars, names.Characteristics);
+                AddPlainNames(option.Skills, lookups.Skills, names.Skills);
+                AddPlainNames(option.Equip, lookups.Equip, names.Equipment);
+                AddPlainNames(option.Weapons, lookups.Weapons, names.Weapons);
+                AddPlainNames(option.Ammunition, lookups.Ammo, names.Ammo);
+                AddPlainNames(option.Ammo, lookups.Ammo, names.Ammo);
             }
 
             foreach (var profile in group.Profiles)
             {
-                AddPlainNames(profile.Chars, charNames, characteristics);
-                AddPlainNames(profile.Skills, skillNames, skills);
-                AddPlainNames(profile.Equip, equipNames, equipment);
+                AddPlainNames(profile.Chars, lookups.Chars, names.Characteristics);
+                AddPlainNames(profile.Skills, lookups.Skills, names.Skills);
+                AddPlainNames(profile.Equip, lookups.Equip, names.Equipment);
             }
         }
 
