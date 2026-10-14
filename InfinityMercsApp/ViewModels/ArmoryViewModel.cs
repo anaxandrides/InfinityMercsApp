@@ -14,8 +14,10 @@ public sealed record WeaponGroup(string Name, IReadOnlyList<Weapon> Modes);
 /// <summary>Searchable list of weapons, each opening its profiles in a detail pane.</summary>
 public partial class ArmoryViewModel(
     INavigationService navigationService,
-    IMetadataProvider metadataProvider) : ViewModelBase(navigationService)
+    IMetadataProvider metadataProvider) : AdaptiveViewModelBase<SplitPaneLayout>(navigationService, mode => SplitPaneLayout.For(mode, Sizes))
 {
+    private static readonly SplitPaneSizes Sizes = new(320, 340, 360, 820);
+
     public ObservableCollection<WeaponGroup> WeaponGroups { get; } = [];
 
     [ObservableProperty]
@@ -27,7 +29,13 @@ public partial class ArmoryViewModel(
 
     /// <summary>Whether the detail pane replaces the list on narrow screens.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsListPaneVisible), nameof(IsDetailPaneVisible))]
     private bool _isShowingDetail;
+
+    public bool IsListPaneVisible => Layout.ShowsList(IsShowingDetail);
+    public bool IsDetailPaneVisible => Layout.ShowsDetail(IsShowingDetail);
+
+    protected override void OnLayoutApplied() => OnPropertiesChanged(nameof(IsListPaneVisible), nameof(IsDetailPaneVisible));
 
     public string SelectedWeaponName => SelectedWeaponGroup?.Name ?? "Select a weapon";
 

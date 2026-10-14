@@ -6,7 +6,7 @@ using InfinityMercsApp.ViewModels.Base;
 namespace InfinityMercsApp.ViewModels;
 
 /// <summary>The MERCS Season home: load a season, or start one from a saved or new company.</summary>
-public partial class MercsSeasonPageViewModel(INavigationService navigationService) : ViewModelBase(navigationService)
+public partial class MercsSeasonPageViewModel(INavigationService navigationService) : AdaptiveViewModelBase<MercsSeasonLayout>(navigationService, MercsSeasonLayout.For)
 {
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsShowingMainActions))]

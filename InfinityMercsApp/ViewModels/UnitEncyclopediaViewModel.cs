@@ -35,7 +35,8 @@ public partial class UnitEncyclopediaViewModel(
     INavigationService navigationService,
     IArmyDataService armyData,
     UnitDetailViewModel detail,
-    FactionLogoCacheService? logoCache = null) : ViewModelBase(navigationService)
+    FactionLogoCacheService? logoCache = null)
+    : AdaptiveViewModelBase<UnitEncyclopediaLayout>(navigationService, UnitEncyclopediaLayout.For)
 {
     private List<ViewerFactionItem> _allFactions = [];
 
@@ -55,7 +56,16 @@ public partial class UnitEncyclopediaViewModel(
     [ObservableProperty] private string _fireteamHarisCount = "-";
     [ObservableProperty] private string _fireteamCoreCount = "-";
     [ObservableProperty] private string _fireteamsStatus = "Select a faction.";
-    [ObservableProperty] private BrowseStep _step = BrowseStep.Factions;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsFactionsPaneVisible), nameof(IsBrowsePaneVisible), nameof(IsDetailPaneVisible))]
+    private BrowseStep _step = BrowseStep.Factions;
+
+    public bool IsFactionsPaneVisible => Layout.Shows(BrowseStep.Factions, Step);
+    public bool IsBrowsePaneVisible => Layout.Shows(BrowseStep.Units, Step);
+    public bool IsDetailPaneVisible => Layout.Shows(BrowseStep.Detail, Step);
+
+    protected override void OnLayoutApplied() =>
+        OnPropertiesChanged(nameof(IsFactionsPaneVisible), nameof(IsBrowsePaneVisible), nameof(IsDetailPaneVisible));
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowFireteamsTab))]
@@ -186,9 +196,35 @@ public partial class UnitEncyclopediaViewModel(
     [RelayCommand]
     private void BackToUnits() => Step = BrowseStep.Units;
 
+    /// <summary>What the unit filter popup was opened with; null while it is closed.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsUnitFilterOpen))]
+    private UnitFilterRequest? _unitFilterRequest;
+
+    public bool IsUnitFilterOpen => UnitFilterRequest is not null;
+
+    /// <summary>Opens the filter popup on the selected faction's choices and the filter already applied.</summary>
+    [RelayCommand]
+    private void OpenUnitFilter()
+    {
+        try
+        {
+            UnitFilterRequest = new UnitFilterRequest(BuildUnitFilterPopupOptions(), ActiveUnitFilter, LieutenantOnlyUnits);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Unit filter popup open failed: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    private void CloseUnitFilter() => UnitFilterRequest = null;
+
+    /// <summary>Closes the filter popup and shows the units matching its filter.</summary>
     [RelayCommand]
     private Task ApplyUnitFilterAsync(UnitFilterCriteria? criteria)
     {
+        UnitFilterRequest = null;
         ActiveUnitFilter = criteria ?? UnitFilterCriteria.None;
         _applyingFilter = true;
         LieutenantOnlyUnits = ActiveUnitFilter.LieutenantOnlyUnits;

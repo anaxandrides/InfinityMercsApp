@@ -4,7 +4,6 @@ using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.Views.Adaptive;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
@@ -252,14 +251,17 @@ public sealed class MarketplacesViewModelTests
     public async Task TheCartShowsOnlyWithAStoreAndQuantityControls()
     {
         var viewModel = CreateViewModel();
-        viewModel.ShowQuantityControls = true;
+        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Wide);
         Assert.False(viewModel.ShowCart);
 
         await viewModel.SelectStoreCommand.ExecuteAsync("Black Market");
         Assert.True(viewModel.ShowCart);
 
-        viewModel.ShowQuantityControls = false;
+        var changed = new List<string?>();
+        viewModel.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Expanded);
         Assert.False(viewModel.ShowCart);
+        Assert.Contains(nameof(MarketplacesViewModel.ShowCart), changed);
     }
 
     [Fact]
@@ -399,65 +401,58 @@ public sealed class MarketplacesViewModelTests
 
         await _launcher.Received(1).OpenAsync(Arg.Any<Uri>());
     }
+}
 
+public sealed class MarketplacesLayoutTests
+{
     [Fact]
-    public void StartsStackedForAPhone()
+    public void StacksForAPhone()
     {
-        var viewModel = CreateViewModel();
+        var layout = MarketplacesLayout.For(AdaptiveLayoutMode.Compact);
 
-        Assert.Equal("*", viewModel.ContentColumns);
-        Assert.Equal("Auto,*", viewModel.ContentRows);
-        Assert.Equal(new GridCell(1, 0), viewModel.SectionsCell);
-        Assert.Equal(new GridCell(0, 0, RowSpan: 2), viewModel.PlaceholderCell);
-        Assert.Equal("Auto,Auto,Auto", viewModel.SectionsRows);
-        Assert.Equal(new GridCell(2, 0), viewModel.AugmentsCell);
-        Assert.False(viewModel.ShowQuantityControls);
+        Assert.Equal("*", layout.ContentColumns);
+        Assert.Equal("Auto,*", layout.ContentRows);
+        Assert.Equal(new GridCell(1, 0), layout.SectionsCell);
+        Assert.Equal(new GridCell(0, 0, RowSpan: 2), layout.PlaceholderCell);
+        Assert.Equal("Auto,Auto,Auto", layout.SectionsRows);
+        Assert.Equal(new GridCell(2, 0), layout.AugmentsCell);
+        Assert.False(layout.OffersBuying);
     }
 
     [Fact]
     public void MediumStacksTheStoreInfoButSplitsTheSections()
     {
-        var viewModel = CreateViewModel();
+        var layout = MarketplacesLayout.For(AdaptiveLayoutMode.Medium);
 
-        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Medium);
-
-        Assert.Equal("Auto,*", viewModel.ContentRows);
-        Assert.Equal("*,*", viewModel.SectionsColumns);
-        Assert.Equal(new GridCell(0, 0, RowSpan: 2), viewModel.ItemsCell);
-        Assert.Equal(new GridCell(0, 1), viewModel.TroopTypesCell);
-        Assert.Equal(new GridCell(1, 1), viewModel.AugmentsCell);
+        Assert.Equal("Auto,*", layout.ContentRows);
+        Assert.Equal("*,*", layout.SectionsColumns);
+        Assert.Equal(new GridCell(0, 0, RowSpan: 2), layout.ItemsCell);
+        Assert.Equal(new GridCell(0, 1), layout.TroopTypesCell);
+        Assert.Equal(new GridCell(1, 1), layout.AugmentsCell);
     }
 
     [Fact]
     public void ExpandedPutsTheStoreInfoInARail()
     {
-        var viewModel = CreateViewModel();
+        var layout = MarketplacesLayout.For(AdaptiveLayoutMode.Expanded);
 
-        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Expanded);
-
-        Assert.Equal("280,*", viewModel.ContentColumns);
-        Assert.Equal("*", viewModel.ContentRows);
-        Assert.Equal(12, viewModel.ContentColumnSpacing);
-        Assert.Equal(0, viewModel.ContentRowSpacing);
-        Assert.Equal(new GridCell(0, 1), viewModel.SectionsCell);
-        Assert.Equal(new GridCell(0, 0, ColumnSpan: 2), viewModel.PlaceholderCell);
-        Assert.False(viewModel.ShowQuantityControls);
+        Assert.Equal("280,*", layout.ContentColumns);
+        Assert.Equal("*", layout.ContentRows);
+        Assert.Equal(12, layout.ContentColumnSpacing);
+        Assert.Equal(0, layout.ContentRowSpacing);
+        Assert.Equal(new GridCell(0, 1), layout.SectionsCell);
+        Assert.Equal(new GridCell(0, 0, ColumnSpan: 2), layout.PlaceholderCell);
+        Assert.False(layout.OffersBuying);
     }
 
     [Fact]
     public void WideAddsTheCartRailAndBuying()
     {
-        var viewModel = CreateViewModel();
+        var layout = MarketplacesLayout.For(AdaptiveLayoutMode.Wide);
 
-        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Wide);
-
-        Assert.Equal("280,*,320", viewModel.ContentColumns);
-        Assert.Equal(new GridCell(0, 2), viewModel.CartCell);
-        Assert.Equal(new GridCell(0, 0, ColumnSpan: 3), viewModel.PlaceholderCell);
-        Assert.True(viewModel.ShowQuantityControls);
-
-        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Compact);
-        Assert.False(viewModel.ShowQuantityControls);
-        Assert.Equal(new GridCell(1, 0), viewModel.SectionsCell);
+        Assert.Equal("280,*,320", layout.ContentColumns);
+        Assert.Equal(new GridCell(0, 2), layout.CartCell);
+        Assert.Equal(new GridCell(0, 0, ColumnSpan: 3), layout.PlaceholderCell);
+        Assert.True(layout.OffersBuying);
     }
 }

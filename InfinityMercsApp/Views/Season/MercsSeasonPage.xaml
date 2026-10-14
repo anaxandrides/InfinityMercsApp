@@ -2,6 +2,7 @@
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
              x:Class="InfinityMercsApp.Views.Season.MercsSeasonPage"
              x:DataType="viewModels:MercsSeasonPageViewModel"
@@ -10,11 +11,19 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="{StaticResource Void}">
 
-    <Grid x:Name="RootGrid" RowDefinitions="*,Auto" RowSpacing="0">
+    <ContentPage.Behaviors>
+        <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference SeasonRoot}, x:DataType=ContentPage}"
+                                        x:DataType="viewModels:MercsSeasonPageViewModel"
+                                        EventName="LayoutModeChanged"
+                                        Command="{Binding ApplyLayoutCommand}"
+                                        CommandParameter="{Binding LayoutMode, Source={x:Reference SeasonRoot}, x:DataType=layout:AdaptiveContentPage}" />
+    </ContentPage.Behaviors>
+
+    <Grid layout:GridLayout.Columns="{Binding Layout.Columns}" layout:GridLayout.Rows="{Binding Layout.Rows}" RowSpacing="0">
 
         <!-- Logo and title -->
-        <VerticalStackLayout x:Name="BrandPanel"
-                             Grid.Row="0"
+        <VerticalStackLayout Grid.Row="0"
                              Spacing="{DynamicResource SpacingLarge}"
                              VerticalOptions="Center"
                              Padding="24,0">
@@ -36,7 +45,11 @@
         </VerticalStackLayout>
 
         <!-- Action panel -->
-        <Grid x:Name="ActionArea" Grid.Row="1" Padding="24,0,24,40">
+        <Grid layout:GridLayout.Cell="{Binding Layout.ActionCell}"
+              Padding="{Binding Layout.ActionPadding}"
+              VerticalOptions="{Binding Layout.ActionVerticalOptions}"
+              HorizontalOptions="{Binding Layout.ActionHorizontalOptions}"
+              MaximumWidthRequest="{Binding Layout.ActionMaximumWidth}">
 
             <!-- Main actions -->
             <VerticalStackLayout IsVisible="{Binding IsShowingMainActions}" Spacing="{DynamicResource SpacingMedium}">

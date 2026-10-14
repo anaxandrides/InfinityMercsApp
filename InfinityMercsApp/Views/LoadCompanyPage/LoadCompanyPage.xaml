@@ -2,14 +2,29 @@
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
              xmlns:services="clr-namespace:InfinityMercsApp.Services"
              x:Class="InfinityMercsApp.Views.LoadCompanyPage"
+             x:Name="Root"
              x:DataType="viewModels:LoadCompanyViewModel"
              Title="Load Company">
 
-    <Grid x:Name="RootGrid" Padding="16" RowDefinitions="Auto,*" RowSpacing="12" HorizontalOptions="Fill">
+    <ContentPage.Behaviors>
+        <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference Root}, x:DataType=ContentPage}"
+                                        x:DataType="viewModels:LoadCompanyViewModel"
+                                        EventName="LayoutModeChanged"
+                                        Command="{Binding ApplyLayoutCommand}"
+                                        CommandParameter="{Binding LayoutMode, Source={x:Reference Root}, x:DataType=layout:AdaptiveContentPage}" />
+    </ContentPage.Behaviors>
+
+    <Grid Padding="16"
+          RowDefinitions="Auto,*"
+          RowSpacing="12"
+          MaximumWidthRequest="{Binding Layout.MaximumWidth}"
+          HorizontalOptions="{Binding Layout.HorizontalOptions}">
         <VerticalStackLayout Grid.Row="0" Spacing="4">
             <Label
                 Text="Load Records"
@@ -23,10 +38,12 @@
 
         <Grid Grid.Row="1">
             <CollectionView
-                x:Name="RecordsCollection"
                 ItemsSource="{Binding SavedRecords}"
                 SelectionMode="None"
                 IsVisible="{Binding HasSavedRecords}">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="{Binding Layout.Columns}" HorizontalItemSpacing="8" />
+                </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="services:CompanyRecord">
                         <Border StrokeThickness="1" Padding="10" Margin="0,0,0,8">

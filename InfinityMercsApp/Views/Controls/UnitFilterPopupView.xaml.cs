@@ -16,6 +16,15 @@ public sealed class UnitFilterPopupOptions
     public int MaxPoints { get; init; } = 200;
 }
 
+/// <summary>What the filter popup opens with: the values to choose from and the filter already applied.</summary>
+public sealed record UnitFilterRequest(
+    UnitFilterPopupOptions Options,
+    UnitFilterCriteria ExistingCriteria,
+    bool LieutenantOnlyUnits,
+    bool TeamsView = false,
+    bool TeamsViewEnabled = true,
+    bool LieutenantOnlyUnitsEnabled = true);
+
 public sealed class SelectableFilterOption : INotifyPropertyChanged
 {
     private bool _isSelected;
@@ -116,7 +125,22 @@ public partial class UnitFilterPopupView : ContentView
     private const string AnyMode = "Any";
     private const string AllMode = "All";
 
-    private readonly Dictionary<UnitFilterField, List<string>> _availableValues;
+    /// <summary>Setting a request reloads the popup with its options and existing filter, as if newly opened.</summary>
+    public static readonly BindableProperty RequestProperty =
+        BindableProperty.Create(
+            nameof(Request),
+            typeof(UnitFilterRequest),
+            typeof(UnitFilterPopupView),
+            null,
+            propertyChanged: (bindable, _, newValue) =>
+            {
+                if (newValue is UnitFilterRequest request)
+                {
+                    ((UnitFilterPopupView)bindable).Load(request);
+                }
+            });
+
+    private Dictionary<UnitFilterField, List<string>> _availableValues = [];
     private readonly Dictionary<UnitFilterField, UnitFilterTerm> _committedTerms = [];
     private FilterCriterionItem? _selectedCriterion;
     private string _selectedActiveMatchMode = AnyMode;
@@ -127,7 +151,7 @@ public partial class UnitFilterPopupView : ContentView
 
     public ObservableCollection<FilterCriterionItem> CriteriaItems { get; }
     public ObservableCollection<SelectableFilterOption> ActiveCriterionOptions { get; } = [];
-    public ObservableCollection<string> PointsOptions { get; }
+    public ObservableCollection<string> PointsOptions { get; private set; } = [];
     public ObservableCollection<string> MatchModeOptions { get; } = [AnyMode, AllMode];
 
     public FilterCriterionItem? SelectedCriterion
@@ -205,16 +229,6 @@ public partial class UnitFilterPopupView : ContentView
     {
         InitializeComponent();
 
-        _availableValues = new Dictionary<UnitFilterField, List<string>>
-        {
-            [UnitFilterField.Classification] = NormalizeValues(options.Classification),
-            [UnitFilterField.Characteristics] = NormalizeValues(options.Characteristics),
-            [UnitFilterField.Skills] = NormalizeValues(options.Skills),
-            [UnitFilterField.Equipment] = NormalizeValues(options.Equipment),
-            [UnitFilterField.Weapons] = NormalizeValues(options.Weapons),
-            [UnitFilterField.Ammo] = NormalizeValues(options.Ammo)
-        };
-
         CriteriaItems = new ObservableCollection<FilterCriterionItem>
         {
             new(UnitFilterField.Classification, "Classification"),
@@ -225,13 +239,52 @@ public partial class UnitFilterPopupView : ContentView
             new(UnitFilterField.Ammo, "Ammo")
         };
 
+        BindingContext = this;
+        Load(new UnitFilterRequest(
+            options,
+            existingCriteria ?? UnitFilterCriteria.None,
+            lieutenantOnlyUnits,
+            teamsView,
+            teamsViewEnabled,
+            lieutenantOnlyUnitsEnabled));
+    }
+
+    public UnitFilterRequest? Request
+    {
+        get => (UnitFilterRequest?)GetValue(RequestProperty);
+        set => SetValue(RequestProperty, value);
+    }
+
+    // Starts afresh from the request: its option values, points range and existing filter, first criterion open.
+    private void Load(UnitFilterRequest request)
+    {
+        var options = request.Options;
+        _availableValues = new Dictionary<UnitFilterField, List<string>>
+        {
+            [UnitFilterField.Classification] = NormalizeValues(options.Classification),
+            [UnitFilterField.Characteristics] = NormalizeValues(options.Characteristics),
+            [UnitFilterField.Skills] = NormalizeValues(options.Skills),
+            [UnitFilterField.Equipment] = NormalizeValues(options.Equipment),
+            [UnitFilterField.Weapons] = NormalizeValues(options.Weapons),
+            [UnitFilterField.Ammo] = NormalizeValues(options.Ammo)
+        };
+
         var minPoints = Math.Max(0, options.MinPoints);
         var maxPoints = Math.Max(minPoints, options.MaxPoints);
         PointsOptions = BuildPointsOptions(minPoints, maxPoints);
-        LieutenantOnlyUnitsEnabled = lieutenantOnlyUnitsEnabled;
-        TeamsViewEnabled = teamsViewEnabled;
-        BindingContext = this;
-        ApplySelections(existingCriteria ?? UnitFilterCriteria.None, minPoints, maxPoints, lieutenantOnlyUnits, teamsView);
+        LieutenantOnlyUnitsEnabled = request.LieutenantOnlyUnitsEnabled;
+        TeamsViewEnabled = request.TeamsViewEnabled;
+        OnPropertyChanged(nameof(PointsOptions));
+        OnPropertyChanged(nameof(LieutenantOnlyUnitsEnabled));
+        OnPropertyChanged(nameof(TeamsViewEnabled));
+
+        if (_selectedCriterion is not null)
+        {
+            _selectedCriterion.IsCurrent = false;
+            _selectedCriterion = null;
+        }
+
+        ApplySelections(request.ExistingCriteria, minPoints, maxPoints, request.LieutenantOnlyUnits, request.TeamsView);
     }
 
     private static List<string> NormalizeValues(IEnumerable<string> values)

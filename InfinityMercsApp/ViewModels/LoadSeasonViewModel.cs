@@ -11,7 +11,7 @@ namespace InfinityMercsApp.ViewModels;
 public partial class LoadSeasonViewModel(
     INavigationService navigationService,
     IDialogService dialogs,
-    SeasonRecordCatalog catalog) : ViewModelBase(navigationService)
+    SeasonRecordCatalog catalog) : AdaptiveViewModelBase<RecordListLayout>(navigationService, RecordListLayout.For)
 {
     public ObservableCollection<SeasonRecord> SeasonRecords { get; } = [];
 

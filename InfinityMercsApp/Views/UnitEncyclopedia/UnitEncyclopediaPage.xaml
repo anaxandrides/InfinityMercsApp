@@ -3,18 +3,28 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
              x:Class="InfinityMercsApp.Views.UnitEncyclopedia.UnitEncyclopediaPage"
              x:Name="UnitEncyclopediaPageRoot"
              Title="Unit Encyclopedia">
 
-    <Grid x:Name="RootGrid" Padding="16" ColumnSpacing="12">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="260" />
-            <ColumnDefinition Width="0.7*" />
-            <ColumnDefinition Width="1.3*" />
-        </Grid.ColumnDefinitions>
+    <ContentPage.Behaviors>
+        <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference UnitEncyclopediaPageRoot}, x:DataType=ContentPage}"
+                                        x:DataType="viewModels:UnitEncyclopediaViewModel"
+                                        EventName="LayoutModeChanged"
+                                        Command="{Binding ApplyLayoutCommand}"
+                                        CommandParameter="{Binding LayoutMode, Source={x:Reference UnitEncyclopediaPageRoot}, x:DataType=layout:AdaptiveContentPage}" />
+    </ContentPage.Behaviors>
 
-        <Border x:Name="FactionsPane" Grid.Column="0" StrokeThickness="1" Padding="10">
+    <Grid Padding="16"
+          layout:GridLayout.Columns="{Binding Layout.Columns}"
+          layout:GridLayout.Rows="{Binding Layout.Rows}"
+          ColumnSpacing="{Binding Layout.ColumnSpacing}"
+          RowSpacing="{Binding Layout.RowSpacing}">
+
+        <Border layout:GridLayout.Cell="{Binding Layout.FactionsCell}" IsVisible="{Binding IsFactionsPaneVisible}" StrokeThickness="1" Padding="10">
             <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="8">
                 <Label
                     Text="Factions"
@@ -55,13 +65,13 @@
             </Grid>
         </Border>
 
-        <Border x:Name="BrowsePane" Grid.Column="1" StrokeThickness="1" Padding="12">
+        <Border layout:GridLayout.Cell="{Binding Layout.BrowseCell}" IsVisible="{Binding IsBrowsePaneVisible}" StrokeThickness="1" Padding="12">
             <Grid RowDefinitions="Auto,Auto,*" RowSpacing="8">
                 <!-- Compact-only return to the factions list -->
-                <Button x:Name="BrowseBackButton"
+                <Button
                         Grid.Row="0"
                         Text="← Factions"
-                        IsVisible="False"
+                        IsVisible="{Binding Layout.ShowsOneStep}"
                         HorizontalOptions="Start"
                         BackgroundColor="Transparent"
                         BorderColor="Transparent"
@@ -191,13 +201,13 @@
             </Grid>
         </Border>
 
-        <Border x:Name="DetailPane" Grid.Column="2" StrokeThickness="1" Padding="12">
+        <Border layout:GridLayout.Cell="{Binding Layout.DetailCell}" IsVisible="{Binding IsDetailPaneVisible}" StrokeThickness="1" Padding="12">
             <Grid RowDefinitions="Auto,*" RowSpacing="8">
                 <!-- Compact-only return to the units list -->
-                <Button x:Name="DetailBackButton"
+                <Button
                         Grid.Row="0"
                         Text="← Units"
-                        IsVisible="False"
+                        IsVisible="{Binding Layout.ShowsOneStep}"
                         HorizontalOptions="Start"
                         BackgroundColor="Transparent"
                         BorderColor="Transparent"
@@ -237,7 +247,7 @@
 
         <Grid
             x:Name="UnitFilterOverlay"
-            Grid.ColumnSpan="3"
+            layout:GridLayout.Cell="{Binding Layout.OverlayCell}"
             IsVisible="False"
             BackgroundColor="#880E1116"
             InputTransparent="False"

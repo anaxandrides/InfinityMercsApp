@@ -1,4 +1,4 @@
-namespace InfinityMercsApp.Views.Adaptive;
+namespace InfinityMercsApp.ViewModels.Base;
 
 /// <summary>
 /// Width-driven layout mode shared by adaptive pages. Thresholds are expressed in MAUI logical

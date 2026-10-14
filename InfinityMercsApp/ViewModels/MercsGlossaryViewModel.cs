@@ -9,8 +9,10 @@ namespace InfinityMercsApp.ViewModels;
 /// <summary>The MERCS rules index; choosing a rule shows its text.</summary>
 public partial class MercsGlossaryViewModel(
     INavigationService navigationService,
-    IAppPackageFiles packageFiles) : ViewModelBase(navigationService)
+    IAppPackageFiles packageFiles) : AdaptiveViewModelBase<SplitPaneLayout>(navigationService, mode => SplitPaneLayout.For(mode, Sizes))
 {
+    private static readonly SplitPaneSizes Sizes = new(300, 320, 340, 860);
+
     public const string NoSelectionTitle = "Select a rule";
     private const string NoSelectionText = "Choose an entry from the Rules Index to view its details.";
     private const string NoDetailsText = "No details available for this rule yet.";
@@ -32,7 +34,25 @@ public partial class MercsGlossaryViewModel(
 
     /// <summary>Whether the rule text replaces the index on narrow screens.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsIndexPaneVisible), nameof(IsDetailPaneVisible))]
     private bool _isShowingDetail;
+
+    public bool IsIndexPaneVisible => Layout.ShowsList(IsShowingDetail);
+    public bool IsDetailPaneVisible => Layout.ShowsDetail(IsShowingDetail);
+
+    /// <summary>
+    /// Rules-index text size, scaled to the available width so long titles stay readable and fit inside the
+    /// index box. Compact has the full screen width; the medium and wider rail is narrow.
+    /// </summary>
+    public double ListFontSize => LayoutMode switch
+    {
+        AdaptiveLayoutMode.Compact => 17d,
+        AdaptiveLayoutMode.Medium => 14d,
+        AdaptiveLayoutMode.Expanded => 15d,
+        _ => 16d
+    };
+
+    protected override void OnLayoutApplied() => OnPropertiesChanged(nameof(IsIndexPaneVisible), nameof(IsDetailPaneVisible), nameof(ListFontSize));
 
     public HtmlWebViewSource ContentSource => new() { Html = SelectedContentHtml };
 

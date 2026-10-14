@@ -1,5 +1,6 @@
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services;
+using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.Views;
 using InfinityMercsApp.Views.Adaptive;
 using InfinityMercsApp.Views.Controls;

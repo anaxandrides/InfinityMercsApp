@@ -5,7 +5,6 @@ using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.Views.Adaptive;
 
 namespace InfinityMercsApp.ViewModels;
 
@@ -13,7 +12,7 @@ namespace InfinityMercsApp.ViewModels;
 /// Browses one marketplace at a time: its items by category, troop types and augments, a detail popup for
 /// each, and (on wide screens) a cart that totals the quantities picked.
 /// </summary>
-public partial class MarketplacesViewModel : ViewModelBase
+public partial class MarketplacesViewModel : AdaptiveViewModelBase<MarketplacesLayout>
 {
     private readonly IStoreProvider _storeProvider;
     private readonly IMetadataProvider _metadataProvider;
@@ -26,14 +25,13 @@ public partial class MarketplacesViewModel : ViewModelBase
         IStoreProvider storeProvider,
         IMetadataProvider metadataProvider,
         IWikiDescriptionService wikiDescriptionService,
-        ILauncher launcher) : base(navigationService)
+        ILauncher launcher) : base(navigationService, MarketplacesLayout.For)
     {
         _storeProvider = storeProvider;
         _metadataProvider = metadataProvider;
         _wikiDescriptionService = wikiDescriptionService;
         _launcher = launcher;
         StoreNames = storeProvider.GetAllStoreNames();
-        ApplyLayout(AdaptiveLayoutMode.Compact);
     }
 
     public IReadOnlyList<string> StoreNames { get; }
@@ -44,11 +42,6 @@ public partial class MarketplacesViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowCart))]
     private bool _hasStore;
-
-    /// <summary>Buying, and the cart that totals it, is offered only on the widest screens.</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowCart))]
-    private bool _showQuantityControls;
 
     [ObservableProperty]
     private string _storeName = string.Empty;
@@ -89,50 +82,7 @@ public partial class MarketplacesViewModel : ViewModelBase
     [ObservableProperty]
     private IReadOnlyList<WikiContentBlock> _wikiBlocks = [];
 
-    // Layout, set by ApplyLayout for the page's width.
-
-    /// <summary>The content grid's columns: the store rail, sections and cart sit side by side on wider screens.</summary>
-    [ObservableProperty]
-    private string _contentColumns = string.Empty;
-
-    [ObservableProperty]
-    private string _contentRows = string.Empty;
-
-    [ObservableProperty]
-    private double _contentColumnSpacing;
-
-    [ObservableProperty]
-    private double _contentRowSpacing;
-
-    /// <summary>The placeholder covers the whole content grid.</summary>
-    [ObservableProperty]
-    private GridCell _placeholderCell = new(0, 0);
-
-    [ObservableProperty]
-    private GridCell _storeInfoCell = new(0, 0);
-
-    [ObservableProperty]
-    private GridCell _sectionsCell = new(0, 0);
-
-    [ObservableProperty]
-    private GridCell _cartCell = new(0, 0);
-
-    [ObservableProperty]
-    private string _sectionsColumns = string.Empty;
-
-    [ObservableProperty]
-    private string _sectionsRows = string.Empty;
-
-    [ObservableProperty]
-    private GridCell _itemsCell = new(0, 0);
-
-    [ObservableProperty]
-    private GridCell _troopTypesCell = new(0, 0);
-
-    [ObservableProperty]
-    private GridCell _augmentsCell = new(0, 0);
-
-    public bool ShowCart => HasStore && ShowQuantityControls;
+    public bool ShowCart => HasStore && Layout.OffersBuying;
     public bool HasItems => ItemGroups.Count > 0;
     public bool HasTroopTypes => TroopTypeRows.Count > 0;
     public bool HasAugments => AugmentRows.Count > 0;
@@ -144,56 +94,7 @@ public partial class MarketplacesViewModel : ViewModelBase
     public bool IsWikiEmpty => WikiStatus == WikiStatus.Empty;
     public bool HasWikiBlocks => WikiStatus == WikiStatus.Loaded;
 
-    /// <summary>
-    /// Lays the page out for its width. Compact and medium stack the store info above the sections; expanded puts
-    /// the store info in a rail beside them, and wide adds the cart rail. All but compact show the sections in two
-    /// columns: items on the left, troop types above augments on the right.
-    /// </summary>
-    [RelayCommand]
-    private void ApplyLayout(AdaptiveLayoutMode mode)
-    {
-        ShowQuantityControls = mode == AdaptiveLayoutMode.Wide;
-
-        if (mode is AdaptiveLayoutMode.Compact or AdaptiveLayoutMode.Medium)
-        {
-            ContentColumns = "*";
-            ContentRows = "Auto,*";
-            ContentColumnSpacing = 0;
-            ContentRowSpacing = 12;
-            StoreInfoCell = new(0, 0);
-            SectionsCell = new(1, 0);
-            PlaceholderCell = new(0, 0, RowSpan: 2);
-        }
-        else
-        {
-            var isWide = mode == AdaptiveLayoutMode.Wide;
-            ContentColumns = isWide ? "280,*,320" : "280,*";
-            ContentRows = "*";
-            ContentColumnSpacing = 12;
-            ContentRowSpacing = 0;
-            StoreInfoCell = new(0, 0);
-            SectionsCell = new(0, 1);
-            CartCell = new(0, 2);
-            PlaceholderCell = new(0, 0, ColumnSpan: isWide ? 3 : 2);
-        }
-
-        if (mode == AdaptiveLayoutMode.Compact)
-        {
-            SectionsColumns = "*";
-            SectionsRows = "Auto,Auto,Auto";
-            ItemsCell = new(0, 0);
-            TroopTypesCell = new(1, 0);
-            AugmentsCell = new(2, 0);
-        }
-        else
-        {
-            SectionsColumns = "*,*";
-            SectionsRows = "Auto,Auto";
-            ItemsCell = new(0, 0, RowSpan: 2);
-            TroopTypesCell = new(0, 1);
-            AugmentsCell = new(1, 1);
-        }
-    }
+    protected override void OnLayoutApplied() => OnPropertyChanged(nameof(ShowCart));
 
     partial void OnSelectedStoreNameChanged(string? value) => SelectStoreCommand.Execute(value);
 

@@ -2,14 +2,29 @@
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
              xmlns:season="clr-namespace:InfinityMercsApp.Services.Season"
              x:Class="InfinityMercsApp.Views.Season.LoadSeasonPage"
+             x:Name="Root"
              x:DataType="viewModels:LoadSeasonViewModel"
              Title="Load Season"
              BackgroundColor="{StaticResource Void}">
 
-    <Grid x:Name="RootGrid" Padding="16" RowDefinitions="Auto,*" RowSpacing="12" HorizontalOptions="Fill">
+    <ContentPage.Behaviors>
+        <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference Root}, x:DataType=ContentPage}"
+                                        x:DataType="viewModels:LoadSeasonViewModel"
+                                        EventName="LayoutModeChanged"
+                                        Command="{Binding ApplyLayoutCommand}"
+                                        CommandParameter="{Binding LayoutMode, Source={x:Reference Root}, x:DataType=layout:AdaptiveContentPage}" />
+    </ContentPage.Behaviors>
+
+    <Grid Padding="16"
+          RowDefinitions="Auto,*"
+          RowSpacing="12"
+          MaximumWidthRequest="{Binding Layout.MaximumWidth}"
+          HorizontalOptions="{Binding Layout.HorizontalOptions}">
 
         <VerticalStackLayout Grid.Row="0" Spacing="4">
             <Label Text="Load Season"
@@ -25,10 +40,12 @@
 
         <Grid Grid.Row="1">
 
-            <CollectionView x:Name="SeasonsCollection"
-                            ItemsSource="{Binding SeasonRecords}"
+            <CollectionView ItemsSource="{Binding SeasonRecords}"
                             SelectionMode="None"
                             IsVisible="{Binding HasSeasonRecords}">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="{Binding Layout.Columns}" HorizontalItemSpacing="8" />
+                </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="season:SeasonRecord">
                         <Border StrokeThickness="1"

@@ -4,9 +4,21 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
     xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
     x:Class="InfinityMercsApp.Views.CreateNewCompanyPage"
     x:Name="CreateNewCompanyRoot"
+    x:DataType="viewModels:CreateNewCompanyPageViewModel"
     Title="Create New Company">
+
+    <ContentPage.Behaviors>
+        <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference CreateNewCompanyRoot}, x:DataType=ContentPage}"
+                                        x:DataType="viewModels:CreateNewCompanyPageViewModel"
+                                        EventName="LayoutModeChanged"
+                                        Command="{Binding ApplyLayoutCommand}"
+                                        CommandParameter="{Binding LayoutMode, Source={x:Reference CreateNewCompanyRoot}, x:DataType=layout:AdaptiveContentPage}" />
+    </ContentPage.Behaviors>
 
     <Grid Padding="24" RowSpacing="16">
         <Grid.RowDefinitions>
@@ -14,228 +26,61 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Scrollable card list/grid. Column count adapts to width in code-behind. -->
+        <!-- Scrollable card grid; the ViewModel places each card for the width. -->
         <ScrollView Grid.Row="0" HorizontalOptions="Fill">
-            <Grid x:Name="CardGrid"
+            <Grid BindableLayout.ItemsSource="{Binding Choices}"
+                  layout:GridLayout.Columns="{Binding Layout.GridColumns}"
+                  layout:GridLayout.Rows="{Binding ChoiceRows}"
                   RowSpacing="12"
                   ColumnSpacing="12"
-                  HorizontalOptions="Fill"
-                  MaximumWidthRequest="1500">
+                  HorizontalOptions="{Binding Layout.HorizontalOptions}"
+                  MaximumWidthRequest="{Binding Layout.MaximumWidth}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:CompanyChoice">
+                        <Grid layout:GridLayout.Cell="{Binding Cell}"
+                              MinimumHeightRequest="{Binding Style.MinimumHeight}"
+                              VerticalOptions="Fill">
+                            <Button Text=""
+                                    Command="{Binding Command}"
+                                    BackgroundColor="Transparent"
+                                    BorderColor="{StaticResource Signal}"
+                                    BorderWidth="2"
+                                    CornerRadius="4"
+                                    VerticalOptions="Fill" />
+                            <Grid layout:GridLayout.Columns="{Binding Style.Columns}"
+                                  layout:GridLayout.Rows="{Binding Style.Rows}"
+                                  ColumnSpacing="{Binding Style.ColumnSpacing}"
+                                  RowSpacing="{Binding Style.RowSpacing}"
+                                  Padding="10">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Command}" />
+                                </Grid.GestureRecognizers>
 
-                <Grid x:Name="CardStandard" MinimumHeightRequest="160" VerticalOptions="Fill">
-                    <Button x:Name="StandardCompanyButton"
-                            Text=""
-                            Command="{Binding OpenStandardCompanyPopupCommand}"
-                            BackgroundColor="Transparent"
-                            BorderColor="{StaticResource Signal}"
-                            BorderWidth="2"
-                            CornerRadius="4"
-                            VerticalOptions="FillAndExpand" />
-                    <Grid x:Name="StandardCardContent" InputTransparent="False" RowDefinitions="*,Auto" RowSpacing="6" Padding="10">
-                        <Grid.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding OpenStandardCompanyPopupCommand}" />
-                        </Grid.GestureRecognizers>
+                                <controls:SvgIcon layout:GridLayout.Cell="{Binding Style.IconCell}"
+                                                  HeightRequest="{Binding Style.IconSize}"
+                                                  WidthRequest="{Binding Style.IconSize}"
+                                                  HorizontalOptions="Center"
+                                                  VerticalOptions="Center"
+                                                  InputTransparent="True"
+                                                  Source="{Binding IconSource}" />
 
-                        <controls:SvgIcon
-                            Grid.Row="0"
-                            x:Name="StandardCompanyIcon"
-                            HeightRequest="120"
-                            WidthRequest="120"
-                            HorizontalOptions="Center"
-                            VerticalOptions="Center"
-                            InputTransparent="True"
-                            Source="MercsIcons/standard_company.svg" />
-
-                        <Label
-                            x:Name="StandardCompanyLabel"
-                            Grid.Row="1"
-                            Text="Standard Company"
-                            FontSize="{DynamicResource FontSizeHeadline}"
-                            VerticalOptions="Start"
-                            HorizontalOptions="Center"
-                            HorizontalTextAlignment="Center"
-                            InputTransparent="True" />
-                    </Grid>
-                </Grid>
-
-                <Grid x:Name="CardCohesive" MinimumHeightRequest="160" VerticalOptions="Fill">
-                    <Button x:Name="CohesiveCompanyButton"
-                            Text=""
-                            Command="{Binding OpenCohesiveCompanyPageCommand}"
-                            BackgroundColor="Transparent"
-                            BorderColor="{StaticResource Signal}"
-                            BorderWidth="2"
-                            CornerRadius="4"
-                            VerticalOptions="FillAndExpand" />
-                    <Grid x:Name="CohesiveCardContent" InputTransparent="False" RowDefinitions="*,Auto" RowSpacing="6" Padding="10">
-                        <Grid.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding OpenCohesiveCompanyPageCommand}" />
-                        </Grid.GestureRecognizers>
-
-                        <controls:SvgIcon
-                            Grid.Row="0"
-                            x:Name="CohesiveCompanyIcon"
-                            HeightRequest="120"
-                            WidthRequest="120"
-                            HorizontalOptions="Center"
-                            VerticalOptions="Center"
-                            InputTransparent="True"
-                            Source="MercsIcons/cohesive_company.svg" />
-
-                        <Label
-                            x:Name="CohesiveCompanyLabel"
-                            Grid.Row="1"
-                            Text="Cohesive Company"
-                            FontSize="{DynamicResource FontSizeHeadline}"
-                            VerticalOptions="Start"
-                            HorizontalOptions="Center"
-                            HorizontalTextAlignment="Center"
-                            InputTransparent="True" />
-                    </Grid>
-                </Grid>
-
-                <Grid x:Name="CardInspiring" MinimumHeightRequest="160" VerticalOptions="Fill">
-                    <Button x:Name="InspiringLeaderButton"
-                            Text=""
-                            Command="{Binding OpenInspiringLeadershipPageCommand}"
-                            BackgroundColor="Transparent"
-                            BorderColor="{StaticResource Signal}"
-                            BorderWidth="2"
-                            CornerRadius="4"
-                            VerticalOptions="FillAndExpand" />
-                    <Grid x:Name="InspiringCardContent" InputTransparent="False" RowDefinitions="*,Auto" RowSpacing="6" Padding="10">
-                        <Grid.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding OpenInspiringLeadershipPageCommand}" />
-                        </Grid.GestureRecognizers>
-
-                        <controls:SvgIcon
-                            Grid.Row="0"
-                            x:Name="InspiringLeaderIcon"
-                            HeightRequest="120"
-                            WidthRequest="120"
-                            HorizontalOptions="Center"
-                            VerticalOptions="Center"
-                            InputTransparent="True"
-                            Source="MercsIcons/inspiring_leadership.svg" />
-
-                        <Label
-                            x:Name="InspiringLeaderLabel"
-                            Grid.Row="1"
-                            Text="Inspiring Leader"
-                            FontSize="{DynamicResource FontSizeHeadline}"
-                            VerticalOptions="Start"
-                            HorizontalOptions="Center"
-                            HorizontalTextAlignment="Center"
-                            InputTransparent="True" />
-                    </Grid>
-                </Grid>
-
-                <Grid x:Name="CardAirborne" MinimumHeightRequest="160" VerticalOptions="Fill">
-                    <Button x:Name="AirborneCompanyButton"
-                            Text=""
-                            Command="{Binding OpenAirborneCompanyPageCommand}"
-                            BackgroundColor="Transparent"
-                            BorderColor="{StaticResource Signal}"
-                            BorderWidth="2"
-                            CornerRadius="4"
-                            VerticalOptions="FillAndExpand" />
-                    <Grid x:Name="AirborneCardContent" InputTransparent="False" RowDefinitions="*,Auto" RowSpacing="6" Padding="10">
-                        <Grid.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding OpenAirborneCompanyPageCommand}" />
-                        </Grid.GestureRecognizers>
-
-                        <controls:SvgIcon
-                            Grid.Row="0"
-                            x:Name="AirborneCompanyIcon"
-                            HeightRequest="120"
-                            WidthRequest="120"
-                            HorizontalOptions="Center"
-                            VerticalOptions="Center"
-                            InputTransparent="True"
-                            Source="MercsIcons/airborne_company.svg" />
-
-                        <Label
-                            x:Name="AirborneCompanyLabel"
-                            Grid.Row="1"
-                            Text="Airborne Company"
-                            FontSize="{DynamicResource FontSizeHeadline}"
-                            VerticalOptions="Start"
-                            HorizontalOptions="Center"
-                            HorizontalTextAlignment="Center"
-                            InputTransparent="True" />
-                    </Grid>
-                </Grid>
-
-                <Grid x:Name="CardTag" MinimumHeightRequest="160" VerticalOptions="Fill">
-                    <Button x:Name="TagCompanyButton"
-                            Text=""
-                            Command="{Binding OpenTAGCompanyPageCommand}"
-                            BackgroundColor="Transparent"
-                            BorderColor="{StaticResource Signal}"
-                            BorderWidth="2"
-                            CornerRadius="4"
-                            VerticalOptions="FillAndExpand" />
-                    <Grid x:Name="TagCardContent" InputTransparent="False" RowDefinitions="*,Auto" RowSpacing="6" Padding="10">
-                        <Grid.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding OpenTAGCompanyPageCommand}" />
-                        </Grid.GestureRecognizers>
-
-                        <controls:SvgIcon
-                            Grid.Row="0"
-                            x:Name="TagCompanyIcon"
-                            HeightRequest="120"
-                            WidthRequest="120"
-                            HorizontalOptions="Center"
-                            VerticalOptions="Center"
-                            InputTransparent="True"
-                            Source="MercsIcons/tag_company.svg" />
-
-                        <Label
-                            x:Name="TagCompanyLabel"
-                            Grid.Row="1"
-                            Text="TAG Company"
-                            FontSize="{DynamicResource FontSizeHeadline}"
-                            VerticalOptions="Start"
-                            HorizontalOptions="Center"
-                            HorizontalTextAlignment="Center"
-                            InputTransparent="True" />
-                    </Grid>
-                </Grid>
-
-                <Grid x:Name="CardLoneWolf" MinimumHeightRequest="160" VerticalOptions="Fill" IsVisible="False">
-                    <Button x:Name="LoneWolfCompanyButton"
-                            Text=""
-                            Command="{Binding OpenLoneWolfCompanyPopupCommand}"
-                            BackgroundColor="Transparent"
-                            BorderColor="{StaticResource Signal}"
-                            BorderWidth="2"
-                            CornerRadius="4"
-                            VerticalOptions="FillAndExpand" />
-                    <Grid InputTransparent="False" RowDefinitions="*,Auto" RowSpacing="6" Padding="10">
-                        <Grid.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding OpenLoneWolfCompanyPopupCommand}" />
-                        </Grid.GestureRecognizers>
-
-                        <controls:SvgIcon
-                            Grid.Row="0"
-                            x:Name="LoneWolfCompanyIcon"
-                            HeightRequest="120"
-                            WidthRequest="120"
-                            HorizontalOptions="Center"
-                            VerticalOptions="Center"
-                            InputTransparent="True"
-                            Source="MercsIcons/proxy_pack.svg" />
-
-                        <Label
-                            Grid.Row="1"
-                            Text="Lone Wolf Company"
-                            FontSize="{DynamicResource FontSizeHeadline}"
-                            VerticalOptions="Start"
-                            HorizontalOptions="Center"
-                            HorizontalTextAlignment="Center"
-                            InputTransparent="True" />
-                    </Grid>
-                </Grid>
+                                <Label layout:GridLayout.Cell="{Binding Style.TitleCell}"
+                                       Text="{Binding Title}"
+                                       FontSize="{DynamicResource FontSizeHeadline}"
+                                       VerticalOptions="{Binding Style.TitleVerticalOptions}"
+                                       HorizontalOptions="{Binding Style.TitleHorizontalOptions}"
+                                       HorizontalTextAlignment="{Binding Style.TitleTextAlignment}"
+                                       InputTransparent="True">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding Style.UsesCompactTitle}" Value="True">
+                                            <Setter Property="FontSize" Value="{DynamicResource FontSizeCardTitleCompact}" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                            </Grid>
+                        </Grid>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
             </Grid>
         </ScrollView>
 

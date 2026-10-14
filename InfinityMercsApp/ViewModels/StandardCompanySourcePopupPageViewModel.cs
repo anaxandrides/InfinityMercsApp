@@ -8,7 +8,7 @@ namespace InfinityMercsApp.ViewModels;
 /// <summary>Chooses where a Standard company's units come from: one vanilla faction or two sectorials.</summary>
 public partial class StandardCompanySourcePopupPageViewModel(
     INavigationService navigationService,
-    ICompanySelectionNavigator companySelection) : ViewModelBase(navigationService)
+    ICompanySelectionNavigator companySelection) : AdaptiveViewModelBase<SourcePopupLayout>(navigationService, SourcePopupLayout.For)
 {
     [RelayCommand]
     private Task ClosePopupAsync() => NavigationService.NavigateToAsync("//CreateNewCompanyPage");

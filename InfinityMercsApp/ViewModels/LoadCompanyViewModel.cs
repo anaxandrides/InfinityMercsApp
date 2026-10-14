@@ -10,7 +10,7 @@ namespace InfinityMercsApp.ViewModels;
 public partial class LoadCompanyViewModel(
     INavigationService navigationService,
     IDialogService dialogs,
-    CompanyRecordCatalog catalog) : ViewModelBase(navigationService)
+    CompanyRecordCatalog catalog) : AdaptiveViewModelBase<RecordListLayout>(navigationService, RecordListLayout.For)
 {
     private bool _seasonMode;
 

@@ -69,7 +69,7 @@
         <ControlTemplate x:Key="QuantityControls" x:DataType="viewModels:MarketplaceRow">
             <HorizontalStackLayout Spacing="6"
                                    VerticalOptions="Center"
-                                   IsVisible="{Binding ShowQuantityControls, Source={RelativeSource AncestorType={x:Type viewModels:MarketplacesViewModel}}, x:DataType=viewModels:MarketplacesViewModel}">
+                                   IsVisible="{Binding Layout.OffersBuying, Source={RelativeSource AncestorType={x:Type viewModels:MarketplacesViewModel}}, x:DataType=viewModels:MarketplacesViewModel}">
                 <Button Text="−"
                         Style="{StaticResource QuantityButton}"
                         TextColor="{StaticResource Danger}"
@@ -97,13 +97,13 @@
 
         <!-- Content area: rail / sections / cart placement is reflowed per width mode -->
         <Grid Grid.Row="1"
-              layout:GridLayout.Columns="{Binding ContentColumns}"
-              layout:GridLayout.Rows="{Binding ContentRows}"
-              ColumnSpacing="{Binding ContentColumnSpacing}"
-              RowSpacing="{Binding ContentRowSpacing}">
+              layout:GridLayout.Columns="{Binding Layout.ContentColumns}"
+              layout:GridLayout.Rows="{Binding Layout.ContentRows}"
+              ColumnSpacing="{Binding Layout.ContentColumnSpacing}"
+              RowSpacing="{Binding Layout.ContentRowSpacing}">
 
             <!-- Placeholder shown before any selection -->
-            <Label layout:GridLayout.Cell="{Binding PlaceholderCell}"
+            <Label layout:GridLayout.Cell="{Binding Layout.PlaceholderCell}"
                    Text="Select a marketplace from the dropdown above."
                    IsVisible="{Binding HasStore, Converter={StaticResource InvertedBoolConverter}}"
                    HorizontalTextAlignment="Center"
@@ -113,7 +113,7 @@
                    TextColor="{StaticResource TextMuted}" />
 
             <!-- Store info header / metadata rail -->
-            <Border layout:GridLayout.Cell="{Binding StoreInfoCell}"
+            <Border layout:GridLayout.Cell="{Binding Layout.StoreInfoCell}"
                     IsVisible="{Binding HasStore}"
                     VerticalOptions="Start"
                     StrokeThickness="1"
@@ -128,14 +128,14 @@
             </Border>
 
             <!-- Marketplace sections -->
-            <ScrollView layout:GridLayout.Cell="{Binding SectionsCell}" IsVisible="{Binding HasStore}">
-                <Grid layout:GridLayout.Columns="{Binding SectionsColumns}"
-                      layout:GridLayout.Rows="{Binding SectionsRows}"
+            <ScrollView layout:GridLayout.Cell="{Binding Layout.SectionsCell}" IsVisible="{Binding HasStore}">
+                <Grid layout:GridLayout.Columns="{Binding Layout.SectionsColumns}"
+                      layout:GridLayout.Rows="{Binding Layout.SectionsRows}"
                       RowSpacing="12"
                       ColumnSpacing="12">
 
                     <!-- Items section -->
-                    <Border layout:GridLayout.Cell="{Binding ItemsCell}" Style="{StaticResource SectionBorder}" IsVisible="{Binding HasItems}">
+                    <Border layout:GridLayout.Cell="{Binding Layout.ItemsCell}" Style="{StaticResource SectionBorder}" IsVisible="{Binding HasItems}">
                         <VerticalStackLayout Spacing="8">
                             <Label Text="Items" FontSize="{DynamicResource FontSizeSubHeadline}" FontAttributes="Bold" />
                             <VerticalStackLayout BindableLayout.ItemsSource="{Binding ItemGroups}" Spacing="12">
@@ -174,7 +174,7 @@
                     </Border>
 
                     <!-- Troop Types section -->
-                    <Border layout:GridLayout.Cell="{Binding TroopTypesCell}" Style="{StaticResource SectionBorder}" IsVisible="{Binding HasTroopTypes}">
+                    <Border layout:GridLayout.Cell="{Binding Layout.TroopTypesCell}" Style="{StaticResource SectionBorder}" IsVisible="{Binding HasTroopTypes}">
                         <VerticalStackLayout Spacing="8">
                             <Label Text="Troop Types" FontSize="{DynamicResource FontSizeSubHeadline}" FontAttributes="Bold" />
                             <VerticalStackLayout BindableLayout.ItemsSource="{Binding TroopTypeRows}" Spacing="4">
@@ -206,7 +206,7 @@
                     </Border>
 
                     <!-- Augments section -->
-                    <Border layout:GridLayout.Cell="{Binding AugmentsCell}" Style="{StaticResource SectionBorder}" IsVisible="{Binding HasAugments}">
+                    <Border layout:GridLayout.Cell="{Binding Layout.AugmentsCell}" Style="{StaticResource SectionBorder}" IsVisible="{Binding HasAugments}">
                         <VerticalStackLayout Spacing="8">
                             <Label Text="Augments" FontSize="{DynamicResource FontSizeSubHeadline}" FontAttributes="Bold" />
                             <VerticalStackLayout BindableLayout.ItemsSource="{Binding AugmentRows}" Spacing="4">
@@ -237,7 +237,7 @@
             </ScrollView>
 
             <!-- Wide-only cart / quantity summary rail -->
-            <Border layout:GridLayout.Cell="{Binding CartCell}"
+            <Border layout:GridLayout.Cell="{Binding Layout.CartCell}"
                     IsVisible="{Binding ShowCart}"
                     StrokeThickness="1"
                     Padding="12">
