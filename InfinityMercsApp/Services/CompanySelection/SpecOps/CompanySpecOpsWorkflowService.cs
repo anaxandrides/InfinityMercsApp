@@ -5,7 +5,7 @@ namespace InfinityMercsApp.Views.Common.UICommon;
 
 internal static class CompanySpecOpsWorkflowService
 {
-    private static readonly string[] DisallowedTagSpecOpsOptions =
+    private static readonly IReadOnlyList<string> DisallowedTagSpecOpsOptions =
     [
         "Forward Deployment",
         "Strategic Deployment",

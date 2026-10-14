@@ -16,7 +16,7 @@ public partial class PerksTablesPage : AdaptiveContentPage
     private const double RollColumnWidth = 110;
 
     private readonly PerksTablesViewModel _viewModel;
-    private readonly Dictionary<(int Track, int Tier), Border> _perkCellByTrackTier = [];
+    private readonly Dictionary<PerkPosition, Border> _perkCellByTrackTier = [];
     private readonly DependencyLinesDrawable _dependencyLinesDrawable = new();
 
     // When true (compact / medium) the table keeps a readable minimum size and pans inside the
@@ -113,7 +113,7 @@ public partial class PerksTablesPage : AdaptiveContentPage
             {
                 var cell = BuildPerkCell(track.TierTexts[tier - 1]);
                 AddCell(cell, row, tier);
-                _perkCellByTrackTier[(track.TrackNumber, tier)] = cell;
+                _perkCellByTrackTier[new PerkPosition(track.TrackNumber, tier)] = cell;
             }
         }
 
@@ -253,12 +253,12 @@ public partial class PerksTablesPage : AdaptiveContentPage
         var lines = new List<LineSegment>();
         foreach (var link in _viewModel.Table?.Links ?? [])
         {
-            if (!_perkCellByTrackTier.TryGetValue((link.Track, link.FromTier), out var fromCell))
+            if (!_perkCellByTrackTier.TryGetValue(new PerkPosition(link.Track, link.FromTier), out var fromCell))
             {
                 continue;
             }
 
-            if (!_perkCellByTrackTier.TryGetValue((link.Track, link.ToTier), out var toCell))
+            if (!_perkCellByTrackTier.TryGetValue(new PerkPosition(link.Track, link.ToTier), out var toCell))
             {
                 continue;
             }

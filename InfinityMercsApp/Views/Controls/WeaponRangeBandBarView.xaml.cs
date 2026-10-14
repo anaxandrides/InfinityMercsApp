@@ -106,7 +106,7 @@ public partial class WeaponRangeBandBarView : ContentView
         using var labelFont = new SKFont(SKTypeface.Default, labelBarHeight * 0.58f);
 
         // Collect band boundary x-positions as we draw
-        var boundaries = new List<(float X, int Cm)> { (0f, 0) };
+        var boundaries = new List<BandBoundary> { new(0f, 0) };
         float x = 0f;
 
         // Draw colored bands
@@ -125,7 +125,7 @@ public partial class WeaponRangeBandBarView : ContentView
             canvas.DrawText(displayMod, centerX, centerY, SKTextAlign.Center, modFont, modPaint);
 
             x += bandWidth;
-            boundaries.Add((x, band.EndCm));
+            boundaries.Add(new BandBoundary(x, band.EndCm));
         }
 
         // White label strip
@@ -195,4 +195,7 @@ public partial class WeaponRangeBandBarView : ContentView
             ? $"{(int)Math.Round(cm / 2.5, MidpointRounding.AwayFromZero)}\""
             : $"{cm}cm";
     }
+
+    // Where a band ends on the bar (in pixels) and the range there (in cm).
+    private sealed record BandBoundary(float X, int Cm);
 }

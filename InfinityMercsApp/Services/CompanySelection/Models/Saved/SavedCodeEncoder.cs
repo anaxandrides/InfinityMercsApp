@@ -81,12 +81,13 @@ public sealed partial class SavedCodeEncoder(IArmyDataService armyData)
     // Extras may be written in either unit ("+1B" or a distance in inches or cm), so each spelling is tried.
     private int? FindExtraId(string extraName, IReadOnlyList<int> factionIds)
     {
-        var spellings = new[]
-            {
-                extraName,
-                CompanySelectionSharedUtilities.ConvertDistanceText(extraName, showUnitsInInches: true),
-                CompanySelectionSharedUtilities.ConvertDistanceText(extraName, showUnitsInInches: false)
-            }
+        IEnumerable<string> candidates =
+        [
+            extraName,
+            CompanySelectionSharedUtilities.ConvertDistanceText(extraName, showUnitsInInches: true),
+            CompanySelectionSharedUtilities.ConvertDistanceText(extraName, showUnitsInInches: false)
+        ];
+        var spellings = candidates
             .Select(NormalizeName)
             .Where(spelling => spelling.Length > 0)
             .Distinct(StringComparer.OrdinalIgnoreCase)

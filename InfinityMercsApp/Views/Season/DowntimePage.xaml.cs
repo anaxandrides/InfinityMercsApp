@@ -637,7 +637,7 @@ public partial class DowntimePage : ContentPage, IQueryAttributable
         area.Children.Add(rowList);
         ScrollToBottom();
 
-        var rowControls = new List<(Border Border, TapGestureRecognizer Tap)>();
+        var rowControls = new List<TappableRow>();
 
         foreach (var unit in candidates)
         {
@@ -717,7 +717,7 @@ public partial class DowntimePage : ContentPage, IQueryAttributable
                 border.GestureRecognizers.Add(tap);
             }
 
-            rowControls.Add((border, tap));
+            rowControls.Add(new TappableRow(border, tap));
             rowList.Children.Add(border);
         }
     }
@@ -918,6 +918,9 @@ public partial class DowntimePage : ContentPage, IQueryAttributable
 
         return lines.Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
     }
+
+    // A choice row and the tap that selects it.
+    private sealed record TappableRow(Border Border, TapGestureRecognizer Tap);
 
     private sealed record PistolRoll(string Name, int Roll, int SdBonus)
     {

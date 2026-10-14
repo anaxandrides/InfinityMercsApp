@@ -37,13 +37,13 @@ public partial class CreateNewCompanyPage
         var cols = IsCompact ? 1 : IsMedium ? 2 : 3;
 
         // Visible company choices, in display order. Lone Wolf stays hidden and is excluded.
-        var cards = new[] { CardStandard, CardCohesive, CardInspiring, CardAirborne, CardTag };
-        var rows = (int)Math.Ceiling(cards.Length / (double)cols);
+        List<View> cards = [CardStandard, CardCohesive, CardInspiring, CardAirborne, CardTag];
+        var rows = (int)Math.Ceiling(cards.Count / (double)cols);
 
         CardGrid.ColumnDefinitions = [.. Enumerable.Range(0, cols).Select(_ => new ColumnDefinition(GridLength.Star))];
         CardGrid.RowDefinitions = [.. Enumerable.Range(0, rows).Select(_ => new RowDefinition(GridLength.Auto))];
 
-        for (var i = 0; i < cards.Length; i++)
+        for (var i = 0; i < cards.Count; i++)
         {
             Grid.SetRow(cards[i], i / cols);
             Grid.SetColumn(cards[i], i % cols);

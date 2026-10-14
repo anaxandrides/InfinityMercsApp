@@ -62,8 +62,8 @@ public sealed class InspiringCompanyFactionGenerator(
     private void InsertMetadataFactionEntry()
     {
         sqliteRepository.Delete<DbMetadataFaction>(x => x.Id == InspiringCompanyFactionId);
-        sqliteRepository.Insert(new[]
-        {
+        sqliteRepository.Insert<DbMetadataFaction>(
+        [
             new DbMetadataFaction
             {
                 Id = InspiringCompanyFactionId,
@@ -73,6 +73,6 @@ public sealed class InspiringCompanyFactionGenerator(
                 Discontinued = false,
                 Logo = "SVGCache/MercsIcons/noun-leadership-7195245.svg"
             }
-        });
+        ]);
     }
 }

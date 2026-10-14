@@ -126,7 +126,8 @@ public partial class GameModePage : ContentPage, IQueryAttributable
 
     private static async Task<SKPicture?> TryLoadSvgAsync(string path)
     {
-        foreach (var candidate in new[] { path, path.ToLowerInvariant() })
+        IEnumerable<string> candidates = [path, path.ToLowerInvariant()];
+        foreach (var candidate in candidates)
         {
             try
             {

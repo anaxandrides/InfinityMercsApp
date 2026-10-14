@@ -1342,7 +1342,7 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
         return normalized;
     }
 
-    private static List<string> CollectCaptainChoices(params string[] choices)
+    private static List<string> CollectCaptainChoices(params IEnumerable<string> choices)
     {
         return choices
             .Select(NormalizeCaptainChoice)

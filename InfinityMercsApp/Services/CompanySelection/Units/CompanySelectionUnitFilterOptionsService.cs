@@ -93,7 +93,7 @@ internal static class CompanySelectionUnitFilterOptionsService
         var sourceFactionIds = sourceFactions
             .Select(readFactionId)
             .Distinct()
-            .ToArray();
+            .ToList();
         var catalogs = new List<ArmyFilterCatalog>();
         foreach (var factionId in sourceFactionIds)
         {

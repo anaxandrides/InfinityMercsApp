@@ -134,7 +134,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
     private bool _unitPickerIsOpen;
 
     // Responsive font scaling
-    private static readonly string[] ScaledFontKeys =
+    private static readonly IReadOnlyList<string> ScaledFontKeys =
         ["FontSizeCaption", "FontSizeBody", "FontSizeSectionHeader", "FontSizeSubHeadline", "FontSizeTitleSmall"];
     private static readonly Dictionary<string, double> DesktopBaseFontSizes = new()
     {
@@ -1620,7 +1620,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         return lines.Count == 0 ? "-" : string.Join(Environment.NewLine, lines);
     }
 
-    private static List<string> CollectCaptainChoices(params string[] choices)
+    private static List<string> CollectCaptainChoices(params IEnumerable<string> choices)
     {
         return choices
             .Select(NormalizeCaptainChoice)

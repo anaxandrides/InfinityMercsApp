@@ -371,7 +371,7 @@ internal sealed class FireteamChartDto
 [JsonConverter(typeof(FireteamSpecConverter))]
 internal sealed class FireteamSpecDto
 {
-    public List<(string Key, JsonScalar Value)> Entries { get; init; } = [];
+    public List<KeyValuePair<string, JsonScalar>> Entries { get; init; } = [];
 }
 
 internal sealed class FireteamSpecConverter : JsonConverter<FireteamSpecDto>
@@ -391,7 +391,7 @@ internal sealed class FireteamSpecConverter : JsonConverter<FireteamSpecDto>
         {
             var key = reader.GetString() ?? string.Empty;
             reader.Read();
-            spec.Entries.Add((key, ScalarConverter.Read(ref reader, typeof(JsonScalar), options)));
+            spec.Entries.Add(new(key, ScalarConverter.Read(ref reader, typeof(JsonScalar), options)));
         }
 
         return spec;

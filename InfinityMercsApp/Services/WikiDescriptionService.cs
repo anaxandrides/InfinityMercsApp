@@ -12,7 +12,7 @@ public sealed class WikiDescriptionService : IWikiDescriptionService
     // errata_border is intentionally excluded: pages that use it (e.g. BS Attack Guided) also
     // have an introductory paragraph outside the box that would be missed if we only grab the box.
     // The section fallback (StripCollapsedElements + full parse) handles those pages correctly.
-    private static readonly string[] AutoDetectClasses = ["cssbox-black", "cssbox"];
+    private static readonly IReadOnlyList<string> AutoDetectClasses = ["cssbox-black", "cssbox"];
 
     private readonly HttpClient _http;
     private readonly Dictionary<string, IReadOnlyList<WikiContentBlock>> _cache =

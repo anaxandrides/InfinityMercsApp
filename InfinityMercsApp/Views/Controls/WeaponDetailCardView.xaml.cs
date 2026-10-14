@@ -364,21 +364,21 @@ public partial class WeaponDetailCardView : ContentView
 
     private static View? BuildStatsView(Weapon weapon, int damageReduction = 0, string? ammoType = null, int burstBonus = 0)
     {
-        var leftStats = new List<(string Label, string Value)>();
-        var rightStats = new List<(string Label, string Value)>();
+        var leftStats = new List<CardStat>();
+        var rightStats = new List<CardStat>();
 
         if (!IsDash(weapon.Burst))
         {
             var burst = weapon.Burst!;
             if (burstBonus > 0 && int.TryParse(burst.Trim(), out var bv))
                 burst = (bv + burstBonus).ToString();
-            leftStats.Add(("Burst", burst));
+            leftStats.Add(new CardStat("Burst", burst));
         }
         var damageDisplay = ApplyDamageReduction(weapon.Damage, damageReduction);
-        if (!IsDash(damageDisplay)) leftStats.Add(("Damage", damageDisplay!));
-        if (!string.IsNullOrWhiteSpace(ammoType)) leftStats.Add(("Ammo", ammoType!));
-        if (!IsDash(weapon.Saving)) rightStats.Add(("Saving", weapon.Saving!));
-        if (!IsDash(weapon.SavingNum)) rightStats.Add(("Saving Rolls", weapon.SavingNum!));
+        if (!IsDash(damageDisplay)) leftStats.Add(new CardStat("Damage", damageDisplay!));
+        if (!string.IsNullOrWhiteSpace(ammoType)) leftStats.Add(new CardStat("Ammo", ammoType!));
+        if (!IsDash(weapon.Saving)) rightStats.Add(new CardStat("Saving", weapon.Saving!));
+        if (!IsDash(weapon.SavingNum)) rightStats.Add(new CardStat("Saving Rolls", weapon.SavingNum!));
 
         if (leftStats.Count == 0 && rightStats.Count == 0)
             return null;
@@ -471,4 +471,7 @@ public partial class WeaponDetailCardView : ContentView
         try { await Launcher.Default.OpenAsync(url); }
         catch (Exception ex) { Console.Error.WriteLine($"Failed to open '{url}': {ex.Message}"); }
     }
+
+    // A labelled value on the weapon card, e.g. Damage 13.
+    private sealed record CardStat(string Label, string Value);
 }

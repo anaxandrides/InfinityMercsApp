@@ -178,7 +178,7 @@ internal class ImportService(
             .AsParallel()
             .WithDegreeOfParallelism(parallelDegree)
             .Select(DownloadFactionAsync)
-            .ToArray();
+            .ToList();
 
         var downloadResults = await Task.WhenAll(downloadTasks);
         var queuedForSerialImport = new List<FactionDownloadResult>(downloadResults.Length);

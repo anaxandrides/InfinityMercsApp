@@ -23,7 +23,7 @@ internal static partial class CompanySelectionSharedUtilities
             "non-aligned army" => "nonalignedarmy",
             "japanese secessionist army" => "jsa",
             "o-12" => "o12",
-            _ => new string(cleaned.Where(char.IsLetterOrDigit).ToArray())
+            _ => string.Concat(cleaned.Where(char.IsLetterOrDigit))
         };
     }
 

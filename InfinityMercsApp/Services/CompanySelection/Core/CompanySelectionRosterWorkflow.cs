@@ -244,13 +244,11 @@ internal static class CompanySelectionRosterWorkflow
             return true;
         }
 
-        var text = string.Join(" ", new[]
-        {
+        var text = string.Join(" ",
             profile.Peripherals ?? string.Empty,
             profile.PeripheralNameHeading ?? string.Empty,
             profile.PeripheralSubtitle ?? string.Empty,
-            peripheralName ?? string.Empty
-        });
+            peripheralName ?? string.Empty);
 
         return text.Contains("synchronized", StringComparison.OrdinalIgnoreCase) ||
                text.Contains("control", StringComparison.OrdinalIgnoreCase) ||

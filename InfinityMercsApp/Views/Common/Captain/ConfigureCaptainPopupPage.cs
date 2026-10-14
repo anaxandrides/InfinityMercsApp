@@ -932,7 +932,7 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     /// Collects the non-empty, deduplicated choice strings from an arbitrary set of pickers.
     /// Used to build the additions list for the profile preview sections.
     /// </summary>
-    private static List<string> GetSelectedChoices(params Picker[] pickers)
+    private static List<string> GetSelectedChoices(params IEnumerable<Picker> pickers)
     {
         return pickers
             .Select(ReadChoice)

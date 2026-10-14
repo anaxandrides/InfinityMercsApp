@@ -289,8 +289,8 @@ public partial class StandardCompanySelectionPage
         PeripheralAva = "-";
         PeripheralEquipment = "-";
         PeripheralSkills = "-";
-        PeripheralEquipmentFormatted = CompanyProfileTextService.BuildNamedSummaryFormatted("Equipment", Array.Empty<string>(), Color.FromArgb("#B5C0CE"));
-        PeripheralSkillsFormatted = CompanyProfileTextService.BuildNamedSummaryFormatted("Skills", Array.Empty<string>(), Color.FromArgb("#F59E0B"));
+        PeripheralEquipmentFormatted = CompanyProfileTextService.BuildNamedSummaryFormatted("Equipment", [], Color.FromArgb("#B5C0CE"));
+        PeripheralSkillsFormatted = CompanyProfileTextService.BuildNamedSummaryFormatted("Skills", [], Color.FromArgb("#F59E0B"));
     }
 
     /// <summary>

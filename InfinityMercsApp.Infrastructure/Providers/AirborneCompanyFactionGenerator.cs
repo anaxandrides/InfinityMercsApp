@@ -99,8 +99,8 @@ public sealed class AirborneCompanyFactionGenerator(
     private void InsertMetadataFactionEntry()
     {
         sqliteRepository.Delete<DbMetadataFaction>(x => x.Id == AirborneCompanyFactionId);
-        sqliteRepository.Insert(new[]
-        {
+        sqliteRepository.Insert<DbMetadataFaction>(
+        [
             new DbMetadataFaction
             {
                 Id = AirborneCompanyFactionId,
@@ -110,6 +110,6 @@ public sealed class AirborneCompanyFactionGenerator(
                 Discontinued = false,
                 Logo = "SVGCache/MercsIcons/noun-airborne-8005870.svg"
             }
-        });
+        ]);
     }
 }

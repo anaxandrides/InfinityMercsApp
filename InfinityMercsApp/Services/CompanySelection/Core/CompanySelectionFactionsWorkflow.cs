@@ -97,8 +97,8 @@ internal static class CompanySelectionFactionsWorkflow
             return false;
         }
 
-        var letters = value.Where(char.IsLetter).ToArray();
-        if (letters.Length == 0)
+        var letters = value.Where(char.IsLetter).ToList();
+        if (letters.Count == 0)
         {
             return false;
         }

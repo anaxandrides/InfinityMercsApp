@@ -398,12 +398,8 @@ public static class CompanyPerkOwnershipResolver
             .Trim()
             .ToLowerInvariant());
 
-        var chars = canonical
-            .Select(ch => char.IsLetterOrDigit(ch) ? ch : ' ')
-            .ToArray();
-        return string.Join(
-            ' ',
-            new string(chars).Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        var spaced = string.Concat(canonical.Select(ch => char.IsLetterOrDigit(ch) ? ch : ' '));
+        return string.Join(' ', spaced.Split(' ', StringSplitOptions.RemoveEmptyEntries));
     }
 
     private static string CanonicalizeSemanticShorthand(string input)
@@ -579,14 +575,14 @@ public static class CompanyPerkOwnershipResolver
             .Replace("Must be Captain", string.Empty, StringComparison.OrdinalIgnoreCase)
             .Trim();
 
-        var optionalParentheticalPhrases = new[]
-        {
+        IReadOnlyList<string> optionalParentheticalPhrases =
+        [
             "no slot required",
             "role",
             "accessory",
             "reworked",
             "in active"
-        };
+        ];
 
         var builder = new System.Text.StringBuilder(result.Length);
         for (var i = 0; i < result.Length; i++)
@@ -630,7 +626,7 @@ public static class CompanyPerkOwnershipResolver
         // while perk text is written in inches (for example +8").
         if (rawText.Contains("Forward Deployment", StringComparison.OrdinalIgnoreCase))
         {
-            var numberText = new string(rawText.Where(char.IsDigit).ToArray());
+            var numberText = string.Concat(rawText.Where(char.IsDigit));
             if (int.TryParse(numberText, out var centimeters) && centimeters > 0)
             {
                 var inches = (int)Math.Round(centimeters / 2.54d, MidpointRounding.AwayFromZero);

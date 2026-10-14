@@ -214,11 +214,11 @@ public partial class StandardCompanySelectionPage
 
     private int ResolveTagWorkflowFactionId(int fallbackFactionId)
     {
-        var selectedIds = new[]
-        {
+        List<int> selectedIds =
+        [
             _factionSelectionState.LeftSlotFaction?.Id ?? 0,
             _factionSelectionState.RightSlotFaction?.Id ?? 0
-        };
+        ];
 
         var resolved = selectedIds.FirstOrDefault(id => id > 0 && id != TagGen.TagCompanyFactionId);
         if (resolved > 0)

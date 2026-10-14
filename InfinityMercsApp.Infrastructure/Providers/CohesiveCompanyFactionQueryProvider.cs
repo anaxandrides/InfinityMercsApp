@@ -18,8 +18,8 @@ public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider faction
         var normalizedFactionIds = factionIds
             .Where(id => id > 0)
             .Distinct()
-            .ToArray();
-        if (normalizedFactionIds.Length == 0)
+            .ToList();
+        if (normalizedFactionIds.Count == 0)
         {
             return new CohesiveCompanyFactionQueryResult();
         }
@@ -74,17 +74,17 @@ public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider faction
         var normalizedFactionIds = factionIds
             .Where(id => id > 0)
             .Distinct()
-            .ToArray();
-        if (normalizedFactionIds.Length == 0)
+            .ToList();
+        if (normalizedFactionIds.Count == 0)
         {
             return [];
         }
 
         var resultSets = normalizedFactionIds
             .Select(factionProvider.GetResumeByFactionMercsOnly)
-            .ToArray();
+            .ToList();
         var unitLookupByFaction = new Dictionary<int, IReadOnlyDictionary<int, Unit>>();
-        for (var setIndex = 0; setIndex < resultSets.Length; setIndex++)
+        for (var setIndex = 0; setIndex < resultSets.Count; setIndex++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var factionId = normalizedFactionIds[setIndex];
@@ -92,7 +92,7 @@ public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider faction
                 .Select(x => x.UnitId)
                 .Where(id => id > 0)
                 .Distinct()
-                .ToArray();
+                .ToList();
             var lookup = unitIds.ToDictionary(
                 id => id,
                 id => factionProvider.GetUnit(factionId, id));
@@ -102,7 +102,7 @@ public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider faction
         }
 
         var mergedByUnitName = new Dictionary<string, MutableMercsArmyListEntry>(StringComparer.OrdinalIgnoreCase);
-        for (var setIndex = 0; setIndex < resultSets.Length; setIndex++)
+        for (var setIndex = 0; setIndex < resultSets.Count; setIndex++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var factionId = normalizedFactionIds[setIndex];
@@ -145,7 +145,7 @@ public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider faction
             {
                 Resume = x.Resume,
                 ProfileGroups = x.ProfileGroups,
-                SourceFactionIds = x.SourceFactionIds.OrderBy(id => id).ToArray()
+                SourceFactionIds = x.SourceFactionIds.Order().ToList()
             })
             .ToList();
     }

@@ -41,8 +41,8 @@ public sealed class TagCompanyFactionGenerator(
     private void InsertMetadataFactionEntry()
     {
         sqliteRepository.Delete<DbMetadataFaction>(x => x.Id == TagCompanyFactionId);
-        sqliteRepository.Insert(new[]
-        {
+        sqliteRepository.Insert<DbMetadataFaction>(
+        [
             new DbMetadataFaction
             {
                 Id = TagCompanyFactionId,
@@ -52,7 +52,7 @@ public sealed class TagCompanyFactionGenerator(
                 Discontinued = false,
                 Logo = "SVGCache/MercsIcons/noun-battle-mech-1731140.svg"
             }
-        });
+        ]);
     }
 
     /// <summary>The TAG company army: one unit, defined by the JSON templates below and parsed into typed models.</summary>

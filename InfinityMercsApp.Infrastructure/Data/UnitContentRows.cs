@@ -137,7 +137,7 @@ public sealed class UnitContentRows
 
         foreach (var row in Moves)
         {
-            Builder(row.OwnerKey).Group(row.GroupIndex).Profile(row.ProfileIndex).Moves.Add((row.Position, row.Cm));
+            Builder(row.OwnerKey).Group(row.GroupIndex).Profile(row.ProfileIndex).Moves.Add(row.Position, row.Cm);
         }
 
         foreach (var row in Options)
@@ -148,13 +148,13 @@ public sealed class UnitContentRows
         foreach (var row in Orders)
         {
             Builder(row.OwnerKey).Option(row.Owner, row.GroupIndex, row.OptionIndex).Orders
-                .Add((row.Position, new OrderEntry(row.Type, row.List, row.Total)));
+                .Add(row.Position, new OrderEntry(row.Type, row.List, row.Total));
         }
 
         foreach (var row in Includes)
         {
             Builder(row.OwnerKey).Option(row.Owner, row.GroupIndex, row.OptionIndex).Includes
-                .Add((row.Position, new IncludeReference(row.IncludedGroupId, row.IncludedOptionId)));
+                .Add(row.Position, new IncludeReference(row.IncludedGroupId, row.IncludedOptionId));
         }
 
         foreach (var row in Entries)
@@ -166,17 +166,17 @@ public sealed class UnitContentRows
         foreach (var row in Extras)
         {
             Builder(row.OwnerKey).EntryList(row.Owner, row.GroupIndex, row.OwnerIndex, (ProfileEntryKind)row.Kind)
-                .Entry(row.EntryPosition).Extras.Add((row.Position, row.ExtraId));
+                .Entry(row.EntryPosition).Extras.Add(row.Position, row.ExtraId);
         }
 
         foreach (var row in FilterIds)
         {
-            Builder(row.OwnerKey).Filters(row.Section).Add((row.Position, row.Value));
+            Builder(row.OwnerKey).Filters(row.Section).Add(row.Position, row.Value);
         }
 
         foreach (var row in Factions)
         {
-            Builder(row.OwnerKey).FactionIds.Add((row.Position, row.MemberFactionId));
+            Builder(row.OwnerKey).FactionIds.Add(row.Position, row.MemberFactionId);
         }
 
         var result = new Dictionary<string, UnitContent>(builders.Count, StringComparer.Ordinal);
@@ -340,19 +340,29 @@ public sealed class UnitContentRows
         }
     }
 
-    private static IEnumerable<(string Section, IReadOnlyList<int> Ids)> FilterSections(UnitFilterIds filters)
+    private static IEnumerable<FilterSection> FilterSections(UnitFilterIds filters)
     {
-        yield return (UnitFilterSection.Categories, filters.Categories);
-        yield return (UnitFilterSection.Types, filters.Types);
-        yield return (UnitFilterSection.Chars, filters.Chars);
-        yield return (UnitFilterSection.Skills, filters.Skills);
-        yield return (UnitFilterSection.Equip, filters.Equip);
-        yield return (UnitFilterSection.Weapons, filters.Weapons);
-        yield return (UnitFilterSection.Ammunition, filters.Ammunition);
+        yield return new(UnitFilterSection.Categories, filters.Categories);
+        yield return new(UnitFilterSection.Types, filters.Types);
+        yield return new(UnitFilterSection.Chars, filters.Chars);
+        yield return new(UnitFilterSection.Skills, filters.Skills);
+        yield return new(UnitFilterSection.Equip, filters.Equip);
+        yield return new(UnitFilterSection.Weapons, filters.Weapons);
+        yield return new(UnitFilterSection.Ammunition, filters.Ammunition);
     }
 
-    private static IReadOnlyList<T> Ordered<T>(List<(int Position, T Value)> items) =>
-        items.Count == 0 ? [] : items.OrderBy(item => item.Position).Select(item => item.Value).ToList();
+    private sealed record FilterSection(string Section, IReadOnlyList<int> Ids);
+
+    /// <summary>Values read back from rows in any order, put back in the order of their saved positions.</summary>
+    private sealed class PositionedList<T>
+    {
+        private readonly List<KeyValuePair<int, T>> _items = [];
+
+        public void Add(int position, T value) => _items.Add(new(position, value));
+
+        public IReadOnlyList<T> InOrder() =>
+            _items.Count == 0 ? [] : _items.OrderBy(item => item.Key).Select(item => item.Value).ToList();
+    }
 
     /// <summary>Section names of <see cref="UnitFilterIdRow.Section"/>.</summary>
     private static class UnitFilterSection
@@ -370,9 +380,9 @@ public sealed class UnitContentRows
     {
         private readonly SortedDictionary<int, GroupBuilder> _groups = new();
         private readonly SortedDictionary<int, OptionBuilder> _unitOptions = new();
-        private readonly Dictionary<string, List<(int, int)>> _filters = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, PositionedList<int>> _filters = new(StringComparer.Ordinal);
 
-        public List<(int Position, int Value)> FactionIds { get; } = [];
+        public PositionedList<int> FactionIds { get; } = new();
 
         public GroupBuilder Group(int groupIndex)
         {
@@ -393,11 +403,11 @@ public sealed class UnitContentRows
                 ? Group(groupIndex).Profile(ownerIndex).EntryList(kind)
                 : Option(owner, groupIndex, ownerIndex).EntryList(kind);
 
-        public List<(int, int)> Filters(string section)
+        public PositionedList<int> Filters(string section)
         {
             if (!_filters.TryGetValue(section, out var list))
             {
-                list = [];
+                list = new PositionedList<int>();
                 _filters[section] = list;
             }
 
@@ -422,11 +432,11 @@ public sealed class UnitContentRows
                 groups.Count == 0 ? UnitProfileGroups.Empty : new UnitProfileGroups(groups),
                 _unitOptions.Values.Select(option => option.Build()).ToList(),
                 filters,
-                Ordered(FactionIds));
+                FactionIds.InOrder());
         }
 
         private IReadOnlyList<int> FilterIds(string section) =>
-            _filters.TryGetValue(section, out var list) ? Ordered(list) : [];
+            _filters.TryGetValue(section, out var list) ? list.InOrder() : [];
     }
 
     private sealed class GroupBuilder
@@ -456,7 +466,7 @@ public sealed class UnitContentRows
 
         public UnitProfileRow? Row { get; set; }
 
-        public List<(int Position, int Cm)> Moves { get; } = [];
+        public PositionedList<int> Moves { get; } = new();
 
         public EntryListBuilder EntryList(ProfileEntryKind kind) => GetOrAdd(_entries, kind);
 
@@ -472,7 +482,7 @@ public sealed class UnitContentRows
                 Str = row.Str,
                 StrValue = row.StrValue,
                 Move = row.Move,
-                MoveCm = Ordered(Moves),
+                MoveCm = Moves.InOrder(),
                 Cc = row.Cc,
                 Bs = row.Bs,
                 Ph = row.Ph,
@@ -504,9 +514,9 @@ public sealed class UnitContentRows
 
         public UnitOptionRow? Row { get; set; }
 
-        public List<(int Position, OrderEntry Order)> Orders { get; } = [];
+        public PositionedList<OrderEntry> Orders { get; } = new();
 
-        public List<(int Position, IncludeReference Include)> Includes { get; } = [];
+        public PositionedList<IncludeReference> Includes { get; } = new();
 
         public EntryListBuilder EntryList(ProfileEntryKind kind) => GetOrAdd(_entries, kind);
 
@@ -521,8 +531,8 @@ public sealed class UnitContentRows
                 Cost = row.Cost,
                 Minis = row.Minis,
                 Disabled = row.Disabled,
-                Orders = Ordered(Orders),
-                Includes = Ordered(Includes),
+                Orders = Orders.InOrder(),
+                Includes = Includes.InOrder(),
                 Chars = Entries(ProfileEntryKind.Chars),
                 Skills = Entries(ProfileEntryKind.Skills),
                 Equip = Entries(ProfileEntryKind.Equip),
@@ -550,12 +560,12 @@ public sealed class UnitContentRows
     {
         public UnitEntryRow? Row { get; set; }
 
-        public List<(int Position, int ExtraId)> Extras { get; } = [];
+        public PositionedList<int> Extras { get; } = new();
 
         public ProfileEntry Build()
         {
             var row = Row ?? new UnitEntryRow();
-            return new ProfileEntry(row.EntryId, row.Quantity, row.DisplayOrder, Ordered(Extras));
+            return new ProfileEntry(row.EntryId, row.Quantity, row.DisplayOrder, Extras.InOrder());
         }
     }
 
