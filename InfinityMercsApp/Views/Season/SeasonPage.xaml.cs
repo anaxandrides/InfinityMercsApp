@@ -2491,21 +2491,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
     // ── Store search popup ──────────────────────────────────────────────────
 
-    private static readonly (int Min, int Max, string Name)[] StoreRollTable =
-    [
-        (1,  2,  "Number One"),
-        (3,  4,  "Jade Temu"),
-        (5,  6,  "Arachne Req"),
-        (7,  8,  "Salaam Suuk"),
-        (9,  10, "Frontier General"),
-        (11, 12, "Alpha Sec"),
-        (13, 14, "Greengrocer"),
-        (15, 16, "Bantai Yamaco"),
-        (17, 18, "Exrah Surplus"),
-    ];
-
-    private static string? StoreForRoll(int roll) =>
-        StoreRollTable.FirstOrDefault(e => roll >= e.Min && roll <= e.Max).Name;
+    private static string? StoreForRoll(int roll) => SeasonRollTables.TemporaryStores.Lookup(roll);
 
     private async Task MaybeShowStoreSearchPopupAsync()
     {

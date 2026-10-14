@@ -919,21 +919,15 @@ public partial class DowntimePage : ContentPage, IQueryAttributable
         return lines.Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
     }
 
-    private static readonly (int Min, int Max, string Name)[] PistolTable =
-    [
-        (1, 4,   "MULTI Pistol"),
-        (5, 8,   "AP Heavy Pistol"),
-        (9, 12,  "Breaker Pistol"),
-        (13, 16, "Silenced Pistol"),
-        (17, 20, "Viral Pistol"),
-    ];
+    private sealed record PistolRoll(string Name, int Roll, int SdBonus)
+    {
+        public string Display => $"{Name}{(SdBonus > 0 ? $" (+{SdBonus} SD)" : "")} (rolled {Roll})";
+    }
 
-    private static (string Name, string Display) RollPistol(int sdBonus)
+    private static PistolRoll RollPistol(int sdBonus)
     {
         var roll = Random.Shared.Next(1, 21);
-        var entry = PistolTable.First(e => roll >= e.Min && roll <= e.Max);
-        var suffix = sdBonus > 0 ? $" (+{sdBonus} SD)" : "";
-        return (entry.Name, $"{entry.Name}{suffix} (rolled {roll})");
+        return new PistolRoll(SeasonRollTables.Pistols.Lookup(roll)!, roll, sdBonus);
     }
 
     // ── Downtime totals (persistence) ────────────────────────────────────────
