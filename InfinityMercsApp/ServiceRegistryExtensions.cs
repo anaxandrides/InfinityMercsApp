@@ -16,6 +16,7 @@ public static class ServiceRegistryExtensions
                 .AddTransient<SettingsViewModel>()
                 .AddTransient<ArmoryViewModel>()
                 .AddTransient<LoadSeasonViewModel>()
+                .AddTransient<LoadCompanyViewModel>()
                 .AddTransient<ExperienceViewModel>()
                 .AddTransient<InjuriesViewModel>()
                 .AddTransient<MercsGlossaryViewModel>()
@@ -49,6 +50,7 @@ public static class ServiceRegistryExtensions
                 .AddTransient<AboutPage>()
                 .AddTransient<MercsSeasonPage>()
                 .AddTransient<LoadSeasonPage>()
+                .AddTransient<LoadCompanyPage>()
                 .AddTransient<SeasonPage>()
                 .AddTransient<PlayModePage>()
                 .AddTransient<GameModePage>()
@@ -75,6 +77,7 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<IDialogService, MauiDialogService>()
                 .AddSingleton(_ => RecordPaths.ForAppData(FileSystem.Current.AppDataDirectory))
                 .AddSingleton<SeasonRecordCatalog>()
+                .AddSingleton<CompanyRecordCatalog>()
                 .AddSingleton<MissionDebrief>()
                 .AddSingleton<IDice, Dice>()
                 .AddSingleton<IAppPackageFiles, AppPackageFiles>();

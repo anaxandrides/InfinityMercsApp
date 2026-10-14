@@ -13,8 +13,22 @@ public static class SvgPictureCache
     private static readonly ConcurrentDictionary<string, Task<SKPicture?>> Pictures = new(StringComparer.Ordinal);
 
     /// <summary>The picture, or null when the source is blank or cannot be loaded.</summary>
-    public static Task<SKPicture?> GetAsync(string? source) =>
-        string.IsNullOrWhiteSpace(source) ? Task.FromResult<SKPicture?>(null) : Pictures.GetOrAdd(source, LoadAsync);
+    public static async Task<SKPicture?> GetAsync(string? source)
+    {
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            return null;
+        }
+
+        var picture = await Pictures.GetOrAdd(source, LoadAsync);
+        if (picture is null)
+        {
+            // Forget failures so a logo downloaded later is picked up on the next request.
+            Pictures.TryRemove(source, out _);
+        }
+
+        return picture;
+    }
 
     // Packaged asset names are case-sensitive on Android, so a lower-case spelling is tried as well.
     private static async Task<SKPicture?> LoadAsync(string source)
