@@ -125,18 +125,19 @@ public sealed class UnitProfile
     };
 
     /// <summary>
-    /// The wounds column: <c>STR</c> with a numeric structure value, otherwise <c>VITA</c> with W (or VITA).
+    /// The wounds column: <see cref="Stat.Str"/> with a numeric structure value, otherwise <see cref="Stat.Vita"/>
+    /// with W (or VITA).
     /// </summary>
-    public (string Header, string Value) Vitality
+    public StatValue Vitality
     {
         get
         {
             if (StrValue is int structure)
             {
-                return ("STR", structure.ToString());
+                return new StatValue(Stat.Str, structure.ToString());
             }
 
-            return W is int wounds ? ("VITA", wounds.ToString()) : ("VITA", StatText(Vita));
+            return new StatValue(Stat.Vita, W is int wounds ? wounds.ToString() : StatText(Vita));
         }
     }
 }

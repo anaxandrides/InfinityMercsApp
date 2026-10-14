@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
@@ -48,7 +49,7 @@ public partial class UnitDetailViewModel(
     [ObservableProperty] private string _unitWip = "-";
     [ObservableProperty] private string _unitArm = "-";
     [ObservableProperty] private string _unitBts = "-";
-    [ObservableProperty] private string _unitVitalityHeader = "VITA";
+    [ObservableProperty] private string _unitVitalityHeader = Stat.Vita.Key();
     [ObservableProperty] private string _unitVitality = "-";
     [ObservableProperty] private string _unitS = "-";
     [ObservableProperty] private string _unitAva = "-";
@@ -187,19 +188,20 @@ public partial class UnitDetailViewModel(
     public void ApplyHackableOverrideFromCurrentConfiguration(string? currentEquipment, string? currentSkills) =>
         ShowHackableIcon = ShowHackableIcon || UnitDetailText.ContainsHackable(currentEquipment, currentSkills);
 
-    /// <summary>Shows an augmented stat value (e.g. from a perk) in place of the profile's.</summary>
-    public void ApplyAugmentStatOverride(string statName, string value)
+    /// <summary>Shows an augmented stat value (e.g. "PH=14") in place of the profile's.</summary>
+    public void ApplyAugmentStatOverride(StatOverride statOverride)
     {
-        switch (statName.ToUpperInvariant())
+        var value = statOverride.Value.ToString(CultureInfo.InvariantCulture);
+        switch (statOverride.Stat)
         {
-            case "CC": UnitCc = value; break;
-            case "BS": UnitBs = value; break;
-            case "PH": UnitPh = value; break;
-            case "WIP": UnitWip = value; break;
-            case "ARM": UnitArm = value; break;
-            case "BTS": UnitBts = value; break;
-            case "S": UnitS = value; break;
-            case "VITA" or "STR": UnitVitality = value; break;
+            case Stat.Cc: UnitCc = value; break;
+            case Stat.Bs: UnitBs = value; break;
+            case Stat.Ph: UnitPh = value; break;
+            case Stat.Wip: UnitWip = value; break;
+            case Stat.Arm: UnitArm = value; break;
+            case Stat.Bts: UnitBts = value; break;
+            case Stat.S: UnitS = value; break;
+            case Stat.Vita or Stat.Str or Stat.W: UnitVitality = value; break;
         }
     }
 
@@ -250,7 +252,7 @@ public partial class UnitDetailViewModel(
         UnitWip = OrDash(wip);
         UnitArm = OrDash(arm);
         UnitBts = OrDash(bts);
-        UnitVitalityHeader = string.IsNullOrWhiteSpace(vitalityHeader) ? "VITA" : vitalityHeader;
+        UnitVitalityHeader = string.IsNullOrWhiteSpace(vitalityHeader) ? Stat.Vita.Key() : vitalityHeader;
         UnitVitality = OrDash(vitality);
         UnitS = OrDash(s);
         UnitAva = "-";
@@ -272,7 +274,7 @@ public partial class UnitDetailViewModel(
         ShowCubeIcon = ShowCube2Icon = ShowHackableIcon = false;
         ImpetuousIconUrl = TacticalAwarenessIconUrl = CubeIconUrl = Cube2IconUrl = HackableIconUrl = null;
         UnitMov = UnitCc = UnitBs = UnitPh = UnitWip = UnitArm = UnitBts = UnitVitality = UnitS = UnitAva = "-";
-        UnitVitalityHeader = "VITA";
+        UnitVitalityHeader = Stat.Vita.Key();
     }
 
     private void ShowStatsOfFirstProfile(UnitProfileGroups profileGroups)
@@ -304,7 +306,7 @@ public partial class UnitDetailViewModel(
             255 => "T",
             var ava => ava.Value.ToString()
         };
-        UnitVitalityHeader = profile.Str ? "STR" : "VITA";
+        UnitVitalityHeader = (profile.Str ? Stat.Str : Stat.Vita).Key();
         UnitVitality = UnitProfile.StatText(profile.W);
     }
 

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using Microsoft.Maui.Controls;
 
 namespace InfinityMercsApp.ViewModels;
@@ -141,7 +142,7 @@ public class ViewerProfileItem : BaseViewModel
     public string PeripheralWip { get; init; } = "-";
     public string PeripheralArm { get; init; } = "-";
     public string PeripheralBts { get; init; } = "-";
-    public string PeripheralVitalityHeader { get; init; } = "VITA";
+    public string PeripheralVitalityHeader { get; init; } = Stat.Vita.Key();
     public string PeripheralVitality { get; init; } = "-";
     public string PeripheralS { get; init; } = "-";
     public string PeripheralAva { get; init; } = "-";

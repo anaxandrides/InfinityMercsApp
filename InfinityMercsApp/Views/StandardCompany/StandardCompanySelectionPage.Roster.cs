@@ -1,9 +1,10 @@
-using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Lieutenants;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views.Common;
 using InfinityMercsApp.Views.Common.UICommon;
-using InfinityMercsApp.Services;
 using TagGen = InfinityMercsApp.Infrastructure.Providers.TagCompanyFactionGenerator;
 
 namespace InfinityMercsApp.Views.StandardCompany;
@@ -165,13 +166,13 @@ public partial class StandardCompanySelectionPage
             return false;
         }
 
-        if (string.Equals(entry.UnitTypeCode, "TAG", StringComparison.OrdinalIgnoreCase))
+        if (UnitTypeCodes.IsTag(entry.UnitTypeCode))
         {
             return true;
         }
 
         var selectedUnitType = ExtractUnitTypeCode(_selectedUnit?.Subtitle);
-        return string.Equals(selectedUnitType, "TAG", StringComparison.OrdinalIgnoreCase);
+        return UnitTypeCodes.IsTag(selectedUnitType);
     }
 
     private CompanySpecOpsWorkflowRequest BuildTagSpecOpsWorkflowRequest(MercsCompanyEntry entry)

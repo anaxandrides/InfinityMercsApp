@@ -26,7 +26,8 @@ internal static class CompanyPeripheralStatBlockService
         var characteristicNames = names.OrderedUnique(peripheralProfile.Chars, filters.Names(ArmyFilterSection.Chars));
         var weaponNames = names.OrderedUnique(peripheralProfile.Weapons, filters.Names(ArmyFilterSection.Weapons));
         var (moveFirstCm, moveSecondCm) = peripheralProfile.MoveFirstSecondCm;
-        var (vitalityHeader, vitalityValue) = peripheralProfile.Vitality;
+        var (vitalityStat, vitalityValue) = peripheralProfile.Vitality;
+        var vitalityHeader = vitalityStat.Key();
 
         return new PeripheralMercsCompanyStats
         {

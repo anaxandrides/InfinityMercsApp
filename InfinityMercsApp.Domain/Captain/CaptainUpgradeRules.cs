@@ -1,7 +1,9 @@
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+
 namespace InfinityMercsApp.Domain.Captain;
 
 /// <summary>One choosable upgrade level of a captain stat: its total bonus and total experience cost.</summary>
-public sealed record CaptainStatOption(string Stat, int Tier, int Bonus, int Cost);
+public sealed record CaptainStatOption(Stat Stat, int Tier, int Bonus, int Cost);
 
 /// <summary>
 /// The rules for improving a company captain: which stat upgrades exist, what they cost, and how much
@@ -16,17 +18,17 @@ public static class CaptainUpgradeRules
     /// Per stat: the bonus each tier gives over the base value, the experience each tier costs, and an optional
     /// hard cap the stat can never exceed. Index 0 is "no upgrade".
     /// </summary>
-    private static readonly IReadOnlyDictionary<string, StatDefinition> StatDefinitions =
-        new Dictionary<string, StatDefinition>(StringComparer.OrdinalIgnoreCase)
+    private static readonly IReadOnlyDictionary<Stat, StatDefinition> StatDefinitions =
+        new Dictionary<Stat, StatDefinition>
         {
-            ["CC"] = new([0, 2, 5, 10], [0, 2, 3, 5]),
-            ["BS"] = new([0, 1, 2, 3], [0, 2, 3, 5]),
-            ["PH"] = new([0, 1, 3], [0, 2, 3], HardCap: 14),
-            ["WIP"] = new([0, 1, 3, 6], [0, 2, 3, 5], HardCap: 15),
-            ["ARM"] = new([0, 1, 3], [0, 5, 5]),
-            ["BTS"] = new([0, 3, 6, 9], [0, 2, 3, 5]),
-            ["VITA"] = new([0, 1], [0, 10], HardCap: 2),
-            ["STR"] = new([0, 1], [0, 10], HardCap: 2)
+            [Stat.Cc] = new([0, 2, 5, 10], [0, 2, 3, 5]),
+            [Stat.Bs] = new([0, 1, 2, 3], [0, 2, 3, 5]),
+            [Stat.Ph] = new([0, 1, 3], [0, 2, 3], HardCap: 14),
+            [Stat.Wip] = new([0, 1, 3, 6], [0, 2, 3, 5], HardCap: 15),
+            [Stat.Arm] = new([0, 1, 3], [0, 5, 5]),
+            [Stat.Bts] = new([0, 3, 6, 9], [0, 2, 3, 5]),
+            [Stat.Vita] = new([0, 1], [0, 10], HardCap: 2),
+            [Stat.Str] = new([0, 1], [0, 10], HardCap: 2)
         };
 
     /// <summary>The experience a captain starts with: the override when given, else what the unit costs under <see cref="MaxUnitCost"/>.</summary>
@@ -36,9 +38,9 @@ public static class CaptainUpgradeRules
     /// <summary>
     /// The upgrade levels of a stat for a captain with <paramref name="baseValue"/>, starting with "no upgrade".
     /// Costs accumulate across tiers. A hard cap clamps the bonus and stops further tiers once reached.
-    /// An unknown stat offers only "no upgrade".
+    /// A stat captains cannot improve (MOV, S, AVA, W) offers only "no upgrade".
     /// </summary>
-    public static IReadOnlyList<CaptainStatOption> StatOptions(string stat, int baseValue)
+    public static IReadOnlyList<CaptainStatOption> StatOptions(Stat stat, int baseValue)
     {
         var options = new List<CaptainStatOption> { new(stat, 0, 0, 0) };
         if (!StatDefinitions.TryGetValue(stat, out var definition))

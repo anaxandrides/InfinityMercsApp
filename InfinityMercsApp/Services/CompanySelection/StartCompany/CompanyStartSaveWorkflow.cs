@@ -1,9 +1,10 @@
-using InfinityMercsApp.Domain.Lieutenants;
-using InfinityMercsApp.Domain.Captain;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Lieutenants;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Common.UICommon;
@@ -268,15 +269,15 @@ internal static class CompanyStartSaveWorkflow
         Dictionary<int, Dictionary<string, int>> extrasIdLookupCache)
         where TEntry : class, ICompanyMercsEntry
     {
-        var baseMov = ReadStatValue(entry.Subtitle, "MOV", entry.UnitMoveDisplay);
-        var baseCc = ReadStatValue(entry.Subtitle, "CC");
-        var baseBs = ReadStatValue(entry.Subtitle, "BS");
-        var basePh = ReadStatValue(entry.Subtitle, "PH");
-        var baseWip = ReadStatValue(entry.Subtitle, "WIP");
-        var baseArm = ReadStatValue(entry.Subtitle, "ARM");
-        var baseBts = ReadStatValue(entry.Subtitle, "BTS");
+        var baseMov = ReadStatValue(entry.Subtitle, Stat.Mov, entry.UnitMoveDisplay);
+        var baseCc = ReadStatValue(entry.Subtitle, Stat.Cc);
+        var baseBs = ReadStatValue(entry.Subtitle, Stat.Bs);
+        var basePh = ReadStatValue(entry.Subtitle, Stat.Ph);
+        var baseWip = ReadStatValue(entry.Subtitle, Stat.Wip);
+        var baseArm = ReadStatValue(entry.Subtitle, Stat.Arm);
+        var baseBts = ReadStatValue(entry.Subtitle, Stat.Bts);
         var baseVitaOrStr = ReadVitaOrStrValue(entry.Subtitle);
-        var baseS = ReadStatValue(entry.Subtitle, "S");
+        var baseS = ReadStatValue(entry.Subtitle, Stat.S);
 
         var currentCc = baseCc;
         var currentBs = baseBs;
@@ -387,7 +388,7 @@ internal static class CompanyStartSaveWorkflow
             PeripheralWip = "-",
             PeripheralArm = "-",
             PeripheralBts = "-",
-            PeripheralVitalityHeader = "VITA",
+            PeripheralVitalityHeader = Stat.Vita.Key(),
             PeripheralVitality = "-",
             PeripheralS = "-",
             PeripheralAva = "-",
@@ -486,7 +487,7 @@ internal static class CompanyStartSaveWorkflow
             Name = peripheralName,
             BaseUnitName = peripheralName,
             CustomName = peripheralName,
-            UnitTypeCode = "PERIPHERAL",
+            UnitTypeCode = UnitTypeCodes.Peripheral,
             ProfileKey = $"{entry.ProfileKey}|peripheral",
             SourceFactionId = entry.SourceFactionId,
             SourceUnitId = entry.SourceUnitId,
@@ -505,7 +506,7 @@ internal static class CompanyStartSaveWorkflow
             PeripheralWip = "-",
             PeripheralArm = "-",
             PeripheralBts = "-",
-            PeripheralVitalityHeader = "VITA",
+            PeripheralVitalityHeader = Stat.Vita.Key(),
             PeripheralVitality = "-",
             PeripheralS = "-",
             PeripheralAva = "-",
@@ -576,8 +577,9 @@ internal static class CompanyStartSaveWorkflow
         return $"{fallbackUnitName} Peripheral";
     }
 
-    private static string ReadStatValue(string? subtitle, string label, string fallback = "-")
+    private static string ReadStatValue(string? subtitle, Stat stat, string fallback = "-")
     {
+        var label = stat.Key();
         if (string.IsNullOrWhiteSpace(subtitle))
         {
             return NormalizeStatValue(fallback);
@@ -600,13 +602,13 @@ internal static class CompanyStartSaveWorkflow
 
     private static string ReadVitaOrStrValue(string? subtitle)
     {
-        var vita = ReadStatValue(subtitle, "VITA", string.Empty);
+        var vita = ReadStatValue(subtitle, Stat.Vita, string.Empty);
         if (!string.IsNullOrWhiteSpace(vita) && vita != "-")
         {
             return vita;
         }
 
-        var str = ReadStatValue(subtitle, "STR", string.Empty);
+        var str = ReadStatValue(subtitle, Stat.Str, string.Empty);
         return NormalizeStatValue(str);
     }
 
@@ -1173,7 +1175,7 @@ internal static class CompanyStartSaveWorkflow
         [JsonIgnore]
         public string PeripheralBts { get; init; } = "-";
         [JsonIgnore]
-        public string PeripheralVitalityHeader { get; init; } = "VITA";
+        public string PeripheralVitalityHeader { get; init; } = Stat.Vita.Key();
         [JsonIgnore]
         public string PeripheralVitality { get; init; } = "-";
         [JsonIgnore]

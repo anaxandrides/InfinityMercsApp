@@ -1,15 +1,16 @@
 using System.Globalization;
 using System.Text;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
-using InfinityMercsApp.Views.Controls;
 using InfinityMercsApp.Views.Common;
-using static InfinityMercsApp.Views.Common.CompanyUnitDetailsShared;
+using InfinityMercsApp.Views.Controls;
 using Svg.Skia;
+using static InfinityMercsApp.Views.Common.CompanyUnitDetailsShared;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecopsUnit;
+
 namespace InfinityMercsApp.Views.CohesiveCompany;
 /// <summary>
 /// Selected-unit detail pipeline: profile parsing, stat projection, and peripheral/trait extraction.
@@ -270,7 +271,7 @@ public partial class CohesiveCompanySelectionPage
         UnitWip = "-";
         UnitArm = "-";
         UnitBts = "-";
-        UnitVitalityHeader = "VITA";
+        UnitVitalityHeader = Stat.Vita.Key();
         UnitVitality = "-";
         UnitS = "-";
         UnitAva = "-";
@@ -290,7 +291,7 @@ public partial class CohesiveCompanySelectionPage
         PeripheralWip = "-";
         PeripheralArm = "-";
         PeripheralBts = "-";
-        PeripheralVitalityHeader = "VITA";
+        PeripheralVitalityHeader = Stat.Vita.Key();
         PeripheralVitality = "-";
         PeripheralS = "-";
         PeripheralAva = "-";

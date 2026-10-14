@@ -1,6 +1,8 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views.Common;
@@ -100,7 +102,7 @@ public sealed partial class DeploymentRoster(
             IsIrregular = HasLine(characteristics, "Irregular", splitOnCommas: true),
             IsImpetuous = HasLine(characteristics, "Impetuous", splitOnCommas: true),
             IsTagFromTagCompany = factionId == TagCompanyFactionId &&
-                                  string.Equals(entry.UnitTypeCode?.Trim(), "TAG", StringComparison.OrdinalIgnoreCase),
+                                  UnitTypeCodes.IsTag(entry.UnitTypeCode),
             CaptainIconPackagedPath = entry.IsLieutenant ? "SVGCache/NonCBIcons/noun-captain-8115950.svg" : string.Empty,
             ExperienceIconPackagedPath = experienceLevel <= 0 ? string.Empty : $"SVGCache/NonCBIcons/Experience/noun-{experienceLevel}-stars.svg",
             CachedLogoPath = logos?.TryGetCachedUnitLogoPath(logoFactionId, logoUnitId),
@@ -117,7 +119,7 @@ public sealed partial class DeploymentRoster(
             UnitVitality = profile.Vitality,
             UnitS = profile.S,
             Renown = entry.Cost + entry.ExperiencePoints,
-            VitalityHeader = VitalityHeader(entry.UnitTypeCode),
+            VitalityStat = StatKeys.VitalityFor(entry.UnitTypeCode),
             StartingVitality = Math.Max(1, int.TryParse(entry.CurrentVitaOrStr, out var vitality) ? vitality : 1),
             HasNwi = HasLine(profile.Skills, "No Wound Incapacitation"),
             HasRemotePresence = HasLine(profile.Skills, "Remote Presence"),
@@ -209,14 +211,13 @@ public sealed partial class DeploymentRoster(
                     break;
 
                 case "Augments":
-                    var statOverride = StatOverridePattern().Match(item.ItemName.Trim());
-                    if (!statOverride.Success)
+                    if (StatOverride.TryParse(item.ItemName, out var statOverride))
                     {
-                        profile.Skills = AppendKeepingText(profile.Skills, [item.ItemName]);
+                        profile.SetStat(statOverride);
                     }
                     else
                     {
-                        profile.SetStat(statOverride.Groups[1].Value, statOverride.Groups[2].Value);
+                        profile.Skills = AppendKeepingText(profile.Skills, [item.ItemName]);
                     }
 
                     break;
@@ -251,9 +252,6 @@ public sealed partial class DeploymentRoster(
         return string.IsNullOrWhiteSpace(name) ? "Unit" : name;
     }
 
-    internal static string VitalityHeader(string? unitTypeCode) =>
-        unitTypeCode?.Trim().ToUpperInvariant() is "TAG" or "REM" or "PERIPHERAL" ? "STR" : "VITA";
-
     /// <summary>True when one line (or, optionally, comma-separated item) of the text is exactly <paramref name="value"/>.</summary>
     internal static bool HasLine(string text, string value, bool splitOnCommas = false) =>
         text.Split(splitOnCommas ? ['\r', '\n', ','] : ['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
@@ -273,9 +271,6 @@ public sealed partial class DeploymentRoster(
     // Adds items to a profile section; with nothing to add, the section's text is left as it is.
     private static string AppendKeepingText(string? baseText, IReadOnlyList<string> additions) =>
         ProfileText.AppendDistinct(baseText, additions, keepTextWhenNothingAdded: true);
-
-    [GeneratedRegex(@"^([A-Za-z]+)\s*=\s*(\d+)$")]
-    private static partial Regex StatOverridePattern();
 
     [GeneratedRegex(@"\s*\([^)]*\)\s*")]
     private static partial Regex BracketsPattern();
@@ -314,19 +309,20 @@ public sealed partial class DeploymentRoster(
             Vitality = entry.CurrentVitaOrStr
         };
 
-        /// <summary>Overrides a stat by its short name; unknown names are ignored.</summary>
-        public void SetStat(string name, string value)
+        /// <summary>Overrides a stat; stats the deployment card does not show (MOV, AVA) are ignored.</summary>
+        public void SetStat(StatOverride statOverride)
         {
-            switch (name.ToUpperInvariant())
+            var value = statOverride.Value.ToString(CultureInfo.InvariantCulture);
+            switch (statOverride.Stat)
             {
-                case "CC": Cc = value; break;
-                case "BS": Bs = value; break;
-                case "PH": Ph = value; break;
-                case "WIP": Wip = value; break;
-                case "ARM": Arm = value; break;
-                case "BTS": Bts = value; break;
-                case "S": S = value; break;
-                case "VITA" or "STR": Vitality = value; break;
+                case Stat.Cc: Cc = value; break;
+                case Stat.Bs: Bs = value; break;
+                case Stat.Ph: Ph = value; break;
+                case Stat.Wip: Wip = value; break;
+                case Stat.Arm: Arm = value; break;
+                case Stat.Bts: Bts = value; break;
+                case Stat.S: S = value; break;
+                case Stat.Vita or Stat.Str or Stat.W: Vitality = value; break;
             }
         }
     }

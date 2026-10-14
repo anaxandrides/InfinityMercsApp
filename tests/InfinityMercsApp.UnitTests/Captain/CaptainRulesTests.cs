@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 
 namespace InfinityMercsApp.UnitTests.Captain;
 
@@ -18,7 +19,7 @@ public sealed class CaptainUpgradeRulesTests
     [Fact]
     public void StatOptions_AccumulateCostAcrossTiers()
     {
-        var options = CaptainUpgradeRules.StatOptions("CC", 14);
+        var options = CaptainUpgradeRules.StatOptions(Stat.Cc, 14);
         Assert.Equal<(int, int, int)>(
             [(0, 0, 0), (1, 2, 2), (2, 5, 5), (3, 10, 10)],
             options.Select(o => (o.Tier, o.Bonus, o.Cost)));
@@ -28,27 +29,27 @@ public sealed class CaptainUpgradeRulesTests
     public void StatOptions_ClampToTheHardCapAndStopThere()
     {
         // PH caps at 14: from 13, tier 1 reaches 14 and no further tiers are offered.
-        var options = CaptainUpgradeRules.StatOptions("PH", 13);
+        var options = CaptainUpgradeRules.StatOptions(Stat.Ph, 13);
         Assert.Equal<(int, int, int)>([(0, 0, 0), (1, 1, 2)], options.Select(o => (o.Tier, o.Bonus, o.Cost)));
 
         // From 12, tier 2 would give +3 but is clamped to +2.
-        Assert.Equal<int>([0, 1, 2], CaptainUpgradeRules.StatOptions("PH", 12).Select(o => o.Bonus));
+        Assert.Equal<int>([0, 1, 2], CaptainUpgradeRules.StatOptions(Stat.Ph, 12).Select(o => o.Bonus));
     }
 
     [Fact]
     public void StatOptions_AtTheCapOfferOnlyNoUpgrade()
     {
-        Assert.Single(CaptainUpgradeRules.StatOptions("VITA", 2));
-        Assert.Single(CaptainUpgradeRules.StatOptions("WIP", 15));
+        Assert.Single(CaptainUpgradeRules.StatOptions(Stat.Vita, 2));
+        Assert.Single(CaptainUpgradeRules.StatOptions(Stat.Wip, 15));
     }
 
     [Fact]
     public void StatOptions_ForAnUnknownStatOfferOnlyNoUpgrade() =>
-        Assert.Equal<int>([0], CaptainUpgradeRules.StatOptions("MOV", 4).Select(o => o.Tier));
+        Assert.Equal<int>([0], CaptainUpgradeRules.StatOptions(Stat.Mov, 4).Select(o => o.Tier));
 
     [Fact]
     public void StatOptions_IgnoreCase() =>
-        Assert.Equal(4, CaptainUpgradeRules.StatOptions("bts", 3).Count);
+        Assert.Equal(4, CaptainUpgradeRules.StatOptions(Stat.Bts, 3).Count);
 }
 
 public sealed class CaptainStatBonusesTests
@@ -56,12 +57,12 @@ public sealed class CaptainStatBonusesTests
     private static readonly CaptainStatBonuses Bonuses = new(Cc: 2, Bs: 1, Ph: 0, Wip: 3, Arm: 1, Bts: 6, Vitality: 1);
 
     [Theory]
-    [InlineData("VITA", 1)]
-    [InlineData("str", 1)]
-    [InlineData("W", 1)]
-    [InlineData("BTS", 6)]
-    [InlineData("MOV", 0)]
-    public void For_MapsStatlineKeys(string key, int expected) => Assert.Equal(expected, Bonuses.For(key));
+    [InlineData(Stat.Vita, 1)]
+    [InlineData(Stat.Str, 1)]
+    [InlineData(Stat.W, 1)]
+    [InlineData(Stat.Bts, 6)]
+    [InlineData(Stat.Mov, 0)]
+    public void For_SharesTheVitalityBonusAcrossVitaStrAndW(Stat stat, int expected) => Assert.Equal(expected, Bonuses.For(stat));
 
     [Theory]
     [InlineData("13", 2, "15")]
@@ -143,12 +144,12 @@ public sealed class StatlineTests
     [Fact]
     public void NumericStats_ReadTheCombatStats() =>
         Assert.Equal(
-            new Dictionary<string, int> { ["CC"] = 14, ["BS"] = 12, ["VITA"] = 1 },
+            new Dictionary<Stat, int> { [Stat.Cc] = 14, [Stat.Bs] = 12, [Stat.Vita] = 1 },
             Statline.NumericStats("MOV 10-5 | cc 14 | BS 12 | VITA 1 | AVA T"));
 
     [Fact]
-    public void Entries_KeepEveryKeyValueSegmentInOrder() =>
-        Assert.Equal<(string, string)>(
-            [("MOV", "10-5"), ("CC", "14"), ("AVA", "T")],
-            Statline.Entries("MOV 10-5 | cc 14 | junk | AVA T"));
+    public void Entries_KeepEveryStatSegmentInOrder() =>
+        Assert.Equal<StatValue>(
+            [new(Stat.Mov, "10-5"), new(Stat.Cc, "14"), new(Stat.Ava, "T")],
+            Statline.Entries("MOV 10-5 | cc 14 | junk | XP 3 | AVA T"));
 }

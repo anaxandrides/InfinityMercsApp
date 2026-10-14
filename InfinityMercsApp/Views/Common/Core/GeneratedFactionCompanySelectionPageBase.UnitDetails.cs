@@ -1,13 +1,13 @@
 using System.Globalization;
 using System.Text;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
 using System.Text.RegularExpressions;
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Services;
-using InfinityMercsApp.Views.Controls;
+using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views.Common;
-using static InfinityMercsApp.Views.Common.CompanyUnitDetailsShared;
+using InfinityMercsApp.Views.Controls;
 using Svg.Skia;
+using static InfinityMercsApp.Views.Common.CompanyUnitDetailsShared;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecopsUnit;
 
@@ -228,7 +228,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
         UnitWip = "-";
         UnitArm = "-";
         UnitBts = "-";
-        UnitVitalityHeader = "VITA";
+        UnitVitalityHeader = Stat.Vita.Key();
         UnitVitality = "-";
         UnitS = "-";
         UnitAva = "-";
@@ -248,7 +248,7 @@ public abstract partial class GeneratedFactionCompanySelectionPageBase
         PeripheralWip = "-";
         PeripheralArm = "-";
         PeripheralBts = "-";
-        PeripheralVitalityHeader = "VITA";
+        PeripheralVitalityHeader = Stat.Vita.Key();
         PeripheralVitality = "-";
         PeripheralS = "-";
         PeripheralAva = "-";

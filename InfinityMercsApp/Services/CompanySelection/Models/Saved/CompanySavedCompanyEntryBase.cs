@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 
 namespace InfinityMercsApp.Views.Common;
 
@@ -54,7 +55,7 @@ public abstract class CompanySavedCompanyEntryBase
     public string PeripheralWip { get; init; } = "-";
     public string PeripheralArm { get; init; } = "-";
     public string PeripheralBts { get; init; } = "-";
-    public string PeripheralVitalityHeader { get; init; } = "VITA";
+    public string PeripheralVitalityHeader { get; init; } = Stat.Vita.Key();
     public string PeripheralVitality { get; init; } = "-";
     public string PeripheralS { get; init; } = "-";
     public string PeripheralAva { get; init; } = "-";

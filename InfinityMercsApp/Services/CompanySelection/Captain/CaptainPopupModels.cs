@@ -1,4 +1,6 @@
-﻿namespace InfinityMercsApp.Views.Common.Captain;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+
+namespace InfinityMercsApp.Views.Common.Captain;
 
 public sealed class CaptainUpgradeOptionSet
 {
@@ -37,9 +39,9 @@ public sealed class CaptainUpgradePopupContext
 }
 
 /// <summary>A captain stat upgrade level as a picker item.</summary>
-public sealed record StatPickerOption(string Stat, int Tier, int Bonus, int Cost)
+public sealed record StatPickerOption(Stat Stat, int Tier, int Bonus, int Cost)
 {
-    public string Label => $"{Stat.ToUpperInvariant()} +{Bonus} | {Cost}xp";
+    public string Label => $"{Stat.Key()} +{Bonus} | {Cost}xp";
 
     public static StatPickerOption From(InfinityMercsApp.Domain.Captain.CaptainStatOption option) =>
         new(option.Stat, option.Tier, option.Bonus, option.Cost);

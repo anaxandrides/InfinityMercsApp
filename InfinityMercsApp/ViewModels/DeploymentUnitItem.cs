@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Season;
 
 namespace InfinityMercsApp.ViewModels;
@@ -35,7 +36,24 @@ public sealed class DeploymentUnitItem : ObservableObject, IViewerListItem
     public string UnitBts { get; init; } = "-";
     public string UnitVitality { get; init; } = "-";
     public string UnitS { get; init; } = "-";
-    public string VitalityHeader { get; init; } = "VITA";
+
+    /// <summary>VITA for living troopers, STR for TAGs, remotes and peripherals.</summary>
+    public Stat VitalityStat { get; init; } = Stat.Vita;
+    public string VitalityHeader => VitalityStat.Key();
+
+    /// <summary>The statline in display order: MOV, CC, BS, PH, WIP, ARM, BTS, VITA or STR, S.</summary>
+    public IReadOnlyList<StatValue> Statline =>
+    [
+        new(Stat.Mov, UnitMov),
+        new(Stat.Cc, UnitCc),
+        new(Stat.Bs, UnitBs),
+        new(Stat.Ph, UnitPh),
+        new(Stat.Wip, UnitWip),
+        new(Stat.Arm, UnitArm),
+        new(Stat.Bts, UnitBts),
+        new(VitalityStat, UnitVitality),
+        new(Stat.S, UnitS)
+    ];
 
     // Wound tracking (used by GameModePage)
     public int StartingVitality { get; init; } = 1;

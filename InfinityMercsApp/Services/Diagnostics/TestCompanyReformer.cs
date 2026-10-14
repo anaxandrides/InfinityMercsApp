@@ -208,7 +208,7 @@ public sealed class TestCompanyReformer(
                 peripheralBts = NormalizeStat(sourcePeripheralEntry.CurrentBts);
                 peripheralVitality = NormalizeStat(sourcePeripheralEntry.CurrentVitaOrStr);
                 peripheralS = NormalizeStat(sourcePeripheralEntry.CurrentS);
-                peripheralVitalityHeader = InferVitalityHeaderForUnitType(sourcePeripheralEntry.UnitTypeCode);
+                peripheralVitalityHeader = StatKeys.VitalityFor(sourcePeripheralEntry.UnitTypeCode).Key();
                 savedPeripheralEquipment = ResolveSavedCodes(sourcePeripheralEntry, "equip");
                 savedPeripheralSkills = ResolveSavedCodes(sourcePeripheralEntry, "skills");
                 savedPeripheralCharacteristics = ResolveSavedCodes(sourcePeripheralEntry, "chars");
@@ -426,14 +426,6 @@ public sealed class TestCompanyReformer(
         return string.IsNullOrWhiteSpace(value) ? "-" : value.Trim();
     }
 
-    private static string InferVitalityHeaderForUnitType(string? unitTypeCode)
-    {
-        var normalized = unitTypeCode?.Trim().ToUpperInvariant();
-        return normalized is "TAG" or "REM" or "PERIPHERAL"
-            ? "STR"
-            : "VITA";
-    }
-
     private (string SavedRangedWeapons, string SavedCcWeapons) ResolveSavedWeapons(DebugSavedEntry entry)
     {
         var factionId = entry.SourceFactionId > 0 ? entry.SourceFactionId : entry.FactionId;
@@ -621,7 +613,7 @@ public sealed class TestCompanyReformer(
         public string PeripheralWip { get; init; } = "-";
         public string PeripheralArm { get; init; } = "-";
         public string PeripheralBts { get; init; } = "-";
-        public string PeripheralVitalityHeader { get; init; } = "VITA";
+        public string PeripheralVitalityHeader { get; init; } = Stat.Vita.Key();
         public string PeripheralVitality { get; init; } = "-";
         public string PeripheralS { get; init; } = "-";
         public string PeripheralAva { get; init; } = "-";
@@ -665,7 +657,7 @@ public sealed class TestCompanyReformer(
         public string PeripheralWip { get; init; } = "-";
         public string PeripheralArm { get; init; } = "-";
         public string PeripheralBts { get; init; } = "-";
-        public string PeripheralVitalityHeader { get; init; } = "VITA";
+        public string PeripheralVitalityHeader { get; init; } = Stat.Vita.Key();
         public string PeripheralVitality { get; init; } = "-";
         public string PeripheralS { get; init; } = "-";
         public string PeripheralAva { get; init; } = "-";

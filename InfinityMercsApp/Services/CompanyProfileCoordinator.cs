@@ -250,7 +250,7 @@ internal sealed class CompanyProfileCoordinator
                     PeripheralWip = peripheralStats?.Wip ?? "-",
                     PeripheralArm = peripheralStats?.Arm ?? "-",
                     PeripheralBts = peripheralStats?.Bts ?? "-",
-                    PeripheralVitalityHeader = peripheralStats?.VitalityHeader ?? "VITA",
+                    PeripheralVitalityHeader = peripheralStats?.VitalityHeader ?? Stat.Vita.Key(),
                     PeripheralVitality = peripheralStats?.Vitality ?? "-",
                     PeripheralS = peripheralStats?.S ?? "-",
                     PeripheralAva = peripheralStats?.Ava ?? "-",

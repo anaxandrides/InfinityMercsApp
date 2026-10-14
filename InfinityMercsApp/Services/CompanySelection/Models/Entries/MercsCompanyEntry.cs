@@ -1,6 +1,6 @@
-﻿using InfinityMercsApp.ViewModels;
-
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Services;
+using InfinityMercsApp.ViewModels;
 
 namespace InfinityMercsApp.Views.Common;
 
@@ -75,7 +75,7 @@ public class MercsCompanyEntry : BaseViewModel, IViewerListItem, ICompanyMercsEn
     public string PeripheralWip { get; init; } = "-";
     public string PeripheralArm { get; init; } = "-";
     public string PeripheralBts { get; init; } = "-";
-    public string PeripheralVitalityHeader { get; init; } = "VITA";
+    public string PeripheralVitalityHeader { get; init; } = Stat.Vita.Key();
     public string PeripheralVitality { get; init; } = "-";
     public string PeripheralS { get; init; } = "-";
     public string PeripheralAva { get; init; } = "-";

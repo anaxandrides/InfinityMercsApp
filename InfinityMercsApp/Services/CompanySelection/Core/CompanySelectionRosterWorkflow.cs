@@ -128,7 +128,7 @@ internal static class CompanySelectionRosterWorkflow
         var peripheralWip = peripheralStats?.Wip ?? (profile.HasPeripheralStatBlock ? profile.PeripheralWip : "-");
         var peripheralArm = peripheralStats?.Arm ?? (profile.HasPeripheralStatBlock ? profile.PeripheralArm : "-");
         var peripheralBts = peripheralStats?.Bts ?? (profile.HasPeripheralStatBlock ? profile.PeripheralBts : "-");
-        var peripheralVitalityHeader = peripheralStats?.VitalityHeader ?? (profile.HasPeripheralStatBlock ? profile.PeripheralVitalityHeader : "VITA");
+        var peripheralVitalityHeader = peripheralStats?.VitalityHeader ?? (profile.HasPeripheralStatBlock ? profile.PeripheralVitalityHeader : Stat.Vita.Key());
         var peripheralVitality = peripheralStats?.Vitality ?? (profile.HasPeripheralStatBlock ? profile.PeripheralVitality : "-");
         var peripheralS = peripheralStats?.S ?? (profile.HasPeripheralStatBlock ? profile.PeripheralS : "-");
         var peripheralAva = peripheralStats?.Ava ?? (profile.HasPeripheralStatBlock ? profile.PeripheralAva : "-");

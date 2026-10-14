@@ -1,15 +1,16 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 
 namespace InfinityMercsApp.Domain.Captain;
 
 /// <summary>Reads a display statline such as <c>"MOV 10-5 | CC 14 | BS 12 | PH 10 | WIP 13 | ARM 1 | BTS 3 | VITA 1"</c>.</summary>
 public static partial class Statline
 {
-    /// <summary>The numeric combat stats (CC, BS, PH, WIP, ARM, BTS, VITA, STR, W) by upper-case key; later values win.</summary>
-    public static IReadOnlyDictionary<string, int> NumericStats(string? statline)
+    /// <summary>The numeric combat stats (CC, BS, PH, WIP, ARM, BTS, VITA, STR, W); later values win.</summary>
+    public static IReadOnlyDictionary<Stat, int> NumericStats(string? statline)
     {
-        var values = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var values = new Dictionary<Stat, int>();
         if (string.IsNullOrWhiteSpace(statline))
         {
             return values;
@@ -17,19 +18,20 @@ public static partial class Statline
 
         foreach (Match match in NumericStat().Matches(statline))
         {
-            if (int.TryParse(match.Groups[2].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
+            if (StatKeys.TryParse(match.Groups[1].Value, out var stat) &&
+                int.TryParse(match.Groups[2].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
             {
-                values[match.Groups[1].Value.ToUpperInvariant()] = parsed;
+                values[stat] = parsed;
             }
         }
 
         return values;
     }
 
-    /// <summary>Every "KEY value" segment in order, keys upper-cased; segments of another shape are skipped.</summary>
-    public static List<(string Key, string Value)> Entries(string? statline)
+    /// <summary>Every "KEY value" segment whose key is a stat, in order; other segments are skipped.</summary>
+    public static List<StatValue> Entries(string? statline)
     {
-        var entries = new List<(string Key, string Value)>();
+        var entries = new List<StatValue>();
         if (string.IsNullOrWhiteSpace(statline))
         {
             return entries;
@@ -38,9 +40,9 @@ public static partial class Statline
         foreach (var segment in statline.Split('|', StringSplitOptions.TrimEntries))
         {
             var match = KeyValueSegment().Match(segment);
-            if (match.Success)
+            if (match.Success && StatKeys.TryParse(match.Groups[1].Value, out var stat))
             {
-                entries.Add((match.Groups[1].Value.ToUpperInvariant(), match.Groups[2].Value.Trim()));
+                entries.Add(new StatValue(stat, match.Groups[2].Value.Trim()));
             }
         }
 

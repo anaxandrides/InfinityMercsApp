@@ -214,9 +214,9 @@ public sealed class UnitDetailRulesEquivalenceTests
     private static string Statline(UnitProfile profile)
     {
         var (first, second) = profile.MoveFirstSecondCm;
-        var (header, value) = profile.Vitality;
+        var (stat, value) = profile.Vitality;
         return $"id={(profile.Id.HasValue ? profile.Id.Value.ToString() : "?")} " +
-               $"move={first}/{second} ava={profile.AvaText} {header}={value} " +
+               $"move={first}/{second} ava={profile.AvaText} {stat.Key()}={value} " +
                $"stats={profile.HasStatFields}";
     }
 

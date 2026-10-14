@@ -1,4 +1,5 @@
 using System.Text.Json;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services;
@@ -92,6 +93,17 @@ public sealed class DeploymentRosterTests : IDisposable
 
         Assert.True(tag.IsTagFromTagCompany);
         Assert.Equal(2, tag.SlotCost);
+        Assert.Equal(Stat.Str, tag.VitalityStat);
+    }
+
+    [Fact]
+    public async Task TheStatlineListsEveryStatInOrder()
+    {
+        var tag = (await LoadAsync())[2];
+
+        Assert.Equal<Stat>(
+            [Stat.Mov, Stat.Cc, Stat.Bs, Stat.Ph, Stat.Wip, Stat.Arm, Stat.Bts, Stat.Str, Stat.S],
+            tag.Statline.Select(v => v.Stat));
         Assert.Equal("STR", tag.VitalityHeader);
     }
 

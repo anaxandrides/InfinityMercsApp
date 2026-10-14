@@ -1,7 +1,8 @@
-using InfinityMercsApp.Domain.Lieutenants;
-using InfinityMercsApp.Domain.Captain;
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Lieutenants;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using Microsoft.Maui.Devices;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
@@ -64,13 +65,13 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     private readonly Button _foundCompanyButton;
 
     // Parsed numeric base stats, used to compute deltas when a tier is selected.
-    private readonly IReadOnlyDictionary<string, int> _baseStats;
+    private readonly IReadOnlyDictionary<Stat, int> _baseStats;
     private readonly Grid _statsGrid;
 
     // Parallel collections that keep the stat grid in sync with picker selections.
-    private readonly List<string> _statGridOrder = [];
-    private readonly Dictionary<string, string> _statGridBaseValues = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, Label> _statGridValueLabels = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<Stat> _statGridOrder = [];
+    private readonly Dictionary<Stat, string> _statGridBaseValues = [];
+    private readonly Dictionary<Stat, Label> _statGridValueLabels = [];
 
     // Captain name editing state — the Entry becomes editable when the pencil icon is tapped.
     private readonly Entry _captainNameEntry;
@@ -110,13 +111,13 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
         };
         _logoCanvas.PaintSurface += OnLogoCanvasPaintSurface;
 
-        _ccPicker = BuildStatPicker("CC", ReadBaseStat("CC"));
-        _bsPicker = BuildStatPicker("BS", ReadBaseStat("BS"));
-        _phPicker = BuildStatPicker("PH", ReadBaseStat("PH"));
-        _wipPicker = BuildStatPicker("WIP", ReadBaseStat("WIP"));
-        _armPicker = BuildStatPicker("ARM", ReadBaseStat("ARM"));
-        _btsPicker = BuildStatPicker("BTS", ReadBaseStat("BTS"));
-        _vitaPicker = BuildStatPicker("VITA", ReadBaseStat("VITA", "STR", "W"));
+        _ccPicker = BuildStatPicker(Stat.Cc, ReadBaseStat(Stat.Cc));
+        _bsPicker = BuildStatPicker(Stat.Bs, ReadBaseStat(Stat.Bs));
+        _phPicker = BuildStatPicker(Stat.Ph, ReadBaseStat(Stat.Ph));
+        _wipPicker = BuildStatPicker(Stat.Wip, ReadBaseStat(Stat.Wip));
+        _armPicker = BuildStatPicker(Stat.Arm, ReadBaseStat(Stat.Arm));
+        _btsPicker = BuildStatPicker(Stat.Bts, ReadBaseStat(Stat.Bts));
+        _vitaPicker = BuildStatPicker(Stat.Vita, ReadBaseStat(Stat.Vita, Stat.Str, Stat.W));
 
         HookSelectionChanged(_ccPicker);
         HookSelectionChanged(_bsPicker);
@@ -265,10 +266,10 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
             Spacing = 8,
             Children =
             {
-                BuildStatRowPair(("CC", _ccPicker), ("BS", _bsPicker)),
-                BuildStatRowPair(("PH", _phPicker), ("WIP", _wipPicker)),
-                BuildStatRowPair(("ARM", _armPicker), ("BTS", _btsPicker)),
-                BuildStatRowPair(("VITA", _vitaPicker), null),
+                BuildStatRowPair(BuildStatRow(Stat.Cc.Key(), _ccPicker), BuildStatRow(Stat.Bs.Key(), _bsPicker)),
+                BuildStatRowPair(BuildStatRow(Stat.Ph.Key(), _phPicker), BuildStatRow(Stat.Wip.Key(), _wipPicker)),
+                BuildStatRowPair(BuildStatRow(Stat.Arm.Key(), _armPicker), BuildStatRow(Stat.Bts.Key(), _btsPicker)),
+                BuildStatRowPair(BuildStatRow(Stat.Vita.Key(), _vitaPicker), null),
                 BuildCategorySection("Weapons", _weapon1Picker, _weapon2Picker, _weapon3Picker),
                 BuildCategorySection("Skills", _skill1Picker, _skill2Picker, _skill3Picker),
                 BuildCategorySection("Equipment", _equipment1Picker, _equipment2Picker, _equipment3Picker)
@@ -550,9 +551,9 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     /// Creates a stat-upgrade picker pre-populated with the tier options computed from the unit's base value.
     /// Defaults to index 0 (no upgrade).
     /// </summary>
-    private static Picker BuildStatPicker(string statName, int baseValue)
+    private static Picker BuildStatPicker(Stat stat, int baseValue)
     {
-        var options = BuildStatOptions(statName, baseValue);
+        var options = BuildStatOptions(stat, baseValue);
         var picker = new Picker
         {
             HorizontalOptions = LayoutOptions.Fill,
@@ -594,7 +595,7 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     /// Lays out two stat pickers side by side in equal columns.
     /// The second slot is optional; if omitted, only the first picker is placed.
     /// </summary>
-    private static View BuildStatRowPair((string Label, Picker Picker) first, (string Label, Picker Picker)? second)
+    private static View BuildStatRowPair(View firstCell, View? secondCell)
     {
         var grid = new Grid
         {
@@ -606,13 +607,11 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
             }
         };
 
-        var firstCell = BuildStatRow(first.Label, first.Picker);
         grid.Children.Add(firstCell);
         Grid.SetColumn(firstCell, 0);
 
-        if (second.HasValue)
+        if (secondCell is not null)
         {
-            var secondCell = BuildStatRow(second.Value.Label, second.Value.Picker);
             grid.Children.Add(secondCell);
             Grid.SetColumn(secondCell, 1);
         }
@@ -773,11 +772,11 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     /// Looks up the first matching stat key from the parsed base stats dictionary.
     /// Accepts multiple candidate keys to handle aliases such as VITA / STR / W.
     /// </summary>
-    private int ReadBaseStat(params string[] statNames)
+    private int ReadBaseStat(params IEnumerable<Stat> stats)
     {
-        foreach (var statName in statNames)
+        foreach (var stat in stats)
         {
-            if (_baseStats.TryGetValue(statName, out var value))
+            if (_baseStats.TryGetValue(stat, out var value))
             {
                 return value;
             }
@@ -791,8 +790,8 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     /// Tiers are added incrementally; a hard cap stops further tiers once the stat hits its ceiling.
     /// Costs accumulate across tiers so the picker always shows the total spent.
     /// </summary>
-    private static List<StatPickerOption> BuildStatOptions(string statName, int baseValue) =>
-        CaptainUpgradeRules.StatOptions(statName, baseValue).Select(StatPickerOption.From).ToList();
+    private static List<StatPickerOption> BuildStatOptions(Stat stat, int baseValue) =>
+        CaptainUpgradeRules.StatOptions(stat, baseValue).Select(StatPickerOption.From).ToList();
 
     /// <summary>
     /// Returns the experience point cost of the currently selected stat tier, or 0 if nothing is selected.
@@ -806,7 +805,7 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     /// Parses a raw statline string (e.g. "CC 14 | BS 12 | ...") into a keyed integer dictionary.
     /// Used to seed the pickers with the correct base values for bonus calculations.
     /// </summary>
-    private static IReadOnlyDictionary<string, int> ParseBaseStats(string? statline) => Statline.NumericStats(statline);
+    private static IReadOnlyDictionary<Stat, int> ParseBaseStats(string? statline) => Statline.NumericStats(statline);
 
     /// <summary>
     /// Constructs the stat grid shown in the left column using the parsed statline.
@@ -845,14 +844,14 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
         // Row 0 = stat key (bold header), Row 1 = current value (updated as tiers change).
         for (var i = 0; i < entries.Count; i++)
         {
-            var (key, value) = entries[i];
-            _statGridOrder.Add(key);
-            _statGridBaseValues[key] = value;
+            var (stat, value) = entries[i];
+            _statGridOrder.Add(stat);
+            _statGridBaseValues[stat] = value;
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
 
             var keyLabel = new Label
             {
-                Text = key,
+                Text = stat.Key(),
                 Style = (Style)Application.Current!.Resources["LabelSubHeadline"],
                 FontAttributes = FontAttributes.Bold,
                 HorizontalTextAlignment = TextAlignment.Center
@@ -865,7 +864,7 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
                 TextColor = DefaultStatColor
             };
 
-            _statGridValueLabels[key] = valueLabel;
+            _statGridValueLabels[stat] = valueLabel;
             grid.Children.Add(keyLabel);
             grid.Children.Add(valueLabel);
             Grid.SetColumn(keyLabel, i);
@@ -881,7 +880,7 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     /// Splits a pipe-delimited statline into (key, value) pairs for the stat grid.
     /// Segments that do not match the expected "KEY value" pattern are silently skipped.
     /// </summary>
-    private static List<(string Key, string Value)> ParseStatsGridEntries(string? statline) => Statline.Entries(statline);
+    private static List<StatValue> ParseStatsGridEntries(string? statline) => Statline.Entries(statline);
 
     /// <summary>
     /// Re-evaluates every stat label in the grid, applying the current picker bonus
@@ -890,17 +889,17 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     /// </summary>
     private void UpdateStatsGridValues()
     {
-        foreach (var key in _statGridOrder)
+        foreach (var stat in _statGridOrder)
         {
-            if (!_statGridValueLabels.TryGetValue(key, out var valueLabel) ||
-                !_statGridBaseValues.TryGetValue(key, out var rawValue))
+            if (!_statGridValueLabels.TryGetValue(stat, out var valueLabel) ||
+                !_statGridBaseValues.TryGetValue(stat, out var rawValue))
             {
                 continue;
             }
 
             if (int.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var numericBase))
             {
-                var bonus = ReadStatlineBonus(key);
+                var bonus = ReadStatlineBonus(stat);
                 var modifiedValue = numericBase + bonus;
                 valueLabel.Text = modifiedValue.ToString(CultureInfo.InvariantCulture);
                 // Highlight in green only when the value differs from the base.
@@ -918,7 +917,7 @@ public sealed class ConfigureCaptainPopupPage : ContentPage
     /// Maps a stat key to the corresponding upgrade picker and returns the selected bonus.
     /// VITA, STR, and W all share the single vitality picker.
     /// </summary>
-    private int ReadStatlineBonus(string statKey) => SelectedBonuses().For(statKey);
+    private int ReadStatlineBonus(Stat stat) => SelectedBonuses().For(stat);
 
     private CaptainStatBonuses SelectedBonuses() => new(
         ReadStatBonus(_ccPicker),

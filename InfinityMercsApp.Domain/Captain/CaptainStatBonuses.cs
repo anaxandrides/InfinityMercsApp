@@ -1,4 +1,5 @@
 using System.Globalization;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 
 namespace InfinityMercsApp.Domain.Captain;
 
@@ -7,16 +8,16 @@ public sealed record CaptainStatBonuses(int Cc, int Bs, int Ph, int Wip, int Arm
 {
     public static CaptainStatBonuses None { get; } = new(0, 0, 0, 0, 0, 0, 0);
 
-    /// <summary>The bonus for a statline key (CC, BS, PH, WIP, ARM, BTS, VITA/STR/W); 0 for any other key.</summary>
-    public int For(string statKey) => statKey.ToUpperInvariant() switch
+    /// <summary>The bonus for a stat; VITA, STR and W share the vitality bonus, and other stats get none.</summary>
+    public int For(Stat stat) => stat switch
     {
-        "CC" => Cc,
-        "BS" => Bs,
-        "PH" => Ph,
-        "WIP" => Wip,
-        "ARM" => Arm,
-        "BTS" => Bts,
-        "VITA" or "STR" or "W" => Vitality,
+        Stat.Cc => Cc,
+        Stat.Bs => Bs,
+        Stat.Ph => Ph,
+        Stat.Wip => Wip,
+        Stat.Arm => Arm,
+        Stat.Bts => Bts,
+        Stat.Vita or Stat.Str or Stat.W => Vitality,
         _ => 0
     };
 
@@ -74,10 +75,10 @@ public sealed record CaptainStatBonuses(int Cc, int Bs, int Ph, int Wip, int Arm
             return statline;
         }
 
-        return string.Join(" | ", order.Select(key => $"{key} {Apply(values[key], IsBonusKey(key) ? For(key) : 0)}"));
+        return string.Join(" | ", order.Select(key => $"{key} {Apply(values[key], BonusForStatlineKey(key))}"));
     }
 
-    // Only these keys take bonuses on a display statline (W is the viewer's wounds column, not a statline key).
-    private static bool IsBonusKey(string key) =>
-        key.ToUpperInvariant() is "CC" or "BS" or "PH" or "WIP" or "ARM" or "BTS" or "VITA" or "STR";
+    // W is the viewer's wounds column, not a statline key, so on a display statline it takes no bonus.
+    private int BonusForStatlineKey(string key) =>
+        StatKeys.TryParse(key, out var stat) && stat != Stat.W ? For(stat) : 0;
 }

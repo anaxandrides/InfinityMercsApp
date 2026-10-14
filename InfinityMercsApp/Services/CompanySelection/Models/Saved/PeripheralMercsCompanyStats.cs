@@ -1,3 +1,5 @@
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+
 namespace InfinityMercsApp.Views.Common;
 
 public class PeripheralMercsCompanyStats
@@ -12,7 +14,7 @@ public class PeripheralMercsCompanyStats
     public string Wip { get; init; } = "-";
     public string Arm { get; init; } = "-";
     public string Bts { get; init; } = "-";
-    public string VitalityHeader { get; init; } = "VITA";
+    public string VitalityHeader { get; init; } = Stat.Vita.Key();
     public string Vitality { get; init; } = "-";
     public string S { get; init; } = "-";
     public string Ava { get; init; } = "-";

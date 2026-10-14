@@ -1,8 +1,9 @@
-using SkiaSharp.Views.Maui;
-using SkiaSharp.Views.Maui.Controls;
-using SkiaSharp;
 using System.Globalization;
 using System.Linq;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+using SkiaSharp;
+using SkiaSharp.Views.Maui;
+using SkiaSharp.Views.Maui.Controls;
 
 namespace InfinityMercsApp.Views.Controls;
 
@@ -18,7 +19,7 @@ public partial class UnitDisplayConfigurationsView : ContentView
     private const double DefaultUnitHeadingMinFontSize = 11d;
     private const double DefaultUnitHeadingFontStep = 0.5d;
     private const string DefaultStatValue = "-";
-    private const string DefaultVitalityHeader = "VITA";
+    private static readonly string DefaultVitalityHeader = Stat.Vita.Key();
     // The faction emblem shrinks as the pane narrows and only disappears when there
     // is genuinely no room, so the selected unit's faction stays identifiable at
     // small window sizes instead of the header reading as an empty, cut-off box.

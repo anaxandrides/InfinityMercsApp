@@ -1,9 +1,10 @@
-using InfinityMercsApp.Domain.Season;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Models.Stores;
+using InfinityMercsApp.Domain.Season;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Views.Adaptive;
@@ -419,8 +420,8 @@ public partial class MarketplacesPage : AdaptiveContentPage
         PopupContentArea.Children.Clear();
 
         AddPopupRow("Cost", $"{troop.CostCr}cr");
-        AddPopupRow("ARM", troop.ArmDisplay);
-        AddPopupRow("BTS", troop.BtsDisplay);
+        AddPopupRow(Stat.Arm.Key(), troop.ArmDisplay);
+        AddPopupRow(Stat.Bts.Key(), troop.BtsDisplay);
 
         if (!string.IsNullOrWhiteSpace(troop.Abilities))
         {

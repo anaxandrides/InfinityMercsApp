@@ -1,5 +1,6 @@
-using InfinityMercsApp.Domain.Captain;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Perks;
 using InfinityMercsApp.Domain.Models.Season;
@@ -479,21 +480,19 @@ public partial class GameModePage : ContentPage, IQueryAttributable
         };
 
         // Stats table
-        var statHeaders = new[] { "MOV", "CC", "BS", "PH", "WIP", "ARM", "BTS", unit.VitalityHeader, "S" };
-        var statValues  = new[] { unit.UnitMov, unit.UnitCc, unit.UnitBs, unit.UnitPh, unit.UnitWip,
-                                  unit.UnitArm, unit.UnitBts, unit.UnitVitality, unit.UnitS };
+        var statline = unit.Statline;
 
         var statsGrid = new Grid { ColumnSpacing = 2, RowSpacing = 2 };
-        for (var i = 0; i < statHeaders.Length; i++)
+        for (var i = 0; i < statline.Count; i++)
             statsGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
         statsGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         statsGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-        for (var i = 0; i < statHeaders.Length; i++)
+        for (var i = 0; i < statline.Count; i++)
         {
             var h = new Label
             {
-                Text = statHeaders[i],
+                Text = statline[i].Stat.Key(),
                 FontSize = 10,
                 TextColor = Color.FromArgb("#8A97A8"),
                 HorizontalTextAlignment = TextAlignment.Center,
@@ -501,7 +500,7 @@ public partial class GameModePage : ContentPage, IQueryAttributable
             };
             var v = new Label
             {
-                Text = statValues[i],
+                Text = statline[i].Value,
                 FontSize = 13,
                 TextColor = Color.FromArgb("#E6EBF2"),
                 HorizontalTextAlignment = TextAlignment.Center

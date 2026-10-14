@@ -1,25 +1,26 @@
-using InfinityMercsApp.Domain.Season;
-using InfinityMercsApp.Domain.Lieutenants;
-using InfinityMercsApp.Domain.Captain;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
+using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Lieutenants;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Stores;
+using InfinityMercsApp.Domain.Season;
 using InfinityMercsApp.Domain.Utilities;
-using MauiShapes = Microsoft.Maui.Controls.Shapes;
+using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views.Common;
 using InfinityMercsApp.Views.Controls;
-using InfinityMercsApp.Infrastructure.Providers;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using Svg.Skia;
+using MauiShapes = Microsoft.Maui.Controls.Shapes;
 
 namespace InfinityMercsApp.Views.Season;
 
@@ -1805,7 +1806,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         }
 
         var normalized = unitTypeCode.Trim().ToUpperInvariant();
-        return normalized == "MOV" ? string.Empty : normalized;
+        return StatKeys.TryParse(normalized, out var stat) && stat == Stat.Mov ? string.Empty : normalized;
     }
 
     private static string BuildUnitBaseDisplayName(string? baseUnitName)
@@ -1820,11 +1821,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         return string.IsNullOrWhiteSpace(collapsed) ? "Unit" : collapsed;
     }
 
-    private static string InferVitalityHeader(string? unitTypeCode)
-    {
-        var normalized = unitTypeCode?.Trim().ToUpperInvariant();
-        return normalized is "TAG" or "REM" or "PERIPHERAL" ? "STR" : "VITA";
-    }
+    private static string InferVitalityHeader(string? unitTypeCode) => StatKeys.VitalityFor(unitTypeCode).Key();
 
     private static int ResolveEffectiveSourceFactionId(SavedCompanyEntry entry)
     {
@@ -2267,8 +2264,8 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         PopupContentArea.Children.Clear();
 
         AddPopupRow("Cost", $"{troop.CostCr}cr");
-        AddPopupRow("ARM", troop.Arm.HasValue ? troop.Arm.Value.ToString() : "—");
-        AddPopupRow("BTS", troop.Bts.HasValue ? troop.Bts.Value.ToString() : "—");
+        AddPopupRow(Stat.Arm.Key(), troop.Arm.HasValue ? troop.Arm.Value.ToString() : "—");
+        AddPopupRow(Stat.Bts.Key(), troop.Bts.HasValue ? troop.Bts.Value.ToString() : "—");
 
         if (!string.IsNullOrWhiteSpace(troop.Abilities))
         {
@@ -3163,7 +3160,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         var augmentName = slots.Augment;
         if (string.IsNullOrWhiteSpace(augmentName)) return;
         // Pure stat-setters like "WIP=12" don't produce a skill entry.
-        if (Regex.IsMatch(augmentName.Trim(), @"^[A-Za-z]+=\d+$")) return;
+        if (StatOverride.TryParse(augmentName, out _)) return;
         if (!skills.Contains(augmentName, StringComparer.OrdinalIgnoreCase))
             skills.Add(augmentName);
     }
@@ -3173,9 +3170,8 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         var slots = GetOrCreateGearSlots(item.EntryIndex);
         var augmentName = slots.Augment;
         if (string.IsNullOrWhiteSpace(augmentName)) return;
-        var match = Regex.Match(augmentName.Trim(), @"^([A-Za-z]+)\s*=\s*(\d+)$");
-        if (!match.Success) return;
-        _viewerViewModel.ApplyAugmentStatOverride(match.Groups[1].Value, match.Groups[2].Value);
+        if (!StatOverride.TryParse(augmentName, out var statOverride)) return;
+        _viewerViewModel.ApplyAugmentStatOverride(statOverride);
     }
 
     // Called when the Augments picker changes — resets stats to base then re-applies overrides.

@@ -4,7 +4,6 @@ using InfinityMercsApp.Domain.Models.Filtering;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views.Controls;
-
 using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.ViewModels;
@@ -166,7 +165,7 @@ public sealed class UnitDetailViewModelTests
 
         detail.ApplySavedUnitSnapshot("Hero", "4-4", "15", "12", "", "13", "1", "0", "VITA", "1", "2", isLieutenant: true);
         detail.ApplyCaptainStatBonuses(new CaptainStatBonuses(1, 2, 0, 0, 0, 0, 0));
-        detail.ApplyAugmentStatOverride("ph", "14");
+        detail.ApplyAugmentStatOverride(new StatOverride(Stat.Ph, 14));
 
         Assert.Equal(("Hero", "10-10", "16", "14", "14"), (detail.UnitNameHeading, detail.UnitMov, detail.UnitCc, detail.UnitBs, detail.UnitPh));
         Assert.False(detail.ShowRegularOrderIcon);

@@ -1,10 +1,11 @@
-using InfinityMercsApp.Domain.Lieutenants;
-using InfinityMercsApp.Domain.Captain;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
+using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Lieutenants;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views.Common;
@@ -567,13 +568,7 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
         return entry.SourceFactionId;
     }
 
-    private static string InferVitalityHeader(string? unitTypeCode)
-    {
-        var normalized = unitTypeCode?.Trim().ToUpperInvariant();
-        return normalized is "TAG" or "REM" or "PERIPHERAL"
-            ? "STR"
-            : "VITA";
-    }
+    private static string InferVitalityHeader(string? unitTypeCode) => StatKeys.VitalityFor(unitTypeCode).Key();
 
     private static string BuildCompanyViewerHeading(string? companyName)
     {
@@ -1457,7 +1452,7 @@ public partial class CompanyViewerPage : ContentPage, IQueryAttributable
         }
 
         var normalized = unitTypeCode.Trim().ToUpperInvariant();
-        if (normalized == "MOV")
+        if (StatKeys.TryParse(normalized, out var stat) && stat == Stat.Mov)
         {
             return string.Empty;
         }
