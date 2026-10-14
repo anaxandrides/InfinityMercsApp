@@ -42,7 +42,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
     private readonly IAppSettingsProvider? _appSettingsProvider;
     private IReadOnlyList<Store> _availableStores = [];
     private readonly Dictionary<string, int> _inventoryCounts = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, (int CostCr, double CostSwc)> _inventoryItemCosts = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, ItemPrice> _inventoryItemCosts = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<Action<int, double>> _marketplaceRecolorActions = [];
     private Button? _buyButton;
     private string? _temporaryStoreName;
@@ -1113,18 +1113,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
     }
 
     // ── Gear slot assignment ───────────────────────────────────────────────
-    private sealed class UnitGearSlots
-    {
-        public string? Primary;
-        public string? Secondary;
-        public string? Sidearm;
-        public string? Accessories;
-        public string? Roles;
-        public string? Armor;
-        public string? Augment;
-    }
-
-    private readonly Dictionary<int, UnitGearSlots> _unitGearSlots = new();
+    private readonly Dictionary<int, UnitLoadout> _unitGearSlots = new();
     private readonly Dictionary<string, string> _inventoryItemCategories = new(StringComparer.OrdinalIgnoreCase);
     private bool _suppressPickerEvents;
     private ViewerProfileItem? _currentMergedProfile;
@@ -1177,7 +1166,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
             if (string.IsNullOrWhiteSpace(name)) return;
 
             var normalizedCategory = NormalizeInventoryCategory(category);
-            if (string.Equals(normalizedCategory, "Exchange", StringComparison.OrdinalIgnoreCase)) return;
+            if (string.Equals(normalizedCategory, InventoryCategories.Exchange, StringComparison.OrdinalIgnoreCase)) return;
             var key = $"{normalizedCategory}|{name.Trim()}";
             if (!buckets.TryGetValue(key, out var bucket))
             {
@@ -1250,7 +1239,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
             if (wonItemCount == 0 &&
                 round.Downtime.OtherEffects.Contains("Random pistol", StringComparison.OrdinalIgnoreCase))
             {
-                AddItem("Random pistol", "Sidearm", "Downtime", roundIndex: round.RoundIndex);
+                AddItem("Random pistol", GearSlot.Sidearm.Key(), "Downtime", roundIndex: round.RoundIndex);
             }
         }
 
@@ -1308,7 +1297,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
                     : $"{troop.ArmorName.Trim()} ({troop.Type})";
                 catalog[MakeInventoryCatalogKey(store.Name, armorName)] = new InventoryCatalogItem(
                     armorName,
-                    "Armor",
+                    GearSlot.Armor.Key(),
                     store.Name,
                     troop.CostCr);
             }
@@ -1321,7 +1310,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
                 catalog[MakeInventoryCatalogKey(store.Name, augment.Name)] = new InventoryCatalogItem(
                     augment.Name.Trim(),
-                    "Augments",
+                    GearSlot.Augments.Key(),
                     store.Name,
                     augment.CostCr);
             }
@@ -1464,22 +1453,9 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         return StripPickerDecoration((storeName ?? string.Empty).Trim());
     }
 
-    private static string NormalizeInventoryCategory(string category) =>
-        string.IsNullOrWhiteSpace(category) ? "General" : category.Trim();
+    private static string NormalizeInventoryCategory(string category) => InventoryCategories.Normalize(category);
 
-    private static int InventoryCategoryOrder(string category) => category switch
-    {
-        "Primary" => 0,
-        "Secondary" => 1,
-        "Sidearm" => 2,
-        "Accessories" => 3,
-        "Roles" => 4,
-        "Armor" => 5,
-        "Augments" => 6,
-        "Exchange" => 7,
-        "General" => 99,
-        _ => 50
-    };
+    private static int InventoryCategoryOrder(string category) => InventoryCategories.Order(category);
 
     private bool ApplyGlobalDisplayUnitsPreference()
     {
@@ -1897,7 +1873,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         }
 
         var itemsByCategory = store.Items
-            .GroupBy(x => string.IsNullOrWhiteSpace(x.Category) ? "General" : x.Category,
+            .GroupBy(x => InventoryCategories.Normalize(x.Category),
                      StringComparer.OrdinalIgnoreCase);
 
         foreach (var group in itemsByCategory)
@@ -1950,7 +1926,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
     private Border BuildItemRow(string storeName, string itemName, int costCr, double? costSwc, Action onTap)
     {
         var key = $"{storeName}|{itemName}";
-        _inventoryItemCosts[key] = (costCr, costSwc ?? 0);
+        _inventoryItemCosts[key] = new ItemPrice(costCr, costSwc ?? 0);
 
         var costText = SeasonEconomy.PriceText(costCr, (decimal?)costSwc);
 
@@ -1994,7 +1970,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         var costCr = effectiveCostCr >= 0 ? effectiveCostCr : troop.CostCr;
 
         var key = $"{storeName}|{displayName}";
-        _inventoryItemCosts[key] = (costCr, 0);
+        _inventoryItemCosts[key] = new ItemPrice(costCr, 0);
 
         var nameLabel = new Label { Text = displayName, Style = (Style)Application.Current!.Resources["LabelBody"], TextColor = Color.FromArgb("#E6EBF2") };
         var costLabel = new Label
@@ -2040,7 +2016,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
     }
 
     // Shared core: wraps a left-content view in a bordered row with + count - controls on the right.
-    private (Border Border, Button PlusButton) BuildRowBorder(string key, View leftContent)
+    private CartRow BuildRowBorder(string key, View leftContent)
     {
         var countLabel = new Label
         {
@@ -2115,7 +2091,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
             Padding = new Thickness(12, 6, 8, 6),
             Margin = new Thickness(0, 0, 0, 3)
         };
-        return (border, plusBtn);
+        return new CartRow(border, plusBtn);
     }
 
     private void ShowItemPopup(StoreItem item)
@@ -2449,7 +2425,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
             if (!_inventoryItemCosts.TryGetValue(key, out var cost)) continue;
 
             var isExchange = _inventoryItemCategories.TryGetValue(key, out var itemCat) &&
-                             string.Equals(itemCat, "Exchange", StringComparison.OrdinalIgnoreCase);
+                             string.Equals(itemCat, InventoryCategories.Exchange, StringComparison.OrdinalIgnoreCase);
             var swcGrant = isExchange ? SeasonEconomy.SwcGrantFromItemName(itemName) : null;
 
             for (var i = 0; i < count; i++)
@@ -2490,6 +2466,18 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
     }
 
     // ── Store search popup ──────────────────────────────────────────────────
+
+    // An item's price: credits and SWC.
+    private sealed record ItemPrice(int CostCr, double CostSwc);
+
+    // A marketplace row and its "+" button.
+    private sealed record CartRow(Border Border, Button PlusButton);
+
+    // Gear the company owns: its inventory category and name.
+    private sealed record OwnedItem(string Category, string Name);
+
+    // How many of an item the company owns, net of sales, and its category.
+    private sealed record OwnedCount(string Category, int Count);
 
     private static string? StoreForRoll(int roll) => SeasonRollTables.TemporaryStores.Lookup(roll);
 
@@ -2682,9 +2670,9 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
         // Append any gear-slot weapons that aren't already in the base lists.
         var slots = GetOrCreateGearSlots(item.EntryIndex);
-        foreach (var slotCat in new[] { "Primary", "Secondary", "Sidearm", "Accessories" })
+        foreach (var slot in GearSlots.Weapons)
         {
-            var assigned = GetSlotValue(slots, slotCat);
+            var assigned = slots[slot];
             if (string.IsNullOrWhiteSpace(assigned)) continue;
 
             if (CompanyProfileTextService.IsMeleeWeaponName(assigned))
@@ -2777,13 +2765,13 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
                 var displayName = string.IsNullOrWhiteSpace(troop.Type)
                     ? troop.ArmorName
                     : $"{troop.ArmorName} ({troop.Type})";
-                _inventoryItemCategories[MakeInventoryCatalogKey(store.Name, displayName)] = "Armor";
+                _inventoryItemCategories[MakeInventoryCatalogKey(store.Name, displayName)] = GearSlot.Armor.Key();
             }
 
             foreach (var augment in store.Augments)
             {
                 if (string.IsNullOrWhiteSpace(augment.Name)) continue;
-                _inventoryItemCategories[MakeInventoryCatalogKey(store.Name, augment.Name)] = "Augments";
+                _inventoryItemCategories[MakeInventoryCatalogKey(store.Name, augment.Name)] = GearSlot.Augments.Key();
             }
         }
     }
@@ -2791,7 +2779,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
     // Returns owned items grouped by normalised category → item names (deduped).
     private async Task<ILookup<string, string>> BuildOwnedGearAsync()
     {
-        var result = new List<(string Category, string Name)>();
+        var result = new List<OwnedItem>();
 
         if (_storeProvider is null) return result.ToLookup(x => x.Category, x => x.Name);
 
@@ -2803,8 +2791,8 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         var seasonFile = await SeasonFileService.LoadSeasonFileAsync(_seasonFilePath);
         if (seasonFile is null) return result.ToLookup(x => x.Category, x => x.Name);
 
-        // owned[itemName] = (normalised category, net count)
-        var owned = new Dictionary<string, (string Category, int Count)>(StringComparer.OrdinalIgnoreCase);
+        // Net count owned of each item, by item name.
+        var owned = new Dictionary<string, OwnedCount>(StringComparer.OrdinalIgnoreCase);
 
         void AddPurchased(string originStore, string itemName)
         {
@@ -2813,26 +2801,20 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
             var key = MakeInventoryCatalogKey(storeName, itemName);
             if (!_inventoryItemCategories.TryGetValue(key, out var cat)) return;
             var normalized = NormalizeInventoryCategory(cat);
-            if (owned.TryGetValue(itemName, out var ex))
-                owned[itemName] = (normalized, ex.Count + 1);
-            else
-                owned[itemName] = (normalized, 1);
+            owned[itemName] = new OwnedCount(normalized, owned.TryGetValue(itemName, out var ex) ? ex.Count + 1 : 1);
         }
 
         void AddWon(string itemName, string category)
         {
             if (string.IsNullOrWhiteSpace(itemName)) return;
             var normalized = NormalizeInventoryCategory(category);
-            if (owned.TryGetValue(itemName, out var ex))
-                owned[itemName] = (normalized, ex.Count + 1);
-            else
-                owned[itemName] = (normalized, 1);
+            owned[itemName] = new OwnedCount(normalized, owned.TryGetValue(itemName, out var ex) ? ex.Count + 1 : 1);
         }
 
         void Remove(string itemName)
         {
             if (owned.TryGetValue(itemName, out var ex) && ex.Count > 0)
-                owned[itemName] = (ex.Category, ex.Count - 1);
+                owned[itemName] = ex with { Count = ex.Count - 1 };
         }
 
         foreach (var t in seasonFile.InitialPurchases.Transactions)
@@ -2855,12 +2837,12 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
             // "Random pistol" effect uses OtherEffects string rather than WonItems
             if (round.Downtime.WonItems.Count == 0 &&
                 round.Downtime.OtherEffects.Contains("Random pistol", StringComparison.OrdinalIgnoreCase))
-                AddWon("Random pistol", "Sidearm");
+                AddWon("Random pistol", GearSlot.Sidearm.Key());
         }
 
         foreach (var (name, (cat, count)) in owned)
         {
-            if (count > 0) result.Add((cat, name));
+            if (count > 0) result.Add(new OwnedItem(cat, name));
         }
 
         return result.ToLookup(x => x.Category, x => x.Name, StringComparer.OrdinalIgnoreCase);
@@ -2873,13 +2855,8 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         _suppressPickerEvents = true;
         try
         {
-            RefreshSingleGearPicker(PrimaryGearPicker,     "Primary",     currentUnitEntryIndex, ownedGear);
-            RefreshSingleGearPicker(SecondaryGearPicker,   "Secondary",   currentUnitEntryIndex, ownedGear);
-            RefreshSingleGearPicker(SidearmGearPicker,     "Sidearm",     currentUnitEntryIndex, ownedGear);
-            RefreshSingleGearPicker(AccessoriesGearPicker, "Accessories", currentUnitEntryIndex, ownedGear);
-            RefreshSingleGearPicker(RolesGearPicker,       "Roles",       currentUnitEntryIndex, ownedGear);
-            RefreshSingleGearPicker(ArmorGearPicker,       "Armor",       currentUnitEntryIndex, ownedGear);
-            RefreshSingleGearPicker(AugmentsGearPicker,    "Augments",    currentUnitEntryIndex, ownedGear);
+            foreach (var slot in Enum.GetValues<GearSlot>())
+                RefreshSingleGearPicker(GearPickerFor(slot), slot, currentUnitEntryIndex, ownedGear);
         }
         finally
         {
@@ -2887,19 +2864,19 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         }
     }
 
-    private void RefreshSingleGearPicker(Picker picker, string slotCategory,
+    private void RefreshSingleGearPicker(Picker picker, GearSlot slot,
         int currentUnitEntryIndex, ILookup<string, string> ownedGear)
     {
         picker.Items.Clear();
         picker.Items.Add("(none)");
 
         var slots = GetOrCreateGearSlots(currentUnitEntryIndex);
-        var currentValue = GetSlotValue(slots, slotCategory);
+        var currentValue = slots[slot];
 
         var selectedIndex = 0;
-        foreach (var itemName in ownedGear[slotCategory].Distinct(StringComparer.OrdinalIgnoreCase))
+        foreach (var itemName in ownedGear[slot.Key()].Distinct(StringComparer.OrdinalIgnoreCase))
         {
-            var attachedTo = GetAttachedUnitName(itemName, currentUnitEntryIndex, slotCategory);
+            var attachedTo = GetAttachedUnitName(itemName, currentUnitEntryIndex, slot);
             var displayText = string.IsNullOrWhiteSpace(attachedTo)
                 ? itemName
                 : $"{itemName}  [Attached: {attachedTo}]";
@@ -2912,54 +2889,39 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         picker.SelectedIndex = selectedIndex;
     }
 
-    private string? GetAttachedUnitName(string itemName, int currentUnitEntryIndex, string slotCategory)
+    private string? GetAttachedUnitName(string itemName, int currentUnitEntryIndex, GearSlot slot)
     {
         foreach (var (unitIndex, slots) in _unitGearSlots)
         {
             if (unitIndex == currentUnitEntryIndex) continue;
-            if (string.Equals(GetSlotValue(slots, slotCategory), itemName, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(slots[slot], itemName, StringComparison.OrdinalIgnoreCase))
                 return CompanyUnits.FirstOrDefault(u => u.EntryIndex == unitIndex)?.Name;
         }
         return null;
     }
 
-    private UnitGearSlots GetOrCreateGearSlots(int unitEntryIndex)
+    private UnitLoadout GetOrCreateGearSlots(int unitEntryIndex)
     {
         if (!_unitGearSlots.TryGetValue(unitEntryIndex, out var slots))
         {
-            slots = new UnitGearSlots();
+            slots = new UnitLoadout();
             _unitGearSlots[unitEntryIndex] = slots;
         }
         return slots;
     }
 
-    private static string? GetSlotValue(UnitGearSlots slots, string category) => category switch
+    private Picker GearPickerFor(GearSlot slot) => slot switch
     {
-        "Primary"     => slots.Primary,
-        "Secondary"   => slots.Secondary,
-        "Sidearm"     => slots.Sidearm,
-        "Accessories" => slots.Accessories,
-        "Roles"       => slots.Roles,
-        "Armor"       => slots.Armor,
-        "Augments"    => slots.Augment,
-        _             => null
+        GearSlot.Primary     => PrimaryGearPicker,
+        GearSlot.Secondary   => SecondaryGearPicker,
+        GearSlot.Sidearm     => SidearmGearPicker,
+        GearSlot.Accessories => AccessoriesGearPicker,
+        GearSlot.Roles       => RolesGearPicker,
+        GearSlot.Armor       => ArmorGearPicker,
+        _                    => AugmentsGearPicker
     };
 
-    private static void SetSlotValue(UnitGearSlots slots, string category, string? value)
-    {
-        switch (category)
-        {
-            case "Primary":     slots.Primary     = value; break;
-            case "Secondary":   slots.Secondary   = value; break;
-            case "Sidearm":     slots.Sidearm     = value; break;
-            case "Accessories": slots.Accessories = value; break;
-            case "Roles":       slots.Roles       = value; break;
-            case "Armor":       slots.Armor       = value; break;
-            case "Augments":    slots.Augment     = value; break;
-        }
-    }
-
-    private void OnGearPickerSelectionChanged(Picker picker, string slotCategory)
+    private void OnGearPickerSelectionChanged(Picker picker, GearSlot slot)
     {
         if (_suppressPickerEvents || _selectedCompanyUnit is null) return;
 
@@ -2979,19 +2941,19 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
             foreach (var (otherIndex, otherSlots) in _unitGearSlots)
             {
                 if (otherIndex == _selectedCompanyUnit.EntryIndex) continue;
-                if (string.Equals(GetSlotValue(otherSlots, slotCategory), itemName, StringComparison.OrdinalIgnoreCase))
-                    SetSlotValue(otherSlots, slotCategory, null);
+                if (string.Equals(otherSlots[slot], itemName, StringComparison.OrdinalIgnoreCase))
+                    otherSlots[slot] = null;
             }
         }
 
-        SetSlotValue(slots, slotCategory, itemName);
+        slots[slot] = itemName;
 
         // Refresh weapon sections so the assigned weapon appears immediately.
         if (_currentMergedProfile is not null)
             RefreshWeaponSections(_selectedCompanyUnit, _currentMergedProfile);
 
         // Augment changes also reset stats and rebuild the skills column.
-        if (slotCategory == "Augments")
+        if (slot == GearSlot.Augments)
             RefreshUnitStatsAndSkillsForAugmentChange();
 
         // Rebuild all pickers so "Attached" labels refresh across all units.
@@ -3006,20 +2968,20 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         RefreshGearPickers(_selectedCompanyUnit.EntryIndex, ownedGear);
     }
 
-    private void OnPrimaryGearPickerChanged(object sender, EventArgs e)     => OnGearPickerSelectionChanged(PrimaryGearPicker,     "Primary");
-    private void OnSecondaryGearPickerChanged(object sender, EventArgs e)   => OnGearPickerSelectionChanged(SecondaryGearPicker,   "Secondary");
-    private void OnSidearmGearPickerChanged(object sender, EventArgs e)     => OnGearPickerSelectionChanged(SidearmGearPicker,     "Sidearm");
-    private void OnAccessoriesGearPickerChanged(object sender, EventArgs e) => OnGearPickerSelectionChanged(AccessoriesGearPicker, "Accessories");
-    private void OnRolesGearPickerChanged(object sender, EventArgs e)       => OnGearPickerSelectionChanged(RolesGearPicker,       "Roles");
-    private void OnArmorGearPickerChanged(object sender, EventArgs e)       => OnGearPickerSelectionChanged(ArmorGearPicker,       "Armor");
-    private void OnAugmentsGearPickerChanged(object sender, EventArgs e)    => OnGearPickerSelectionChanged(AugmentsGearPicker,    "Augments");
+    private void OnPrimaryGearPickerChanged(object sender, EventArgs e)     => OnGearPickerSelectionChanged(PrimaryGearPicker, GearSlot.Primary);
+    private void OnSecondaryGearPickerChanged(object sender, EventArgs e)   => OnGearPickerSelectionChanged(SecondaryGearPicker, GearSlot.Secondary);
+    private void OnSidearmGearPickerChanged(object sender, EventArgs e)     => OnGearPickerSelectionChanged(SidearmGearPicker, GearSlot.Sidearm);
+    private void OnAccessoriesGearPickerChanged(object sender, EventArgs e) => OnGearPickerSelectionChanged(AccessoriesGearPicker, GearSlot.Accessories);
+    private void OnRolesGearPickerChanged(object sender, EventArgs e)       => OnGearPickerSelectionChanged(RolesGearPicker, GearSlot.Roles);
+    private void OnArmorGearPickerChanged(object sender, EventArgs e)       => OnGearPickerSelectionChanged(ArmorGearPicker, GearSlot.Armor);
+    private void OnAugmentsGearPickerChanged(object sender, EventArgs e)    => OnGearPickerSelectionChanged(AugmentsGearPicker, GearSlot.Augments);
 
     // ── Augment effects ───────────────────────────────────────────────────
 
-    private void AppendAugmentSkills(List<string> skills, CompanyViewerUnitListItem item, UnitGearSlots? slots = null)
+    private void AppendAugmentSkills(List<string> skills, CompanyViewerUnitListItem item, UnitLoadout? slots = null)
     {
         slots ??= GetOrCreateGearSlots(item.EntryIndex);
-        var augmentName = slots.Augment;
+        var augmentName = slots[GearSlot.Augments];
         if (string.IsNullOrWhiteSpace(augmentName)) return;
         // Pure stat-setters like "WIP=12" don't produce a skill entry.
         if (StatOverride.TryParse(augmentName, out _)) return;
@@ -3030,7 +2992,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
     private void ApplyAugmentStatOverrides(CompanyViewerUnitListItem item)
     {
         var slots = GetOrCreateGearSlots(item.EntryIndex);
-        var augmentName = slots.Augment;
+        var augmentName = slots[GearSlot.Augments];
         if (string.IsNullOrWhiteSpace(augmentName)) return;
         if (!StatOverride.TryParse(augmentName, out var statOverride)) return;
         _viewerViewModel.ApplyAugmentStatOverride(statOverride);
@@ -3077,23 +3039,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
         seasonFile.UnitGear = _unitGearSlots.ToDictionary(
             kvp => kvp.Key,
-            kvp =>
-            {
-                var list = new List<SeasonUnitGear>();
-                void AddGear(string slot, string? value)
-                {
-                    if (!string.IsNullOrWhiteSpace(value))
-                        list.Add(new SeasonUnitGear { Slot = slot, ItemName = value });
-                }
-                AddGear("Primary",     kvp.Value.Primary);
-                AddGear("Secondary",   kvp.Value.Secondary);
-                AddGear("Sidearm",     kvp.Value.Sidearm);
-                AddGear("Accessories", kvp.Value.Accessories);
-                AddGear("Roles",       kvp.Value.Roles);
-                AddGear("Armor",       kvp.Value.Armor);
-                AddGear("Augments",    kvp.Value.Augment);
-                return list;
-            });
+            kvp => kvp.Value.ToSeasonGear());
 
         await SeasonFileService.SaveSeasonFileAsync(_seasonFilePath, seasonFile);
     }
@@ -3106,11 +3052,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
         _unitGearSlots.Clear();
         foreach (var (entryIndex, gearList) in seasonFile.UnitGear)
-        {
-            var slots = GetOrCreateGearSlots(entryIndex);
-            foreach (var gear in gearList)
-                SetSlotValue(slots, gear.Slot, gear.ItemName);
-        }
+            _unitGearSlots[entryIndex] = UnitLoadout.From(gearList);
     }
 
 }

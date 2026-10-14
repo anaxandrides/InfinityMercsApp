@@ -4,6 +4,7 @@ using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Perks;
 using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Domain.Season;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Services.Season;
@@ -50,12 +51,12 @@ public partial class GameModePage : ContentPage, IQueryAttributable
     private SKPicture? _woundKoPicture;
     private SKPicture? _woundDeadPicture;
     private SKPicture? _tacticalPicture;
-    private readonly List<(DeploymentUnitItem Unit, SKCanvasView Canvas, bool[] IsGrey)> _eliteTacticalIcons = [];
+    private readonly List<TacticalIcon> _eliteTacticalIcons = [];
 
     // Each entry is (expandable content view, arrow label) for exclusive-open behaviour.
-    private readonly List<(View ContentArea, Label Arrow)> _accordionRows = [];
+    private readonly List<AccordionRow> _accordionRows = [];
 
-    private readonly List<(DeploymentUnitItem Unit, bool IsLt, bool IsImp, bool IsIrr)> _unitTracker = [];
+    private readonly List<DeploymentUnitItem> _unitTracker = [];
     private int _currentRound = 1;
 
     // null = show all (no filter), empty set = none checked, non-empty = filtered list
@@ -235,7 +236,7 @@ public partial class GameModePage : ContentPage, IQueryAttributable
                 if (unit.IsIrregular) irrCount++;
                 if (!unit.IsIrregular) regCount++;
 
-                _unitTracker.Add((unit, unit.IsLieutenant, unit.IsImpetuous, unit.IsIrregular));
+                _unitTracker.Add(unit);
                 AccordionStack.Children.Add(BuildAccordionRow(unit));
             }
 
@@ -278,7 +279,7 @@ public partial class GameModePage : ContentPage, IQueryAttributable
         VerticalStackLayout contentArea = BuildUnitDetailContent(unit);
         contentArea.IsVisible = false;
 
-        _accordionRows.Add((contentArea, arrow));
+        _accordionRows.Add(new AccordionRow(contentArea, arrow));
 
         // ── Wound icon ──────────────────────────────────────────────────────
         var woundCanvas = new SKCanvasView
@@ -290,7 +291,7 @@ public partial class GameModePage : ContentPage, IQueryAttributable
         woundCanvas.PaintSurface += (_, e) =>
         {
             e.Surface.Canvas.Clear(SKColors.Transparent);
-            var pic = GetWoundPicture(unit.WoundStateKey);
+            var pic = GetWoundPicture(unit.WoundState);
             if (pic is not null) DrawScaled(e.Surface.Canvas, e.Info, pic, null);
         };
 
@@ -302,7 +303,7 @@ public partial class GameModePage : ContentPage, IQueryAttributable
             FontAttributes = FontAttributes.Bold,
             HorizontalTextAlignment = TextAlignment.End,
             VerticalTextAlignment = TextAlignment.End,
-            IsVisible = unit.WoundStateKey == "KnockedOutBody2",
+            IsVisible = unit.WoundState == WoundState.KnockedOutBody2,
             Padding = 0
         };
 
@@ -318,7 +319,7 @@ public partial class GameModePage : ContentPage, IQueryAttributable
         void RefreshWoundDisplay()
         {
             woundCanvas.InvalidateSurface();
-            woundBadge.IsVisible = unit.WoundStateKey == "KnockedOutBody2";
+            woundBadge.IsVisible = unit.WoundState == WoundState.KnockedOutBody2;
         }
 
         // ── Wound buttons (live inside the expanded content area) ────────────
@@ -392,16 +393,16 @@ public partial class GameModePage : ContentPage, IQueryAttributable
         SKCanvasView? tacticalCanvas = null;
         if (_isEliteDeployment && (!unit.IsLieutenant || DeploymentRoster.HasLine(unit.Skills, "Tactical Awareness")))
         {
-            var isGrey = new bool[] { false };
             var tc = new SKCanvasView
             {
                 WidthRequest = 32,
                 HeightRequest = 32,
                 VerticalOptions = LayoutOptions.Center
             };
+            var icon = new TacticalIcon(unit, tc);
             tc.PaintSurface += (_, e) =>
             {
-                if (isGrey[0])
+                if (icon.IsGrey)
                     DrawGrey(e, _tacticalPicture);
                 else
                     DrawColor(e, _tacticalPicture);
@@ -410,11 +411,11 @@ public partial class GameModePage : ContentPage, IQueryAttributable
             {
                 Command = new Command(() =>
                 {
-                    isGrey[0] = !isGrey[0];
+                    icon.IsGrey = !icon.IsGrey;
                     tc.InvalidateSurface();
                 })
             });
-            _eliteTacticalIcons.Add((unit, tc, isGrey));
+            _eliteTacticalIcons.Add(icon);
             tacticalCanvas = tc;
         }
 
@@ -1044,37 +1045,37 @@ public partial class GameModePage : ContentPage, IQueryAttributable
         _debrief.Units = _unitTracker
             .Select(t => new ExperienceUnitResult
             {
-                EntryIndex = t.Unit.EntryIndex,
-                Name = t.Unit.Name,
-                CachedLogoPath = t.Unit.CachedLogoPath,
-                PackagedLogoPath = t.Unit.PackagedLogoPath,
+                EntryIndex = t.EntryIndex,
+                Name = t.Name,
+                CachedLogoPath = t.CachedLogoPath,
+                PackagedLogoPath = t.PackagedLogoPath,
                 DeploymentXp = deploymentXp,
                 IsEliteDeployment = _isEliteDeployment,
-                IsConsciousAtEnd = t.Unit.WoundStateKey is "Healthy" or "Wounded" or "NwiDown",
+                IsConsciousAtEnd = t.WoundState.IsConscious(),
                 GainedInjury = false,
-                XpData = t.Unit.XpData,
-                IsCaptain = t.Unit.IsLieutenant,
-                IsLieutenant = t.Unit.IsLieutenant,
-                UnitPh = t.Unit.UnitPh,
-                UnitBs = t.Unit.UnitBs,
-                UnitCc = t.Unit.UnitCc,
-                UnitWip = t.Unit.UnitWip,
-                UnitArm = t.Unit.UnitArm,
-                Renown = t.Unit.Renown,
-                Skills = t.Unit.Skills,
-                Equipment = t.Unit.Equipment
+                XpData = t.XpData,
+                IsCaptain = t.IsLieutenant,
+                IsLieutenant = t.IsLieutenant,
+                UnitPh = t.UnitPh,
+                UnitBs = t.UnitBs,
+                UnitCc = t.UnitCc,
+                UnitWip = t.UnitWip,
+                UnitArm = t.UnitArm,
+                Renown = t.Renown,
+                Skills = t.Skills,
+                Equipment = t.Equipment
             })
             .ToList();
 
         var deadUnits = _unitTracker
-            .Where(t => t.Unit.WoundStateKey == "Dead")
+            .Where(t => t.WoundState == WoundState.Dead)
             .Select(t => new PendingInjury
             {
-                EntryIndex = t.Unit.EntryIndex,
-                Name = t.Unit.Name,
-                PhValue = t.Unit.UnitPh,
-                CachedLogoPath = t.Unit.CachedLogoPath,
-                PackagedLogoPath = t.Unit.PackagedLogoPath
+                EntryIndex = t.EntryIndex,
+                Name = t.Name,
+                PhValue = t.UnitPh,
+                CachedLogoPath = t.CachedLogoPath,
+                PackagedLogoPath = t.PackagedLogoPath
             })
             .ToList();
 
@@ -1361,13 +1362,12 @@ public partial class GameModePage : ContentPage, IQueryAttributable
     private void RecalculateOrders()
     {
         int ltCount = 0, impCount = 0, irrCount = 0, regCount = 0;
-        foreach (var (unit, isLt, isImp, isIrr) in _unitTracker)
+        foreach (var unit in _unitTracker.Where(unit => unit.WoundState.IsConscious()))
         {
-            if (unit.WoundStateKey is not ("Healthy" or "Wounded" or "NwiDown")) continue;
-            if (isLt) ltCount++;
-            if (isImp) impCount++;
-            if (isIrr) irrCount++;
-            if (!isIrr) regCount++;
+            if (unit.IsLieutenant) ltCount++;
+            if (unit.IsImpetuous) impCount++;
+            if (unit.IsIrregular) irrCount++;
+            else regCount++;
         }
         // Mercs always generates one bonus regular order
         regCount++;
@@ -1381,23 +1381,33 @@ public partial class GameModePage : ContentPage, IQueryAttributable
         IrrGreyCountLabel.Text = "0";
         RegGreyCountLabel.Text = "0";
 
-        foreach (var (u, canvas, isGrey) in _eliteTacticalIcons)
+        foreach (var icon in _eliteTacticalIcons)
         {
-            isGrey[0] = u.WoundStateKey is not ("Healthy" or "Wounded" or "NwiDown");
-            canvas.InvalidateSurface();
+            icon.IsGrey = !icon.Unit.WoundState.IsConscious();
+            icon.Canvas.InvalidateSurface();
         }
     }
 
     // ── Resolution helpers ────────────────────────────────────────────────────
 
-    private SKPicture? GetWoundPicture(string stateKey) => stateKey switch
+    private SKPicture? GetWoundPicture(WoundState state) => state switch
     {
-        "Healthy"                              => _woundHealthyPicture,
-        "Wounded"                              => _woundWoundedPicture,
-        "NwiDown"                              => _woundMadPicture,
-        "KnockedOut" or "KnockedOutBody2"      => _woundKoPicture,
-        _                                      => _woundDeadPicture
+        WoundState.Healthy                                  => _woundHealthyPicture,
+        WoundState.Wounded                                  => _woundWoundedPicture,
+        WoundState.NwiDown                                  => _woundMadPicture,
+        WoundState.KnockedOut or WoundState.KnockedOutBody2 => _woundKoPicture,
+        _                                                   => _woundDeadPicture
     };
+
+    // An Elite Deployment unit's Tactical Awareness token; tapping greys it out when spent.
+    private sealed class TacticalIcon(DeploymentUnitItem unit, SKCanvasView canvas)
+    {
+        public DeploymentUnitItem Unit { get; } = unit;
+        public SKCanvasView Canvas { get; } = canvas;
+        public bool IsGrey { get; set; }
+    }
+
+    private sealed record AccordionRow(View ContentArea, Label Arrow);
 
     private static bool ContainsXVisor(string? text)
     {

@@ -141,9 +141,14 @@ public sealed partial class DeploymentRoster(
     {
         foreach (var item in gear.Where(g => !string.IsNullOrWhiteSpace(g.ItemName)))
         {
-            switch (item.Slot)
+            if (!GearSlots.TryParse(item.Slot, out var slot))
             {
-                case "Primary" or "Secondary" or "Sidearm" or "Accessories":
+                continue;
+            }
+
+            switch (slot)
+            {
+                case GearSlot.Primary or GearSlot.Secondary or GearSlot.Sidearm or GearSlot.Accessories:
                     if (CompanyProfileTextService.IsMeleeWeaponName(item.ItemName))
                     {
                         profile.MeleeWeapons = AppendKeepingText(profile.MeleeWeapons, [item.ItemName]);
@@ -155,11 +160,11 @@ public sealed partial class DeploymentRoster(
 
                     break;
 
-                case "Roles":
+                case GearSlot.Roles:
                     profile.Skills = AppendKeepingText(profile.Skills, [item.ItemName]);
                     break;
 
-                case "Augments":
+                case GearSlot.Augments:
                     if (StatOverride.TryParse(item.ItemName, out var statOverride))
                     {
                         profile.SetStat(statOverride);

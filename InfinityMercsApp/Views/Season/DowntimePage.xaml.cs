@@ -878,7 +878,7 @@ public partial class DowntimePage : ContentPage, IQueryAttributable
                         wonItems.Add(new SeasonInventoryItem
                         {
                             Name = pistol.Name,
-                            Category = "Sidearm",
+                            Category = GearSlot.Sidearm.Key(),
                             Source = "Downtime"
                         });
                     }

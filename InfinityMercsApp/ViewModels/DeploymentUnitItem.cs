@@ -69,24 +69,12 @@ public sealed class DeploymentUnitItem : ObservableObject, IViewerListItem
         {
             if (SetProperty(ref _woundsReceived, Math.Clamp(value, 0, MaxWounds)))
             {
-                OnPropertyChanged(nameof(WoundStateKey));
+                OnPropertyChanged(nameof(WoundState));
             }
         }
     }
 
-    public string WoundStateKey
-    {
-        get
-        {
-            var w = _woundsReceived;
-            var sv = StartingVitality;
-            if (w == 0) return "Healthy";
-            if (w < sv) return "Wounded";
-            if (w == sv) return HasNwi ? "NwiDown" : "KnockedOut";
-            if (w == sv + 1 && HasRemotePresence) return "KnockedOutBody2";
-            return "Dead";
-        }
-    }
+    public WoundState WoundState => WoundStates.For(_woundsReceived, StartingVitality, HasNwi, HasRemotePresence);
 
     // XP tracking (accumulated across rounds, never reset)
     public UnitXpData XpData { get; } = new();
