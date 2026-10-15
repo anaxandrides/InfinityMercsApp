@@ -1,6 +1,7 @@
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanyProfiles;
+using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.CompanySelection.Models.Entries;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Models.Selection;
@@ -187,7 +188,7 @@ public partial class StandardCompanySelectionPage
 
         return new CompanySpecOpsWorkflowRequest
         {
-            Navigation = Navigation,
+            CaptainDialog = new MauiCaptainConfigurationDialog(),
             PreferredOtherFactionId = sourceFactionId > 0 ? sourceFactionId : null,
             FallbackSourceFactionId = sourceFactionId > 0 ? sourceFactionId : entry.SourceFactionId,
             FirstSourceFactionId = sourceFactionId > 0 ? sourceFactionId : null,

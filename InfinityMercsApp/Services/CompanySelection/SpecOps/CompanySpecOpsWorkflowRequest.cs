@@ -1,11 +1,12 @@
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.Dialogs;
 
 namespace InfinityMercsApp.Services.CompanySelection.SpecOps;
 
 internal sealed class CompanySpecOpsWorkflowRequest
 {
-    public required INavigation Navigation { get; init; }
+    public required ICaptainConfigurationDialog CaptainDialog { get; init; }
     public int? PreferredOtherFactionId { get; init; }
     public required int FallbackSourceFactionId { get; init; }
     public required int? FirstSourceFactionId { get; init; }

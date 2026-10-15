@@ -1,4 +1,5 @@
 using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Views.Season;
@@ -112,7 +113,7 @@ public abstract partial class CompanySelectionPageBase
                     Factions = factions,
                     ArmyDataService = ArmyDataService,
                     SpecOpsProvider = specOpsProvider,
-                    Navigation = Navigation,
+                    CaptainDialog = new MauiCaptainConfigurationDialog(),
                     ShowUnitsInInches = showUnitsInInches,
                     SelectedStartSeasonPoints = selectedStartSeasonPoints,
                     SeasonPointsCapText = seasonPointsCapText,

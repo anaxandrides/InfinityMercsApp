@@ -102,6 +102,7 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<IImportService, ImportService>()
                 .AddSingleton<ISeasonFileService, SeasonFileStore>()
                 .AddSingleton<IDialogService, MauiDialogService>()
+                .AddSingleton<ICaptainConfigurationDialog, MauiCaptainConfigurationDialog>()
                 .AddSingleton(_ => RecordPaths.ForAppData(FileSystem.Current.AppDataDirectory))
                 .AddSingleton<SeasonRecordCatalog>()
                 .AddSingleton<CompanyRecordCatalog>()

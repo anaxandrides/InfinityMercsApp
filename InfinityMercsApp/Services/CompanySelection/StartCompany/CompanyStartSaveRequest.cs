@@ -1,5 +1,6 @@
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.Dialogs;
 
 namespace InfinityMercsApp.Services.CompanySelection.StartCompany;
 
@@ -16,8 +17,8 @@ internal sealed class CompanyStartSaveRequest<TFaction, TEntry>
     public required IEnumerable<TFaction> Factions { get; init; }
     public required IArmyDataService ArmyDataService { get; init; }
     public required ISpecOpsProvider SpecOpsProvider { get; init; }
-    /// <summary>Hosts the captain popup; only <see cref="CompanyStartSaveWorkflow.RunAsync{TFaction, TEntry}"/> needs it.</summary>
-    public INavigation? Navigation { get; init; }
+    /// <summary>Shows the captain popup; only <see cref="CompanyStartSaveWorkflow.RunAsync{TFaction, TEntry}"/> needs it.</summary>
+    public ICaptainConfigurationDialog? CaptainDialog { get; init; }
     public required bool ShowUnitsInInches { get; init; }
     public required string SelectedStartSeasonPoints { get; init; }
     public required string SeasonPointsCapText { get; init; }

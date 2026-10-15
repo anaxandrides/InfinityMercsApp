@@ -1,6 +1,5 @@
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.Views;
 using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 
 namespace InfinityMercsApp.Services.CompanySelection.SpecOps;
@@ -99,7 +98,7 @@ internal static class CompanySpecOpsWorkflowService
             BaseExperienceOverride = Math.Max(0, request.BaseExperience)
         };
 
-        return await ConfigureCaptainPopupPage.ShowAsync(request.Navigation, context);
+        return await request.CaptainDialog.ShowAsync(context);
     }
 
     private static int ResolveNonTagSourceFactionId(int resolvedSourceFactionId, int? firstSourceFactionId)

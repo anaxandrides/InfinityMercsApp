@@ -31,8 +31,8 @@ internal static class CompanyStartSaveWorkflow
             return;
         }
 
-        var navigation = request.Navigation
-            ?? throw new InvalidOperationException("Starting a company needs a navigation host for the captain popup.");
+        var captainDialog = request.CaptainDialog
+            ?? throw new InvalidOperationException("Starting a company needs a dialog for the captain popup.");
         var sourceFactions = CompanyUnitDetailsShared.BuildUnitSourceFactions(
             request.ShowRightSelectionBox,
             request.LeftSlotFaction,
@@ -65,7 +65,7 @@ internal static class CompanyStartSaveWorkflow
             improvedCaptainStats = await CompanySpecOpsWorkflowService.ShowTagSpecOpsConfigurationAsync(
                 new CompanySpecOpsWorkflowRequest
                 {
-                    Navigation = navigation,
+                    CaptainDialog = captainDialog,
                     PreferredOtherFactionId = preferredOtherFactionId > 0 ? preferredOtherFactionId : null,
                     FallbackSourceFactionId = captainEntry.SourceFactionId,
                     FirstSourceFactionId = firstSourceFactionId,
@@ -93,7 +93,7 @@ internal static class CompanyStartSaveWorkflow
             improvedCaptainStats = await CompanyCaptainWorkflowService.ShowCaptainConfigurationAsync(
                 new CompanyCaptainWorkflowRequest
                 {
-                    Navigation = navigation,
+                    CaptainDialog = captainDialog,
                     FallbackSourceFactionId = captainEntry.SourceFactionId,
                     FirstSourceFactionId = firstSourceFactionId,
                     UnitName = captainEntry.Name,
