@@ -1,0 +1,263 @@
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Domain.Season.Experience;
+using InfinityMercsApp.Domain.Season.Game;
+using InfinityMercsApp.Domain.Season.Injuries;
+using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Infrastructure.Providers.Metadata;
+using InfinityMercsApp.Services.Dialogs;
+using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.ViewModels.Base;
+using InfinityMercsApp.Views.Season;
+
+namespace InfinityMercsApp.ViewModels.Season.Game;
+
+/// <summary>
+/// The game in progress: the round, each kind of order token spent and left, and every deployed trooper's
+/// wounds, XP and weapons. Ending the game records the mission and moves on to injuries or the outcome.
+/// </summary>
+public partial class GameModeViewModel(
+    INavigationService navigationService,
+    IDialogService dialogs,
+    ISeasonFileService seasonFiles,
+    DeploymentRoster roster,
+    MissionDebrief debrief,
+    IAppSettingsProvider? settings = null,
+    IMetadataProvider? metadata = null) : ViewModelBase(navigationService)
+{
+    /// <summary>The game can be ended from this round on.</summary>
+    public const int FirstEndableRound = 3;
+
+    /// <summary>A game lasts at most this many rounds.</summary>
+    public const int LastRound = 4;
+
+    private string _companyFilePath = string.Empty;
+    private string _seasonFilePath = string.Empty;
+    private string? _loadedFilePath;
+    private IReadOnlySet<int>? _deployedEntryIndices;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RoundText), nameof(CanEndGame), nameof(HasNextRound))]
+    [NotifyCanExecuteChangedFor(nameof(NextRoundCommand), nameof(EndGameCommand))]
+    private int _currentRound = 1;
+
+    [ObservableProperty]
+    private bool _isEliteDeployment;
+
+    [ObservableProperty]
+    private bool _showUnitsInInches = true;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsShowingWeapon))]
+    private GameWeaponCard? _openWeaponCard;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsShowingXp))]
+    private XpSheet? _openXpSheet;
+
+    private GameUnitItem? _xpUnit;
+
+    public ObservableCollection<GameUnitItem> Units { get; } = [];
+
+    /// <summary>Lieutenant, impetuous, irregular and regular orders, in the order they are shown.</summary>
+    public IReadOnlyList<OrderPoolItem> Orders { get; } =
+    [
+        new(OrderKind.Lieutenant),
+        new(OrderKind.Impetuous),
+        new(OrderKind.Irregular),
+        new(OrderKind.Regular)
+    ];
+
+    public string RoundText => $"Round {CurrentRound}";
+
+    public bool CanEndGame => CurrentRound >= FirstEndableRound;
+
+    public bool HasNextRound => CurrentRound < LastRound;
+
+    public bool IsShowingWeapon => OpenWeaponCard is not null;
+
+    public bool IsShowingXp => OpenXpSheet is not null;
+
+    public override void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        _companyFilePath = NavigationParameters.GetString(query, NavigationParameters.CompanyFilePath) ?? _companyFilePath;
+        _seasonFilePath = NavigationParameters.GetString(query, NavigationParameters.SeasonFilePath) ?? _seasonFilePath;
+        _deployedEntryIndices = NavigationParameters.GetIntSet(query, NavigationParameters.DeployedIndices);
+        IsEliteDeployment = NavigationParameters.GetFlag(query, NavigationParameters.EliteDeployment);
+    }
+
+    /// <summary>Loads the deployed troopers the first time the page appears for a company.</summary>
+    public override async Task InitializeAsync()
+    {
+        ShowUnitsInInches = SeasonDisplayUnitFormatter.GetShowUnitsInInches(settings);
+        if (_loadedFilePath == _companyFilePath || string.IsNullOrWhiteSpace(_companyFilePath))
+        {
+            return;
+        }
+
+        _loadedFilePath = _companyFilePath;
+        Units.Clear();
+        CurrentRound = 1;
+
+        try
+        {
+            var weapons = new GameWeaponCatalog(metadata);
+            var troopers = await roster.LoadAsync(_companyFilePath, _seasonFilePath, ShowUnitsInInches, _deployedEntryIndices);
+            foreach (var trooper in troopers)
+            {
+                var skills = AttackModifiers.NormalizeSkills(trooper.Skills);
+                var modifiers = AttackModifiers.From(skills, trooper.Equipment);
+                var hasTacticalToken = IsEliteDeployment &&
+                    (!trooper.IsLieutenant || DeploymentRoster.HasLine(trooper.Skills, "Tactical Awareness"));
+                Units.Add(new GameUnitItem(trooper, hasTacticalToken, weapons.CardsFor(trooper.RangedWeapons, trooper.MeleeWeapons, modifiers)));
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Loading the game failed: {ex.Message}");
+        }
+
+        ResetOrders();
+    }
+
+    // ── Rounds and orders ───────────────────────────────────────────────────
+
+    /// <summary>Starts the next round: fresh orders from the troopers still standing, and Tactical Awareness tokens back.</summary>
+    [RelayCommand(CanExecute = nameof(HasNextRound))]
+    private void NextRound()
+    {
+        CurrentRound++;
+        ResetOrders();
+        foreach (var unit in Units)
+        {
+            unit.ResetTacticalToken();
+        }
+    }
+
+    private void ResetOrders()
+    {
+        var counts = OrderCounts.For(Units.Select(unit => unit.OrderSource));
+        foreach (var pool in Orders)
+        {
+            pool.Reset(counts.Of(pool.Kind));
+        }
+    }
+
+    // ── Accordion and pop-ups ───────────────────────────────────────────────
+
+    /// <summary>Opens a trooper's row and closes the others, or closes it when it is already open.</summary>
+    [RelayCommand]
+    private void ToggleUnit(GameUnitItem unit)
+    {
+        var expand = !unit.IsExpanded;
+        foreach (var other in Units)
+        {
+            other.IsExpanded = false;
+        }
+
+        unit.IsExpanded = expand;
+    }
+
+    [RelayCommand]
+    private void ShowWeapon(GameWeaponCard card)
+    {
+        if (card.IsMatched)
+        {
+            OpenWeaponCard = card;
+        }
+    }
+
+    [RelayCommand]
+    private void CloseWeapon() => OpenWeaponCard = null;
+
+    [RelayCommand]
+    private void ShowXp(GameUnitItem unit)
+    {
+        _xpUnit = unit;
+        OpenXpSheet = new XpSheet(unit.Name, unit.Unit.XpData);
+    }
+
+    [RelayCommand]
+    private void CloseXp()
+    {
+        _xpUnit?.RefreshXp();
+        _xpUnit = null;
+        OpenXpSheet = null;
+    }
+
+    // ── Ending the game ─────────────────────────────────────────────────────
+
+    /// <summary>
+    /// After confirming, records the mission on a new season round, hands every trooper's result to the
+    /// debrief, and goes to injury checks when anyone died, otherwise to the mission outcome.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanEndGame))]
+    private async Task EndGameAsync()
+    {
+        if (!await dialogs.ConfirmAsync("End Game", "Are you sure you want to end the game?"))
+        {
+            return;
+        }
+
+        var seasonFile = await seasonFiles.LoadAsync(_seasonFilePath);
+        var missionNumber = SeasonFileService.ResolveCurrentRound(seasonFile) + 1;
+        if (seasonFile is not null)
+        {
+            seasonFile.Rounds.Add(new SeasonRound
+            {
+                RoundIndex = missionNumber,
+                MissionResults = new SeasonMissionResult
+                {
+                    UnitsDeployed = Units.Count,
+                    EliteDeploymentMet = IsEliteDeployment,
+                    MissionRound = CurrentRound
+                }
+            });
+            await seasonFiles.SaveAsync(_seasonFilePath, seasonFile);
+        }
+
+        debrief.Units = Units.Select(unit => ResultOf(unit.Unit, missionNumber)).ToList();
+        debrief.PendingInjuries = Units
+            .Select(unit => unit.Unit)
+            .Where(unit => unit.WoundState == WoundState.Dead)
+            .Select(unit => new PendingInjury
+            {
+                EntryIndex = unit.EntryIndex,
+                Name = unit.Name,
+                PhValue = unit.UnitPh,
+                CachedLogoPath = unit.CachedLogoPath,
+                PackagedLogoPath = unit.PackagedLogoPath
+            })
+            .ToList();
+
+        await NavigationService.PushAsync(
+            debrief.PendingInjuries.Count > 0 ? "InjuriesPage" : "MissionOutcomePage",
+            NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath));
+    }
+
+    private ExperienceUnitResult ResultOf(DeploymentUnitItem unit, int deploymentXp) => new()
+    {
+        EntryIndex = unit.EntryIndex,
+        Name = unit.Name,
+        CachedLogoPath = unit.CachedLogoPath,
+        PackagedLogoPath = unit.PackagedLogoPath,
+        DeploymentXp = deploymentXp,
+        IsEliteDeployment = IsEliteDeployment,
+        IsConsciousAtEnd = unit.WoundState.IsConscious(),
+        GainedInjury = false,
+        XpData = unit.XpData,
+        IsCaptain = unit.IsLieutenant,
+        IsLieutenant = unit.IsLieutenant,
+        UnitPh = unit.UnitPh,
+        UnitBs = unit.UnitBs,
+        UnitCc = unit.UnitCc,
+        UnitWip = unit.UnitWip,
+        UnitArm = unit.UnitArm,
+        Renown = unit.Renown,
+        Skills = unit.Skills,
+        Equipment = unit.Equipment
+    };
+}

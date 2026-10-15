@@ -19,6 +19,7 @@ using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Marketplaces;
 using InfinityMercsApp.ViewModels.Season;
 using InfinityMercsApp.ViewModels.Season.Downtime;
+using InfinityMercsApp.ViewModels.Season.Game;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views;
 using InfinityMercsApp.Views.Season;
@@ -52,7 +53,8 @@ public static class ServiceRegistryExtensions
                 .AddTransient<MercsSeasonPageViewModel>()
                 .AddTransient<MissionOutcomeViewModel>()
                 .AddTransient<DowntimeViewModel>()
-                .AddTransient<CompanyViewerViewModel>();
+                .AddTransient<CompanyViewerViewModel>()
+                .AddTransient<GameModeViewModel>();
 
         return services;
     }

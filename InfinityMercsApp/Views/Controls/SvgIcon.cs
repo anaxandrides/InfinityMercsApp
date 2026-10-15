@@ -13,7 +13,25 @@ public class SvgIcon : SKCanvasView
     public static readonly BindableProperty SourceProperty = BindableProperty.Create(
         nameof(Source), typeof(string), typeof(SvgIcon), propertyChanged: (bindable, _, _) => ((SvgIcon)bindable).Reload());
 
+    /// <summary>Draws the icon in shades of grey, e.g. for a spent token.</summary>
+    public static readonly BindableProperty IsGreyscaleProperty = BindableProperty.Create(
+        nameof(IsGreyscale), typeof(bool), typeof(SvgIcon), false, propertyChanged: (bindable, _, _) => ((SvgIcon)bindable).InvalidateSurface());
+
+    private static readonly SKColorFilter GreyFilter = SKColorFilter.CreateColorMatrix(
+    [
+        0.21f, 0.72f, 0.07f, 0, 0,
+        0.21f, 0.72f, 0.07f, 0, 0,
+        0.21f, 0.72f, 0.07f, 0, 0,
+        0, 0, 0, 1, 0
+    ]);
+
     private SKPicture? _picture;
+
+    public bool IsGreyscale
+    {
+        get => (bool)GetValue(IsGreyscaleProperty);
+        set => SetValue(IsGreyscaleProperty, value);
+    }
 
     public string? Source
     {
@@ -60,7 +78,16 @@ public class SvgIcon : SKCanvasView
             (e.Info.Width - bounds.Width * scale) / 2f - bounds.Left * scale,
             (e.Info.Height - bounds.Height * scale) / 2f - bounds.Top * scale);
         canvas.Scale(scale);
-        canvas.DrawPicture(picture);
+        if (IsGreyscale)
+        {
+            using var paint = new SKPaint { ColorFilter = GreyFilter };
+            canvas.DrawPicture(picture, paint);
+        }
+        else
+        {
+            canvas.DrawPicture(picture);
+        }
+
         canvas.Restore();
     }
 }
