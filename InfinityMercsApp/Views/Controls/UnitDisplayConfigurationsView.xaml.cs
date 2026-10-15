@@ -103,26 +103,6 @@ public partial class UnitDisplayConfigurationsView : ContentView
         BindableProperty.Create(nameof(PeripheralS), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
     public static readonly BindableProperty PeripheralAvaProperty =
         BindableProperty.Create(nameof(PeripheralAva), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty SelectedUnitPictureProperty =
-        BindableProperty.Create(nameof(SelectedUnitPicture), typeof(SKPicture), typeof(UnitDisplayConfigurationsView), null);
-    public static readonly BindableProperty RegularOrderIconPictureProperty =
-        BindableProperty.Create(nameof(RegularOrderIconPicture), typeof(SKPicture), typeof(UnitDisplayConfigurationsView), null);
-    public static readonly BindableProperty IrregularOrderIconPictureProperty =
-        BindableProperty.Create(nameof(IrregularOrderIconPicture), typeof(SKPicture), typeof(UnitDisplayConfigurationsView), null);
-    public static readonly BindableProperty LieutenantIconPictureProperty =
-        BindableProperty.Create(nameof(LieutenantIconPicture), typeof(SKPicture), typeof(UnitDisplayConfigurationsView), null);
-    public static readonly BindableProperty ImpetuousIconPictureProperty =
-        BindableProperty.Create(nameof(ImpetuousIconPicture), typeof(SKPicture), typeof(UnitDisplayConfigurationsView), null);
-    public static readonly BindableProperty TacticalAwarenessIconPictureProperty =
-        BindableProperty.Create(nameof(TacticalAwarenessIconPicture), typeof(SKPicture), typeof(UnitDisplayConfigurationsView), null);
-    public static readonly BindableProperty CubeIconPictureProperty =
-        BindableProperty.Create(nameof(CubeIconPicture), typeof(SKPicture), typeof(UnitDisplayConfigurationsView), null);
-    public static readonly BindableProperty Cube2IconPictureProperty =
-        BindableProperty.Create(nameof(Cube2IconPicture), typeof(SKPicture), typeof(UnitDisplayConfigurationsView), null);
-    public static readonly BindableProperty HackableIconPictureProperty =
-        BindableProperty.Create(nameof(HackableIconPicture), typeof(SKPicture), typeof(UnitDisplayConfigurationsView), null);
-    public static readonly BindableProperty PeripheralIconPictureProperty =
-        BindableProperty.Create(nameof(PeripheralIconPicture), typeof(SKPicture), typeof(UnitDisplayConfigurationsView), null);
     public static readonly BindableProperty ShowRegularOrderIconProperty =
         BindableProperty.Create(nameof(ShowRegularOrderIcon), typeof(bool), typeof(UnitDisplayConfigurationsView), false, propertyChanged: OnHeaderIconVisibilityChanged);
     public static readonly BindableProperty ShowIrregularOrderIconProperty =
@@ -372,66 +352,6 @@ public partial class UnitDisplayConfigurationsView : ContentView
         set => SetValue(PeripheralAvaProperty, value);
     }
 
-    public SKPicture? SelectedUnitPicture
-    {
-        get => (SKPicture?)GetValue(SelectedUnitPictureProperty);
-        set => SetValue(SelectedUnitPictureProperty, value);
-    }
-
-    public SKPicture? RegularOrderIconPicture
-    {
-        get => (SKPicture?)GetValue(RegularOrderIconPictureProperty);
-        set => SetValue(RegularOrderIconPictureProperty, value);
-    }
-
-    public SKPicture? IrregularOrderIconPicture
-    {
-        get => (SKPicture?)GetValue(IrregularOrderIconPictureProperty);
-        set => SetValue(IrregularOrderIconPictureProperty, value);
-    }
-
-    public SKPicture? LieutenantIconPicture
-    {
-        get => (SKPicture?)GetValue(LieutenantIconPictureProperty);
-        set => SetValue(LieutenantIconPictureProperty, value);
-    }
-
-    public SKPicture? ImpetuousIconPicture
-    {
-        get => (SKPicture?)GetValue(ImpetuousIconPictureProperty);
-        set => SetValue(ImpetuousIconPictureProperty, value);
-    }
-
-    public SKPicture? TacticalAwarenessIconPicture
-    {
-        get => (SKPicture?)GetValue(TacticalAwarenessIconPictureProperty);
-        set => SetValue(TacticalAwarenessIconPictureProperty, value);
-    }
-
-    public SKPicture? CubeIconPicture
-    {
-        get => (SKPicture?)GetValue(CubeIconPictureProperty);
-        set => SetValue(CubeIconPictureProperty, value);
-    }
-
-    public SKPicture? Cube2IconPicture
-    {
-        get => (SKPicture?)GetValue(Cube2IconPictureProperty);
-        set => SetValue(Cube2IconPictureProperty, value);
-    }
-
-    public SKPicture? HackableIconPicture
-    {
-        get => (SKPicture?)GetValue(HackableIconPictureProperty);
-        set => SetValue(HackableIconPictureProperty, value);
-    }
-
-    public SKPicture? PeripheralIconPicture
-    {
-        get => (SKPicture?)GetValue(PeripheralIconPictureProperty);
-        set => SetValue(PeripheralIconPictureProperty, value);
-    }
-
     public bool ShowRegularOrderIcon
     {
         get => (bool)GetValue(ShowRegularOrderIconProperty);
@@ -677,8 +597,7 @@ public partial class UnitDisplayConfigurationsView : ContentView
         BindableProperty.Create(nameof(SelectedUnitLogoSource), typeof(string), typeof(UnitDisplayConfigurationsView), null,
             propertyChanged: (bindable, _, _) => ((UnitDisplayConfigurationsView)bindable).LoadLogoFromSource());
 
-    // The control's own icons, used when a host does not supply a picture. They come from the shared
-    // cache, so they are never disposed (hosts dispose only the pictures they set).
+    // The control's icons and logo. They come from the shared cache, so they are never disposed.
     private SKPicture? _regularIcon, _irregularIcon, _lieutenantIcon, _peripheralIcon, _impetuousIcon,
         _tacticalIcon, _cubeIcon, _cube2Icon, _hackableIcon, _logoFromSource;
 
@@ -689,22 +608,13 @@ public partial class UnitDisplayConfigurationsView : ContentView
         _ = LoadDefaultIconsAsync();
     }
 
-    /// <summary>The selected unit's logo file, used when <see cref="SelectedUnitPicture"/> is not set.</summary>
+    /// <summary>The selected unit's logo file.</summary>
     public string? SelectedUnitLogoSource
     {
         get => (string?)GetValue(SelectedUnitLogoSourceProperty);
         set => SetValue(SelectedUnitLogoSourceProperty, value);
     }
 
-    private SKPicture? RegularIcon => RegularOrderIconPicture ?? _regularIcon;
-    private SKPicture? IrregularIcon => IrregularOrderIconPicture ?? _irregularIcon;
-    private SKPicture? LieutenantIcon => LieutenantIconPicture ?? _lieutenantIcon;
-    private SKPicture? PeripheralIcon => PeripheralIconPicture ?? _peripheralIcon;
-    private SKPicture? ImpetuousIcon => ImpetuousIconPicture ?? _impetuousIcon;
-    private SKPicture? TacticalIcon => TacticalAwarenessIconPicture ?? _tacticalIcon;
-    private SKPicture? CubeIcon => CubeIconPicture ?? _cubeIcon;
-    private SKPicture? Cube2Icon => Cube2IconPicture ?? _cube2Icon;
-    private SKPicture? HackableIcon => HackableIconPicture ?? _hackableIcon;
 
     private async Task LoadDefaultIconsAsync()
     {
@@ -803,12 +713,12 @@ public partial class UnitDisplayConfigurationsView : ContentView
         HeaderIconsCanvas.InvalidateSurface();
     }
 
-    public void InvalidateHeaderIconsCanvas()
+    private void InvalidateHeaderIconsCanvas()
     {
         HeaderIconsCanvas.InvalidateSurface();
     }
 
-    public void InvalidateSelectedUnitCanvas()
+    private void InvalidateSelectedUnitCanvas()
     {
         SelectedUnitCanvas.InvalidateSurface();
     }
@@ -833,17 +743,17 @@ public partial class UnitDisplayConfigurationsView : ContentView
 
     private void OnSelectedUnitCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        DrawSlotPicture(SelectedUnitPicture ?? _logoFromSource, e);
+        DrawSlotPicture(_logoFromSource, e);
     }
 
     private void OnPeripheralIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        DrawSlotPicture(PeripheralIcon, e);
+        DrawSlotPicture(_peripheralIcon, e);
     }
 
     private void OnProfileTacticalIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        DrawSlotPicture(TacticalIcon, e);
+        DrawSlotPicture(_tacticalIcon, e);
     }
 
     private void OnUnitNameHeadingLabelSizeChanged(object? sender, EventArgs e) => RefreshUnitHeadingFontSize();
@@ -891,20 +801,20 @@ public partial class UnitDisplayConfigurationsView : ContentView
             }
         }
 
-        Add(regular || irregular, irregular ? IrregularIcon : RegularIcon);
+        Add(regular || irregular, irregular ? _irregularIcon : _regularIcon);
 
         var lieutenantIconCount = Math.Max(ShowLieutenantIcon ? 1 : 0, LieutenantIconCount);
         for (var i = 0; i < lieutenantIconCount; i++)
         {
-            Add(true, LieutenantIcon);
+            Add(true, _lieutenantIcon);
         }
 
-        Add(ShowPeripheralIcon, PeripheralIcon);
-        Add(impetuous, ImpetuousIcon);
-        Add(tactical, TacticalIcon);
-        Add(cube, CubeIcon);
-        Add(cube2, Cube2Icon);
-        Add(hackable, HackableIcon);
+        Add(ShowPeripheralIcon, _peripheralIcon);
+        Add(impetuous, _impetuousIcon);
+        Add(tactical, _tacticalIcon);
+        Add(cube, _cubeIcon);
+        Add(cube2, _cube2Icon);
+        Add(hackable, _hackableIcon);
 
         return pictures.Count <= MaxHeaderIcons ? pictures : pictures.Take(MaxHeaderIcons).ToList();
     }
