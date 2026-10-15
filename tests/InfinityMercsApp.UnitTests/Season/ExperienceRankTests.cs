@@ -6,6 +6,8 @@ public sealed class ExperienceRankTests
     [InlineData(-5, "Unranked", 0)]
     [InlineData(4, "Unranked", 0)]
     [InlineData(5, "Newbie", 1)]
+    [InlineData(14, "Newbie", 1)]
+    [InlineData(15, "Hired Gun", 2)]
     [InlineData(29, "Hired Gun", 2)]
     [InlineData(140, "Legend", 7)]
     [InlineData(999, "Legend", 7)]
@@ -13,5 +15,13 @@ public sealed class ExperienceRankTests
     {
         Assert.Equal(name, CompanyUnitExperienceRanks.GetRankName(xp));
         Assert.Equal(level, CompanyUnitExperienceRanks.GetRankLevel(xp));
+    }
+
+    [Fact]
+    public void RanksTwoThreeAndFiveGrantFreeSkills()
+    {
+        Assert.Empty(CompanyUnitExperienceRanks.FreeSkillsFor(14));
+        Assert.Equal(["Courage", "Fireteam: Mercs"], CompanyUnitExperienceRanks.FreeSkillsFor(30));
+        Assert.Equal(["Courage", "Fireteam: Mercs", "Counts as Merc"], CompanyUnitExperienceRanks.FreeSkillsFor(75));
     }
 }

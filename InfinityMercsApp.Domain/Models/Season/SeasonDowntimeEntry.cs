@@ -8,6 +8,9 @@ public class SeasonDowntimeEntry
     public string ChosenPlan { get; set; } = string.Empty;
     public string Result { get; set; } = string.Empty;
     public string ParticipantName { get; set; } = string.Empty;
+
+    /// <summary>The participant's company entry; missing in seasons saved before it was recorded, which match by name.</summary>
+    public int? ParticipantEntryIndex { get; set; }
     public int CrGain { get; set; }
     public int NotorietyGain { get; set; }
     public int XpGain { get; set; }
