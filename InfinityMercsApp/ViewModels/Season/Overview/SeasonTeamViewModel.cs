@@ -1,0 +1,322 @@
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Company;
+using InfinityMercsApp.Domain.Lieutenants;
+using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Domain.Models.Season.Gear;
+using InfinityMercsApp.Domain.Season.Inventory;
+using InfinityMercsApp.Services.CompanyProfiles;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Services.CompanySelection.Visuals;
+using InfinityMercsApp.Services.Packaging;
+using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.ViewModels.Company.Viewer;
+using InfinityMercsApp.ViewModels.Marketplaces;
+using InfinityMercsApp.ViewModels.UnitBrowser;
+using InfinityMercsApp.Views.Controls;
+
+namespace InfinityMercsApp.ViewModels.Season.Overview;
+
+/// <summary>
+/// The season's Team tab: the company's troopers in a drop-down, and the chosen one's stats, equipment,
+/// skills and weapons, with a picker per gear slot for the season gear the company owns. Gear choices are
+/// saved to the season file; an augment that sets a stat ("WIP=12") changes the stat line.
+/// </summary>
+public partial class SeasonTeamViewModel : ObservableObject
+{
+    public const string NoUnitTitle = "Select unit...";
+
+    private readonly CompanyRoster _roster;
+    private readonly IAppPackageFiles _packageFiles;
+    private readonly ISeasonFileService _seasonFiles;
+    private readonly MarketplaceDetailViewModel _detailPopup;
+    private SavedImprovedCaptainStats _captain = new();
+    private CompanyLoadouts _loadouts = new();
+    private SeasonInventory _inventory = SeasonInventory.Empty;
+    private string? _seasonFilePath;
+
+    public SeasonTeamViewModel(
+        CompanyRoster roster,
+        UnitDetailViewModel detail,
+        IAppPackageFiles packageFiles,
+        ISeasonFileService seasonFiles,
+        MarketplaceDetailViewModel detailPopup)
+    {
+        _roster = roster;
+        _packageFiles = packageFiles;
+        _seasonFiles = seasonFiles;
+        _detailPopup = detailPopup;
+        Detail = detail;
+        GearSlots = Enum.GetValues<GearSlot>().Select(slot => new GearSlotPicker(slot, OnGearPicked)).ToList();
+    }
+
+    /// <summary>The selected trooper's stat line, icons and logo.</summary>
+    public UnitDetailViewModel Detail { get; }
+
+    public ObservableCollection<CompanyViewerUnitListItem> Units { get; } = [];
+
+    /// <summary>A picker for each gear slot, in slot order.</summary>
+    public IReadOnlyList<GearSlotPicker> GearSlots { get; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PickerTitle))]
+    private CompanyViewerUnitListItem? _selectedUnit;
+
+    [ObservableProperty]
+    private bool _isUnitPickerOpen;
+
+    [ObservableProperty]
+    private string _selectedName = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedBaseName))]
+    private string _selectedBaseName = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedUnitType))]
+    private string _selectedUnitType = string.Empty;
+
+    [ObservableProperty]
+    private CompanyHeaderColors _headerColors = new(
+        UnitDisplayConfigurationsView.DefaultHeaderPrimaryColor,
+        UnitDisplayConfigurationsView.DefaultHeaderSecondaryColor,
+        Colors.White,
+        Colors.White);
+
+    [ObservableProperty]
+    private bool _showLieutenantIcon;
+
+    [ObservableProperty]
+    private int _lieutenantIconCount;
+
+    [ObservableProperty]
+    private bool _showPeripheralIcon;
+
+    [ObservableProperty]
+    private ProfileColumns _equipment = ProfileColumns.Empty;
+
+    [ObservableProperty]
+    private ProfileColumns _skills = ProfileColumns.Empty;
+
+    [ObservableProperty]
+    private ProfileColumns _rangedWeapons = ProfileColumns.Empty;
+
+    [ObservableProperty]
+    private ProfileColumns _meleeWeapons = ProfileColumns.Empty;
+
+    /// <summary>The drop-down's heading: the selected trooper's name.</summary>
+    public string PickerTitle => SelectedUnit?.Name ?? NoUnitTitle;
+
+    public bool HasSelectedBaseName => SelectedBaseName.Length > 0;
+
+    public bool HasSelectedUnitType => SelectedUnitType.Length > 0;
+
+    /// <summary>Shows a company's troopers with their saved season gear, selecting the first.</summary>
+    public async Task LoadAsync(SavedCompanyFile company, string? seasonFilePath, CompanyLoadouts loadouts)
+    {
+        _captain = company.ImprovedCaptainStats ?? new SavedImprovedCaptainStats();
+        _seasonFilePath = seasonFilePath;
+        _loadouts = loadouts;
+        Units.Clear();
+        SelectedUnit = null;
+        foreach (var unit in _roster.UnitsOf(company))
+        {
+            unit.LogoSource = await CompanyRoster.LogoSourceAsync(unit, _packageFiles);
+            Units.Add(unit);
+        }
+
+        if (Units.Count > 0)
+        {
+            SelectUnit(Units[0]);
+        }
+    }
+
+    /// <summary>Clears the tab when there is no company to show.</summary>
+    public void Clear()
+    {
+        Units.Clear();
+        SelectedUnit = null;
+        SelectedName = SelectedBaseName = SelectedUnitType = string.Empty;
+    }
+
+    /// <summary>Takes in what the company now owns, for the gear pickers.</summary>
+    public void ShowOwnedGear(SeasonInventory inventory)
+    {
+        _inventory = inventory;
+        RefreshGearPickers();
+    }
+
+    /// <summary>Picks up the inches/centimetres setting, redrawing the selected trooper when it changed.</summary>
+    public void RefreshDisplayUnits()
+    {
+        var wasInInches = Detail.ShowUnitsInInches;
+        Detail.RefreshDisplayUnits();
+        _detailPopup.ShowUnitsInInches = Detail.ShowUnitsInInches;
+        if (wasInInches != Detail.ShowUnitsInInches)
+        {
+            ShowSelected();
+        }
+    }
+
+    [RelayCommand]
+    private void ToggleUnitPicker() => IsUnitPickerOpen = !IsUnitPickerOpen;
+
+    [RelayCommand]
+    private void CloseUnitPicker() => IsUnitPickerOpen = false;
+
+    [RelayCommand]
+    private void SelectUnit(CompanyViewerUnitListItem? item)
+    {
+        IsUnitPickerOpen = false;
+        if (item is null)
+        {
+            return;
+        }
+
+        foreach (var unit in Units)
+        {
+            unit.IsSelected = ReferenceEquals(unit, item);
+        }
+
+        SelectedUnit = item;
+        ShowSelected();
+    }
+
+    [RelayCommand]
+    private Task ShowWeaponAsync(ProfileLine? line) =>
+        line is null || line.IsPlaceholder ? Task.CompletedTask : _detailPopup.ShowWeaponAsync(line.Text);
+
+    private void ShowSelected()
+    {
+        if (SelectedUnit is not { } item)
+        {
+            return;
+        }
+
+        var profile = CompanyRoster.ProfileOf(item, Detail.ShowUnitsInInches);
+        CompanyRoster.ShowOn(Detail, item, profile, _captain);
+        var loadout = _loadouts.For(item.EntryIndex);
+        if (StatOverride.TryParse(loadout[GearSlot.Augments], out var statOverride))
+        {
+            Detail.ApplyAugmentStatOverride(statOverride);
+        }
+
+        Detail.LogoSource = item.LogoSource;
+
+        SelectedName = item.Name;
+        var baseName = string.IsNullOrWhiteSpace(item.BaseUnitName) ? profile.Name : item.BaseUnitName;
+        SelectedBaseName = string.Equals(baseName.Trim(), item.Name.Trim(), StringComparison.OrdinalIgnoreCase) ? string.Empty : baseName;
+        SelectedUnitType = item.UnitTypeCode;
+
+        HeaderColors = _roster.HeaderColorsFor(item.VisualFactionId > 0 ? item.VisualFactionId : item.SourceFactionId);
+        ShowLieutenantIcon = profile.IsLieutenant;
+        LieutenantIconCount = CompanyRoster.LieutenantIconCount(profile);
+        ShowPeripheralIcon = UnitTraitIcons
+            .From(profile.Characteristics, profile.UniqueSkills, profile.UniqueEquipment, item.IsPeripheralUnit).Peripheral;
+
+        Equipment = ProfileColumns.From(ProfileText.Lines(profile.UniqueEquipment));
+        Skills = ProfileColumns.From(SkillLines(profile, loadout));
+        ShowWeapons(profile, loadout);
+        RefreshGearPickers();
+    }
+
+    // The lieutenant order first, then the rest, then an augment that is a skill rather than a stat.
+    private static List<string> SkillLines(ViewerProfileItem profile, UnitLoadout loadout)
+    {
+        var skills = ProfileText.Lines(profile.UniqueSkills);
+        LieutenantRules.MoveLieutenantFirst(skills);
+        var augment = loadout[GearSlot.Augments];
+        if (!string.IsNullOrWhiteSpace(augment) &&
+            !StatOverride.TryParse(augment, out _) &&
+            !skills.Contains(augment, StringComparer.OrdinalIgnoreCase))
+        {
+            skills.Add(augment);
+        }
+
+        return skills;
+    }
+
+    // The profile's weapons, plus any carried in a weapon slot, each under ranged or melee.
+    private void ShowWeapons(ViewerProfileItem profile, UnitLoadout loadout)
+    {
+        var ranged = ProfileText.Lines(profile.RangedWeapons);
+        var melee = ProfileText.Lines(profile.MeleeWeapons);
+        foreach (var slot in Enum.GetValues<GearSlot>().Where(slot => slot.HoldsWeapon()))
+        {
+            if (loadout[slot] is not { } weapon)
+            {
+                continue;
+            }
+
+            var list = CompanyProfileTextService.IsMeleeWeaponName(weapon) ? melee : ranged;
+            if (!list.Contains(weapon, StringComparer.OrdinalIgnoreCase))
+            {
+                list.Add(weapon);
+            }
+        }
+
+        RangedWeapons = ProfileColumns.From(ranged);
+        MeleeWeapons = ProfileColumns.From(melee);
+    }
+
+    // Each slot offers nothing or an owned item that fits it, noting who else carries it.
+    private void RefreshGearPickers()
+    {
+        if (SelectedUnit is not { } item)
+        {
+            return;
+        }
+
+        var loadout = _loadouts.For(item.EntryIndex);
+        foreach (var picker in GearSlots)
+        {
+            List<GearOption> options = [GearOption.None];
+            var selected = GearOption.None;
+            foreach (var itemName in _inventory.ItemsFor(picker.Slot))
+            {
+                var holder = _loadouts.HolderOf(itemName, picker.Slot, item.EntryIndex);
+                var option = GearOption.For(itemName, Units.FirstOrDefault(unit => unit.EntryIndex == holder)?.Name);
+                options.Add(option);
+                if (string.Equals(itemName, loadout[picker.Slot], StringComparison.OrdinalIgnoreCase))
+                {
+                    selected = option;
+                }
+            }
+
+            picker.Show(options, selected);
+        }
+    }
+
+    private void OnGearPicked(GearSlot slot, GearOption option)
+    {
+        if (SelectedUnit is not { } item ||
+            string.Equals(_loadouts.For(item.EntryIndex)[slot], option.ItemName, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _loadouts.Assign(item.EntryIndex, slot, option.ItemName);
+        _ = SaveThenRefreshAsync();
+    }
+
+    // The pickers are refilled after the save, once the picker that reported the choice has finished with it.
+    private async Task SaveThenRefreshAsync()
+    {
+        try
+        {
+            if (await _seasonFiles.LoadAsync(_seasonFilePath) is { } seasonFile)
+            {
+                seasonFile.UnitGear = _loadouts.ToSeasonGear();
+                await _seasonFiles.SaveAsync(_seasonFilePath, seasonFile);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Saving the season gear failed: {ex.Message}");
+        }
+
+        ShowSelected();
+    }
+}

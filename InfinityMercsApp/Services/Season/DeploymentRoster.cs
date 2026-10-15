@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Services.ArmyData;
@@ -9,7 +10,6 @@ using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.ViewModels.Season;
-using InfinityMercsApp.Views.Season;
 
 namespace InfinityMercsApp.Services.Season;
 
@@ -129,10 +129,10 @@ public sealed partial class DeploymentRoster(
             StartingVitality = Math.Max(1, int.TryParse(entry.CurrentVitaOrStr, out var vitality) ? vitality : 1),
             HasNwi = HasLine(profile.Skills, "No Wound Incapacitation"),
             HasRemotePresence = HasLine(profile.Skills, "Remote Presence"),
-            Equipment = SeasonDisplayUnitFormatter.ConvertExplicitDistances(profile.Equipment, showUnitsInInches),
-            Skills = SeasonDisplayUnitFormatter.ConvertExplicitDistances(profile.Skills, showUnitsInInches),
-            RangedWeapons = SeasonDisplayUnitFormatter.ConvertExplicitDistances(profile.RangedWeapons, showUnitsInInches),
-            MeleeWeapons = SeasonDisplayUnitFormatter.ConvertExplicitDistances(profile.MeleeWeapons, showUnitsInInches)
+            Equipment = TextDistances.Convert(profile.Equipment, showUnitsInInches),
+            Skills = TextDistances.Convert(profile.Skills, showUnitsInInches),
+            RangedWeapons = TextDistances.Convert(profile.RangedWeapons, showUnitsInInches),
+            MeleeWeapons = TextDistances.Convert(profile.MeleeWeapons, showUnitsInInches)
         };
     }
 

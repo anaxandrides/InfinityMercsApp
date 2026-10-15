@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
 using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Metadata.Wiki;
@@ -881,9 +882,9 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
             uniqueSkills = LieutenantRules.NormalizeOrderEntries(uniqueSkills);
         }
         uniqueSkills = NormalizeSkillsForDisplay(uniqueSkills);
-        uniqueEquipment = SeasonDisplayUnitFormatter.ConvertExplicitDistances(uniqueEquipment, _showUnitsInInches);
-        uniqueSkills = SeasonDisplayUnitFormatter.ConvertExplicitDistances(uniqueSkills, _showUnitsInInches);
-        characteristics = SeasonDisplayUnitFormatter.ConvertExplicitDistances(characteristics, _showUnitsInInches);
+        uniqueEquipment = TextDistances.Convert(uniqueEquipment, _showUnitsInInches);
+        uniqueSkills = TextDistances.Convert(uniqueSkills, _showUnitsInInches);
+        characteristics = TextDistances.Convert(characteristics, _showUnitsInInches);
         var keepLoadedRangedFormatting = string.Equals(loadedProfile?.RangedWeapons?.Trim(), rangedWeapons.Trim(), StringComparison.OrdinalIgnoreCase);
         var keepLoadedMeleeFormatting = string.Equals(loadedProfile?.MeleeWeapons?.Trim(), meleeWeapons.Trim(), StringComparison.OrdinalIgnoreCase);
         var keepLoadedEquipmentFormatting = string.Equals(loadedProfile?.UniqueEquipment?.Trim(), uniqueEquipment.Trim(), StringComparison.OrdinalIgnoreCase);

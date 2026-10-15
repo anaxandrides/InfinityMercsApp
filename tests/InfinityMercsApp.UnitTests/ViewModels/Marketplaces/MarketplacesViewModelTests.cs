@@ -39,7 +39,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     private MarketplacesViewModel CreateViewModel() =>
-        new(Substitute.For<INavigationService>(), _stores, _metadata, _wiki, _launcher);
+        new(Substitute.For<INavigationService>(), _stores, new MarketplaceDetailViewModel(_metadata, _wiki, _launcher));
 
     private async Task<MarketplacesViewModel> WithBlackMarketAsync()
     {

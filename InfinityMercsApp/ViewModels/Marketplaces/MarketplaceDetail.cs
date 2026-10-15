@@ -36,6 +36,10 @@ public sealed record MarketplaceDetail(string Title, IReadOnlyList<DetailRow> Ro
             Abilities = skillLinks.Links(troopType.Abilities)
         };
 
+    /// <summary>A weapon's profiles, titled with its name.</summary>
+    public static MarketplaceDetail ForWeapon(string weaponName, IReadOnlyList<Weapon> weapons) =>
+        new(weaponName, []) { Weapons = weapons };
+
     public static MarketplaceDetail For(AugmentRow augment)
     {
         List<DetailRow> rows = [new("Cost", augment.CostDisplay)];

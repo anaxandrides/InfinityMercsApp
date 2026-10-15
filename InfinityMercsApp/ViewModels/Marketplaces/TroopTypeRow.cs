@@ -1,9 +1,12 @@
 using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
+using InfinityMercsApp.Domain.Season.Inventory;
 
 namespace InfinityMercsApp.ViewModels.Marketplaces;
 
-public sealed class TroopTypeRow(StoreTroopType troopType) : MarketplaceRow(DisplayNameFor(troopType), troopType.CostCr)
+/// <summary>A troop type's armour, at its own price or at <paramref name="costCr"/> when the price is adjusted.</summary>
+public sealed class TroopTypeRow(StoreTroopType troopType, int? costCr = null) : MarketplaceRow(InventoryCatalog.ArmorName(troopType), costCr ?? troopType.CostCr)
 {
     public string DisplayName => CartName;
     public string ArmDisplay => troopType.Arm?.ToString() ?? "—";
@@ -11,8 +14,5 @@ public sealed class TroopTypeRow(StoreTroopType troopType) : MarketplaceRow(Disp
     public string Abilities => troopType.Abilities ?? string.Empty;
     public bool HasAbilities => !string.IsNullOrWhiteSpace(Abilities);
     public string StatDisplay => $"{Stat.Arm.Key()} {ArmDisplay}  |  {Stat.Bts.Key()} {BtsDisplay}";
-
-    // "Light Armour (LI)", or just the armour when the troop type is not named.
-    private static string DisplayNameFor(StoreTroopType troopType) =>
-        string.IsNullOrWhiteSpace(troopType.Type) ? troopType.ArmorName : $"{troopType.ArmorName} ({troopType.Type})";
+    public override string InventoryCategory => GearSlot.Armor.Key();
 }

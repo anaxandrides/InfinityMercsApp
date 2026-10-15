@@ -1,5 +1,4 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using InfinityMercsApp.Domain.Models.Perks;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 
 namespace InfinityMercsApp.ViewModels.Company.Viewer;
@@ -53,6 +52,10 @@ public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewe
 
     /// <summary>A logo to show when neither the cached nor the packaged one exists, e.g. the TAG icon for TAG company units.</summary>
     public string? FallbackLogoPath { get; init; }
+
+    /// <summary>The logo to draw, once worked out from the paths above.</summary>
+    [ObservableProperty]
+    private string? _logoSource;
 
     public string? Subtitle { get; init; }
     public bool HasSubtitle => !string.IsNullOrWhiteSpace(Subtitle);

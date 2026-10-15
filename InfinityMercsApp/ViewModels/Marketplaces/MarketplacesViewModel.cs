@@ -1,10 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using InfinityMercsApp.Domain.Models.Metadata.Wiki;
 using InfinityMercsApp.Domain.Models.Stores;
-using InfinityMercsApp.Infrastructure.Providers.Metadata;
 using InfinityMercsApp.Services.Navigation;
-using InfinityMercsApp.Services.Wiki;
 using InfinityMercsApp.ViewModels.Base;
 
 namespace InfinityMercsApp.ViewModels.Marketplaces;
@@ -16,19 +13,14 @@ namespace InfinityMercsApp.ViewModels.Marketplaces;
 public partial class MarketplacesViewModel : AdaptiveViewModelBase<MarketplacesLayout>
 {
     private readonly IStoreProvider _storeProvider;
-    private readonly IMetadataProvider _metadataProvider;
-    private SkillWikiLinks? _skillLinks;
 
     public MarketplacesViewModel(
         INavigationService navigationService,
         IStoreProvider storeProvider,
-        IMetadataProvider metadataProvider,
-        IWikiDescriptionService wikiDescriptionService,
-        ILauncher launcher) : base(navigationService, MarketplacesLayout.For)
+        MarketplaceDetailViewModel detailPopup) : base(navigationService, MarketplacesLayout.For)
     {
         _storeProvider = storeProvider;
-        _metadataProvider = metadataProvider;
-        DetailPopup = new MarketplaceDetailViewModel(wikiDescriptionService, launcher);
+        DetailPopup = detailPopup;
         StoreNames = storeProvider.GetAllStoreNames();
     }
 
@@ -129,20 +121,7 @@ public partial class MarketplacesViewModel : AdaptiveViewModelBase<MarketplacesL
 
     /// <summary>Opens the detail popup for a row; an item with a wiki page then loads its description.</summary>
     [RelayCommand(AllowConcurrentExecutions = true)]
-    private async Task ShowDetailAsync(MarketplaceRow row)
-    {
-        var detail = row switch
-        {
-            StoreItemRow item => MarketplaceDetail.For(item, _metadataProvider.WeaponsFor(item.Name)),
-            TroopTypeRow troopType => MarketplaceDetail.For(troopType, _skillLinks ??= SkillWikiLinks.From(_metadataProvider.GetSkills())),
-            AugmentRow augment => MarketplaceDetail.For(augment),
-            _ => null
-        };
-        if (detail is not null)
-        {
-            await DetailPopup.ShowAsync(detail);
-        }
-    }
+    private Task ShowDetailAsync(MarketplaceRow row) => DetailPopup.ShowRowAsync(row);
 
     private void RefreshCart()
     {

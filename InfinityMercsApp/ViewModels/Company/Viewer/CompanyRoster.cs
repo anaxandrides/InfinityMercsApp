@@ -7,6 +7,7 @@ using InfinityMercsApp.Services.CompanySelection.Common;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Visuals;
 using InfinityMercsApp.Services.Logos;
+using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.Controls;
 
@@ -86,7 +87,7 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             SavedRangedWeapons = ranged,
             SavedCcWeapons = SavedCodeNames.JoinOrDash(weapons.Melee),
             SavedPeripheralNameHeading = entry.PeripheralNameHeading,
-            UnitMov = entry.CurrentMov,
+            UnitMov = SavedMove(entry),
             UnitCc = entry.CurrentCc,
             UnitBs = entry.CurrentBs,
             UnitPh = entry.CurrentPh,
@@ -105,6 +106,12 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         };
     }
 
+    // The movement in centimetres when the entry has both values, so it reads back unambiguously; otherwise as saved.
+    private static string SavedMove(SavedCompanyEntry entry) =>
+        entry.CurrentMoveFirstCm is > 0 && entry.CurrentMoveSecondCm is > 0
+            ? $"{entry.CurrentMoveFirstCm}cm-{entry.CurrentMoveSecondCm}cm"
+            : entry.CurrentMov;
+
     /// <summary>TAG company units keep the TAG company as their source, even when saved under another faction.</summary>
     public static int EffectiveSourceFactionId(SavedCompanyEntry entry) =>
         IsTagCompanyUnit(entry.SourceFactionId, entry.LogoSourceFactionId, entry.BaseUnitName) ? TagCompanyFactionId : entry.SourceFactionId;
@@ -115,19 +122,25 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         (baseUnitName ?? string.Empty).Contains("Repurposed Mining Equipment", StringComparison.OrdinalIgnoreCase) ||
         (baseUnitName ?? string.Empty).Contains("Turtlemek", StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>The trooper's saved loadout as a single configuration: tidied skills, the lieutenant order, and its peripheral.</summary>
-    public static ViewerProfileItem ProfileOf(CompanyViewerUnitListItem item)
+    /// <summary>
+    /// The trooper's saved loadout as a single configuration: tidied skills, the lieutenant order, and its
+    /// peripheral. With <paramref name="showUnitsInInches"/>, distances in its equipment, skills and
+    /// characteristics are written in that unit.
+    /// </summary>
+    public static ViewerProfileItem ProfileOf(CompanyViewerUnitListItem item, bool? showUnitsInInches = null)
     {
+        string InUnits(string text) => showUnitsInInches is { } inches ? TextDistances.Convert(text, inches) : text;
+
         var ranged = SavedUnitText.Section(item.SavedRangedWeapons);
         var melee = SavedUnitText.Section(item.SavedCcWeapons);
-        var equipment = SavedUnitText.Section(item.SavedEquipment);
+        var equipment = InUnits(SavedUnitText.Section(item.SavedEquipment));
         var skills = SavedUnitText.Section(item.SavedSkills);
         if (item.IsLieutenant)
         {
             skills = LieutenantRules.NormalizeOrderEntries(skills);
         }
 
-        skills = SkillDisplay.Normalize(skills);
+        skills = InUnits(SkillDisplay.Normalize(skills));
 
         return new ViewerProfileItem
         {
@@ -140,7 +153,7 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             UniqueEquipmentFormatted = Simple(equipment, EquipmentColor),
             UniqueSkills = skills,
             UniqueSkillsFormatted = Simple(skills, SkillsColor),
-            Characteristics = SavedUnitText.Section(item.SavedCharacteristics),
+            Characteristics = InUnits(SavedUnitText.Section(item.SavedCharacteristics)),
             Peripherals = PeripheralText(item.SavedPeripheralNameHeading),
             Cost = item.Cost.ToString(System.Globalization.CultureInfo.InvariantCulture),
             Swc = "-",
@@ -174,6 +187,29 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         detail.SetOrderTypeIconState(icons.Regular, icons.Irregular);
         detail.ApplyTacticalAwarenessOverride(icons.TacticalAwareness);
         detail.SetTechTraitIconState(icons.Cube, icons.Cube2, icons.Hackable);
+    }
+
+    /// <summary>The trooper's logo: the downloaded one, else the packaged one (in either case), else its fallback.</summary>
+    public static async Task<string?> LogoSourceAsync(CompanyViewerUnitListItem item, IAppPackageFiles packageFiles)
+    {
+        if (!string.IsNullOrWhiteSpace(item.CachedLogoPath) && File.Exists(item.CachedLogoPath))
+        {
+            return item.CachedLogoPath;
+        }
+
+        if (!string.IsNullOrWhiteSpace(item.PackagedLogoPath))
+        {
+            var packaged = item.PackagedLogoPath.Replace('\\', '/').TrimStart('/');
+            foreach (var candidate in new List<string> { packaged, packaged.ToLowerInvariant() }.Distinct())
+            {
+                if (await packageFiles.ExistsAsync(candidate))
+                {
+                    return candidate;
+                }
+            }
+        }
+
+        return item.FallbackLogoPath ?? item.PackagedLogoPath;
     }
 
     /// <summary>How many lieutenant order icons the profile earns: one for being the lieutenant, plus any bonus orders.</summary>

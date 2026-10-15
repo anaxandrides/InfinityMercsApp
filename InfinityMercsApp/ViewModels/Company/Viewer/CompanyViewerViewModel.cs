@@ -204,30 +204,7 @@ public partial class CompanyViewerViewModel(
         PeripheralsFormatted = profile.PeripheralsFormatted ?? CompanyRoster.Simple(profile.Peripherals, CompanyRoster.PeripheralsColor);
         HasPeripherals = profile.HasPeripherals;
 
-        Detail.LogoSource = await LogoSourceAsync(item);
-    }
-
-    // The downloaded logo, else the packaged one (in either case), else the unit's fallback.
-    private async Task<string?> LogoSourceAsync(CompanyViewerUnitListItem item)
-    {
-        if (!string.IsNullOrWhiteSpace(item.CachedLogoPath) && File.Exists(item.CachedLogoPath))
-        {
-            return item.CachedLogoPath;
-        }
-
-        if (!string.IsNullOrWhiteSpace(item.PackagedLogoPath))
-        {
-            var packaged = item.PackagedLogoPath.Replace('\\', '/').TrimStart('/');
-            foreach (var candidate in new List<string> { packaged, packaged.ToLowerInvariant() }.Distinct())
-            {
-                if (await packageFiles.ExistsAsync(candidate))
-                {
-                    return candidate;
-                }
-            }
-        }
-
-        return item.FallbackLogoPath ?? item.PackagedLogoPath;
+        Detail.LogoSource = await CompanyRoster.LogoSourceAsync(item, packageFiles);
     }
 
     // ── Name editing ────────────────────────────────────────────────────────
