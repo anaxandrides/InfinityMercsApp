@@ -6,6 +6,11 @@ using InfinityMercsApp.Services;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.Records;
+using InfinityMercsApp.ViewModels.Company.Viewer;
+using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.ViewModels.Season.Downtime;
 using NSubstitute;
 
@@ -14,31 +19,40 @@ namespace InfinityMercsApp.UnitTests.ViewModels.Season.Downtime;
 public sealed class DowntimeViewModelTests
 {
     private const string SeasonPath = "/seasons/test.json";
+    private const string CompanyPath = "/companies/test.json";
 
     private readonly INavigationService _navigation = Substitute.For<INavigationService>();
     private readonly ISeasonFileService _seasonFiles = Substitute.For<ISeasonFileService>();
     private readonly IDice _dice = Substitute.For<IDice>();
     private readonly IDialogService _dialogs = Substitute.For<IDialogService>();
     private readonly MissionDebrief _debrief = new();
-    private readonly SeasonRound _round = new();
+    private readonly ICompanyFileService _companyFiles = Substitute.For<ICompanyFileService>();
+    private readonly IArmyDataService _armyData = Substitute.For<IArmyDataService>();
+    private readonly SeasonRound _round = new() { RoundIndex = 1 };
+    private readonly SeasonFile _season;
 
     public DowntimeViewModelTests()
     {
-        // Every update is applied to one round so tests can read what was recorded.
+        // Every update is applied to one season with one round so tests can read what was recorded.
+        _season = new SeasonFile { Rounds = [_round] };
         _seasonFiles
             .UpdateLatestRoundAsync(SeasonPath, Arg.Do<Action<SeasonRound>>(update => update(_round)))
             .Returns(true);
+        _seasonFiles
+            .UpdateAsync(SeasonPath, Arg.Do<Action<SeasonFile>>(update => update(_season)))
+            .Returns(true);
+        _seasonFiles.LoadAsync(SeasonPath).Returns(_ => _season);
 
         _debrief.Units =
         [
             new ExperienceUnitResult
             {
-                Name = "Alpha", IsLieutenant = true, Renown = 30, Skills = "Hacker",
+                EntryIndex = 1, Name = "Alpha", IsLieutenant = true, Renown = 30, Skills = "Hacker",
                 UnitCc = "14", UnitBs = "11", UnitPh = "10", UnitWip = "13", UnitArm = "1"
             },
             new ExperienceUnitResult
             {
-                Name = "Bravo", IsMvp = true, Renown = 20,
+                EntryIndex = 2, Name = "Bravo", IsMvp = true, Renown = 20,
                 UnitCc = "12", UnitBs = "12", UnitPh = "11", UnitWip = "12", UnitArm = "2"
             }
         ];
@@ -46,8 +60,8 @@ public sealed class DowntimeViewModelTests
 
     private DowntimeViewModel Create()
     {
-        var viewModel = new DowntimeViewModel(_navigation, _seasonFiles, _debrief, _dice, _dialogs);
-        viewModel.ApplyQueryAttributes(new Dictionary<string, object> { [NavigationParameters.SeasonFilePath] = SeasonPath });
+        var viewModel = new DowntimeViewModel(_navigation, _seasonFiles, _debrief, _dice, _dialogs, _companyFiles, new CompanyRoster(_armyData));
+        viewModel.ApplyQueryAttributes(NavigationParameters.ForCompany(CompanyPath, SeasonPath));
         return viewModel;
     }
 
@@ -188,6 +202,7 @@ public sealed class DowntimeViewModelTests
         Assert.Equal(2, _debrief.Units[0].XpData.DowntimeBonusXp);
         Assert.Equal("PASS — Alpha", _round.Downtime.Result);
         Assert.Equal("Alpha", _round.Downtime.ParticipantName);
+        Assert.Equal(1, _round.Downtime.ParticipantEntryIndex);
         Assert.Equal((1, 2), (_round.Downtime.NotorietyGain, _round.Downtime.XpGain));
     }
 
@@ -332,11 +347,43 @@ public sealed class DowntimeViewModelTests
         await viewModel.PickChoiceCommand.ExecuteAsync(viewModel.ChoiceCards[0]);
         await viewModel.PickParticipantCommand.ExecuteAsync(ParticipantNamed(viewModel, "Alpha"));
 
+        _dice.RollD20().Returns(11);
+
         await EnterRollAsync(viewModel, 15);
 
         Assert.Equal("OUTCOME: FAIL", viewModel.OutcomeText);
         Assert.True(_debrief.Units[0].GainedInjury);
         Assert.Empty(_round.Downtime.WonItems);
+        Assert.Equal([Injury.BrainInjury], _season.Troopers[1].Injuries);
+        Assert.Equal("Alpha suffers Brain Injury: -1 WIP, -3 CC", viewModel.ConsequenceLines[^1]);
+    }
+
+    [Fact]
+    public async Task AnInjuryAlreadyCarriedIsRolledAgain()
+    {
+        _season.TrooperFor(1).Injuries.Add(Injury.BrainInjury);
+        var viewModel = Create();
+        await EnterRollAsync(viewModel, 1);
+        await viewModel.PickChoiceCommand.ExecuteAsync(viewModel.ChoiceCards[0]);
+        await viewModel.PickParticipantCommand.ExecuteAsync(ParticipantNamed(viewModel, "Alpha"));
+        _dice.RollD20().Returns(11, 19);
+
+        await EnterRollAsync(viewModel, 15);
+
+        Assert.Equal([Injury.BrainInjury, Injury.ShellShocked], _season.Troopers[1].Injuries);
+    }
+
+    [Fact]
+    public async Task ContinuingGoesToRankUpWhenATrooperHasPerkPoints()
+    {
+        _companyFiles.Exists(CompanyPath).Returns(true);
+        _companyFiles.LoadAsync(CompanyPath).Returns(new SavedCompanyFile { Entries = [new SavedCompanyEntry { EntryIndex = 1, BaseUnitName = "Alpha" }] });
+        _round.MissionResults.UnitResults.Add(new SeasonMissionUnitResult { EntryIndex = 1, UnitName = "Alpha", XpGained = 6 });
+
+        await Create().BackToBaseCommand.ExecuteAsync(null);
+
+        await _navigation.Received(1).PushAsync("RankUpPage", Arg.Any<IDictionary<string, object>?>());
+        await _navigation.DidNotReceive().PopToRootAsync();
     }
 
     [Fact]

@@ -12,6 +12,9 @@ public interface ISeasonFileService
 
     Task<bool> SaveAsync(string? filePath, SeasonFile? seasonFile);
 
+    /// <summary>Applies <paramref name="updater"/> to the season, refreshes the status and saves; false when there is no season.</summary>
+    Task<bool> UpdateAsync(string? filePath, Action<SeasonFile> updater);
+
     /// <summary>Applies <paramref name="updater"/> to the latest round, refreshes the status and saves.</summary>
     Task<bool> UpdateLatestRoundAsync(string? filePath, Action<SeasonRound> updater);
 }

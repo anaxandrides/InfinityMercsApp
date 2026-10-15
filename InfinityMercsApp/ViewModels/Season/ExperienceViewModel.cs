@@ -73,7 +73,7 @@ public partial class ExperienceViewModel(
         var results = Units
             .Select(u => u.Unit)
             .Where(u => u.TotalXp > 0)
-            .Select(u => new SeasonMissionUnitResult { UnitName = u.Name, XpGained = u.TotalXp })
+            .Select(u => new SeasonMissionUnitResult { EntryIndex = u.EntryIndex, UnitName = u.Name, XpGained = u.TotalXp })
             .ToList();
 
         await seasonFiles.UpdateLatestRoundAsync(_seasonFilePath, round => round.MissionResults.UnitResults = results);

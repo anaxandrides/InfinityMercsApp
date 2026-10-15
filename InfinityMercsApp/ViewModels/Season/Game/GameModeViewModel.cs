@@ -11,7 +11,6 @@ using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.Views.Season;
 
 namespace InfinityMercsApp.ViewModels.Season.Game;
 
@@ -234,9 +233,17 @@ public partial class GameModeViewModel(
             .ToList();
 
         await NavigationService.PushAsync(
-            debrief.PendingInjuries.Count > 0 ? "InjuriesPage" : "MissionOutcomePage",
+            debrief.PendingInjuries.Count > 0 || SomeoneRecovers(seasonFile) ? "InjuriesPage" : "MissionOutcomePage",
             NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath));
     }
+
+    // An injured trooper that sat this contract out, or an injured captain, sheds an injury on the injuries page.
+    private bool SomeoneRecovers(SeasonFile? seasonFile) =>
+        seasonFile?.Troopers.Any(trooper =>
+        {
+            var deployed = Units.FirstOrDefault(unit => unit.Unit.EntryIndex == trooper.Key)?.Unit;
+            return InjuryRules.Recovers(deployed is not null, deployed?.IsLieutenant ?? false, trooper.Value.Injuries.Count > 0);
+        }) ?? false;
 
     private ExperienceUnitResult ResultOf(DeploymentUnitItem unit, int deploymentXp) => new()
     {

@@ -3,6 +3,7 @@ using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Season;
 using NSubstitute;
@@ -154,5 +155,25 @@ public sealed class DeploymentRosterTests : IDisposable
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
 
         Assert.Equal(DeploymentRoster.TagCompanyFactionId, DeploymentRoster.EffectiveSourceFactionId(entry));
+    }
+
+    [Fact]
+    public async Task SeasonProgressChangesTheTrooperForTheGame()
+    {
+        var season = new SeasonFile
+        {
+            Rounds = [new SeasonRound { MissionResults = new SeasonMissionResult { UnitResults = [new() { EntryIndex = 2, UnitName = "Fusilier (Hacker)", XpGained = 12 }] } }]
+        };
+        season.TrooperFor(2).Injuries.Add(Injury.Arms);
+        season.TrooperFor(2).CharacteristicsLost.Add("Irregular");
+        _seasonFiles.LoadAsync(SeasonPath).Returns(season);
+
+        var fusilier = (await LoadAsync())[1];
+
+        Assert.Equal("11", fusilier.UnitBs);
+        Assert.False(fusilier.IsIrregular);
+        Assert.Contains("Courage", fusilier.Skills);
+        Assert.Equal(10 + 17, fusilier.Renown);
+        Assert.EndsWith("noun-2-stars.svg", fusilier.ExperienceIconPackagedPath);
     }
 }

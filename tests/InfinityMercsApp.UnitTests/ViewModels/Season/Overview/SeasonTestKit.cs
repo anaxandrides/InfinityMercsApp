@@ -85,6 +85,11 @@ internal sealed class SeasonTestKit
             call.Arg<Action<SeasonRound>>()(latest);
             return true;
         });
+        SeasonFiles.UpdateAsync(SeasonPath, Arg.Any<Action<SeasonFile>>()).Returns(call =>
+        {
+            call.Arg<Action<SeasonFile>>()(Season);
+            return true;
+        });
         SeasonFiles.CreateAsync(Arg.Any<string>(), Arg.Any<string>(), CompanyPath).Returns(SeasonPath);
 
         Stores.GetAvailableStoresAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>())

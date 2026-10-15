@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
@@ -177,5 +178,42 @@ public sealed class SeasonViewModelTests
         await _kit.CompanyFiles.DidNotReceiveWithAnyArgs().LoadAsync(default!);
         Assert.Equal(SeasonViewModel.DefaultName, viewModel.CompanyName);
         Assert.Equal("Round 0", viewModel.RoundTitle);
+    }
+
+    [Fact]
+    public async Task SpendingPerkPointsOpensRankUp()
+    {
+        var viewModel = await _kit.OpenAsync();
+
+        await viewModel.RankUpCommand.ExecuteAsync(null);
+
+        await _kit.Navigation.Received(1).PushAsync("RankUpPage", Arg.Any<IDictionary<string, object>>());
+    }
+
+    [Fact]
+    public async Task MedicalServicesShowsTheServices()
+    {
+        var viewModel = await _kit.OpenAsync();
+        Assert.True(viewModel.Marketplace.ShowsStock);
+
+        viewModel.Marketplace.SelectedStore = viewModel.Marketplace.Stores.Single(store => store.StoreName == "Medical Services");
+
+        Assert.True(viewModel.Marketplace.IsServicesStore);
+        Assert.False(viewModel.Marketplace.ShowsStock);
+        Assert.Equal(["Captain", "Bolt", "Traktor Mul"], viewModel.Services.Troopers.Select(trooper => trooper.Name));
+    }
+
+    [Fact]
+    public async Task ATherapyRefreshesTheTeam()
+    {
+        _kit.Season.TrooperFor(1).Injuries.Add(Injury.Arms);
+        _kit.Dialogs.ConfirmAsync(Arg.Any<string>(), Arg.Any<string>(), "Buy", "Cancel").Returns(true);
+        var viewModel = await _kit.OpenAsync();
+        viewModel.Services.SelectedTrooper = viewModel.Services.Troopers.Single(trooper => trooper.Name == "Bolt");
+
+        await viewModel.Services.BuyCommand.ExecuteAsync(viewModel.Services.Options[0]);
+
+        viewModel.Team.SelectUnitCommand.Execute(viewModel.Team.Units.Single(unit => unit.Name == "Bolt"));
+        Assert.False(viewModel.Team.HasInjuries);
     }
 }

@@ -2,6 +2,7 @@ using System.Text.Json;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Game;
 using InfinityMercsApp.Domain.Season.Injuries;
+using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
@@ -228,6 +229,23 @@ public sealed class GameModeViewModelTests : IDisposable
         Assert.Equal(WoundState.Dead, bolt.WoundState);
         Assert.Equal("Bolt", Assert.Single(_debrief.PendingInjuries).Name);
         Assert.False(_debrief.Units.Single(unit => unit.Name == "Bolt").IsConsciousAtEnd);
+        await _navigation.Received(1).PushAsync("InjuriesPage", Arg.Any<IDictionary<string, object>>());
+    }
+
+    [Fact]
+    public async Task AnInjuredTrooperThatRestedGoesToTheInjuriesPage()
+    {
+        var season = new SeasonFile();
+        season.TrooperFor(9).Injuries.Add(Injury.Arms);
+        _seasonFiles.LoadAsync(SeasonPath).Returns(season);
+        _dialogs.ConfirmAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(true);
+        var viewModel = await OpenAsync();
+        viewModel.NextRoundCommand.Execute(null);
+        viewModel.NextRoundCommand.Execute(null);
+
+        await viewModel.EndGameCommand.ExecuteAsync(null);
+
+        Assert.Empty(_debrief.PendingInjuries);
         await _navigation.Received(1).PushAsync("InjuriesPage", Arg.Any<IDictionary<string, object>>());
     }
 }

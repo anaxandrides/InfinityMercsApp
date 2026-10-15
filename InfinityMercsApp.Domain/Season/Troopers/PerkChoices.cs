@@ -38,6 +38,21 @@ public static class PerkChoices
             .ToList();
     }
 
+    /// <summary>The perk with this node id, as a pick; null when there is no such perk.</summary>
+    public static PerkPick? PickFor(string nodeId)
+    {
+        foreach (var list in CompanyPerkCatalog.GetPerkNodeLists())
+        {
+            var node = list.Roots.Select(root => root.FindById(nodeId)).FirstOrDefault(found => found is not null);
+            if (node is not null && PerkPosition.Parse(node.Id) is { } position)
+            {
+                return new PerkPick(node.Id, node.Name, list.ListId, list.ListName, position.Track, node.Tier);
+            }
+        }
+
+        return null;
+    }
+
     /// <summary>The lists a first d20 picks from when rolling for a perk; overlapping ranges offer a choice.</summary>
     public static IReadOnlyList<PerkListCatalogEntry> ListsForRoll(int roll) =>
         CompanyPerkCatalog.GetPerkListCatalogEntries()

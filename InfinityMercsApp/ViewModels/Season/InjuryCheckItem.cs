@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Season.Injuries;
+using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Season;
@@ -9,18 +10,22 @@ namespace InfinityMercsApp.ViewModels.Season;
 
 /// <summary>
 /// One trooper's injury check. It is settled by a virtual d20 roll, by PASS, or by FAIL followed by
-/// choosing the injury; a failed virtual roll picks the injury from the table.
+/// choosing the injury; a failed virtual roll picks the injury from the table. Injuries are unique, so one
+/// the trooper already carries is rolled again and is not offered.
 /// </summary>
 public partial class InjuryCheckItem : ObservableObject
 {
     private readonly IDice _dice;
     private readonly Action<InjuryCheckItem> _onSettled;
+    private readonly IReadOnlyCollection<Injury> _carried;
 
-    public InjuryCheckItem(PendingInjury injury, IDice dice, Action<InjuryCheckItem> onSettled)
+    public InjuryCheckItem(PendingInjury injury, IReadOnlyCollection<Injury> carried, IDice dice, Action<InjuryCheckItem> onSettled)
     {
         Injury = injury;
+        _carried = carried;
         _dice = dice;
         _onSettled = onSettled;
+        InjuryOptions = InjuryRules.Table.Where(entry => !carried.Contains(entry.Injury)).ToList();
         AvoidTarget = InjuryRules.AvoidTarget(injury.PhValue);
         LogoSource = UnitLogo.Source(injury.CachedLogoPath, injury.PackagedLogoPath);
     }
@@ -33,7 +38,8 @@ public partial class InjuryCheckItem : ObservableObject
 
     public int? AvoidTarget { get; }
 
-    public IReadOnlyList<InjuryTableEntry> InjuryOptions => InjuryRules.Table;
+    /// <summary>The injuries the trooper can still take.</summary>
+    public IReadOnlyList<InjuryTableEntry> InjuryOptions { get; }
 
     public string AvoidText => IsInjured ? "Injury Incurred" : $"Avoid Injury: {AvoidTarget?.ToString() ?? "-"}";
 
@@ -82,9 +88,13 @@ public partial class InjuryCheckItem : ObservableObject
         {
             IsInjured = true;
             var index = InjuryRules.TableIndexForRoll(roll);
-            if (index >= 0)
+            var rolled = index >= 0 && !_carried.Contains(InjuryRules.Table[index].Injury)
+                ? InjuryRules.Table[index].Injury
+                : InjuryRules.RollNew(_dice.RollD20, _carried);
+            if (rolled is { } injury)
             {
-                SelectedInjury = InjuryRules.Table[index];
+                SelectedInjury = InjuryRules.EntryFor(injury);
+                return;
             }
         }
 
@@ -100,9 +110,16 @@ public partial class InjuryCheckItem : ObservableObject
         Settle();
     }
 
-    /// <summary>Settled once the injury is chosen.</summary>
+    /// <summary>Settled once the injury is chosen, or straight away for a trooper that already carries every injury.</summary>
     [RelayCommand(CanExecute = nameof(CanPassOrFail))]
-    private void Fail() => IsInjured = true;
+    private void Fail()
+    {
+        IsInjured = true;
+        if (InjuryOptions.Count == 0)
+        {
+            Settle();
+        }
+    }
 
     partial void OnSelectedInjuryChanged(InjuryTableEntry? value)
     {

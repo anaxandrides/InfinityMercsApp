@@ -80,6 +80,18 @@ internal sealed class SeasonFileStore : ISeasonFileService
         }
     }
 
+    public async Task<bool> UpdateAsync(string? filePath, Action<SeasonFile> updater)
+    {
+        if (await LoadAsync(filePath) is not { } seasonFile)
+        {
+            return false;
+        }
+
+        updater(seasonFile);
+        SeasonStatusUpdate.Apply(seasonFile);
+        return await SaveAsync(filePath, seasonFile);
+    }
+
     public async Task<bool> UpdateLatestRoundAsync(string? filePath, Action<SeasonRound> updater)
     {
         var seasonFile = await LoadAsync(filePath);

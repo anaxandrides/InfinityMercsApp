@@ -22,6 +22,7 @@ using InfinityMercsApp.ViewModels.Season;
 using InfinityMercsApp.ViewModels.Season.Downtime;
 using InfinityMercsApp.ViewModels.Season.Game;
 using InfinityMercsApp.ViewModels.Season.Overview;
+using InfinityMercsApp.ViewModels.Season.RankUp;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views;
 using InfinityMercsApp.Views.Season;
@@ -56,6 +57,7 @@ public static class ServiceRegistryExtensions
                 .AddTransient<MercsSeasonPageViewModel>()
                 .AddTransient<MissionOutcomeViewModel>()
                 .AddTransient<DowntimeViewModel>()
+                .AddTransient<RankUpViewModel>()
                 .AddTransient<CompanyViewerViewModel>()
                 .AddTransient<GameModeViewModel>()
                 .AddTransient<SeasonViewModel>();
@@ -89,6 +91,7 @@ public static class ServiceRegistryExtensions
                 .AddTransient<InjuriesPage>()
                 .AddTransient<ExperiencePage>()
                 .AddTransient<DowntimePage>()
+                .AddTransient<RankUpPage>()
                 .AddTransient<MarketplacesPage>();
 
         return services;

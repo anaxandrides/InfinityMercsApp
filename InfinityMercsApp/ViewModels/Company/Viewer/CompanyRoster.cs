@@ -2,12 +2,15 @@ using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Common;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Visuals;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Packaging;
+using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.Controls;
 
@@ -30,8 +33,11 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
 
     private static readonly Color DefaultAccent = Color.FromArgb("#93C5FD");
 
-    /// <summary>The company's troopers, lieutenant first and then in saved order, with the captain's upgrades on the lieutenant.</summary>
-    public IReadOnlyList<CompanyViewerUnitListItem> UnitsOf(SavedCompanyFile company)
+    /// <summary>
+    /// The company's troopers, lieutenant first and then in saved order, with the captain's upgrades on the
+    /// lieutenant. With a season, each also carries its experience, injuries, perks and other changes so far.
+    /// </summary>
+    public IReadOnlyList<CompanyViewerUnitListItem> UnitsOf(SavedCompanyFile company, SeasonFile? season = null)
     {
         var captain = company.ImprovedCaptainStats ?? new SavedImprovedCaptainStats();
         var captainName = string.IsNullOrWhiteSpace(captain.CaptainName) ? "Captain" : captain.CaptainName.Trim();
@@ -39,11 +45,11 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         return company.Entries
             .OrderByDescending(entry => entry.IsLieutenant)
             .ThenBy(entry => entry.EntryIndex)
-            .Select((entry, position) => UnitOf(entry, position, captain, captainName))
+            .Select((entry, position) => UnitOf(entry, position, captain, captainName, season))
             .ToList();
     }
 
-    private CompanyViewerUnitListItem UnitOf(SavedCompanyEntry entry, int position, SavedImprovedCaptainStats captain, string captainName)
+    private CompanyViewerUnitListItem UnitOf(SavedCompanyEntry entry, int position, SavedImprovedCaptainStats captain, string captainName, SeasonFile? season)
     {
         var sourceFactionId = EffectiveSourceFactionId(entry);
         var baseUnitName = !string.IsNullOrWhiteSpace(entry.BaseUnitName) ? entry.BaseUnitName
@@ -66,6 +72,14 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         var logoFactionId = entry.LogoSourceFactionId > 0 ? entry.LogoSourceFactionId : entry.SourceFactionId;
         var logoUnitId = entry.LogoSourceUnitId > 0 ? entry.LogoSourceUnitId : entry.SourceUnitId;
 
+        var progress = SeasonTroopers.ProgressOf(entry, season);
+        var profile = new TrooperProfile(
+            SavedMove(entry), entry.CurrentCc, entry.CurrentBs, entry.CurrentPh, entry.CurrentWip, entry.CurrentArm, entry.CurrentBts,
+            entry.CurrentVitaOrStr, entry.CurrentS,
+            ProfileText.Lines(skills),
+            ProfileText.Lines(SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Chars))))
+            .With(progress.Change);
+
         return new CompanyViewerUnitListItem
         {
             Name = string.IsNullOrWhiteSpace(entry.CustomName) ? defaultName : entry.CustomName.Trim(),
@@ -82,23 +96,24 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             IsLieutenant = entry.IsLieutenant,
             Cost = entry.Cost,
             SavedEquipment = equipment,
-            SavedSkills = skills,
-            SavedCharacteristics = SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Chars)),
+            SavedSkills = ProfileText.JoinOrDash(profile.Skills),
+            SavedCharacteristics = ProfileText.JoinOrDash(profile.Characteristics),
             SavedRangedWeapons = ranged,
             SavedCcWeapons = SavedCodeNames.JoinOrDash(weapons.Melee),
             SavedPeripheralNameHeading = entry.PeripheralNameHeading,
-            UnitMov = SavedMove(entry),
-            UnitCc = entry.CurrentCc,
-            UnitBs = entry.CurrentBs,
-            UnitPh = entry.CurrentPh,
-            UnitWip = entry.CurrentWip,
-            UnitArm = entry.CurrentArm,
-            UnitBts = entry.CurrentBts,
-            UnitVitality = entry.CurrentVitaOrStr,
-            UnitS = entry.CurrentS,
-            ExperiencePoints = Math.Max(0, entry.ExperiencePoints),
+            UnitMov = profile.Move,
+            UnitCc = profile.Cc,
+            UnitBs = profile.Bs,
+            UnitPh = profile.Ph,
+            UnitWip = profile.Wip,
+            UnitArm = profile.Arm,
+            UnitBts = profile.Bts,
+            UnitVitality = profile.Vitality,
+            UnitS = profile.Silhouette,
+            ExperiencePoints = progress.TotalXp,
+            Progress = progress,
             CaptainIconPackagedPath = entry.IsLieutenant ? SavedUnitText.CaptainIconPath : string.Empty,
-            ExperienceIconPackagedPath = SavedUnitText.ExperienceIconPath(entry.ExperiencePoints),
+            ExperienceIconPackagedPath = SavedUnitText.ExperienceIconPath(progress.TotalXp),
             SelectionAccentColor = AccentFor(logoFactionId),
             CachedLogoPath = logoCache?.TryGetCachedUnitLogoPath(logoFactionId, logoUnitId),
             PackagedLogoPath = logoCache?.GetPackagedUnitLogoPath(logoFactionId, logoUnitId) ?? $"SVGCache/units/{logoFactionId}-{logoUnitId}.svg",

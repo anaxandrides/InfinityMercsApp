@@ -2,6 +2,7 @@ using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Season.Inventory;
+using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Marketplaces;
 using InfinityMercsApp.ViewModels.Season.Overview;
@@ -50,9 +51,12 @@ public sealed class SeasonTeamViewModelTests
 
     private async Task LoadAsync(CompanyLoadouts? loadouts = null)
     {
-        await _team.LoadAsync(SeasonTestKit.Company(), SeasonTestKit.SeasonPath, loadouts ?? new CompanyLoadouts());
+        _kit.Season.UnitGear = (loadouts ?? new CompanyLoadouts()).ToSeasonGear();
+        await _team.LoadAsync(SeasonTestKit.Company(), SeasonTestKit.SeasonPath, _kit.Season);
         _team.ShowOwnedGear(Owned());
     }
+
+    private CompanyLoadouts SavedLoadouts() => CompanyLoadouts.From(_kit.Season.UnitGear);
 
     private GearSlotPicker Picker(GearSlot slot) => _team.GearSlots.Single(picker => picker.Slot == slot);
 
@@ -149,7 +153,7 @@ public sealed class SeasonTeamViewModelTests
         armor.SelectedOption = armor.Options[1];
 
         Assert.Equal("Light Armour (LI)", Picker(GearSlot.Armor).SelectedOption?.Display);
-        Assert.Null(loadouts.For(1)[GearSlot.Armor]);
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Armor]);
         _team.SelectUnitCommand.Execute(Unit("Bolt"));
         Assert.Equal("Light Armour (LI)  [Attached: Captain]", Picker(GearSlot.Armor).Options[1].Display);
         Assert.Equal(GearOption.None, Picker(GearSlot.Armor).SelectedOption);
@@ -165,7 +169,7 @@ public sealed class SeasonTeamViewModelTests
 
         Picker(GearSlot.Primary).SelectedOption = GearOption.None;
 
-        Assert.Null(loadouts.For(2)[GearSlot.Primary]);
+        Assert.Null(SavedLoadouts().For(2)[GearSlot.Primary]);
         Assert.Equal(ProfileLine.None, _team.RangedWeapons.Left.Single());
     }
 
@@ -244,5 +248,43 @@ public sealed class SeasonTeamViewModelTests
 
         Assert.Empty(_team.Units);
         Assert.Equal(SeasonTeamViewModel.NoUnitTitle, _team.PickerTitle);
+    }
+
+    [Fact]
+    public async Task ATrooperShowsItsRankPerksAndInjuries()
+    {
+        _kit.Season.Rounds[0].MissionResults.UnitResults.Add(new SeasonMissionUnitResult { EntryIndex = 1, UnitName = "Bolt", XpGained = 16 });
+        _kit.Season.TrooperFor(1).Perks.Add("reflex-track-8-tier-2");
+        _kit.Season.TrooperFor(1).Injuries.Add(Injury.Arms);
+        await LoadAsync();
+
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        Assert.Equal("Hired Gun · 16 XP", _team.RankText);
+        Assert.Equal(["+1 BS"], _team.Perks);
+        Assert.Equal(["Arms: -1 BS"], _team.Injuries);
+        Assert.True(_team.HasPerks && _team.HasInjuries && _team.HasPerkPointsToSpend);
+        Assert.Contains(_team.Skills.Left.Concat(_team.Skills.Right), line => line.Text == "Courage");
+    }
+
+    [Fact]
+    public async Task InjuriesChangeTheStatLine()
+    {
+        _kit.Season.TrooperFor(2).Injuries.Add(Injury.BrainInjury);
+
+        await LoadAsync();
+
+        Assert.Equal("11", _team.Detail.UnitCc);
+    }
+
+    [Fact]
+    public async Task ReloadingKeepsTheTrooperShown()
+    {
+        await LoadAsync();
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        await LoadAsync();
+
+        Assert.Equal("Bolt", _team.SelectedName);
     }
 }

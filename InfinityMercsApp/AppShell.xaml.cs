@@ -17,6 +17,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(Views.Season.MissionOutcomePage), typeof(Views.Season.MissionOutcomePage));
         Routing.RegisterRoute(nameof(Views.Season.ExperiencePage), typeof(Views.Season.ExperiencePage));
         Routing.RegisterRoute(nameof(Views.Season.DowntimePage), typeof(Views.Season.DowntimePage));
+        Routing.RegisterRoute(nameof(Views.Season.RankUpPage), typeof(Views.Season.RankUpPage));
 
         // MERCS Season home sub-pages.
         Routing.RegisterRoute(nameof(Views.Season.LoadSeasonPage), typeof(Views.Season.LoadSeasonPage));

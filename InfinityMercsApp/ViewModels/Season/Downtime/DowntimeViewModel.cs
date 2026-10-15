@@ -4,12 +4,16 @@ using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Season.Downtime;
 using InfinityMercsApp.Domain.Season.Experience;
+using InfinityMercsApp.Domain.Season.Injuries;
 using InfinityMercsApp.Domain.Season.Rolls;
+using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
+using InfinityMercsApp.ViewModels.Company.Viewer;
 
 namespace InfinityMercsApp.ViewModels.Season.Downtime;
 
@@ -22,7 +26,9 @@ public partial class DowntimeViewModel(
     ISeasonFileService seasonFiles,
     MissionDebrief debrief,
     IDice dice,
-    IDialogService dialogs) : ViewModelBase(navigationService)
+    IDialogService dialogs,
+    ICompanyFileService companyFiles,
+    CompanyRoster roster) : ViewModelBase(navigationService)
 {
     public const string EventRollPrompt = "Press ROLL for a random event, or pick a value and press REAL.";
 
@@ -368,20 +374,51 @@ public partial class DowntimeViewModel(
 
         var totals = DowntimeRules.Totals(choice, outcome, _crSpent);
         var participantName = participant?.Name;
-        await seasonFiles.UpdateLatestRoundAsync(_seasonFilePath, round =>
+        var skills = DowntimeRules.SkillsAwarded(choice, outcome);
+        var injures = DowntimeRules.InjuresParticipant(choice, outcome);
+        Injury? injury = null;
+        await seasonFiles.UpdateAsync(_seasonFilePath, season =>
         {
-            round.Downtime.Result = participantName is null
-                ? DowntimeRules.OutcomeLabel(outcome)
-                : $"{DowntimeRules.OutcomeLabel(outcome)} — {participantName}";
-            round.Downtime.ParticipantName = participantName ?? string.Empty;
-            round.Downtime.CrGain = totals.CrGain;
-            round.Downtime.NotorietyGain = totals.NotorietyGain;
-            round.Downtime.XpGain = totals.XpGain;
-            round.Downtime.SpentCr = totals.SpentCr;
-            round.Downtime.SwcGain = totals.SwcGain;
-            round.Downtime.OtherEffects = string.Join("; ", totals.OtherEffects);
-            round.Downtime.WonItems = wonItems;
+            if (SeasonRounds.Latest(season) is { } round)
+            {
+                round.Downtime.Result = participantName is null
+                    ? DowntimeRules.OutcomeLabel(outcome)
+                    : $"{DowntimeRules.OutcomeLabel(outcome)} — {participantName}";
+                round.Downtime.ParticipantName = participantName ?? string.Empty;
+                round.Downtime.ParticipantEntryIndex = participant?.EntryIndex;
+                round.Downtime.CrGain = totals.CrGain;
+                round.Downtime.NotorietyGain = totals.NotorietyGain;
+                round.Downtime.XpGain = totals.XpGain;
+                round.Downtime.SpentCr = totals.SpentCr;
+                round.Downtime.SwcGain = totals.SwcGain;
+                round.Downtime.OtherEffects = string.Join("; ", totals.OtherEffects);
+                round.Downtime.WonItems = wonItems;
+            }
+
+            if (participant is null)
+            {
+                return;
+            }
+
+            // The participant keeps any skill won and carries any injury taken.
+            var trooper = season.TrooperFor(participant.EntryIndex);
+            foreach (var skill in skills.Where(skill => !trooper.SkillsGained.Contains(skill, StringComparer.OrdinalIgnoreCase)))
+            {
+                trooper.SkillsGained.Add(skill);
+            }
+
+            if (injures && InjuryRules.RollNew(dice.RollD20, trooper.Injuries) is { } rolled)
+            {
+                injury = rolled;
+                trooper.Injuries.Add(rolled);
+            }
         });
+
+        if (injury is { } taken && participant is not null)
+        {
+            participant.InjuryName = taken.Label();
+            ConsequenceLines = [.. ConsequenceLines, $"{participant.Name} suffers {taken.Label()}: {taken.EffectText()}"];
+        }
     }
 
     private PistolRoll RollPistol(int sdBonus)
@@ -390,8 +427,33 @@ public partial class DowntimeViewModel(
         return new PistolRoll(SeasonRollTables.Pistols.Lookup(roll) ?? "Unknown pistol", roll, sdBonus);
     }
 
+    /// <summary>On to spending perk points when anyone ranked up, otherwise back to base.</summary>
     [RelayCommand]
-    private Task BackToBaseAsync() => NavigationService.PopToRootAsync();
+    private async Task BackToBaseAsync()
+    {
+        if (await AnyoneRankedUpAsync())
+        {
+            await NavigationService.PushAsync("RankUpPage", NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath));
+            return;
+        }
+
+        await NavigationService.PopToRootAsync();
+    }
+
+    private async Task<bool> AnyoneRankedUpAsync()
+    {
+        try
+        {
+            return companyFiles.Exists(_companyFilePath) &&
+                   await companyFiles.LoadAsync(_companyFilePath) is { } company &&
+                   roster.UnitsOf(company, await seasonFiles.LoadAsync(_seasonFilePath)).Any(unit => unit.Progress?.HasPerkPointsToSpend == true);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Checking for rank ups failed: {ex.Message}");
+            return false;
+        }
+    }
 
     private void ClearResolution()
     {

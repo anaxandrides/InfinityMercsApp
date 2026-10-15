@@ -22,6 +22,9 @@ public static class ProfileText
             .ToList();
     }
 
+    /// <summary>The items one per line, or "-" when there are none.</summary>
+    public static string JoinOrDash(IReadOnlyList<string> items) => items.Count == 0 ? Empty : string.Join(Environment.NewLine, items);
+
     /// <summary>
     /// The section with <paramref name="additions"/> appended, skipping items it already lists (ignoring case).
     /// With <paramref name="keepTextWhenNothingAdded"/>, a call with no additions returns the text untouched.

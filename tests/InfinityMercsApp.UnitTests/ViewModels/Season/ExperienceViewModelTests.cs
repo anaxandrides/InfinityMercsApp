@@ -57,7 +57,7 @@ public sealed class ExperienceViewModelTests
     {
         var viewModel = await OpenAsync(
             new() { Name = "Benched", DeploymentXp = 0 },
-            new() { Name = "Hero", DeploymentXp = 2, IsConsciousAtEnd = true });
+            new() { EntryIndex = 4, Name = "Hero", DeploymentXp = 2, IsConsciousAtEnd = true });
         viewModel.Units[1].IsMvp = true;
 
         await viewModel.ConfirmCommand.ExecuteAsync(null);
@@ -65,7 +65,7 @@ public sealed class ExperienceViewModelTests
         var round = new SeasonRound();
         _roundUpdate!(round);
         var result = Assert.Single(round.MissionResults.UnitResults);
-        Assert.Equal(("Hero", 6), (result.UnitName, result.XpGained));
+        Assert.Equal((4, "Hero", 6), (result.EntryIndex, result.UnitName, result.XpGained));
         await _navigation.Received(1).PushAsync("DowntimePage", Arg.Any<IDictionary<string, object>>());
     }
 

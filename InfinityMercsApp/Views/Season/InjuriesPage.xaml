@@ -11,6 +11,13 @@
              BackgroundColor="{StaticResource Void}">
 
     <ContentPage.Resources>
+        <Style x:Key="SectionHeading" TargetType="Label">
+            <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="CharacterSpacing" Value="2" />
+            <Setter Property="Padding" Value="16,4" />
+        </Style>
         <Style x:Key="RowCaption" TargetType="Label">
             <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
             <Setter Property="FontSize" Value="14" />
@@ -31,7 +38,9 @@
         <ScrollView Grid.Row="0"
                     Orientation="Vertical"
                     VerticalScrollBarVisibility="Always">
-            <VerticalStackLayout Spacing="1" Padding="0,8,0,16" BindableLayout.ItemsSource="{Binding Injuries}">
+            <VerticalStackLayout Padding="0,8,0,16" Spacing="8">
+            <Label Text="INJURY CHECKS" Style="{StaticResource SectionHeading}" IsVisible="{Binding HasInjuryChecks}" />
+            <VerticalStackLayout Spacing="1" BindableLayout.ItemsSource="{Binding Injuries}">
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="seasonViewModels:InjuryCheckItem">
                         <VerticalStackLayout Padding="16" Spacing="10" BackgroundColor="{StaticResource Plate}">
@@ -130,6 +139,26 @@
                         </VerticalStackLayout>
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <!-- Troopers shedding an injury: those that rested, and the captain -->
+            <Label Text="RECOVERY" Style="{StaticResource SectionHeading}" IsVisible="{Binding HasRecoveries}" />
+            <VerticalStackLayout Spacing="1" BindableLayout.ItemsSource="{Binding Recoveries}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="seasonViewModels:InjuryRecoveryItem">
+                        <VerticalStackLayout Padding="16" Spacing="8" BackgroundColor="{StaticResource Plate}">
+                            <Label Text="{Binding Name}" TextColor="{StaticResource TextPrimary}" FontAttributes="Bold" FontSize="16" />
+                            <Label Text="{Binding Reason}" Style="{StaticResource RowCaption}" />
+                            <Picker Title="Injury to shed…"
+                                    ItemsSource="{Binding Injuries}"
+                                    SelectedItem="{Binding SelectedInjury}"
+                                    TextColor="{StaticResource TextPrimary}"
+                                    BackgroundColor="{StaticResource HairlineBright}"
+                                    HorizontalOptions="Fill" />
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
             </VerticalStackLayout>
         </ScrollView>
 

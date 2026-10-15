@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Metadata;
-using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Utilities;
@@ -37,6 +36,7 @@ public partial class SeasonViewModel : ViewModelBase
     private string? _seasonFilePath;
     private bool _needsLoad;
     private InventoryCatalog? _catalog;
+    private SavedCompanyFile? _company;
 
     public SeasonViewModel(
         INavigationService navigationService,
@@ -60,6 +60,7 @@ public partial class SeasonViewModel : ViewModelBase
         Inventory = new SeasonInventoryViewModel(seasonFiles, dialogs, RefreshSeasonAsync);
         Marketplace = new SeasonMarketplaceViewModel(storeProvider, seasonFiles, dialogs, detailPopup, RefreshSeasonAsync);
         StoreSearch = new TemporaryStoreSearchViewModel(seasonFiles, dice, OnTemporaryStoreChosenAsync);
+        Services = new SeasonServicesViewModel(seasonFiles, dialogs, RefreshSeasonAsync);
     }
 
     public SeasonTeamViewModel Team { get; }
@@ -69,6 +70,9 @@ public partial class SeasonViewModel : ViewModelBase
     public SeasonMarketplaceViewModel Marketplace { get; }
 
     public TemporaryStoreSearchViewModel StoreSearch { get; }
+
+    /// <summary>The services, shown when the Medical Services store is picked.</summary>
+    public SeasonServicesViewModel Services { get; }
 
     /// <summary>The popup showing a weapon or market row in full.</summary>
     public MarketplaceDetailViewModel DetailPopup { get; }
@@ -124,6 +128,11 @@ public partial class SeasonViewModel : ViewModelBase
         return tab == SeasonTab.Team ? Task.CompletedTask : RefreshSeasonAsync();
     }
 
+    /// <summary>Opens the rank-up page to spend troopers' perk points.</summary>
+    [RelayCommand]
+    private Task RankUpAsync() =>
+        NavigationService.PushAsync("RankUpPage", NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath ?? string.Empty));
+
     [RelayCommand]
     private Task PlayRoundAsync() =>
         NavigationService.PushAsync("PlayModePage", NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath ?? string.Empty));
@@ -145,7 +154,7 @@ public partial class SeasonViewModel : ViewModelBase
             _seasonFilePath ??= await _seasonFiles.CreateAsync(CompanyName, company.CompanyIdentifier, _companyFilePath);
 
             var seasonFile = await _seasonFiles.LoadAsync(_seasonFilePath);
-            await Team.LoadAsync(company, _seasonFilePath, CompanyLoadouts.From(seasonFile?.UnitGear ?? []));
+            _company = company;
             Marketplace.RefreshBalance(seasonFile);
             await Marketplace.LoadStoresAsync(FactionNames(company), _seasonFilePath, seasonFile);
         }
@@ -158,6 +167,7 @@ public partial class SeasonViewModel : ViewModelBase
 
     private void ShowNoCompany()
     {
+        _company = null;
         CompanyName = DefaultName;
         CompanyType = string.Empty;
         Team.Clear();
@@ -174,16 +184,22 @@ public partial class SeasonViewModel : ViewModelBase
         return FactionResolver.GetExpandedFactionNames(companyFactions, allFactions);
     }
 
-    // Re-reads the season: the round, the balance, what is owned, and whether a temporary store is wanted.
+    // Re-reads the season: the round, the troopers, the balance, what is owned, and whether a temporary store is wanted.
     private async Task RefreshSeasonAsync()
     {
         var seasonFile = await _seasonFiles.LoadAsync(_seasonFilePath);
+        if (_company is { } company)
+        {
+            await Team.LoadAsync(company, _seasonFilePath, seasonFile);
+        }
+
         var currentRound = SeasonRounds.Current(seasonFile);
         RoundTitle = currentRound == 0 ? "Round 0" : $"Round {currentRound} Marketplace";
 
         var inventory = SeasonInventory.From(seasonFile, await CatalogAsync());
         Marketplace.RefreshBalance(seasonFile);
         Inventory.Show(_seasonFilePath, seasonFile, inventory);
+        Services.Show(_seasonFilePath, seasonFile, Team.Units.ToList());
         Team.ShowOwnedGear(inventory);
         StoreSearch.OpenIfNeeded(_seasonFilePath, seasonFile, Marketplace.StoreNames(), _storeProvider.GetAllStoreNames());
     }

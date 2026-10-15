@@ -5,8 +5,11 @@ using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Domain.Models.Perks.Catalog;
+using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Season.Inventory;
+using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Visuals;
@@ -106,6 +109,26 @@ public partial class SeasonTeamViewModel : ObservableObject
     [ObservableProperty]
     private ProfileColumns _meleeWeapons = ProfileColumns.Empty;
 
+    /// <summary>The selected trooper's rank and XP, e.g. "Hired Gun · 18 XP".</summary>
+    [ObservableProperty]
+    private string _rankText = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPerks))]
+    private IReadOnlyList<string> _perks = [];
+
+    /// <summary>The selected trooper's injuries with their effects, e.g. "Arms: -1 BS".</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasInjuries))]
+    private IReadOnlyList<string> _injuries = [];
+
+    [ObservableProperty]
+    private bool _hasPerkPointsToSpend;
+
+    public bool HasPerks => Perks.Count > 0;
+
+    public bool HasInjuries => Injuries.Count > 0;
+
     /// <summary>The drop-down's heading: the selected trooper's name.</summary>
     public string PickerTitle => SelectedUnit?.Name ?? NoUnitTitle;
 
@@ -113,15 +136,19 @@ public partial class SeasonTeamViewModel : ObservableObject
 
     public bool HasSelectedUnitType => SelectedUnitType.Length > 0;
 
-    /// <summary>Shows a company's troopers with their saved season gear, selecting the first.</summary>
-    public async Task LoadAsync(SavedCompanyFile company, string? seasonFilePath, CompanyLoadouts loadouts)
+    /// <summary>
+    /// Shows a company's troopers as they stand in the season, with their season gear. The trooper shown before
+    /// stays selected; otherwise the first is.
+    /// </summary>
+    public async Task LoadAsync(SavedCompanyFile company, string? seasonFilePath, SeasonFile? season)
     {
+        var shownEntry = SelectedUnit?.EntryIndex;
         _captain = company.ImprovedCaptainStats ?? new SavedImprovedCaptainStats();
         _seasonFilePath = seasonFilePath;
-        _loadouts = loadouts;
+        _loadouts = CompanyLoadouts.From(season?.UnitGear ?? []);
         Units.Clear();
         SelectedUnit = null;
-        foreach (var unit in _roster.UnitsOf(company))
+        foreach (var unit in _roster.UnitsOf(company, season))
         {
             unit.LogoSource = await CompanyRoster.LogoSourceAsync(unit, _packageFiles);
             Units.Add(unit);
@@ -129,7 +156,7 @@ public partial class SeasonTeamViewModel : ObservableObject
 
         if (Units.Count > 0)
         {
-            SelectUnit(Units[0]);
+            SelectUnit(Units.FirstOrDefault(unit => unit.EntryIndex == shownEntry) ?? Units[0]);
         }
     }
 
@@ -209,6 +236,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         var baseName = string.IsNullOrWhiteSpace(item.BaseUnitName) ? profile.Name : item.BaseUnitName;
         SelectedBaseName = string.Equals(baseName.Trim(), item.Name.Trim(), StringComparison.OrdinalIgnoreCase) ? string.Empty : baseName;
         SelectedUnitType = item.UnitTypeCode;
+        ShowProgress(item.Progress);
 
         HeaderColors = _roster.HeaderColorsFor(item.VisualFactionId > 0 ? item.VisualFactionId : item.SourceFactionId);
         ShowLieutenantIcon = profile.IsLieutenant;
@@ -220,6 +248,18 @@ public partial class SeasonTeamViewModel : ObservableObject
         Skills = ProfileColumns.From(SkillLines(profile, loadout));
         ShowWeapons(profile, loadout);
         RefreshGearPickers();
+    }
+
+    private void ShowProgress(TrooperProgress? progress)
+    {
+        RankText = progress is null ? string.Empty : $"{progress.RankName} · {progress.TotalXp} XP";
+        Perks = progress?.Perks
+            .Select(perk => CompanyPerkCatalog.FindById(perk)?.Description ?? perk)
+            .ToList() ?? [];
+        Injuries = [
+            .. progress?.Record.Injuries.Select(injury => $"{injury.Label()}: {injury.EffectText()}") ?? []
+        ];
+        HasPerkPointsToSpend = progress?.HasPerkPointsToSpend == true;
     }
 
     // The lieutenant order first, then the rest, then an augment that is a skill rather than a stat.

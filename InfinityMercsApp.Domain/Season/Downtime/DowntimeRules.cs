@@ -136,6 +136,19 @@ public static class DowntimeRules
     public static bool WinsPistol(DowntimeChoice choice, PassFailOutcome outcome) =>
         IsPass(outcome) && ActiveTraits(choice, outcome).Any(trait => trait.Kind == TraitKind.Weapon);
 
+    /// <summary>The skills the participant gains from <paramref name="choice"/> on <paramref name="outcome"/>.</summary>
+    public static IReadOnlyList<string> SkillsAwarded(DowntimeChoice choice, PassFailOutcome outcome) =>
+        IsPass(outcome)
+            ? ActiveTraits(choice, outcome)
+                .Where(trait => trait.Kind == TraitKind.Skill && !string.IsNullOrWhiteSpace(trait.Detail))
+                .Select(trait => trait.Detail ?? string.Empty)
+                .ToList()
+            : [];
+
+    /// <summary>Whether <paramref name="choice"/> injures the participant on <paramref name="outcome"/> (an Attack failed).</summary>
+    public static bool InjuresParticipant(DowntimeChoice choice, PassFailOutcome outcome) =>
+        outcome == PassFailOutcome.Fail && ActiveTraits(choice, outcome).Any(trait => trait.Kind == TraitKind.Attack);
+
     /// <summary>
     /// What happens, one line per effect. <paramref name="pistol"/> is the pistol rolled for a Weapon trait.
     /// </summary>

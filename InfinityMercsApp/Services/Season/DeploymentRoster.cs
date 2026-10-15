@@ -5,6 +5,7 @@ using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Season.Gear;
+using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
@@ -55,9 +56,8 @@ public sealed partial class DeploymentRoster(
             return [];
         }
 
-        var seasonGear = string.IsNullOrWhiteSpace(seasonFilePath)
-            ? []
-            : (await seasonFiles.LoadAsync(seasonFilePath))?.UnitGear ?? [];
+        var season = string.IsNullOrWhiteSpace(seasonFilePath) ? null : await seasonFiles.LoadAsync(seasonFilePath);
+        var seasonGear = season?.UnitGear ?? [];
         var captain = CaptainUpgrades.From(company.ImprovedCaptainStats);
 
         return company.Entries
@@ -65,7 +65,7 @@ public sealed partial class DeploymentRoster(
             .Where(e => deployedEntryIndices is null || deployedEntryIndices.Contains(e.EntryIndex))
             .OrderByDescending(e => e.IsLieutenant)
             .ThenBy(e => e.EntryIndex)
-            .Select(entry => BuildUnit(entry, captain, seasonGear.GetValueOrDefault(entry.EntryIndex), showUnitsInInches))
+            .Select(entry => BuildUnit(entry, captain, seasonGear.GetValueOrDefault(entry.EntryIndex), SeasonTroopers.ProgressOf(entry, season), showUnitsInInches))
             .ToList();
     }
 
@@ -73,6 +73,7 @@ public sealed partial class DeploymentRoster(
         SavedCompanyEntry entry,
         CaptainUpgrades captain,
         IReadOnlyList<SeasonUnitGear>? gear,
+        TrooperProgress progress,
         bool showUnitsInInches)
     {
         var factionId = EffectiveSourceFactionId(entry);
@@ -92,10 +93,20 @@ public sealed partial class DeploymentRoster(
 
         ApplySeasonGear(profile, gear ?? []);
 
+        // Injuries, perks, rank skills and services change the trooper the game sees.
+        var changed = new TrooperProfile(
+            MoveText(entry), profile.Cc, profile.Bs, profile.Ph, profile.Wip, profile.Arm, profile.Bts, profile.Vitality, profile.S,
+            ProfileText.Lines(profile.Skills), ProfileText.Lines(characteristics))
+            .With(progress.Change);
+        (profile.Cc, profile.Bs, profile.Ph, profile.Wip, profile.Arm, profile.Bts, profile.Vitality, profile.S) =
+            (changed.Cc, changed.Bs, changed.Ph, changed.Wip, changed.Arm, changed.Bts, changed.Vitality, changed.Silhouette);
+        profile.Skills = ProfileText.JoinOrDash(changed.Skills);
+        characteristics = ProfileText.JoinOrDash(changed.Characteristics);
+
         var baseUnitName = string.IsNullOrWhiteSpace(entry.BaseUnitName) ? entry.Name : entry.BaseUnitName;
         var logoFactionId = entry.LogoSourceFactionId > 0 ? entry.LogoSourceFactionId : entry.SourceFactionId;
         var logoUnitId = entry.LogoSourceUnitId > 0 ? entry.LogoSourceUnitId : entry.SourceUnitId;
-        var experienceLevel = CompanyUnitExperienceRanks.GetRankLevel(entry.ExperiencePoints);
+        var experienceLevel = progress.RankLevel;
 
         return new DeploymentUnitItem
         {
@@ -114,8 +125,7 @@ public sealed partial class DeploymentRoster(
             CachedLogoPath = logos?.TryGetCachedUnitLogoPath(logoFactionId, logoUnitId),
             PackagedLogoPath = logos?.GetPackagedUnitLogoPath(logoFactionId, logoUnitId)
                                ?? $"SVGCache/units/{logoFactionId}-{logoUnitId}.svg",
-            UnitMov = SeasonDisplayUnitFormatter.FormatMoveValue(
-                entry.CurrentMov, entry.CurrentMoveFirstCm, entry.CurrentMoveSecondCm, showUnitsInInches),
+            UnitMov = SeasonDisplayUnitFormatter.FormatMoveValue(changed.Move, null, null, showUnitsInInches),
             UnitCc = profile.Cc,
             UnitBs = profile.Bs,
             UnitPh = profile.Ph,
@@ -124,7 +134,7 @@ public sealed partial class DeploymentRoster(
             UnitBts = profile.Bts,
             UnitVitality = profile.Vitality,
             UnitS = profile.S,
-            Renown = entry.Cost + entry.ExperiencePoints,
+            Renown = entry.Cost + progress.TotalXp,
             VitalityStat = StatKeys.VitalityFor(entry.UnitTypeCode),
             StartingVitality = Math.Max(1, int.TryParse(entry.CurrentVitaOrStr, out var vitality) ? vitality : 1),
             HasNwi = HasLine(profile.Skills, "No Wound Incapacitation"),
@@ -181,6 +191,12 @@ public sealed partial class DeploymentRoster(
             }
         }
     }
+
+    // The movement in centimetres when the entry has both values, so it reads back unambiguously; otherwise as saved.
+    private static string MoveText(SavedCompanyEntry entry) =>
+        entry.CurrentMoveFirstCm is > 0 && entry.CurrentMoveSecondCm is > 0
+            ? $"{entry.CurrentMoveFirstCm}cm-{entry.CurrentMoveSecondCm}cm"
+            : entry.CurrentMov;
 
     /// <summary>TAG Company units, including its repurposed mining TAGs, take their profiles from the TAG Company faction.</summary>
     internal static int EffectiveSourceFactionId(SavedCompanyEntry entry)

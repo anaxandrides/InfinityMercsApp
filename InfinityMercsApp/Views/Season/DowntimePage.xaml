@@ -301,7 +301,7 @@
                         Command="{Binding RealCommand}" />
             </Grid>
 
-            <Button Text="BACK TO BASE"
+            <Button Text="CONTINUE"
                     BackgroundColor="Transparent"
                     TextColor="{StaticResource TextPrimary}"
                     BorderColor="{StaticResource Signal}"

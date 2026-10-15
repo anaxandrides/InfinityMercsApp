@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 
 namespace InfinityMercsApp.ViewModels.Company.Viewer;
@@ -40,6 +41,9 @@ public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewe
     public Color TileStroke => IsSelected ? SelectionAccentColor : Color.FromArgb("#3A4554");
     public double TileStrokeThickness => IsSelected ? 2d : 1d;
     public int ExperiencePoints { get; init; }
+
+    /// <summary>The trooper's season so far: rank, perk points, injuries and perks.</summary>
+    public TrooperProgress? Progress { get; init; }
     public int ExperienceLevel => CompanyUnitExperienceRanks.GetRankLevel(ExperiencePoints);
     public string ExperienceRankName => CompanyUnitExperienceRanks.GetRankName(ExperiencePoints);
     public string CaptainIconPackagedPath { get; init; } = string.Empty;
