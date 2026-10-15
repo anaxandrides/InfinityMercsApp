@@ -49,6 +49,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
     private readonly IStoreProvider? _storeProvider;
     private readonly IMetadataProvider? _metadataProvider;
     private readonly IAppSettingsProvider? _appSettingsProvider;
+    private readonly ISeasonFileService _seasonFiles;
     private IReadOnlyList<Store> _availableStores = [];
     private readonly Dictionary<string, int> _inventoryCounts = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ItemPrice> _inventoryItemCosts = new(StringComparer.OrdinalIgnoreCase);
@@ -296,6 +297,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
     public SeasonPage(
         UnitDetailViewModel viewerViewModel,
+        ISeasonFileService seasonFiles,
         FactionLogoCacheService? factionLogoCacheService = null,
         IArmyDataService? armyDataService = null,
         IStoreProvider? storeProvider = null,
@@ -304,6 +306,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
     {
         InitializeComponent();
         _viewerViewModel = viewerViewModel;
+        _seasonFiles = seasonFiles;
         _factionLogoCacheService = factionLogoCacheService;
         _armyDataService = armyDataService;
         _storeProvider = storeProvider;
@@ -441,7 +444,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
             if (_seasonFilePath is null)
             {
-                _seasonFilePath = await SeasonFileService.CreateSeasonFileAsync(
+                _seasonFilePath = await _seasonFiles.CreateAsync(
                     companyName,
                     payload.CompanyIdentifier ?? string.Empty,
                     filePath ?? string.Empty);
@@ -1084,8 +1087,8 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
     private async Task UpdateSeasonTitleBarLabelAsync()
     {
-        var seasonFile = await SeasonFileService.LoadSeasonFileAsync(_seasonFilePath);
-        var currentRound = SeasonFileService.ResolveCurrentRound(seasonFile);
+        var seasonFile = await _seasonFiles.LoadAsync(_seasonFilePath);
+        var currentRound = SeasonRounds.Current(seasonFile);
         UpdateSeasonTitleBarLabel(currentRound == 0
             ? "Round 0"
             : $"Round {currentRound} Marketplace");
@@ -1093,8 +1096,8 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
     private async Task RefreshMarketplaceResourcesAsync()
     {
-        var seasonFile = await SeasonFileService.LoadSeasonFileAsync(_seasonFilePath);
-        var gross = SeasonFileService.ComputeAvailableResources(seasonFile);
+        var seasonFile = await _seasonFiles.LoadAsync(_seasonFilePath);
+        var gross = SeasonEconomy.Ledger(seasonFile);
 
         var cartCr = 0;
         var cartSwc = 0.0;
@@ -1157,7 +1160,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
             return;
         }
 
-        var seasonFile = await SeasonFileService.LoadSeasonFileAsync(_seasonFilePath);
+        var seasonFile = await _seasonFiles.LoadAsync(_seasonFilePath);
         if (seasonFile is null)
         {
             AddInventoryMessage("No season inventory found.");
@@ -1417,7 +1420,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
                     "Sell", "Cancel");
                 if (!confirmed) return;
 
-                await SeasonFileService.UpdateLatestRoundAsync(_seasonFilePath, round =>
+                await _seasonFiles.UpdateLatestRoundAsync(_seasonFilePath, round =>
                 {
                     round.Marketplace.Transactions.Add(new SeasonTransaction
                     {
@@ -1740,7 +1743,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
             StoreSelectorPicker.Items.Add(BuildStorePickerLabel(store));
 
         // Append the latest round's temporary store as an extra entry (if any).
-        var seasonFile = await SeasonFileService.LoadSeasonFileAsync(_seasonFilePath);
+        var seasonFile = await _seasonFiles.LoadAsync(_seasonFilePath);
         var latestTempRound = seasonFile?.Rounds
             .OrderByDescending(r => r.RoundIndex)
             .FirstOrDefault(r => !string.IsNullOrWhiteSpace(r.TemporaryStore));
@@ -1795,8 +1798,8 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         var rawNotoriety = 0;
         if (isLawful || isChaotic)
         {
-            var sf = await SeasonFileService.LoadSeasonFileAsync(_seasonFilePath);
-            rawNotoriety = SeasonFileService.ComputeCompanyNotoriety(sf);
+            var sf = await _seasonFiles.LoadAsync(_seasonFilePath);
+            rawNotoriety = SeasonRounds.CompanyNotoriety(sf);
             // Chaotic: positive notoriety = discount (invert sign before passing to ApplyNotorietyToCost)
             notoriety = isChaotic ? -rawNotoriety : rawNotoriety;
         }
@@ -2388,8 +2391,8 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         var purchases = _inventoryCounts.Where(kvp => kvp.Value > 0).ToList();
         if (purchases.Count == 0) return;
 
-        var seasonFile = await SeasonFileService.LoadSeasonFileAsync(_seasonFilePath);
-        var gross = SeasonFileService.ComputeAvailableResources(seasonFile);
+        var seasonFile = await _seasonFiles.LoadAsync(_seasonFilePath);
+        var gross = SeasonEconomy.Ledger(seasonFile);
 
         var transactions = new List<SeasonTransaction>();
         foreach (var (key, count) in purchases)
@@ -2420,7 +2423,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         if (!string.IsNullOrWhiteSpace(_temporaryStoreName))
             storeNames.Add(_temporaryStoreName);
 
-        await SeasonFileService.UpdateLatestRoundAsync(_seasonFilePath, round =>
+        await _seasonFiles.UpdateLatestRoundAsync(_seasonFilePath, round =>
         {
             if (round.StartingCr == 0 && round.StartingSwc == 0)
             {
@@ -2458,7 +2461,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
 
     private async Task MaybeShowStoreSearchPopupAsync()
     {
-        var seasonFile = await SeasonFileService.LoadSeasonFileAsync(_seasonFilePath);
+        var seasonFile = await _seasonFiles.LoadAsync(_seasonFilePath);
         if (seasonFile is null || seasonFile.Rounds.Count == 0)
         {
             StoreSearchOverlay.IsVisible = false;
@@ -2604,7 +2607,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         if (string.IsNullOrWhiteSpace(_pendingTemporaryStoreSelection)) return;
 
         var chosen = _pendingTemporaryStoreSelection;
-        await SeasonFileService.UpdateLatestRoundAsync(_seasonFilePath, round =>
+        await _seasonFiles.UpdateLatestRoundAsync(_seasonFilePath, round =>
         {
             round.TemporaryStore = chosen;
         });
@@ -2763,7 +2766,7 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
         if (_inventoryItemCategories.Count == 0)
             await PopulateItemCategoryCacheAsync();
 
-        var seasonFile = await SeasonFileService.LoadSeasonFileAsync(_seasonFilePath);
+        var seasonFile = await _seasonFiles.LoadAsync(_seasonFilePath);
         if (seasonFile is null) return result.ToLookup(x => x.Category, x => x.Name);
 
         // Net count owned of each item, by item name.
@@ -3009,20 +3012,20 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
     private async Task SaveGearAssignmentsAsync()
     {
         if (string.IsNullOrWhiteSpace(_seasonFilePath)) return;
-        var seasonFile = await SeasonFileService.LoadSeasonFileAsync(_seasonFilePath);
+        var seasonFile = await _seasonFiles.LoadAsync(_seasonFilePath);
         if (seasonFile is null) return;
 
         seasonFile.UnitGear = _unitGearSlots.ToDictionary(
             kvp => kvp.Key,
             kvp => kvp.Value.ToSeasonGear());
 
-        await SeasonFileService.SaveSeasonFileAsync(_seasonFilePath, seasonFile);
+        await _seasonFiles.SaveAsync(_seasonFilePath, seasonFile);
     }
 
     private async Task LoadGearAssignmentsAsync()
     {
         if (string.IsNullOrWhiteSpace(_seasonFilePath)) return;
-        var seasonFile = await SeasonFileService.LoadSeasonFileAsync(_seasonFilePath);
+        var seasonFile = await _seasonFiles.LoadAsync(_seasonFilePath);
         if (seasonFile is null) return;
 
         _unitGearSlots.Clear();

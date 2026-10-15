@@ -59,7 +59,7 @@ public partial class MissionOutcomeViewModel(
     public override async Task InitializeAsync()
     {
         var seasonFile = await seasonFiles.LoadAsync(_seasonFilePath);
-        RoundNumber = Math.Max(1, SeasonFileService.ResolveCurrentRound(seasonFile));
+        RoundNumber = Math.Max(1, SeasonRounds.Current(seasonFile));
     }
 
     [RelayCommand]

@@ -5,6 +5,9 @@ namespace InfinityMercsApp.Services.Season;
 /// <summary>Reads and writes season files, for injection into ViewModels.</summary>
 public interface ISeasonFileService
 {
+    /// <summary>Starts an empty season for a company and returns the new file's path.</summary>
+    Task<string> CreateAsync(string companyName, string companyIdentifier, string companyFilePath);
+
     Task<SeasonFile?> LoadAsync(string? filePath);
 
     Task<bool> SaveAsync(string? filePath, SeasonFile? seasonFile);

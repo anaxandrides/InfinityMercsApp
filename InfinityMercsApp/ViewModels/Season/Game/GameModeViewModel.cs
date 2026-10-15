@@ -203,7 +203,7 @@ public partial class GameModeViewModel(
         }
 
         var seasonFile = await seasonFiles.LoadAsync(_seasonFilePath);
-        var missionNumber = SeasonFileService.ResolveCurrentRound(seasonFile) + 1;
+        var missionNumber = SeasonRounds.Current(seasonFile) + 1;
         if (seasonFile is not null)
         {
             seasonFile.Rounds.Add(new SeasonRound

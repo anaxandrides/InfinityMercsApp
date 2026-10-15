@@ -1,17 +1,95 @@
+using System.Globalization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using InfinityMercsApp.Domain.Models.Season;
 
 namespace InfinityMercsApp.Services.Season;
 
-/// <summary>
-/// The injectable face of <see cref="SeasonFileService"/>. Pages not yet on ViewModels still call the
-/// static service; once they are converted the implementation moves in here.
-/// </summary>
+/// <summary>Season files as indented JSON under the app's MercenaryRecords/Seasons folder.</summary>
 internal sealed class SeasonFileStore : ISeasonFileService
 {
-    public Task<SeasonFile?> LoadAsync(string? filePath) => SeasonFileService.LoadSeasonFileAsync(filePath);
+    private static readonly JsonSerializerOptions ReadOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
-    public Task<bool> SaveAsync(string? filePath, SeasonFile? seasonFile) => SeasonFileService.SaveSeasonFileAsync(filePath, seasonFile);
+    private static readonly JsonSerializerOptions WriteOptions = new()
+    {
+        WriteIndented = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
 
-    public Task<bool> UpdateLatestRoundAsync(string? filePath, Action<SeasonRound> updater) =>
-        SeasonFileService.UpdateLatestRoundAsync(filePath, updater);
+    public async Task<string> CreateAsync(string companyName, string companyIdentifier, string companyFilePath)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var seasonsDir = Path.Combine(FileSystem.Current.AppDataDirectory, "MercenaryRecords", "Seasons");
+        Directory.CreateDirectory(seasonsDir);
+
+        var fileName = $"{companyName.Replace(' ', '_')}-{now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)}.json";
+        var filePath = Path.Combine(seasonsDir, fileName);
+
+        var seasonFile = new SeasonFile
+        {
+            CompanyName = companyName,
+            CompanyIdentifier = companyIdentifier,
+            CompanyFilePath = companyFilePath,
+            CreatedDate = now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            InitialPurchases = new SeasonMarketplace(),
+            Rounds = []
+        };
+
+        await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(seasonFile, WriteOptions));
+        return filePath;
+    }
+
+    public async Task<SeasonFile?> LoadAsync(string? filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+        {
+            return null;
+        }
+
+        try
+        {
+            var json = await File.ReadAllTextAsync(filePath);
+            return JsonSerializer.Deserialize<SeasonFile>(json, ReadOptions);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Failed to load season file '{filePath}': {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<bool> SaveAsync(string? filePath, SeasonFile? seasonFile)
+    {
+        if (string.IsNullOrWhiteSpace(filePath) || seasonFile is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(seasonFile, WriteOptions));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Failed to save season file '{filePath}': {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> UpdateLatestRoundAsync(string? filePath, Action<SeasonRound> updater)
+    {
+        var seasonFile = await LoadAsync(filePath);
+        if (SeasonRounds.Latest(seasonFile) is not { } latest || seasonFile is null)
+        {
+            return false;
+        }
+
+        updater(latest);
+        SeasonStatusUpdate.Apply(seasonFile);
+        return await SaveAsync(filePath, seasonFile);
+    }
 }
