@@ -3,7 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              x:Class="InfinityMercsApp.Views.Controls.AddFactionButtonView"
-             x:Name="AddFactionButtonRoot">
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             x:Name="AddFactionButtonRoot"
+             x:DataType="controls:AddFactionButtonView">
     <Border Stroke="{StaticResource Signal}"
             StrokeThickness="2"
             WidthRequest="40"
@@ -13,7 +15,7 @@
             <RoundRectangle CornerRadius="999" />
         </Border.StrokeShape>
         <Border.GestureRecognizers>
-            <TapGestureRecognizer Tapped="OnTapped" />
+            <TapGestureRecognizer Command="{Binding Command, Source={x:Reference AddFactionButtonRoot}}" />
         </Border.GestureRecognizers>
         <skia:SKCanvasView
             WidthRequest="24"

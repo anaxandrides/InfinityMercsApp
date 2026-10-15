@@ -1,6 +1,5 @@
 using System.Windows.Input;
 using InfinityMercsApp.Services.CompanySelection.Models.Entries;
-using SkiaSharp.Views.Maui;
 
 namespace InfinityMercsApp.Views.Controls;
 
@@ -47,10 +46,6 @@ public partial class MercsCompanyEntryCardView : ContentView
         get => (bool)GetValue(ShowOrderModifierBadgesProperty);
         set => SetValue(ShowOrderModifierBadgesProperty, value);
     }
-
-    public event EventHandler<SKPaintSurfaceEventArgs>? PeripheralIconCanvasPaintSurface;
-    public event EventHandler<SKPaintSurfaceEventArgs>? IrregularIconCanvasPaintSurface;
-    public event EventHandler<SKPaintSurfaceEventArgs>? RegularModifierIconCanvasPaintSurface;
 
     private void OnCardTapped(object? sender, TappedEventArgs e)
     {
@@ -112,18 +107,6 @@ public partial class MercsCompanyEntryCardView : ContentView
         }
     }
 
-    private void OnPeripheralIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        PeripheralIconCanvasPaintSurface?.Invoke(sender, e);
-    }
 
-    private void OnIrregularIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        IrregularIconCanvasPaintSurface?.Invoke(sender, e);
-    }
 
-    private void OnRegularModifierIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        RegularModifierIconCanvasPaintSurface?.Invoke(sender, e);
-    }
 }

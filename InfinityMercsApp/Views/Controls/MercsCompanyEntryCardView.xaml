@@ -2,7 +2,6 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
-             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              x:Class="InfinityMercsApp.Views.Controls.MercsCompanyEntryCardView"
              x:Name="MercsEntryCardRoot">
 
@@ -78,12 +77,12 @@
                 <Border BackgroundColor="{StaticResource Void}" Stroke="{StaticResource HairlineBright}" StrokeThickness="1" Padding="6,4" IsVisible="{Binding HasPeripheralStatBlock}">
                     <VerticalStackLayout Spacing="4">
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
-                            <skia:SKCanvasView
+                            <controls:SvgIcon
                                 Grid.Column="0"
+                                Source="SVGCache/CBIcons/peripheral.svg"
                                 WidthRequest="18"
                                 HeightRequest="18"
-                                VerticalOptions="Center"
-                                PaintSurface="OnPeripheralIconCanvasPaintSurface" />
+                                VerticalOptions="Center" />
                             <Label Grid.Column="1" Text="{Binding PeripheralNameHeading}" FontSize="{DynamicResource FontSizeCaption}" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" VerticalOptions="Center" />
                         </Grid>
                         <Label Text="{Binding PeripheralSubtitle}" FontSize="{DynamicResource FontSizeCaption}" TextColor="{StaticResource TextMuted}" LineBreakMode="WordWrap" />
@@ -110,11 +109,11 @@
                     <HorizontalStackLayout
                         Spacing="4"
                         IsVisible="{Binding IsIrregular}">
-                        <skia:SKCanvasView
-                            WidthRequest="16"
-                            HeightRequest="16"
-                            VerticalOptions="Center"
-                            PaintSurface="OnIrregularIconCanvasPaintSurface" />
+                        <controls:SvgIcon
+                                Source="SVGCache/CBIcons/irregular.svg"
+                                WidthRequest="16"
+                                HeightRequest="16"
+                                VerticalOptions="Center" />
                         <Label
                             Text="Irregular"
                             FontSize="{DynamicResource FontSizeCaption}"
@@ -124,11 +123,11 @@
                     <HorizontalStackLayout
                         Spacing="4"
                         IsVisible="{Binding ShowRegularModifier}">
-                        <skia:SKCanvasView
-                            WidthRequest="16"
-                            HeightRequest="16"
-                            VerticalOptions="Center"
-                            PaintSurface="OnRegularModifierIconCanvasPaintSurface" />
+                        <controls:SvgIcon
+                                Source="SVGCache/CBIcons/regular.svg"
+                                WidthRequest="16"
+                                HeightRequest="16"
+                                VerticalOptions="Center" />
                         <Label
                             Text="Regular"
                             FontSize="{DynamicResource FontSizeCaption}"

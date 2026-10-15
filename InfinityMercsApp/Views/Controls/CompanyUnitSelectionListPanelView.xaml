@@ -2,7 +2,6 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
-             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              x:Class="InfinityMercsApp.Views.Controls.CompanyUnitSelectionListPanelView"
              x:Name="UnitSelectionPanelRoot">
 
@@ -37,15 +36,23 @@
                         VerticalOptions="Center"
                         HorizontalOptions="End">
                         <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnFilterButtonTapped" />
+                            <TapGestureRecognizer Command="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=FilterCommand}" />
                         </Border.GestureRecognizers>
-                        <skia:SKCanvasView
-                            x:Name="UnitSelectionFilterCanvas"
+                        <controls:SvgIcon
+                            x:Name="UnitSelectionFilterIcon"
+                            Source="SVGCache/NonCBIcons/noun-filter.svg"
                             WidthRequest="20"
                             HeightRequest="20"
                             VerticalOptions="Center"
-                            HorizontalOptions="Center"
-                            PaintSurface="OnFilterCanvasPaintSurface" />
+                            HorizontalOptions="Center">
+                            <controls:SvgIcon.Triggers>
+                                <DataTrigger TargetType="controls:SvgIcon"
+                                             Binding="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=IsFilterActive}"
+                                             Value="True">
+                                    <Setter Property="TintColor" Value="#B2FFDC00" />
+                                </DataTrigger>
+                            </controls:SvgIcon.Triggers>
+                        </controls:SvgIcon>
                     </Border>
                 </Grid>
             </Border>

@@ -1,5 +1,4 @@
 using InfinityMercsApp.Services.ArmyData;
-using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Common;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Views.Controls;
@@ -116,24 +115,6 @@ internal static class CompanySelectionVisualThemeWorkflow
         var primaryText = CompanySelectionSharedUtilities.IsLightColor(primary) ? Colors.Black : Colors.White;
         var secondaryText = CompanySelectionSharedUtilities.IsLightColor(secondary) ? Colors.Black : Colors.White;
         return new CompanyHeaderColors(primary, secondary, primaryText, secondaryText);
-    }
-
-    internal static UnitSummaries BuildSummaryFormatted(
-        UnitDisplayConfigurationsView unitDisplayConfigurationsView,
-        Color secondaryBackgroundColor,
-        bool highlightLieutenant)
-    {
-        var accents = GetSummaryAccentColorsForSecondaryBackground(secondaryBackgroundColor);
-        var equipmentSummary = CompanyProfileTextService.BuildNamedSummaryFormatted(
-            "Equipment",
-            unitDisplayConfigurationsView.SelectedUnitCommonEquipment,
-            accents.Equipment);
-        var skillsSummary = CompanyProfileTextService.BuildNamedSummaryFormatted(
-            "Special Skills",
-            unitDisplayConfigurationsView.SelectedUnitCommonSkills,
-            accents.Skills,
-            highlightLieutenantPurple: highlightLieutenant);
-        return new UnitSummaries(equipmentSummary, skillsSummary);
     }
 
     internal static SummaryAccents GetSummaryAccentColorsForSecondaryBackground(Color secondaryBackground)

@@ -25,7 +25,17 @@ public class SvgIcon : SKCanvasView
         0, 0, 0, 1, 0
     ]);
 
+    /// <summary>Paints the icon in one colour (keeping its shape and transparency), e.g. for an active filter.</summary>
+    public static readonly BindableProperty TintColorProperty = BindableProperty.Create(
+        nameof(TintColor), typeof(Color), typeof(SvgIcon), null, propertyChanged: (bindable, _, _) => ((SvgIcon)bindable).InvalidateSurface());
+
     private SKPicture? _picture;
+
+    public Color? TintColor
+    {
+        get => (Color?)GetValue(TintColorProperty);
+        set => SetValue(TintColorProperty, value);
+    }
 
     public bool IsGreyscale
     {
@@ -78,7 +88,12 @@ public class SvgIcon : SKCanvasView
             (e.Info.Width - bounds.Width * scale) / 2f - bounds.Left * scale,
             (e.Info.Height - bounds.Height * scale) / 2f - bounds.Top * scale);
         canvas.Scale(scale);
-        if (IsGreyscale)
+        if (TintColor is { } tint)
+        {
+            using var paint = new SKPaint { ColorFilter = SKColorFilter.CreateBlendMode(tint.ToSKColor(), SKBlendMode.SrcIn) };
+            canvas.DrawPicture(picture, paint);
+        }
+        else if (IsGreyscale)
         {
             using var paint = new SKPaint { ColorFilter = GreyFilter };
             canvas.DrawPicture(picture, paint);

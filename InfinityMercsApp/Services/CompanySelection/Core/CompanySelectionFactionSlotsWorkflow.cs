@@ -1,31 +1,9 @@
 using InfinityMercsApp.Services.CompanySelection.Models.Selection;
-using InfinityMercsApp.Views.Controls;
 
 namespace InfinityMercsApp.Services.CompanySelection.Core;
 
 internal static class CompanySelectionFactionSlotsWorkflow
 {
-    internal static void SetSelectedFaction(
-        FactionSlotSelectionState<ArmyFactionSelectionItem> factionSelectionState,
-        ArmyFactionSelectionItem item,
-        Action<ArmyFactionSelectionItem> assignSelectedFactionToActiveSlot)
-    {
-        if (factionSelectionState.SelectedFaction == item)
-        {
-            assignSelectedFactionToActiveSlot(item);
-            return;
-        }
-
-        if (factionSelectionState.SelectedFaction is not null)
-        {
-            factionSelectionState.SelectedFaction.IsSelected = false;
-        }
-
-        factionSelectionState.SelectedFaction = item;
-        factionSelectionState.SelectedFaction.IsSelected = true;
-        assignSelectedFactionToActiveSlot(item);
-    }
-
     internal static bool IsDuplicateSelectionForActiveSlot(
         bool showRightSelectionBox,
         int activeSlotIndex,
@@ -48,55 +26,6 @@ internal static class CompanySelectionFactionSlotsWorkflow
         return leftSlotFaction is not null
             && leftSlotFaction.Id == item.Id
             && (rightSlotFaction is null || rightSlotFaction.Id != item.Id);
-    }
-
-    internal static bool TryAssignSelectedFactionToActiveSlot(
-        bool showRightSelectionBox,
-        int activeSlotIndex,
-        FactionSlotSelectionState<ArmyFactionSelectionItem> factionSelectionState,
-        ArmyFactionSelectionItem item,
-        Action<int, string?, string?> loadSlotIcon,
-        bool blockCrossSlotDuplicateSelection,
-        out bool factionChanged)
-    {
-        if (blockCrossSlotDuplicateSelection &&
-            IsDuplicateSelectionForActiveSlot(
-                showRightSelectionBox,
-                activeSlotIndex,
-                factionSelectionState.LeftSlotFaction,
-                factionSelectionState.RightSlotFaction,
-                item))
-        {
-            factionChanged = false;
-            return false;
-        }
-
-        if (activeSlotIndex == 0 || !showRightSelectionBox)
-        {
-            factionChanged = factionSelectionState.LeftSlotFaction?.Id != item.Id;
-            factionSelectionState.LeftSlotFaction = item;
-            loadSlotIcon(0, item.CachedLogoPath, item.PackagedLogoPath);
-            return true;
-        }
-
-        factionChanged = factionSelectionState.RightSlotFaction?.Id != item.Id;
-        factionSelectionState.RightSlotFaction = item;
-        loadSlotIcon(1, item.CachedLogoPath, item.PackagedLogoPath);
-        return true;
-    }
-
-    internal static void ResetMercsCompany<TEntry>(
-        ICollection<TEntry> mercsCompanyEntries,
-        Action updateMercsCompanyTotal,
-        Action? postReset = null)
-    {
-        if (mercsCompanyEntries.Count > 0)
-        {
-            mercsCompanyEntries.Clear();
-        }
-
-        updateMercsCompanyTotal();
-        postReset?.Invoke();
     }
 
     internal static int ResolveActiveSlotIndex(int index, bool showRightSelectionBox)
@@ -130,22 +59,5 @@ internal static class CompanySelectionFactionSlotsWorkflow
         }
 
         return currentActiveSlotIndex;
-    }
-
-    internal static void HandleFactionAssignmentSideEffects(
-        bool factionChanged,
-        Action autoSelectEmptySlot,
-        Action resetMercsCompany,
-        Func<Task> loadUnitsForActiveSlotAsync,
-        Action? onAssignmentCompleted = null)
-    {
-        autoSelectEmptySlot();
-        if (factionChanged)
-        {
-            resetMercsCompany();
-        }
-        _ = loadUnitsForActiveSlotAsync();
-
-        onAssignmentCompleted?.Invoke();
     }
 }

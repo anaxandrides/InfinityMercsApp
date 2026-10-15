@@ -15,6 +15,7 @@ using InfinityMercsApp.Services.Wiki;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.ViewModels.Armory;
 using InfinityMercsApp.ViewModels.Company;
+using InfinityMercsApp.ViewModels.Company.Selection;
 using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Marketplaces;
 using InfinityMercsApp.ViewModels.Season;
@@ -94,6 +95,7 @@ public static class ServiceRegistryExtensions
     {
         services.AddSingleton<INavigationService, MauiNavigationService>()
                 .AddSingleton(Launcher.Default)
+                .AddTransient<CompanySelectionServices>()
                 .AddSingleton<ICompanySelectionNavigator, CompanySelectionNavigator>()
                 .AddSingleton<IArmyDataService, ArmyDataService>()
                 .AddSingleton<IStoreProvider, StoreProvider>()

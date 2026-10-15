@@ -151,6 +151,17 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     /// <summary>Whether roster entries show irregular/regular order badges (Cohesive companies).</summary>
     public virtual bool ShowsOrderModifierBadges => false;
 
+    /// <summary>The tracked fireteam's name, when the company tracks one.</summary>
+    public virtual string TrackedFireteamNameDisplay => string.Empty;
+
+    /// <summary>The bonus the tracked fireteam's level gives, when it gives one.</summary>
+    public virtual string? TrackedFireteamLevelBonusText => null;
+
+    public virtual bool HasTrackedFireteamLevelBonus => false;
+
+    /// <summary>The badge for the tracked fireteam's level, when it has one.</summary>
+    public virtual string? TrackedFireteamLevelIcon => null;
+
     public bool ShowUnitsList => !TeamsView || (WaitsForTeamEntries && !AreTeamEntriesReady);
 
     public bool ShowTeamsList => TeamsView && (!WaitsForTeamEntries || AreTeamEntriesReady);

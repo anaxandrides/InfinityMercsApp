@@ -1,6 +1,5 @@
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
-using SkiaSharp.Views.Maui.Controls;
 
 namespace InfinityMercsApp.Services.CompanySelection.Common;
 
@@ -58,42 +57,5 @@ internal static partial class CompanySelectionSharedUtilities
         canvas.Translate(x, y);
         canvas.Scale(scale);
         canvas.DrawPicture(picture);
-    }
-
-    internal static void DrawSlotBorder(SKPaintSurfaceEventArgs e, SKColor borderColor)
-    {
-        var canvas = e.Surface.Canvas;
-        using var borderPaint = new SKPaint
-        {
-            Color = borderColor,
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = 2f,
-            IsAntialias = true
-        };
-
-        const float inset = 1f;
-        canvas.DrawRect(inset, inset, e.Info.Width - (inset * 2f), e.Info.Height - (inset * 2f), borderPaint);
-    }
-
-    internal static void ApplyFilterButtonSize(Border? buttonBorder, SKCanvasView? iconCanvas, double iconButtonSize)
-    {
-        if (buttonBorder is null || iconCanvas is null || iconButtonSize <= 0)
-        {
-            return;
-        }
-
-        // The button lives inside the header border whose SizeChanged drives this; re-assigning an
-        // unchanged size would re-raise that SizeChanged and keep the layout pass spinning. Skip when
-        // already settled (within a pixel).
-        if (Math.Abs(buttonBorder.WidthRequest - iconButtonSize) < 1.0
-            && Math.Abs(buttonBorder.HeightRequest - iconButtonSize) < 1.0)
-        {
-            return;
-        }
-
-        buttonBorder.WidthRequest = iconButtonSize;
-        buttonBorder.HeightRequest = iconButtonSize;
-        iconCanvas.WidthRequest = iconButtonSize;
-        iconCanvas.HeightRequest = iconButtonSize;
     }
 }

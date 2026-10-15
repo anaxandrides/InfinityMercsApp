@@ -1,3 +1,4 @@
+using System.Windows.Input;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 
@@ -13,25 +14,25 @@ public partial class AddFactionButtonView : ContentView
             true,
             propertyChanged: (_, _, _) => { });
 
-    public event EventHandler<TappedEventArgs>? Tapped;
+    public static readonly BindableProperty CommandProperty =
+        BindableProperty.Create(nameof(Command), typeof(ICommand), typeof(AddFactionButtonView));
 
     public AddFactionButtonView()
     {
         InitializeComponent();
-        SetBinding(
-            IsExpandedProperty,
-            new Binding("ShowFactionStrip", mode: BindingMode.TwoWay));
+    }
+
+    /// <summary>Runs when the button is tapped, e.g. to open or close the faction strip.</summary>
+    public ICommand? Command
+    {
+        get => (ICommand?)GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
     }
 
     public bool IsExpanded
     {
         get => (bool)GetValue(IsExpandedProperty);
         set => SetValue(IsExpandedProperty, value);
-    }
-
-    private void OnTapped(object? sender, TappedEventArgs e)
-    {
-        Tapped?.Invoke(this, e);
     }
 
     private void OnCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)

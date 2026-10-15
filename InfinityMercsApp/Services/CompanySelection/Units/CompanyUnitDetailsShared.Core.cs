@@ -2,7 +2,6 @@ using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Services.CompanySelection.Common;
-using InfinityMercsApp.Services.Logos;
 
 namespace InfinityMercsApp.Services.CompanySelection.Units;
 
@@ -116,20 +115,6 @@ internal static partial class CompanyUnitDetailsShared
         return false;
     }
 
-    internal static async Task<Stream?> OpenBestUnitLogoStreamAsync(
-        string unitName,
-        int unitId,
-        int sourceFactionId,
-        IEnumerable<string?> cachedPathCandidates,
-        IEnumerable<string?> packagedPathCandidates)
-    {
-        return await CompanyUnitLogoWorkflowService.OpenBestUnitLogoStreamAsync(
-            unitName,
-            unitId,
-            sourceFactionId,
-            cachedPathCandidates,
-            packagedPathCandidates);
-    }
 
     internal static bool MatchesClassificationFilter(
         UnitFilterCriteria activeUnitFilter,
@@ -139,31 +124,4 @@ internal static partial class CompanyUnitDetailsShared
         return UnitOptionFilter.MatchesClassification(activeUnitFilter, unitType, typeLookup);
     }
 
-    internal static void ApplyGlobalDisplayUnitsPreference(
-        Func<bool> getShowUnitsInInches,
-        bool showUnitsInInches,
-        Action<bool> setShowUnitsInInches,
-        Action updateUnitMoveDisplay,
-        Action updatePeripheralMoveDisplay,
-        Action refreshDistanceDisplays,
-        Action<string> logError)
-    {
-        try
-        {
-            var showInches = getShowUnitsInInches();
-            if (showUnitsInInches == showInches)
-            {
-                return;
-            }
-
-            setShowUnitsInInches(showInches);
-            updateUnitMoveDisplay();
-            updatePeripheralMoveDisplay();
-            refreshDistanceDisplays();
-        }
-        catch (Exception ex)
-        {
-            logError($"CompanySelectionPage ApplyGlobalDisplayUnitsPreference failed: {ex.Message}");
-        }
-    }
 }

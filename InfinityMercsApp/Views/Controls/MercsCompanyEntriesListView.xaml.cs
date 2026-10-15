@@ -1,4 +1,3 @@
-using SkiaSharp.Views.Maui;
 using System.Collections;
 using System.Windows.Input;
 
@@ -86,25 +85,6 @@ public partial class MercsCompanyEntriesListView : ContentView
     {
         get => (double)GetValue(ViewportHeightRatioProperty);
         set => SetValue(ViewportHeightRatioProperty, value);
-    }
-
-    public event EventHandler<SKPaintSurfaceEventArgs>? PeripheralIconCanvasPaintSurface;
-    public event EventHandler<SKPaintSurfaceEventArgs>? IrregularIconCanvasPaintSurface;
-    public event EventHandler<SKPaintSurfaceEventArgs>? RegularModifierIconCanvasPaintSurface;
-
-    private void OnPeripheralIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        PeripheralIconCanvasPaintSurface?.Invoke(sender, e);
-    }
-
-    private void OnIrregularIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        IrregularIconCanvasPaintSurface?.Invoke(sender, e);
-    }
-
-    private void OnRegularModifierIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        RegularModifierIconCanvasPaintSurface?.Invoke(sender, e);
     }
 
     protected override void OnParentSet()

@@ -15,10 +15,7 @@
                 <controls:MercsCompanyEntryCardView
                     SelectEntryCommand="{Binding Source={x:Reference MercsEntriesListRoot}, Path=SelectEntryCommand}"
                     RemoveEntryCommand="{Binding Source={x:Reference MercsEntriesListRoot}, Path=RemoveEntryCommand}"
-                    ShowOrderModifierBadges="{Binding Source={x:Reference MercsEntriesListRoot}, Path=ShowOrderModifierBadges}"
-                    PeripheralIconCanvasPaintSurface="OnPeripheralIconCanvasPaintSurface"
-                    IrregularIconCanvasPaintSurface="OnIrregularIconCanvasPaintSurface"
-                    RegularModifierIconCanvasPaintSurface="OnRegularModifierIconCanvasPaintSurface" />
+                    ShowOrderModifierBadges="{Binding Source={x:Reference MercsEntriesListRoot}, Path=ShowOrderModifierBadges}" />
             </DataTemplate>
         </CollectionView.ItemTemplate>
         <CollectionView.EmptyView>

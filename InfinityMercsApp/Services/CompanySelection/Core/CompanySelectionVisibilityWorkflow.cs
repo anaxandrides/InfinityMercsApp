@@ -19,10 +19,6 @@ internal static class CompanySelectionVisibilityWorkflow
         return pointsLimit - currentPoints;
     }
 
-    internal static int ComputePointsRemaining(ICompanySelectionVisibilityState state)
-    {
-        return ComputePointsRemaining(state.SelectedStartSeasonPoints, state.SeasonPointsCapText);
-    }
 
     internal static CompanyUnitVisibilityLookupContext BuildUnitVisibilityLookupContext<TFaction>(
         IEnumerable<TFaction> factions,
@@ -93,26 +89,6 @@ internal static class CompanySelectionVisibilityWorkflow
                 requireZeroSwc: true,
                 maxCost: pointsRemaining);
         }
-    }
-
-    internal static ArmyUnitSelectionItem? RefreshSelectedUnitVisibility(
-        ArmyUnitSelectionItem? selectedUnit,
-        Action resetUnitDetails,
-        Action applyLieutenantVisualStates)
-    {
-        if (selectedUnit is not null && !selectedUnit.IsVisible)
-        {
-            selectedUnit.IsSelected = false;
-            resetUnitDetails();
-            return null;
-        }
-
-        if (selectedUnit is not null)
-        {
-            applyLieutenantVisualStates();
-        }
-
-        return selectedUnit;
     }
 
     internal static void RefreshTeamEntryVisibility(

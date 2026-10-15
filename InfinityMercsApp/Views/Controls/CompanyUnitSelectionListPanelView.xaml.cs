@@ -1,5 +1,3 @@
-using SkiaSharp.Views.Maui;
-using SkiaSharp.Views.Maui.Controls;
 using System.Collections;
 using System.Windows.Input;
 
@@ -111,26 +109,41 @@ public partial class CompanyUnitSelectionListPanelView : ContentView
         return fallback;
     }
 
-    public Border FilterButton => UnitSelectionFilterButton;
-    public SKCanvasView FilterCanvas => UnitSelectionFilterCanvas;
+    public static readonly BindableProperty FilterCommandProperty =
+        BindableProperty.Create(nameof(FilterCommand), typeof(ICommand), typeof(CompanyUnitSelectionListPanelView));
 
-    public event EventHandler<EventArgs>? HeaderBorderSizeChanged;
-    public event EventHandler<TappedEventArgs>? FilterButtonTapped;
-    public event EventHandler<SKPaintSurfaceEventArgs>? FilterCanvasPaintSurface;
+    public static readonly BindableProperty IsFilterActiveProperty =
+        BindableProperty.Create(nameof(IsFilterActive), typeof(bool), typeof(CompanyUnitSelectionListPanelView), false);
 
+    /// <summary>Runs when the filter button in the header is tapped.</summary>
+    public ICommand? FilterCommand
+    {
+        get => (ICommand?)GetValue(FilterCommandProperty);
+        set => SetValue(FilterCommandProperty, value);
+    }
+
+    /// <summary>Highlights the filter button while a filter is applied.</summary>
+    public bool IsFilterActive
+    {
+        get => (bool)GetValue(IsFilterActiveProperty);
+        set => SetValue(IsFilterActiveProperty, value);
+    }
+
+    // The filter button fills most of the header's height. Re-assigning an unchanged size would re-raise
+    // the header's SizeChanged and keep the layout spinning, so a size within a pixel is left alone.
     private void OnHeaderBorderSizeChanged(object? sender, EventArgs e)
     {
-        HeaderBorderSizeChanged?.Invoke(sender, e);
-    }
+        var size = UnitSelectionHeaderBorder.Height * 0.8;
+        if (size <= 0 ||
+            (Math.Abs(UnitSelectionFilterButton.WidthRequest - size) < 1.0 && Math.Abs(UnitSelectionFilterButton.HeightRequest - size) < 1.0))
+        {
+            return;
+        }
 
-    private void OnFilterButtonTapped(object? sender, TappedEventArgs e)
-    {
-        FilterButtonTapped?.Invoke(sender, e);
-    }
-
-    private void OnFilterCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        FilterCanvasPaintSurface?.Invoke(sender, e);
+        UnitSelectionFilterButton.WidthRequest = size;
+        UnitSelectionFilterButton.HeightRequest = size;
+        UnitSelectionFilterIcon.WidthRequest = size;
+        UnitSelectionFilterIcon.HeightRequest = size;
     }
 
     private async void OnUnitSelectionScrollPanUpdated(object? sender, PanUpdatedEventArgs e)

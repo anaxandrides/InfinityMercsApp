@@ -297,28 +297,6 @@ internal static class CompanySelectionRosterWorkflow
         return item;
     }
 
-    internal static ArmyUnitSelectionItem SetSelectedUnitWithContext<TContext>(
-        ArmyUnitSelectionItem item,
-        ArmyUnitSelectionItem? currentSelectedUnit,
-        TContext currentContext,
-        TContext requestedContext,
-        Action<TContext> setContext,
-        Action onContextChangedForSameSelection,
-        Action<ArmyUnitSelectionItem> loadSelectedUnitLogo,
-        Action<ArmyUnitSelectionItem> loadSelectedUnitDetails)
-        where TContext : IEquatable<TContext>
-    {
-        var selectionContextChanged = !currentContext.Equals(requestedContext);
-        setContext(requestedContext);
-        return SetSelectedUnit(
-            item,
-            currentSelectedUnit,
-            selectionContextChanged,
-            onContextChangedForSameSelection,
-            loadSelectedUnitLogo,
-            loadSelectedUnitDetails);
-    }
-
     internal static int ApplyLieutenantVisualStates<TEntry, TUnit>(
         IEnumerable<TEntry> mercsCompanyEntries,
         IEnumerable<ViewerProfileItem> profiles,
@@ -350,28 +328,6 @@ internal static class CompanySelectionRosterWorkflow
             readIsLieutenant,
             readSourceUnitId,
             readSourceFactionId);
-    }
-
-    internal static void AddMercsCompanyEntry<TEntry>(
-        TEntry entry,
-        IList<TEntry> mercsCompanyEntries,
-        Func<TEntry, bool> readIsLieutenant,
-        Action updateMercsCompanyTotal,
-        Action postEntryMutation,
-        Action applyUnitVisibilityFilters)
-    {
-        if (readIsLieutenant(entry))
-        {
-            mercsCompanyEntries.Insert(0, entry);
-        }
-        else
-        {
-            mercsCompanyEntries.Add(entry);
-        }
-
-        updateMercsCompanyTotal();
-        postEntryMutation();
-        applyUnitVisibilityFilters();
     }
 
     internal static void RemoveMercsCompanyEntry<TEntry>(

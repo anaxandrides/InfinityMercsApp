@@ -1,4 +1,3 @@
-using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
@@ -155,7 +154,8 @@ public partial class UnitDisplayConfigurationsView : ContentView
     public static readonly BindableProperty PeripheralMoveSecondCmProperty =
         BindableProperty.Create(nameof(PeripheralMoveSecondCm), typeof(int?), typeof(UnitDisplayConfigurationsView), null);
     public static readonly BindableProperty UnitNameHeadingProperty =
-        BindableProperty.Create(nameof(UnitNameHeading), typeof(string), typeof(UnitDisplayConfigurationsView), "Select a unit");
+        BindableProperty.Create(nameof(UnitNameHeading), typeof(string), typeof(UnitDisplayConfigurationsView), "Select a unit",
+            propertyChanged: (bindable, _, _) => ((UnitDisplayConfigurationsView)bindable).RefreshUnitHeadingFontSize());
     public static readonly BindableProperty UnitNameHeadingFontSizeProperty =
         BindableProperty.Create(nameof(UnitNameHeadingFontSize), typeof(double), typeof(UnitDisplayConfigurationsView), 24d);
     public static readonly BindableProperty UnitHeaderPrimaryColorProperty =
@@ -673,32 +673,6 @@ public partial class UnitDisplayConfigurationsView : ContentView
     public bool HasAnyBottomHeaderIcons => ShowCubeIcon || ShowCube2Icon || ShowHackableIcon;
     public bool HasAnyHeaderIcons => HasAnyTopHeaderIcons || HasAnyBottomHeaderIcons;
 
-    /// <summary>
-    /// Serialized profile-groups payload for the currently selected unit.
-    /// </summary>
-    public UnitProfileGroups SelectedUnitProfileGroups { get; set; } = UnitProfileGroups.Empty;
-
-    /// <summary>
-    /// Serialized filter payload associated with the currently selected unit.
-    /// </summary>
-    public ArmyFilterCatalog SelectedUnitFilters { get; set; } = ArmyFilterCatalog.Empty;
-
-    /// <summary>
-    /// Canonical common equipment entries for the currently selected unit.
-    /// </summary>
-    public List<string> SelectedUnitCommonEquipment { get; set; } = [];
-
-    /// <summary>
-    /// Canonical common skills entries for the currently selected unit.
-    /// </summary>
-    public List<string> SelectedUnitCommonSkills { get; set; } = [];
-
-    public event EventHandler<SKPaintSurfaceEventArgs>? HeaderIconsCanvasPaintSurface;
-    public event EventHandler<SKPaintSurfaceEventArgs>? SelectedUnitCanvasPaintSurface;
-    public event EventHandler<SKPaintSurfaceEventArgs>? PeripheralIconCanvasPaintSurface;
-    public event EventHandler<SKPaintSurfaceEventArgs>? ProfileTacticalIconCanvasPaintSurface;
-    public event EventHandler<EventArgs>? UnitNameHeadingSizeChanged;
-
     public static readonly BindableProperty SelectedUnitLogoSourceProperty =
         BindableProperty.Create(nameof(SelectedUnitLogoSource), typeof(string), typeof(UnitDisplayConfigurationsView), null,
             propertyChanged: (bindable, _, _) => ((UnitDisplayConfigurationsView)bindable).LoadLogoFromSource());
@@ -745,7 +719,7 @@ public partial class UnitDisplayConfigurationsView : ContentView
         _hackableIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/hackable.svg");
 
         InvalidateHeaderIconsCanvas();
-        InvalidatePeripheralHeaderIconCanvas();
+        PeripheralHeaderIconCanvas.InvalidateSurface();
     }
 
     private async void LoadLogoFromSource()
@@ -829,8 +803,6 @@ public partial class UnitDisplayConfigurationsView : ContentView
         HeaderIconsCanvas.InvalidateSurface();
     }
 
-    public Label UnitNameHeadingElement => UnitNameHeadingLabel;
-
     public void InvalidateHeaderIconsCanvas()
     {
         HeaderIconsCanvas.InvalidateSurface();
@@ -841,48 +813,9 @@ public partial class UnitDisplayConfigurationsView : ContentView
         SelectedUnitCanvas.InvalidateSurface();
     }
 
-    public void InvalidatePeripheralHeaderIconCanvas()
-    {
-        PeripheralHeaderIconCanvas.InvalidateSurface();
-    }
-
-    /// <summary>
-    /// Recomputes and applies the heading font-size from the bound icon state.
-    /// </summary>
-    public void RefreshUnitHeadingFontSize()
-    {
-        if (BindingContext is IUnitDisplayIconState state)
-        {
-            UpdateUnitHeadingFontSize(
-                state.UnitHeadingMaxFontSize,
-                state.UnitHeadingMinFontSize,
-                state.UnitHeadingFontStep);
-            UnitNameHeadingSizeChanged?.Invoke(this, EventArgs.Empty);
-            return;
-        }
-
-        UpdateUnitHeadingFontSize(
-            ResolveHeadingMaxFontSize(),
-            DefaultUnitHeadingMinFontSize,
-            DefaultUnitHeadingFontStep);
-        UnitNameHeadingSizeChanged?.Invoke(this, EventArgs.Empty);
-    }
-
-    /// <summary>
-    /// Recomputes and applies derived move strings from the bound stat state.
-    /// </summary>
-    public void RefreshMoveStatlines()
-    {
-        if (BindingContext is IUnitDisplayStatState state)
-        {
-            UnitMov = FormatMoveValue(state.UnitMoveFirstCm, state.UnitMoveSecondCm, state.ShowUnitsInInches);
-            PeripheralMov = FormatMoveValue(state.PeripheralMoveFirstCm, state.PeripheralMoveSecondCm, state.ShowUnitsInInches);
-            return;
-        }
-
-        UnitMov = FormatMoveValue(UnitMoveFirstCm, UnitMoveSecondCm, ShowUnitsInInches);
-        PeripheralMov = FormatMoveValue(PeripheralMoveFirstCm, PeripheralMoveSecondCm, ShowUnitsInInches);
-    }
+    /// <summary>Fits the heading to its width, stepping the font down from the largest size.</summary>
+    public void RefreshUnitHeadingFontSize() =>
+        UpdateUnitHeadingFontSize(ResolveHeadingMaxFontSize(), DefaultUnitHeadingMinFontSize, DefaultUnitHeadingFontStep);
 
     /// <summary>
     /// Formats movement values as inches or centimeters for display.
@@ -895,65 +828,25 @@ public partial class UnitDisplayConfigurationsView : ContentView
         var canvas = e.Surface.Canvas;
         canvas.Clear(SKColors.Transparent);
 
-        if (BindingContext is IUnitDisplayIconState state)
-        {
-            DrawIconColumn(canvas, e.Info, BuildHeaderIconPictures(state));
-            return;
-        }
-
         DrawIconColumn(canvas, e.Info, BuildHeaderIconPictures());
-        HeaderIconsCanvasPaintSurface?.Invoke(sender, e);
     }
 
     private void OnSelectedUnitCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        if ((SelectedUnitPicture ?? _logoFromSource) is { } selectedUnitPicture)
-        {
-            DrawSlotPicture(selectedUnitPicture, e);
-            return;
-        }
-
-        SelectedUnitCanvasPaintSurface?.Invoke(sender, e);
+        DrawSlotPicture(SelectedUnitPicture ?? _logoFromSource, e);
     }
 
     private void OnPeripheralIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        if (PeripheralIcon is { } peripheralIcon)
-        {
-            DrawSlotPicture(peripheralIcon, e);
-            return;
-        }
-
-        PeripheralIconCanvasPaintSurface?.Invoke(sender, e);
+        DrawSlotPicture(PeripheralIcon, e);
     }
 
     private void OnProfileTacticalIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        if (TacticalIcon is { } tacticalIcon)
-        {
-            DrawSlotPicture(tacticalIcon, e);
-            return;
-        }
-
-        ProfileTacticalIconCanvasPaintSurface?.Invoke(sender, e);
+        DrawSlotPicture(TacticalIcon, e);
     }
 
-    private void OnUnitNameHeadingLabelSizeChanged(object? sender, EventArgs e)
-    {
-        if (BindingContext is IUnitDisplayIconState state)
-        {
-            UpdateUnitHeadingFontSize(
-                state.UnitHeadingMaxFontSize,
-                state.UnitHeadingMinFontSize,
-                state.UnitHeadingFontStep);
-            return;
-        }
-
-        UpdateUnitHeadingFontSize(
-            ResolveHeadingMaxFontSize(),
-            DefaultUnitHeadingMinFontSize,
-            DefaultUnitHeadingFontStep);
-    }
+    private void OnUnitNameHeadingLabelSizeChanged(object? sender, EventArgs e) => RefreshUnitHeadingFontSize();
 
     private async void OnProfilesScrollPanUpdated(object? sender, PanUpdatedEventArgs e)
     {
@@ -979,11 +872,6 @@ public partial class UnitDisplayConfigurationsView : ContentView
                 break;
         }
     }
-
-    private List<HeaderIconRenderItem> BuildHeaderIconPictures(IUnitDisplayIconState state) =>
-        BuildHeaderIconPictures(
-            state.ShowRegularOrderIcon, state.ShowIrregularOrderIcon, state.ShowImpetuousIcon,
-            state.ShowTacticalAwarenessIcon, state.ShowCubeIcon, state.ShowCube2Icon, state.ShowHackableIcon);
 
     private List<HeaderIconRenderItem> BuildHeaderIconPictures() =>
         BuildHeaderIconPictures(

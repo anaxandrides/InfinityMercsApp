@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using InfinityMercsApp.Domain.Fireteams;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Services.CompanySelection.Models.Entries;
 using InfinityMercsApp.Services.CompanySelection.Models.Selection;
@@ -64,14 +63,14 @@ public sealed partial class CohesiveCompanySelectionViewModel : CompanySelection
 
     public override bool ShowsOrderModifierBadges => true;
 
-    public string TrackedFireteamNameDisplay => string.IsNullOrWhiteSpace(TrackedFireteamName) ? "Select fireteam" : TrackedFireteamName;
+    public override string TrackedFireteamNameDisplay => string.IsNullOrWhiteSpace(TrackedFireteamName) ? "Select fireteam" : TrackedFireteamName;
 
-    public string? TrackedFireteamLevelBonusText => FireteamLevels.BonusText(TrackedFireteamLevel);
+    public override string? TrackedFireteamLevelBonusText => FireteamLevels.BonusText(TrackedFireteamLevel);
 
-    public bool HasTrackedFireteamLevelBonus => !string.IsNullOrEmpty(TrackedFireteamLevelBonusText);
+    public override bool HasTrackedFireteamLevelBonus => !string.IsNullOrEmpty(TrackedFireteamLevelBonusText);
 
     /// <summary>The badge for the tracked fireteam's level, or none below level 1.</summary>
-    public string? TrackedFireteamLevelIcon => TrackedFireteamLevel is >= 1 and <= FireteamLevels.MaxLevel
+    public override string? TrackedFireteamLevelIcon => TrackedFireteamLevel is >= 1 and <= FireteamLevels.MaxLevel
         ? $"SVGCache/NonCBIcons/Fireteam/noun-team-{TrackedFireteamLevel}.svg"
         : null;
 
