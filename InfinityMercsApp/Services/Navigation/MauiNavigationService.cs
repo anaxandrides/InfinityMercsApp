@@ -45,6 +45,14 @@ internal sealed class MauiNavigationService(IServiceProvider serviceProvider) : 
     }
 
     /// <inheritdoc/>
+    public Task PopToRootAsync()
+    {
+        var shell = GetActiveShell()
+            ?? throw new InvalidOperationException("No active Shell is available for navigation.");
+        return shell.Navigation.PopToRootAsync();
+    }
+
+    /// <inheritdoc/>
     public Task NavigateToAsync(string route, IDictionary<string, object>? routeParameters = null)
     {
         var shell = GetActiveShell()

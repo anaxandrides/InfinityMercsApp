@@ -34,6 +34,11 @@ public interface INavigationService
     Task PopAsync();
 
     /// <summary>
+    /// Pops every pushed page, back to the root of the current navigation stack.
+    /// </summary>
+    Task PopToRootAsync();
+
+    /// <summary>
     /// Pushes a modal.
     /// </summary>
     /// <param name="page"></param>
