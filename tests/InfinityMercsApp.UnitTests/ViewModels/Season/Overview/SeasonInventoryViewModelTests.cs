@@ -69,7 +69,7 @@ public sealed class SeasonInventoryViewModelTests
 
         var sale = _kit.Season.Rounds[0].Marketplace.Transactions.Last();
         Assert.Equal(("Number One", "Combi Rifle", -6, true), (sale.OriginStore, sale.ItemName, sale.CostCr, sale.IsSale));
-        await _kit.Dialogs.Received(1).ConfirmAsync("Sell Equipment", "Sell Combi Rifle for 6 CR?\n(SWC is not refunded)", "Sell", "Cancel");
+        await _kit.Dialogs.Received(1).ConfirmAsync("Sell Equipment", "Sell Combi Rifle for 6 CR?", "Sell", "Cancel");
         Assert.Equal(1, _changes);
     }
 
@@ -97,15 +97,29 @@ public sealed class SeasonInventoryViewModelTests
     }
 
     [Fact]
-    public async Task ASaleBeforeAnyRoundSaysSo()
+    public async Task ASaleBeforeTheFirstContractIsRecordedWithTheInitialPurchases()
     {
-        ShowOwned(SeasonTestKit.Bought("Number One", "Combi Rifle"));
-        _kit.Season.Rounds.Clear();
+        _kit.Season = new SeasonFile();
+        _kit.Season.InitialPurchases.Transactions.Add(SeasonTestKit.Bought("Number One", "Combi Rifle"));
+        _inventory.Show(SeasonTestKit.SeasonPath, _kit.Season, SeasonInventory.From(_kit.Season, Catalog));
         ConfirmSales(true);
 
         await _inventory.SellCommand.ExecuteAsync(_inventory.Sections[0].Items[0]);
 
-        await _kit.Dialogs.Received(1).ShowAlertAsync("Nothing Sold", Arg.Any<string>());
+        Assert.True(_kit.Season.InitialPurchases.Transactions.Last().IsSale);
+        Assert.Equal(1, _changes);
+    }
+
+    [Fact]
+    public async Task AFailedSaveSaysSo()
+    {
+        ShowOwned(SeasonTestKit.Bought("Number One", "Combi Rifle"));
+        _kit.SeasonFiles.UpdateAsync(SeasonTestKit.SeasonPath, Arg.Any<Action<SeasonFile>>()).Returns(false);
+        ConfirmSales(true);
+
+        await _inventory.SellCommand.ExecuteAsync(_inventory.Sections[0].Items[0]);
+
+        await _kit.Dialogs.Received(1).ShowAlertAsync("Nothing Sold", SeasonMessages.NotSaved);
         Assert.Equal(0, _changes);
     }
 }

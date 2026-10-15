@@ -18,5 +18,8 @@ public class Store
     /// <summary>Medical Services or Additional Recruitment.</summary>
     public bool IsServiceStore => ServiceStoreNames.Contains(Name);
 
+    /// <summary>A War Market belongs to factions; the Base Market and the services belong to none.</summary>
+    public bool IsWarMarket => AssociatedFactions.Count > 0;
+
     private bool HasAlignment(string alignment) => string.Equals(Alignment, alignment, StringComparison.OrdinalIgnoreCase);
 }

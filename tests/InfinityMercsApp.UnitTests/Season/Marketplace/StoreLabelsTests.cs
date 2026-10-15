@@ -54,12 +54,6 @@ public sealed class StoreLabelsTests
         Assert.Equal("Additional Recruitment", StoreLabels.For(new Store { Name = ServiceStoreNames.AdditionalRecruitment }));
     }
 
-    [Fact]
-    public void ATemporaryStoreNamesItsRound()
-    {
-        Assert.Equal("Jade Temu - Round 2 Store", StoreLabels.ForTemporary("Jade Temu", 2));
-    }
-
     [Theory]
     [InlineData("Jade Temu [YJ/JSA, Chaotic]", "Jade Temu")]
     [InlineData("Jade Temu - Round 2 Store", "Jade Temu")]

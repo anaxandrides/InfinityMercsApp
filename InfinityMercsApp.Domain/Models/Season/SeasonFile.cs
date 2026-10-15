@@ -8,6 +8,8 @@ public class SeasonFile
     public string CompanyIdentifier { get; set; } = string.Empty;
     public string CompanyFilePath { get; set; } = string.Empty;
     public string CreatedDate { get; set; } = string.Empty;
+    // Set when the season is first opened; null in a file that has not been opened since this was added.
+    public SeasonStartingFunds? StartingFunds { get; set; }
     public SeasonMarketplace InitialPurchases { get; set; } = new();
     public List<SeasonRound> Rounds { get; set; } = [];
     public SeasonStatus CurrentStatus { get; set; } = new();

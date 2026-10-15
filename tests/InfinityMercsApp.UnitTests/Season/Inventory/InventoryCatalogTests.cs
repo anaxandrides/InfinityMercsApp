@@ -14,6 +14,13 @@ public sealed class InventoryCatalogTests
     }
 
     [Fact]
+    public void KnowsTheSwcAnItemTakesWhileEquipped()
+    {
+        Assert.Equal(1.5m, Catalog.Find("Spitfire")?.CostSwc);
+        Assert.Equal(0m, Catalog.Find("Light Armour (LI)")?.CostSwc);
+    }
+
+    [Fact]
     public void ReadsTheStoreFromALabel()
     {
         Assert.Equal(5, Catalog.Find("Jade Temu - Round 2 Store", "Pistol")?.CostCr);

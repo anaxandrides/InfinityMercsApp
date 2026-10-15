@@ -4,8 +4,8 @@ using InfinityMercsApp.Domain.Models.Stores;
 namespace InfinityMercsApp.Domain.Season.Marketplace;
 
 /// <summary>
-/// How stores are named in the season's store list: "Name [factions, type, alignment]" for markets, plain
-/// names for services, and "Name - Round N Store" for a round's temporary store.
+/// How stores are named in the season's store list: "Name [factions, type, alignment]" for markets and plain
+/// names for services. Older seasons also recorded a round's temporary store as "Name - Round N Store".
 /// </summary>
 public static partial class StoreLabels
 {
@@ -75,9 +75,6 @@ public static partial class StoreLabels
 
         return parts.Count > 0 ? $"{name} [{string.Join(", ", parts)}]" : name;
     }
-
-    /// <summary>A round's temporary store, e.g. "Jade Temu - Round 2 Store".</summary>
-    public static string ForTemporary(string storeName, int roundIndex) => $"{storeName} - Round {roundIndex} Store";
 
     /// <summary>
     /// The store's own name from a label or a saved origin: without a leading "+" or badge, a "- Round N Store"

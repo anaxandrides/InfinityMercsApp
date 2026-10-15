@@ -164,16 +164,31 @@ public sealed class SeasonServicesViewModelTests
     }
 
     [Fact]
-    public async Task BuyingBeforeAnyRoundSaysSo()
+    public async Task BuyingBeforeTheFirstContractRecordsTheInitialPurchases()
     {
+        _kit.Season.Rounds.Clear();
+        _kit.Season.StartingFunds = new SeasonStartingFunds { Credits = 10 };
         Bolt.Injuries.Add(Injury.Arms);
         Show();
-        _kit.Season.Rounds.Clear();
+        _services.SelectedInjury = _services.Injuries.Single();
 
         await _services.BuyCommand.ExecuteAsync(Option(SeasonService.AdvancedTherapy));
 
-        await _kit.Dialogs.Received(1).ShowAlertAsync("Nothing Bought", Arg.Any<string>());
-        Assert.Equal([Injury.Arms], Bolt.Injuries);
+        Assert.Equal(4, _kit.Season.InitialPurchases.Transactions.Single().CostCr);
+        Assert.Empty(Bolt.Injuries);
+        Assert.Equal(1, _changes);
+    }
+
+    [Fact]
+    public async Task AFailedSaveSaysSo()
+    {
+        Bolt.Injuries.Add(Injury.Arms);
+        Show();
+        _kit.SeasonFiles.UpdateAsync(SeasonTestKit.SeasonPath, Arg.Any<Action<SeasonFile>>()).Returns(false);
+
+        await _services.BuyCommand.ExecuteAsync(Option(SeasonService.AdvancedTherapy));
+
+        await _kit.Dialogs.Received(1).ShowAlertAsync("Nothing Bought", SeasonMessages.NotSaved);
         Assert.Equal(0, _changes);
     }
 

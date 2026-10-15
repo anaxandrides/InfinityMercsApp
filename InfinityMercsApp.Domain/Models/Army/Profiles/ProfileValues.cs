@@ -37,4 +37,14 @@ public static class ProfileValues
 
         return decimal.TryParse(swc, NumberStyles.Number, CultureInfo.InvariantCulture, out var value) && value > 0m;
     }
+
+    /// <summary>The SWC a profile gives rather than costs, written <c>"+1"</c>; 0 for anything else.</summary>
+    public static double SwcGrant(string? swc)
+    {
+        var text = swc?.Trim() ?? string.Empty;
+        return text.StartsWith('+') &&
+               double.TryParse(text[1..], NumberStyles.Number, CultureInfo.InvariantCulture, out var value) && value > 0
+            ? value
+            : 0;
+    }
 }

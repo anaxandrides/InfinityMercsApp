@@ -22,6 +22,13 @@ public static class SeasonRounds
     public static SeasonRound? Latest(SeasonFile? seasonFile) =>
         seasonFile?.Rounds.OrderByDescending(round => round.RoundIndex).FirstOrDefault();
 
+    /// <summary>
+    /// Where purchases are recorded now: the latest round's marketplace (shopping in its downtime), or the
+    /// season's initial purchases before the first contract.
+    /// </summary>
+    public static SeasonMarketplace CurrentMarketplace(SeasonFile seasonFile) =>
+        Latest(seasonFile)?.Marketplace ?? seasonFile.InitialPurchases;
+
     /// <summary>The company's notoriety: what every round's downtime has added.</summary>
     public static int CompanyNotoriety(SeasonFile? seasonFile) =>
         seasonFile?.Rounds.Sum(round => round.Downtime.NotorietyGain) ?? 0;

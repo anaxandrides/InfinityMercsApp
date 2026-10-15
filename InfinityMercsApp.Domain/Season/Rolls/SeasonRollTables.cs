@@ -14,7 +14,7 @@ public static class SeasonRollTables
     ]);
 
     /// <summary>The market found when searching for a temporary store; 19-20 finds none.</summary>
-    public static RollTable TemporaryStores { get; } = new(
+    public static RollTable WarMarkets { get; } = new(
     [
         new(1, 2, "Number One"),
         new(3, 4, "Jade Temu"),

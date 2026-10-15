@@ -21,8 +21,8 @@ using NSubstitute;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Overview;
 
 /// <summary>
-/// Substitutes for everything the season page uses, a small company, three markets and a season file whose
-/// latest round records what the page writes to it.
+/// Substitutes for everything the season page uses, a small company, the Base Market, two War Markets and a
+/// season file whose latest round records what the page writes to it.
 /// </summary>
 internal sealed class SeasonTestKit
 {
@@ -42,6 +42,13 @@ internal sealed class SeasonTestKit
 
     /// <summary>The season file the page reads; its latest round takes the page's updates.</summary>
     public SeasonFile Season { get; set; } = new() { Rounds = [new SeasonRound { RoundIndex = 1 }] };
+
+    public static Store BaseMarket { get; } = new()
+    {
+        Name = "Base Market",
+        Alignment = StoreAlignments.Neutral,
+        Items = [new StoreItem { Name = "Knife", Category = "Sidearm", CostCr = 2 }]
+    };
 
     public static Store NumberOne { get; } = new()
     {
@@ -93,9 +100,9 @@ internal sealed class SeasonTestKit
         SeasonFiles.CreateAsync(Arg.Any<string>(), Arg.Any<string>(), CompanyPath).Returns(SeasonPath);
 
         Stores.GetAvailableStoresAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>())
-            .Returns([Recruitment, NumberOne, Medical]);
-        Stores.GetAllStoreNames().Returns(["Number One", "Jade Temu", "Arachne Req", ServiceStoreNames.MedicalServices]);
-        foreach (var store in new List<Store> { NumberOne, JadeTemu, Medical, Recruitment })
+            .Returns([Recruitment, BaseMarket, NumberOne, Medical]);
+        Stores.GetAllStoreNames().Returns(["Base Market", "Number One", "Jade Temu", "Arachne Req", ServiceStoreNames.MedicalServices]);
+        foreach (var store in new List<Store> { BaseMarket, NumberOne, JadeTemu, Medical, Recruitment })
         {
             Stores.GetStoreByNameAsync(store.Name, Arg.Any<CancellationToken>()).Returns(store);
         }

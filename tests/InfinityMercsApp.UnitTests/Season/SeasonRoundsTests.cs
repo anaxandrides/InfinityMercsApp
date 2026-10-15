@@ -42,4 +42,20 @@ public sealed class SeasonRoundsTests
         Assert.Equal(3, SeasonRounds.CompanyNotoriety(new SeasonFile { Rounds = [Round(1, 2), Round(2, -1), Round(3, 2)] }));
         Assert.Equal(0, SeasonRounds.CompanyNotoriety(null));
     }
+
+    [Fact]
+    public void ShoppingBeforeTheFirstContractIsTheInitialPurchases()
+    {
+        var season = new SeasonFile();
+
+        Assert.Same(season.InitialPurchases, SeasonRounds.CurrentMarketplace(season));
+    }
+
+    [Fact]
+    public void ShoppingAfterAContractIsTheLatestRoundsMarketplace()
+    {
+        var season = new SeasonFile { Rounds = [Round(2), Round(1)] };
+
+        Assert.Same(season.Rounds[0].Marketplace, SeasonRounds.CurrentMarketplace(season));
+    }
 }

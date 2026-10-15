@@ -13,7 +13,8 @@ internal static class InventoryTestStores
             new StoreItem { Name = "Combi Rifle", Category = "Primary", CostCr = 12 },
             new StoreItem { Name = "Pistol", Category = "Sidearm", CostCr = 3 },
             new StoreItem { Name = "SWC +1", Category = "Exchange", CostCr = 20 },
-            new StoreItem { Name = "Rations", CostCr = 1 }
+            new StoreItem { Name = "Rations", CostCr = 1 },
+            new StoreItem { Name = "Spitfire", Category = "Primary", CostCr = 20, CostSwc = 1.5m }
         ],
         TroopTypes = [new StoreTroopType { ArmorName = "Light Armour", Type = "LI", CostCr = 10 }],
         Augments = [new StoreAugment { Name = "WIP=12", CostCr = 15 }]

@@ -13,6 +13,7 @@ using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Visuals;
+using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Company.Viewer;
@@ -25,7 +26,8 @@ namespace InfinityMercsApp.ViewModels.Season.Overview;
 /// <summary>
 /// The season's Team tab: the company's troopers in a drop-down, and the chosen one's stats, equipment,
 /// skills and weapons, with a picker per gear slot for the season gear the company owns. Gear choices are
-/// saved to the season file; an augment that sets a stat ("WIP=12") changes the stat line.
+/// saved to the season file; an augment that sets a stat ("WIP=12") changes the stat line. The SWC of the gear
+/// equipped across the company may not go over the company's SWC.
 /// </summary>
 public partial class SeasonTeamViewModel : ObservableObject
 {
@@ -35,9 +37,12 @@ public partial class SeasonTeamViewModel : ObservableObject
     private readonly IAppPackageFiles _packageFiles;
     private readonly ISeasonFileService _seasonFiles;
     private readonly MarketplaceDetailViewModel _detailPopup;
+    private readonly IDialogService _dialogs;
     private SavedImprovedCaptainStats _captain = new();
     private CompanyLoadouts _loadouts = new();
     private SeasonInventory _inventory = SeasonInventory.Empty;
+    private InventoryCatalog _catalog = InventoryCatalog.Empty;
+    private double _companySwc;
     private string? _seasonFilePath;
 
     public SeasonTeamViewModel(
@@ -45,8 +50,10 @@ public partial class SeasonTeamViewModel : ObservableObject
         UnitDetailViewModel detail,
         IAppPackageFiles packageFiles,
         ISeasonFileService seasonFiles,
-        MarketplaceDetailViewModel detailPopup)
+        MarketplaceDetailViewModel detailPopup,
+        IDialogService dialogs)
     {
+        _dialogs = dialogs;
         _roster = roster;
         _packageFiles = packageFiles;
         _seasonFiles = seasonFiles;
@@ -125,6 +132,10 @@ public partial class SeasonTeamViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasPerkPointsToSpend;
 
+    /// <summary>The company's equipped SWC against its SWC, e.g. "SWC EQUIPPED 1.5 / 2".</summary>
+    [ObservableProperty]
+    private string _swcText = string.Empty;
+
     public bool HasPerks => Perks.Count > 0;
 
     public bool HasInjuries => Injuries.Count > 0;
@@ -168,10 +179,15 @@ public partial class SeasonTeamViewModel : ObservableObject
         SelectedName = SelectedBaseName = SelectedUnitType = string.Empty;
     }
 
-    /// <summary>Takes in what the company now owns, for the gear pickers.</summary>
-    public void ShowOwnedGear(SeasonInventory inventory)
+    /// <summary>
+    /// Takes in what the company now owns for the gear pickers, with the catalog that knows each item's SWC and
+    /// the company's SWC that equipped gear must stay within.
+    /// </summary>
+    public void ShowOwnedGear(SeasonInventory inventory, InventoryCatalog catalog, double companySwc)
     {
         _inventory = inventory;
+        _catalog = catalog;
+        _companySwc = companySwc;
         RefreshGearPickers();
     }
 
@@ -309,6 +325,7 @@ public partial class SeasonTeamViewModel : ObservableObject
             return;
         }
 
+        SwcText = $"SWC EQUIPPED {SeasonEconomy.SwcText((decimal)EquippedSwc.Of(_loadouts, _catalog))} / {SeasonEconomy.SwcText((decimal)_companySwc)}";
         var loadout = _loadouts.For(item.EntryIndex);
         foreach (var picker in GearSlots)
         {
@@ -317,7 +334,7 @@ public partial class SeasonTeamViewModel : ObservableObject
             foreach (var itemName in _inventory.ItemsFor(picker.Slot))
             {
                 var holder = _loadouts.HolderOf(itemName, picker.Slot, item.EntryIndex);
-                var option = GearOption.For(itemName, Units.FirstOrDefault(unit => unit.EntryIndex == holder)?.Name);
+                var option = GearOption.For(itemName, EquippedSwc.Of(itemName, _catalog), Units.FirstOrDefault(unit => unit.EntryIndex == holder)?.Name);
                 options.Add(option);
                 if (string.Equals(itemName, loadout[picker.Slot], StringComparison.OrdinalIgnoreCase))
                 {
@@ -337,8 +354,25 @@ public partial class SeasonTeamViewModel : ObservableObject
             return;
         }
 
+        var equippedSwc = EquippedSwc.After(_loadouts, item.EntryIndex, slot, option.ItemName, _catalog);
+        if (equippedSwc > _companySwc && equippedSwc > EquippedSwc.Of(_loadouts, _catalog))
+        {
+            _ = RefuseOverSwcAsync(option, equippedSwc);
+            return;
+        }
+
         _loadouts.Assign(item.EntryIndex, slot, option.ItemName);
         _ = SaveThenRefreshAsync();
+    }
+
+    // The picker goes back to what the trooper had once the alert is shown.
+    private async Task RefuseOverSwcAsync(GearOption option, double equippedSwc)
+    {
+        await _dialogs.ShowAlertAsync(
+            "Not Enough SWC",
+            $"Equipping {option.ItemName} would bring the company's equipped SWC to {SeasonEconomy.SwcText((decimal)equippedSwc)}, " +
+            $"over its {SeasonEconomy.SwcText((decimal)_companySwc)} SWC.");
+        RefreshGearPickers();
     }
 
     // The pickers are refilled after the save, once the picker that reported the choice has finished with it.

@@ -20,7 +20,7 @@ public sealed class SeasonTeamViewModelTests
     public SeasonTeamViewModelTests()
     {
         _popup = _kit.Popup();
-        _team = new SeasonTeamViewModel(new CompanyRoster(_kit.ArmyData), new UnitDetailViewModel(_kit.ArmyData, _kit.Settings), _kit.PackageFiles, _kit.SeasonFiles, _popup);
+        _team = new SeasonTeamViewModel(new CompanyRoster(_kit.ArmyData), new UnitDetailViewModel(_kit.ArmyData, _kit.Settings), _kit.PackageFiles, _kit.SeasonFiles, _popup, _kit.Dialogs);
     }
 
     // The company's Combi Rifle, two pistols (one bought at each market), Light Armour and a WIP augment.
@@ -47,13 +47,16 @@ public sealed class SeasonTeamViewModelTests
                 }
             ]
         },
-        InventoryCatalog.From([SeasonTestKit.NumberOne, SeasonTestKit.JadeTemu]));
+        Catalog);
 
-    private async Task LoadAsync(CompanyLoadouts? loadouts = null)
+    private static InventoryCatalog Catalog { get; } = InventoryCatalog.From([SeasonTestKit.NumberOne, SeasonTestKit.JadeTemu]);
+
+    // The Spitfire takes 1 SWC; the company has 2 unless a test says otherwise.
+    private async Task LoadAsync(CompanyLoadouts? loadouts = null, double companySwc = 2)
     {
         _kit.Season.UnitGear = (loadouts ?? new CompanyLoadouts()).ToSeasonGear();
         await _team.LoadAsync(SeasonTestKit.Company(), SeasonTestKit.SeasonPath, _kit.Season);
-        _team.ShowOwnedGear(Owned());
+        _team.ShowOwnedGear(Owned(), Catalog, companySwc);
     }
 
     private CompanyLoadouts SavedLoadouts() => CompanyLoadouts.From(_kit.Season.UnitGear);
@@ -120,7 +123,7 @@ public sealed class SeasonTeamViewModelTests
     {
         await LoadAsync();
 
-        Assert.Equal(["(none)", "Spitfire"], Picker(GearSlot.Primary).Options.Select(option => option.Display));
+        Assert.Equal(["(none)", "Spitfire (1 SWC)"], Picker(GearSlot.Primary).Options.Select(option => option.Display));
         Assert.Equal(["(none)", "Monofilament Blade"], Picker(GearSlot.Secondary).Options.Select(option => option.Display));
         Assert.Equal(["(none)", "Light Armour (LI)"], Picker(GearSlot.Armor).Options.Select(option => option.Display));
         Assert.Equal(["(none)"], Picker(GearSlot.Roles).Options.Select(option => option.Display));
@@ -171,6 +174,67 @@ public sealed class SeasonTeamViewModelTests
 
         Assert.Null(SavedLoadouts().For(2)[GearSlot.Primary]);
         Assert.Equal(ProfileLine.None, _team.RangedWeapons.Left.Single());
+    }
+
+    [Fact]
+    public async Task TheTabShowsTheEquippedSwcAgainstTheCompanys()
+    {
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(1, GearSlot.Primary, "Spitfire");
+        await LoadAsync(loadouts, companySwc: 1.5);
+
+        Assert.Equal("SWC EQUIPPED 1 / 1.5", _team.SwcText);
+    }
+
+    [Fact]
+    public async Task GearOverTheCompanysSwcIsRefused()
+    {
+        await LoadAsync(companySwc: 0.5);
+
+        Picker(GearSlot.Primary).SelectedOption = Picker(GearSlot.Primary).Options[1];
+
+        await _kit.Dialogs.Received(1).ShowAlertAsync("Not Enough SWC", Arg.Is<string>(text => text.Contains("Spitfire") && text.Contains("over its 0.5 SWC")));
+        Assert.Equal(GearOption.None, Picker(GearSlot.Primary).SelectedOption);
+        Assert.Empty(_kit.Season.UnitGear);
+        await _kit.SeasonFiles.DidNotReceive().SaveAsync(Arg.Any<string?>(), Arg.Any<SeasonFile?>());
+    }
+
+    [Fact]
+    public async Task GearUpToTheCompanysSwcIsAllowed()
+    {
+        await LoadAsync(companySwc: 1);
+
+        Picker(GearSlot.Primary).SelectedOption = Picker(GearSlot.Primary).Options[1];
+
+        Assert.Equal("Spitfire", SavedLoadouts().For(2)[GearSlot.Primary]);
+        Assert.Equal("SWC EQUIPPED 1 / 1", _team.SwcText);
+        await _kit.Dialogs.DidNotReceive().ShowAlertAsync(Arg.Any<string>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task MovingGearBetweenTroopersTakesNoMoreSwc()
+    {
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(1, GearSlot.Primary, "Spitfire");
+        await LoadAsync(loadouts, companySwc: 1);
+
+        Picker(GearSlot.Primary).SelectedOption = Picker(GearSlot.Primary).Options[1];
+
+        Assert.Equal("Spitfire", SavedLoadouts().For(2)[GearSlot.Primary]);
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Primary]);
+    }
+
+    [Fact]
+    public async Task ACompanyAlreadyOverItsSwcCanStillTakeGearOff()
+    {
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(2, GearSlot.Primary, "Spitfire");
+        await LoadAsync(loadouts, companySwc: 0);
+
+        Picker(GearSlot.Primary).SelectedOption = GearOption.None;
+
+        Assert.Null(SavedLoadouts().For(2)[GearSlot.Primary]);
+        await _kit.Dialogs.DidNotReceive().ShowAlertAsync(Arg.Any<string>(), Arg.Any<string>());
     }
 
     [Fact]

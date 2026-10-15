@@ -22,6 +22,9 @@ public sealed class UnitLoadout
         }
     }
 
+    /// <summary>The items assigned to any slot.</summary>
+    public IEnumerable<string> Items => _items.Values;
+
     /// <summary>The assigned items in slot order, as saved in the season file.</summary>
     public List<SeasonUnitGear> ToSeasonGear() =>
         Enum.GetValues<GearSlot>()

@@ -11,10 +11,11 @@ using InfinityMercsApp.ViewModels.Marketplaces;
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 
 /// <summary>
-/// The season's market tab: the stores open to the company (its markets, the round's temporary store, then
-/// the services), one store's stock at notoriety-adjusted prices, and a cart kept across stores. What is
-/// left to spend is the season's balance less the cart; buying records the cart in the latest round and
-/// then calls <c>purchased</c>.
+/// The season's market tab: the stores open to the company (the Base Market, the War Market chosen for this
+/// round, then the services), one store's stock at notoriety-adjusted prices, and a cart kept across stores.
+/// What is left to spend is the season's CR less the cart; SWC is not spent, so the balance shows the
+/// company's SWC. Buying records the cart where the season is shopping now (the latest round, or the initial
+/// purchases before the first contract) and then calls <c>purchased</c>.
 /// </summary>
 public partial class SeasonMarketplaceViewModel(
     IStoreProvider storeProvider,
@@ -24,8 +25,7 @@ public partial class SeasonMarketplaceViewModel(
     Func<Task> purchased) : ObservableObject
 {
     private readonly Dictionary<string, SeasonCartLine> _cart = new(StringComparer.OrdinalIgnoreCase);
-    private IReadOnlyList<Store> _availableStores = [];
-    private string? _temporaryStoreName;
+    private IReadOnlyList<Store> _openStores = [];
     private string? _seasonFilePath;
     private string _shownStoreName = string.Empty;
     private SeasonLedger _ledger;
@@ -61,7 +61,7 @@ public partial class SeasonMarketplaceViewModel(
     [NotifyPropertyChangedFor(nameof(HasAugments))]
     private IReadOnlyList<AugmentRow> _augmentRows = [];
 
-    /// <summary>What is left to spend once the cart is paid for, e.g. "12 CR - 1.5 SWC".</summary>
+    /// <summary>The CR left once the cart is paid for, and the company's SWC, e.g. "12 CR - 1.5 SWC".</summary>
     [ObservableProperty]
     private string _resourcesText = SeasonEconomy.BalanceText(0, 0);
 
@@ -79,6 +79,9 @@ public partial class SeasonMarketplaceViewModel(
     public bool HasAugments => AugmentRows.Count > 0;
     public bool HasCartItems => _cart.Count > 0;
 
+    /// <summary>The markets of the company's factions, which it may take as its War Market without rolling.</summary>
+    public IReadOnlyList<string> FactionMarketNames { get; private set; } = [];
+
     /// <summary>Takes in the season's balance and the company's notoriety.</summary>
     public void RefreshBalance(SeasonFile? seasonFile)
     {
@@ -87,33 +90,29 @@ public partial class SeasonMarketplaceViewModel(
         RefreshAffordability();
     }
 
-    /// <summary>Lists the stores open to factions with these names, and shows the first.</summary>
+    /// <summary>
+    /// Lists the stores open to a company of factions with these names: the Base Market, this round's War
+    /// Market once chosen, then the services. Shows the first.
+    /// </summary>
     public async Task LoadStoresAsync(IReadOnlySet<string> factionNames, string? seasonFilePath, SeasonFile? seasonFile)
     {
         _seasonFilePath = seasonFilePath;
-        _availableStores = await storeProvider.GetAvailableStoresAsync(factionNames.ToList());
+        var available = await storeProvider.GetAvailableStoresAsync(factionNames.ToList());
+        FactionMarketNames = WarMarkets.FactionMarkets(available, factionNames).Select(store => store.Name).ToList();
 
-        List<StoreChoice> choices = [.. _availableStores.Where(store => !store.IsServiceStore).Select(store => new StoreChoice(StoreLabels.For(store), store.Name))];
-
-        // The latest round's temporary store, unless the company has that store anyway.
-        var temporaryRound = seasonFile?.Rounds
-            .OrderByDescending(round => round.RoundIndex)
-            .FirstOrDefault(round => !string.IsNullOrWhiteSpace(round.TemporaryStore));
-        _temporaryStoreName = temporaryRound is not null &&
-                              !_availableStores.Any(store => string.Equals(store.Name, temporaryRound.TemporaryStore, StringComparison.OrdinalIgnoreCase))
-            ? temporaryRound.TemporaryStore
-            : null;
-        if (temporaryRound is not null && _temporaryStoreName is not null)
+        List<Store> open = [.. available.Where(store => !store.IsServiceStore && !store.IsWarMarket)];
+        if (WarMarkets.Current(seasonFile) is { } warMarketName && await storeProvider.GetStoreByNameAsync(warMarketName) is { } warMarket)
         {
-            choices.Add(new StoreChoice(StoreLabels.ForTemporary(_temporaryStoreName, temporaryRound.RoundIndex), _temporaryStoreName));
+            open.Add(warMarket);
         }
 
         // Medical Services, then Additional Recruitment, always last.
-        choices.AddRange(_availableStores
+        open.AddRange(available
             .Where(store => store.IsServiceStore)
-            .OrderBy(store => string.Equals(store.Name, ServiceStoreNames.MedicalServices, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-            .Select(store => new StoreChoice(StoreLabels.For(store), store.Name)));
+            .OrderBy(store => string.Equals(store.Name, ServiceStoreNames.MedicalServices, StringComparison.OrdinalIgnoreCase) ? 0 : 1));
+        _openStores = open;
 
+        List<StoreChoice> choices = [.. open.Select(store => new StoreChoice(StoreLabels.For(store), store.Name))];
         Stores = choices;
         _choosingStore = true;
         SelectedStore = choices.FirstOrDefault();
@@ -122,16 +121,7 @@ public partial class SeasonMarketplaceViewModel(
     }
 
     /// <summary>The stores the company can shop at this round, by name.</summary>
-    public IReadOnlyList<string> StoreNames()
-    {
-        List<string> names = [.. _availableStores.Select(store => store.Name)];
-        if (_temporaryStoreName is not null)
-        {
-            names.Add(_temporaryStoreName);
-        }
-
-        return names;
-    }
+    public IReadOnlyList<string> StoreNames() => _openStores.Select(store => store.Name).ToList();
 
     partial void OnSelectedStoreChanged(StoreChoice? value)
     {
@@ -203,7 +193,7 @@ public partial class SeasonMarketplaceViewModel(
     [RelayCommand]
     private Task ShowDetailAsync(MarketplaceRow? row) => row is null ? Task.CompletedTask : DetailPopup.ShowRowAsync(row);
 
-    /// <summary>Records the cart in the latest round (exchanges grant their SWC) and empties it.</summary>
+    /// <summary>Records the cart where the season is shopping now (exchanges grant their SWC) and empties it.</summary>
     [RelayCommand(CanExecute = nameof(HasCartItems))]
     private async Task BuyAsync()
     {
@@ -223,20 +213,21 @@ public partial class SeasonMarketplaceViewModel(
             .ToList();
         var storeNames = StoreNames().ToList();
 
-        var recorded = await seasonFiles.UpdateLatestRoundAsync(_seasonFilePath, round =>
+        var recorded = await seasonFiles.UpdateAsync(_seasonFilePath, season =>
         {
-            if (round.StartingCr == 0 && round.StartingSwc == 0)
+            if (SeasonRounds.Latest(season) is { StartingCr: 0, StartingSwc: 0 } round)
             {
                 round.StartingCr = ledger.CreditsBalance;
-                round.StartingSwc = ledger.SwcBalance;
+                round.StartingSwc = ledger.CompanySwc;
             }
 
-            round.Marketplace.Transactions.AddRange(transactions);
-            round.Marketplace.Stores = storeNames;
+            var marketplace = SeasonRounds.CurrentMarketplace(season);
+            marketplace.Transactions.AddRange(transactions);
+            marketplace.Stores = storeNames;
         });
         if (!recorded)
         {
-            await dialogs.ShowAlertAsync("Nothing Bought", "Purchases are recorded against a round, and this season has not started one yet.");
+            await dialogs.ShowAlertAsync("Nothing Bought", SeasonMessages.NotSaved);
             return;
         }
 
@@ -275,15 +266,14 @@ public partial class SeasonMarketplaceViewModel(
     private IEnumerable<MarketplaceRow> Rows() =>
         [.. ItemGroups.SelectMany(group => group.Items), .. TroopTypeRows, .. AugmentRows];
 
-    // A row is affordable while one more fits in the balance left after the cart.
+    // A row is affordable while one more fits in the CR left after the cart; SWC only limits equipping.
     private void RefreshAffordability()
     {
         var remainingCr = _ledger.CreditsBalance - _cart.Values.Sum(line => line.TotalCr);
-        var remainingSwc = _ledger.SwcBalance - _cart.Values.Sum(line => line.TotalSwc);
-        ResourcesText = SeasonEconomy.BalanceText(remainingCr, remainingSwc);
+        ResourcesText = SeasonEconomy.BalanceText(remainingCr, _ledger.CompanySwc);
         foreach (var row in Rows())
         {
-            row.IsAffordable = row.CostCr <= remainingCr && (double)(row.CostSwc ?? 0) <= remainingSwc;
+            row.IsAffordable = row.CostCr <= remainingCr;
         }
 
         OnPropertyChanged(nameof(HasCartItems));

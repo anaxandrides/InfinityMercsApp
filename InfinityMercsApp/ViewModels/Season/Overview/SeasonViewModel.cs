@@ -35,7 +35,8 @@ public partial class SeasonViewModel : ViewModelBase
     private string _companyFilePath = string.Empty;
     private string? _seasonFilePath;
     private bool _needsLoad;
-    private InventoryCatalog? _catalog;
+    private IReadOnlyList<Store>? _allStores;
+    private InventoryCatalog _catalog = InventoryCatalog.Empty;
     private SavedCompanyFile? _company;
 
     public SeasonViewModel(
@@ -56,10 +57,10 @@ public partial class SeasonViewModel : ViewModelBase
         _storeProvider = storeProvider;
         _armyData = armyData;
         DetailPopup = detailPopup;
-        Team = new SeasonTeamViewModel(roster, detail, packageFiles, seasonFiles, detailPopup);
+        Team = new SeasonTeamViewModel(roster, detail, packageFiles, seasonFiles, detailPopup, dialogs);
         Inventory = new SeasonInventoryViewModel(seasonFiles, dialogs, RefreshSeasonAsync);
         Marketplace = new SeasonMarketplaceViewModel(storeProvider, seasonFiles, dialogs, detailPopup, RefreshSeasonAsync);
-        StoreSearch = new TemporaryStoreSearchViewModel(seasonFiles, dice, OnTemporaryStoreChosenAsync);
+        WarMarketChoice = new WarMarketChoiceViewModel(seasonFiles, dice, OnWarMarketChosenAsync);
         Services = new SeasonServicesViewModel(seasonFiles, dialogs, RefreshSeasonAsync);
     }
 
@@ -69,7 +70,7 @@ public partial class SeasonViewModel : ViewModelBase
 
     public SeasonMarketplaceViewModel Marketplace { get; }
 
-    public TemporaryStoreSearchViewModel StoreSearch { get; }
+    public WarMarketChoiceViewModel WarMarketChoice { get; }
 
     /// <summary>The services, shown when the Medical Services store is picked.</summary>
     public SeasonServicesViewModel Services { get; }
@@ -121,11 +122,21 @@ public partial class SeasonViewModel : ViewModelBase
         await RefreshSeasonAsync();
     }
 
+    /// <summary>Shows a tab; the market tab asks for this round's War Market when none is chosen yet.</summary>
     [RelayCommand]
-    private Task ShowTabAsync(SeasonTab tab)
+    private async Task ShowTabAsync(SeasonTab tab)
     {
         ActiveTab = tab;
-        return tab == SeasonTab.Team ? Task.CompletedTask : RefreshSeasonAsync();
+        if (tab == SeasonTab.Team)
+        {
+            return;
+        }
+
+        await RefreshSeasonAsync();
+        if (tab == SeasonTab.Marketplace)
+        {
+            WarMarketChoice.OpenCommand.Execute(null);
+        }
     }
 
     /// <summary>Opens the rank-up page to spend troopers' perk points.</summary>
@@ -152,6 +163,12 @@ public partial class SeasonViewModel : ViewModelBase
                 : company.CompanyName;
             CompanyType = company.CompanyType;
             _seasonFilePath ??= await _seasonFiles.CreateAsync(CompanyName, company.CompanyIdentifier, _companyFilePath);
+
+            // The CR left from recruiting and the captain's SWC, for a season that does not have them yet.
+            if (await _seasonFiles.LoadAsync(_seasonFilePath) is { StartingFunds: null })
+            {
+                await _seasonFiles.UpdateAsync(_seasonFilePath, season => season.StartingFunds ??= SeasonStart.FundsFor(company));
+            }
 
             var seasonFile = await _seasonFiles.LoadAsync(_seasonFilePath);
             _company = company;
@@ -184,7 +201,7 @@ public partial class SeasonViewModel : ViewModelBase
         return FactionResolver.GetExpandedFactionNames(companyFactions, allFactions);
     }
 
-    // Re-reads the season: the round, the troopers, the balance, what is owned, and whether a temporary store is wanted.
+    // Re-reads the season: the round, the troopers, the balance, what is owned, and whether a War Market is wanted.
     private async Task RefreshSeasonAsync()
     {
         var seasonFile = await _seasonFiles.LoadAsync(_seasonFilePath);
@@ -196,18 +213,23 @@ public partial class SeasonViewModel : ViewModelBase
         var currentRound = SeasonRounds.Current(seasonFile);
         RoundTitle = currentRound == 0 ? "Round 0" : $"Round {currentRound} Marketplace";
 
-        var inventory = SeasonInventory.From(seasonFile, await CatalogAsync());
+        var stores = await AllStoresAsync();
+        var inventory = SeasonInventory.From(seasonFile, _catalog);
         Marketplace.RefreshBalance(seasonFile);
         Inventory.Show(_seasonFilePath, seasonFile, inventory);
         Services.Show(_seasonFilePath, seasonFile, Team.Units.ToList());
-        Team.ShowOwnedGear(inventory);
-        StoreSearch.OpenIfNeeded(_seasonFilePath, seasonFile, Marketplace.StoreNames(), _storeProvider.GetAllStoreNames());
+        Team.ShowOwnedGear(inventory, _catalog, SeasonEconomy.Ledger(seasonFile).CompanySwc);
+        WarMarketChoice.Prepare(
+            _seasonFilePath,
+            seasonFile,
+            Marketplace.FactionMarketNames,
+            stores.Where(store => store.IsWarMarket).Select(store => store.Name).ToList());
     }
 
-    // Every market's stock, read once, so owned items can be given their category and price.
-    private async Task<InventoryCatalog> CatalogAsync()
+    // Every store, read once; the catalog of their stock gives owned items their category, price and SWC.
+    private async Task<IReadOnlyList<Store>> AllStoresAsync()
     {
-        if (_catalog is null)
+        if (_allStores is null)
         {
             List<Store> stores = [];
             foreach (var name in _storeProvider.GetAllStoreNames())
@@ -218,14 +240,15 @@ public partial class SeasonViewModel : ViewModelBase
                 }
             }
 
+            _allStores = stores;
             _catalog = InventoryCatalog.From(stores);
         }
 
-        return _catalog;
+        return _allStores;
     }
 
-    // The new store joins the market list straight away.
-    private async Task OnTemporaryStoreChosenAsync(string storeName)
+    // The new War Market joins the market list straight away.
+    private async Task OnWarMarketChosenAsync(string storeName)
     {
         if (!_companyFiles.Exists(_companyFilePath) || await _companyFiles.LoadAsync(_companyFilePath) is not { } company)
         {

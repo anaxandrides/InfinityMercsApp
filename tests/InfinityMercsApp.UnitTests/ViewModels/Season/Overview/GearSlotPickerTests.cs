@@ -20,7 +20,7 @@ public sealed class GearSlotPickerTests
     [Fact]
     public void RefillingDoesNotCountAsAPick()
     {
-        var pistol = GearOption.For("Pistol", null);
+        var pistol = GearOption.For("Pistol", 0, null);
 
         _picker.Show([GearOption.None, pistol], pistol);
 
@@ -31,7 +31,7 @@ public sealed class GearSlotPickerTests
     [Fact]
     public void ChoosingReportsThePick()
     {
-        var pistol = GearOption.For("Pistol", "Bolt");
+        var pistol = GearOption.For("Pistol", 0, "Bolt");
         _picker.Show([GearOption.None, pistol], GearOption.None);
 
         _picker.SelectedOption = pistol;

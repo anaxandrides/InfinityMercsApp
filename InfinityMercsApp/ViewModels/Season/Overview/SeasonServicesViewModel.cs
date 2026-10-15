@@ -177,16 +177,9 @@ public partial class SeasonServicesViewModel : ObservableObject
         var retrainFrom = SelectedRetrainPerk?.Pick.NodeId;
         var retrainTo = SelectedReplacement?.Pick;
         var keepsNoCover = KeepsNoCover(trooper);
-        var recorded = false;
-        await _seasonFiles.UpdateAsync(_seasonFilePath, season =>
+        var recorded = await _seasonFiles.UpdateAsync(_seasonFilePath, season =>
         {
-            if (SeasonRounds.Latest(season) is not { } round)
-            {
-                return;
-            }
-
-            recorded = true;
-            round.Marketplace.Transactions.Add(new SeasonTransaction
+            SeasonRounds.CurrentMarketplace(season).Transactions.Add(new SeasonTransaction
             {
                 OriginStore = ServiceStoreNames.MedicalServices,
                 ItemName = $"{service.Name()}: {trooper.Name}{detail}",
@@ -216,7 +209,7 @@ public partial class SeasonServicesViewModel : ObservableObject
 
         if (!recorded)
         {
-            await _dialogs.ShowAlertAsync("Nothing Bought", "Services are recorded against a round, and this season has not started one yet.");
+            await _dialogs.ShowAlertAsync("Nothing Bought", SeasonMessages.NotSaved);
             return;
         }
 

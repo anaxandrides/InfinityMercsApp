@@ -4,6 +4,4 @@ namespace InfinityMercsApp.ViewModels.Season.Overview;
 public sealed record SeasonCartLine(string StoreName, string ItemName, string Category, int CostCr, decimal? CostSwc, int Quantity)
 {
     public int TotalCr => CostCr * Quantity;
-
-    public double TotalSwc => (double)(CostSwc ?? 0) * Quantity;
 }

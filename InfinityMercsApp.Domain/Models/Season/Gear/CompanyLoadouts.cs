@@ -51,6 +51,9 @@ public sealed class CompanyLoadouts
         return null;
     }
 
+    /// <summary>The items assigned to every trooper.</summary>
+    public IEnumerable<string> AllItems() => _loadouts.Values.SelectMany(loadout => loadout.Items);
+
     /// <summary>Every trooper's gear as saved in the season file.</summary>
     public Dictionary<int, List<SeasonUnitGear>> ToSeasonGear() =>
         _loadouts.ToDictionary(pair => pair.Key, pair => pair.Value.ToSeasonGear());

@@ -49,10 +49,33 @@ public sealed class SeasonEconomyTests
 
         var ledger = SeasonEconomy.Ledger(season);
 
-        // Round 1: 10 mission + 8 objectives + 10 victory + 5 downtime; round 2: 20 mission.
-        Assert.Equal(new SeasonLedger(CrEarned: 53, CrSpent: 14, SwcEarned: 1.0, SwcBought: 2.0, SwcSpent: 1.0), ledger);
+        // Round 1: 10 mission + 8 objectives + 10 victory + 5 downtime; round 2: 20 mission. Gear's SWC is not spent.
+        Assert.Equal(new SeasonLedger(StartingCr: 0, CrEarned: 53, CrSpent: 14, StartingSwc: 0, SwcEarned: 1.0, SwcBought: 2.0), ledger);
         Assert.Equal(39, ledger.CreditsBalance);
-        Assert.Equal(2.0, ledger.SwcBalance);
+        Assert.Equal(3.0, ledger.CompanySwc);
+    }
+
+    [Fact]
+    public void Ledger_StartsWithTheStartingFundsAndInitialPurchases()
+    {
+        var season = new SeasonFile
+        {
+            StartingFunds = new SeasonStartingFunds { Credits = 33, Swc = 1 },
+            InitialPurchases = new SeasonMarketplace
+            {
+                Transactions =
+                [
+                    new SeasonTransaction { CostCr = 12 },
+                    new SeasonTransaction { CostCr = 10, SwcGrant = 0.5m }
+                ]
+            }
+        };
+
+        var ledger = SeasonEconomy.Ledger(season);
+
+        Assert.Equal(new SeasonLedger(StartingCr: 33, CrEarned: 0, CrSpent: 22, StartingSwc: 1, SwcEarned: 0, SwcBought: 0.5), ledger);
+        Assert.Equal(11, ledger.CreditsBalance);
+        Assert.Equal(1.5, ledger.CompanySwc);
     }
 
     [Fact]

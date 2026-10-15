@@ -31,7 +31,6 @@ public static class SeasonStatusUpdate
         status.CrSpent = ledger.CrSpent;
         status.SwcEarned = ledger.SwcEarned;
         status.SwcBought = ledger.SwcBought;
-        status.SwcSpent = ledger.SwcSpent;
 
         foreach (var (name, xp) in unitXp)
         {

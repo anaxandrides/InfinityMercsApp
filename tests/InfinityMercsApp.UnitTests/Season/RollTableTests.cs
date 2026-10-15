@@ -16,12 +16,12 @@ public sealed class RollTableTests
     [InlineData(18, "Exrah Surplus")]
     [InlineData(19, null)]
     [InlineData(20, null)]
-    public void HighRollsFindNoTemporaryStore(int roll, string? store) => Assert.Equal(store, SeasonRollTables.TemporaryStores.Lookup(roll));
+    public void HighRollsFindNoTemporaryStore(int roll, string? store) => Assert.Equal(store, SeasonRollTables.WarMarkets.Lookup(roll));
 
     [Fact]
     public void TheTablesHaveNoGapsOrOverlaps()
     {
-        foreach (var table in new List<RollTable> { SeasonRollTables.Pistols, SeasonRollTables.TemporaryStores })
+        foreach (var table in new List<RollTable> { SeasonRollTables.Pistols, SeasonRollTables.WarMarkets })
         {
             Assert.Equal(1, table.Ranges[0].Min);
             Assert.All(table.Ranges.Zip(table.Ranges.Skip(1)), pair => Assert.Equal(pair.First.Max + 1, pair.Second.Min));

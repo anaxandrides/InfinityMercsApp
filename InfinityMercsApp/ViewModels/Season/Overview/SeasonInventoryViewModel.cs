@@ -43,7 +43,7 @@ public partial class SeasonInventoryViewModel(
             : string.Empty;
     }
 
-    /// <summary>After confirming, sells one of the item for half its price; SWC is not refunded.</summary>
+    /// <summary>After confirming, sells one of the item for half its price.</summary>
     [RelayCommand]
     private async Task SellAsync(InventoryItem? item)
     {
@@ -55,7 +55,7 @@ public partial class SeasonInventoryViewModel(
         var price = item.Entry.SellPrice;
         var confirmed = await dialogs.ConfirmAsync(
             "Sell Equipment",
-            $"Sell {item.Name} for {price} CR?\n(SWC is not refunded)",
+            $"Sell {item.Name} for {price} CR?",
             "Sell",
             "Cancel");
         if (!confirmed)
@@ -63,8 +63,8 @@ public partial class SeasonInventoryViewModel(
             return;
         }
 
-        var recorded = await seasonFiles.UpdateLatestRoundAsync(_seasonFilePath, round =>
-            round.Marketplace.Transactions.Add(new SeasonTransaction
+        var recorded = await seasonFiles.UpdateAsync(_seasonFilePath, season =>
+            SeasonRounds.CurrentMarketplace(season).Transactions.Add(new SeasonTransaction
             {
                 OriginStore = item.Entry.Sources.FirstOrDefault() ?? string.Empty,
                 ItemName = item.Name,
@@ -73,7 +73,7 @@ public partial class SeasonInventoryViewModel(
             }));
         if (!recorded)
         {
-            await dialogs.ShowAlertAsync("Nothing Sold", "Sales are recorded against a round, and this season has not started one yet.");
+            await dialogs.ShowAlertAsync("Nothing Sold", SeasonMessages.NotSaved);
             return;
         }
 

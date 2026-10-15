@@ -1,5 +1,7 @@
+using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
@@ -24,7 +26,7 @@ public sealed class SeasonViewModelTests
         Assert.Equal(["Captain", "Bolt", "Traktor Mul"], viewModel.Team.Units.Select(unit => unit.Name));
         Assert.Equal("Captain", viewModel.Team.SelectedName);
         Assert.True(viewModel.Marketplace.HasStore);
-        Assert.False(viewModel.StoreSearch.IsOpen);
+        Assert.False(viewModel.WarMarketChoice.IsOpen);
         await _kit.SeasonFiles.DidNotReceiveWithAnyArgs().CreateAsync(default!, default!, default!);
     }
 
@@ -37,7 +39,7 @@ public sealed class SeasonViewModelTests
 
         await _kit.SeasonFiles.Received(1).CreateAsync("Blue Team", "blue-1", SeasonTestKit.CompanyPath);
         Assert.Equal("Round 0", viewModel.RoundTitle);
-        Assert.False(viewModel.StoreSearch.IsOpen);
+        Assert.False(viewModel.WarMarketChoice.IsOpen);
     }
 
     [Fact]
@@ -75,27 +77,83 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task ARoundWithoutATemporaryStoreAsksForOne()
+    public async Task ARoundWithoutAWarMarketAsksForOneOnTheMarketTab()
     {
+        var panOceania = new Faction { Id = 101, ParentId = 101, Name = "PanOceania" };
+        _kit.ArmyData.GetMetadataFactionById(101).Returns(panOceania);
+        _kit.ArmyData.GetMetadataFactions().Returns([panOceania]);
         var viewModel = await _kit.OpenAsync();
+        Assert.True(viewModel.WarMarketChoice.IsNeeded);
+        Assert.False(viewModel.WarMarketChoice.IsOpen);
 
-        Assert.True(viewModel.StoreSearch.IsOpen);
-        Assert.DoesNotContain("Number One", viewModel.StoreSearch.Choices);
-        Assert.Contains("Jade Temu", viewModel.StoreSearch.Choices);
+        await viewModel.ShowTabCommand.ExecuteAsync(SeasonTab.Marketplace);
+
+        Assert.True(viewModel.WarMarketChoice.IsOpen);
+        Assert.Equal(["Number One"], viewModel.WarMarketChoice.FactionMarketChoices);
+        Assert.Equal(["Jade Temu"], viewModel.WarMarketChoice.Choices);
     }
 
     [Fact]
-    public async Task ChoosingATemporaryStoreAddsItToTheMarkets()
+    public async Task TheMarketTabDoesNotAskOnceAWarMarketIsChosen()
+    {
+        _kit.Season.Rounds[0].Marketplace.WarMarket = "Number One";
+        var viewModel = await _kit.OpenAsync();
+
+        await viewModel.ShowTabCommand.ExecuteAsync(SeasonTab.Marketplace);
+
+        Assert.False(viewModel.WarMarketChoice.IsNeeded);
+        Assert.False(viewModel.WarMarketChoice.IsOpen);
+    }
+
+    [Fact]
+    public async Task ChoosingAWarMarketAddsItToTheMarkets()
     {
         var viewModel = await _kit.OpenAsync();
+        await viewModel.ShowTabCommand.ExecuteAsync(SeasonTab.Marketplace);
         _kit.Dice.RollD20().Returns(3);
-        viewModel.StoreSearch.RollCommand.Execute(null);
+        viewModel.WarMarketChoice.RollCommand.Execute(null);
 
-        await viewModel.StoreSearch.ConfirmCommand.ExecuteAsync(null);
+        await viewModel.WarMarketChoice.ConfirmCommand.ExecuteAsync(null);
 
-        Assert.Equal("Jade Temu", _kit.Season.Rounds[0].TemporaryStore);
-        Assert.False(viewModel.StoreSearch.IsOpen);
-        Assert.Contains(viewModel.Marketplace.Stores, store => store.Label == "Jade Temu - Round 1 Store");
+        Assert.Equal("Jade Temu", _kit.Season.Rounds[0].Marketplace.WarMarket);
+        Assert.False(viewModel.WarMarketChoice.IsOpen);
+        Assert.Contains(viewModel.Marketplace.Stores, store => store.Label == "Jade Temu [YJ, Chaotic]");
+    }
+
+    [Fact]
+    public async Task ASeasonWithoutStartingFundsTakesThemFromTheCompany()
+    {
+        _kit.CompanyFiles.LoadAsync(SeasonTestKit.CompanyPath).Returns(new SavedCompanyFile
+        {
+            CompanyName = "Blue Team",
+            StartSeasonPoints = 75,
+            CurrentPoints = 60,
+            Entries = SeasonTestKit.Company().Entries
+        });
+
+        var viewModel = await _kit.OpenAsync();
+
+        Assert.Equal(15, _kit.Season.StartingFunds?.Credits);
+        Assert.Equal("25 CR - 0.5 SWC", viewModel.Marketplace.ResourcesText);
+    }
+
+    [Fact]
+    public async Task StartingFundsAreOnlyWorkedOutOnce()
+    {
+        _kit.Season.StartingFunds = new SeasonStartingFunds { Credits = 5 };
+
+        await _kit.OpenAsync();
+
+        Assert.Equal(5, _kit.Season.StartingFunds.Credits);
+        await _kit.SeasonFiles.DidNotReceive().UpdateAsync(Arg.Any<string?>(), Arg.Any<Action<SeasonFile>>());
+    }
+
+    [Fact]
+    public async Task TheTeamTabKnowsTheCompanysSwc()
+    {
+        var viewModel = await _kit.OpenAsync();
+
+        Assert.Equal("SWC EQUIPPED 0 / 0.5", viewModel.Team.SwcText);
     }
 
     [Fact]
@@ -141,7 +199,7 @@ public sealed class SeasonViewModelTests
 
         await viewModel.Marketplace.BuyCommand.ExecuteAsync(null);
 
-        Assert.Equal("Pistol", Assert.Single(viewModel.Inventory.Sections).Items[0].Name);
+        Assert.Equal("Knife", Assert.Single(viewModel.Inventory.Sections).Items[0].Name);
     }
 
     [Fact]

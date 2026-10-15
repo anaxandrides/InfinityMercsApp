@@ -5,8 +5,8 @@ using InfinityMercsApp.Domain.Models.Season;
 namespace InfinityMercsApp.Domain.Season;
 
 /// <summary>
-/// How a mercenary company earns and spends CR and SWC across a season: mission rewards, downtime
-/// gains and marketplace transactions.
+/// How a mercenary company earns and spends CR, and builds up SWC, across a season: mission rewards,
+/// downtime gains and marketplace transactions.
 /// </summary>
 public static class SeasonEconomy
 {
@@ -26,12 +26,30 @@ public static class SeasonEconomy
 
     public static int VictoryBonus(bool won) => won ? VictoryCredits : 0;
 
-    /// <summary>Everything earned and spent over the season's rounds.</summary>
+    /// <summary>
+    /// Everything earned and spent over the season: the starting funds, what was bought before the first
+    /// contract, then each round's rewards, downtime and purchases.
+    /// </summary>
     public static SeasonLedger Ledger(SeasonFile? seasonFile)
     {
+        if (seasonFile is null)
+        {
+            return default;
+        }
+
         int crEarned = 0, crSpent = 0;
-        double swcEarned = 0, swcBought = 0, swcSpent = 0;
-        foreach (var round in seasonFile?.Rounds ?? [])
+        double swcEarned = 0, swcBought = 0;
+        void Record(SeasonMarketplace marketplace)
+        {
+            foreach (var tx in marketplace.Transactions)
+            {
+                crSpent += tx.CostCr;
+                swcBought += (double)(tx.SwcGrant ?? 0);
+            }
+        }
+
+        Record(seasonFile.InitialPurchases);
+        foreach (var round in seasonFile.Rounds)
         {
             crEarned += MissionCredits(round.RoundIndex)
                         + ObjectiveCredits(round.MissionResults.OpScored)
@@ -41,16 +59,11 @@ public static class SeasonEconomy
 
             swcEarned += SwcPerMission;
             swcBought += round.Downtime.SwcGain;
-
-            foreach (var tx in round.Marketplace.Transactions)
-            {
-                crSpent += tx.CostCr;
-                swcSpent += (double)(tx.CostSwc ?? 0);
-                swcBought += (double)(tx.SwcGrant ?? 0);
-            }
+            Record(round.Marketplace);
         }
 
-        return new SeasonLedger(crEarned, crSpent, swcEarned, swcBought, swcSpent);
+        var start = seasonFile.StartingFunds;
+        return new SeasonLedger(start?.Credits ?? 0, crEarned, crSpent, start?.Swc ?? 0, swcEarned, swcBought);
     }
 
     /// <summary>

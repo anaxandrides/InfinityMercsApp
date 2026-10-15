@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Stores;
+using InfinityMercsApp.Domain.Season;
 using InfinityMercsApp.ViewModels.Marketplaces;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
@@ -23,10 +24,20 @@ public sealed class SeasonMarketplaceViewModelTests
         });
     }
 
-    private async Task OpenAsync()
+    // Opens the market tab with Number One, the company's own market, as this round's War Market, and shows it.
+    private async Task OpenAsync(string? warMarket = "Number One")
     {
+        if (warMarket is not null)
+        {
+            SeasonRounds.CurrentMarketplace(_kit.Season).WarMarket = warMarket;
+        }
+
         _market.RefreshBalance(_kit.Season);
         await _market.LoadStoresAsync(PanOceania, SeasonTestKit.SeasonPath, _kit.Season);
+        if (warMarket is not null)
+        {
+            await ShowAsync(_market.Stores[1].StoreName);
+        }
     }
 
     private async Task ShowAsync(string storeName)
@@ -37,33 +48,58 @@ public sealed class SeasonMarketplaceViewModelTests
 
     private StoreItemRow Item(string name) => _market.ItemGroups.SelectMany(group => group.Items).Single(item => item.Name == name);
 
-    // Three rounds, each a 10/20/30 CR reward, so 60 CR and 1.5 SWC to spend.
+    // Three rounds, each a 10/20/30 CR reward, so 60 CR and 1.5 SWC; the War Market is chosen on the last.
     private void GiveThreeRounds() =>
         _kit.Season.Rounds = [new SeasonRound { RoundIndex = 1 }, new SeasonRound { RoundIndex = 2 }, new SeasonRound { RoundIndex = 3 }];
 
     [Fact]
-    public async Task ListsMarketsThenTheTemporaryStoreThenServices()
+    public async Task ListsTheBaseMarketThenTheWarMarketThenServices()
     {
-        _kit.Season.Rounds[0].TemporaryStore = "Jade Temu";
+        _kit.Season.Rounds[0].Marketplace.WarMarket = "Number One";
 
-        await OpenAsync();
+        await _market.LoadStoresAsync(PanOceania, SeasonTestKit.SeasonPath, _kit.Season);
 
         Assert.Equal(
-            ["Number One [PanO, Lawful]", "Jade Temu - Round 1 Store", "🩺 Medical Services", "Additional Recruitment"],
+            ["Base Market [Neutral]", "Number One [PanO, Lawful]", "🩺 Medical Services", "Additional Recruitment"],
             _market.Stores.Select(store => store.Label));
-        Assert.Equal(["Additional Recruitment", "Number One", "Medical Services", "Jade Temu"], _market.StoreNames());
+        Assert.Equal(["Base Market", "Number One", "Medical Services", "Additional Recruitment"], _market.StoreNames());
         Assert.Same(_market.Stores[0], _market.SelectedStore);
-        Assert.Equal("Number One", _market.StoreName);
+        Assert.Equal("Base Market", _market.StoreName);
     }
 
     [Fact]
-    public async Task ATemporaryStoreTheCompanyHasIsNotListedTwice()
+    public async Task UntilAWarMarketIsChosenOnlyTheBaseMarketAndServicesAreOpen()
     {
-        _kit.Season.Rounds[0].TemporaryStore = "number one";
+        await OpenAsync(warMarket: null);
 
-        await OpenAsync();
+        Assert.Equal(["Base Market", "Medical Services", "Additional Recruitment"], _market.StoreNames());
+    }
 
-        Assert.Equal(3, _market.Stores.Count);
+    [Fact]
+    public async Task TheCompanysFactionMarketsAreKnownForChoosingOne()
+    {
+        await OpenAsync(warMarket: null);
+
+        Assert.Equal(["Number One"], _market.FactionMarketNames);
+    }
+
+    [Fact]
+    public async Task ARolledWarMarketFromAnotherFactionIsOpen()
+    {
+        await OpenAsync("Jade Temu");
+
+        Assert.Equal(["Base Market", "Jade Temu", "Medical Services", "Additional Recruitment"], _market.StoreNames());
+    }
+
+    [Fact]
+    public async Task AnOlderSeasonsTemporaryStoreIsTheRoundsWarMarket()
+    {
+        _kit.Season.Rounds[0].TemporaryStore = "Jade Temu";
+
+        await OpenAsync(warMarket: null);
+
+        Assert.Contains("Jade Temu", _market.StoreNames());
+        Assert.DoesNotContain("Number One", _market.StoreNames());
     }
 
     [Fact]
@@ -79,22 +115,27 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task NotorietyMovesPricesAtLawfulAndChaoticMarkets()
+    public async Task NotorietyRaisesPricesAtALawfulMarket()
     {
         _kit.Season.Rounds[0].Downtime.NotorietyGain = 2;
-        _kit.Season.Rounds[0].TemporaryStore = "Jade Temu";
         await OpenAsync();
 
         Assert.Equal(14, Item("Combi Rifle").CostCr);
         Assert.Equal("Lawful  (Notoriety: +2 CR)", _market.AlignmentText);
+    }
 
-        await ShowAsync("Jade Temu");
+    [Fact]
+    public async Task NotorietyLowersPricesAtAChaoticMarket()
+    {
+        _kit.Season.Rounds[0].Downtime.NotorietyGain = 2;
+        await OpenAsync("Jade Temu");
+
         Assert.Equal(6, Item("Monofilament Blade").CostCr);
         Assert.Equal("Chaotic  (Notoriety: -2 CR)", _market.AlignmentText);
     }
 
     [Fact]
-    public async Task TheCartComesOutOfTheBalance()
+    public async Task TheCartComesOutOfTheCreditsButNotTheSwc()
     {
         GiveThreeRounds();
         await OpenAsync();
@@ -103,10 +144,20 @@ public sealed class SeasonMarketplaceViewModelTests
         _market.IncrementCommand.Execute(Item("Spitfire"));
         _market.IncrementCommand.Execute(Item("Combi Rifle"));
 
-        Assert.Equal("28 CR - 0.5 SWC", _market.ResourcesText);
+        Assert.Equal("28 CR - 1.5 SWC", _market.ResourcesText);
         Assert.Equal(1, Item("Spitfire").Quantity);
         Assert.True(_market.HasCartItems);
         Assert.True(_market.BuyCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task GearCostingSwcCanBeBoughtWithoutSwc()
+    {
+        _kit.Season = new SeasonFile { StartingFunds = new SeasonStartingFunds { Credits = 25 } };
+        await OpenAsync();
+
+        Assert.Equal("25 CR - 0 SWC", _market.ResourcesText);
+        Assert.True(Item("Spitfire").IsAffordable);
     }
 
     [Fact]
@@ -142,16 +193,15 @@ public sealed class SeasonMarketplaceViewModelTests
     public async Task TheCartIsKeptAcrossStores()
     {
         GiveThreeRounds();
-        _kit.Season.Rounds[2].TemporaryStore = "Jade Temu";
         await OpenAsync();
         _market.IncrementCommand.Execute(Item("Pistol"));
 
-        await ShowAsync("Jade Temu");
-        _market.IncrementCommand.Execute(Item("Monofilament Blade"));
+        await ShowAsync("Base Market");
+        _market.IncrementCommand.Execute(Item("Knife"));
         await ShowAsync("Number One");
 
         Assert.Equal(1, Item("Pistol").Quantity);
-        Assert.Equal("49 CR - 1.5 SWC", _market.ResourcesText);
+        Assert.Equal("55 CR - 1.5 SWC", _market.ResourcesText);
     }
 
     [Fact]
@@ -172,7 +222,7 @@ public sealed class SeasonMarketplaceViewModelTests
         Assert.Equal(1m, round.Marketplace.Transactions[2].SwcGrant);
         Assert.Null(round.Marketplace.Transactions[0].SwcGrant);
         Assert.Equal((60, 1.5), (round.StartingCr, round.StartingSwc));
-        Assert.Contains("Number One", round.Marketplace.Stores);
+        Assert.Equal(["Base Market", "Number One", "Medical Services", "Additional Recruitment"], round.Marketplace.Stores);
         Assert.Equal(0, Item("Pistol").Quantity);
         Assert.False(_market.HasCartItems);
         Assert.Equal(1, _purchases);
@@ -191,16 +241,30 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task BuyingBeforeAnyRoundSaysSoAndKeepsTheCart()
+    public async Task BuyingBeforeTheFirstContractRecordsTheInitialPurchases()
+    {
+        _kit.Season = new SeasonFile { StartingFunds = new SeasonStartingFunds { Credits = 20 } };
+        await OpenAsync();
+        _market.IncrementCommand.Execute(Item("Pistol"));
+
+        await _market.BuyCommand.ExecuteAsync(null);
+
+        Assert.Equal("Pistol", _kit.Season.InitialPurchases.Transactions.Single().ItemName);
+        Assert.Equal(["Base Market", "Number One", "Medical Services", "Additional Recruitment"], _kit.Season.InitialPurchases.Stores);
+        Assert.Equal(1, _purchases);
+    }
+
+    [Fact]
+    public async Task AFailedSaveSaysSoAndKeepsTheCart()
     {
         GiveThreeRounds();
         await OpenAsync();
         _market.IncrementCommand.Execute(Item("Pistol"));
-        _kit.Season.Rounds.Clear();
+        _kit.SeasonFiles.UpdateAsync(SeasonTestKit.SeasonPath, Arg.Any<Action<SeasonFile>>()).Returns(false);
 
         await _market.BuyCommand.ExecuteAsync(null);
 
-        await _kit.Dialogs.Received(1).ShowAlertAsync("Nothing Bought", Arg.Any<string>());
+        await _kit.Dialogs.Received(1).ShowAlertAsync("Nothing Bought", SeasonMessages.NotSaved);
         Assert.True(_market.HasCartItems);
         Assert.Equal(0, _purchases);
     }
@@ -209,8 +273,7 @@ public sealed class SeasonMarketplaceViewModelTests
     public async Task ALaterPickWinsOverASlowerStore()
     {
         var slow = new TaskCompletionSource<Store?>();
-        _kit.Season.Rounds[0].TemporaryStore = "Jade Temu";
-        await OpenAsync();
+        await OpenAsync("Jade Temu");
         _kit.Stores.GetStoreByNameAsync("Jade Temu", Arg.Any<CancellationToken>()).Returns(slow.Task);
 
         _market.SelectedStore = _market.Stores.Single(store => store.StoreName == "Jade Temu");
