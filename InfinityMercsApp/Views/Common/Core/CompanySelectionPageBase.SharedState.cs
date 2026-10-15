@@ -3,6 +3,7 @@ using InfinityMercsApp.Services.CompanySelection.Core;
 using InfinityMercsApp.Services.CompanySelection.Models.Entries;
 using InfinityMercsApp.Services.CompanySelection.Models.Selection;
 using InfinityMercsApp.Services.CompanySelection.Models.Ui;
+using InfinityMercsApp.ViewModels.Collections;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.Controls;
 

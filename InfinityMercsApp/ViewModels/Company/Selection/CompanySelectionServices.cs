@@ -1,0 +1,19 @@
+using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.Dialogs;
+using InfinityMercsApp.Services.Logos;
+using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.Services.Packaging;
+
+namespace InfinityMercsApp.ViewModels.Company.Selection;
+
+/// <summary>Everything a company selection screen talks to, gathered so each kind of company passes one thing on.</summary>
+public sealed record CompanySelectionServices(
+    INavigationService Navigation,
+    IDialogService Dialogs,
+    ICaptainConfigurationDialog CaptainDialog,
+    IArmyDataService ArmyData,
+    ISpecOpsProvider SpecOps,
+    IAppPackageFiles PackageFiles,
+    IAppSettingsProvider? Settings = null,
+    FactionLogoCacheService? Logos = null);

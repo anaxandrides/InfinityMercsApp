@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 
-namespace InfinityMercsApp.Views.Common;
+namespace InfinityMercsApp.ViewModels.Collections;
 
 /// <summary>
 /// An <see cref="ObservableCollection{T}"/> that can replace its entire contents while raising a
