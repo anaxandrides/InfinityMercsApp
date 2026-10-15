@@ -74,6 +74,7 @@ public sealed class DowntimeViewModelTests
         Assert.True(viewModel.CanRollDice);
         Assert.False(viewModel.HasEvent);
         Assert.False(viewModel.IsResolved);
+        Assert.False(viewModel.CanGoBackToBase);
         Assert.Equal(Enumerable.Range(1, 20), viewModel.RealRolls);
         Assert.Equal(9, viewModel.EventOptions.Count);
         Assert.False(viewModel.NoEventCommand.CanExecute(null));
@@ -183,6 +184,7 @@ public sealed class DowntimeViewModelTests
         Assert.Equal(["Gain 1 Notoriety", "Alpha gains 2 XP"], viewModel.ConsequenceLines);
         Assert.False(viewModel.HasNoConsequences);
         Assert.True(viewModel.IsResolved);
+        Assert.True(viewModel.CanGoBackToBase);
         Assert.Equal(2, _debrief.Units[0].XpData.DowntimeBonusXp);
         Assert.Equal("PASS — Alpha", _round.Downtime.Result);
         Assert.Equal("Alpha", _round.Downtime.ParticipantName);
@@ -283,7 +285,9 @@ public sealed class DowntimeViewModelTests
 
         Assert.True(viewModel.HasNoCandidates);
         Assert.Equal(DowntimeStage.Blocked, viewModel.Stage);
+        Assert.Equal("Nobody can take this choice.", viewModel.RollPrompt);
         Assert.False(viewModel.CanRollDice);
+        Assert.True(viewModel.CanGoBackToBase);
     }
 
     [Fact]
@@ -300,6 +304,7 @@ public sealed class DowntimeViewModelTests
         Assert.Equal("Test: PH — target could not be resolved.", viewModel.TestText);
         Assert.Equal("Unable to resolve test target.", viewModel.RollPrompt);
         Assert.Equal(DowntimeStage.Blocked, viewModel.Stage);
+        Assert.True(viewModel.CanGoBackToBase);
     }
 
     [Fact]

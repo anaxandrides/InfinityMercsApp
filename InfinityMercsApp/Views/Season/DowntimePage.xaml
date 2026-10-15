@@ -263,7 +263,7 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- What to do next, the dice, then Back to Base once the event is settled. -->
+        <!-- What to do next and the dice; Back to Base once the event is settled or can't go on. -->
         <VerticalStackLayout Grid.Row="2" Spacing="6" Margin="0,12,0,0">
             <Label Text="{Binding RollPrompt}"
                    IsVisible="{Binding IsResolved, Converter={StaticResource InvertedBoolConverter}}"
@@ -272,7 +272,7 @@
                    HorizontalTextAlignment="Center" />
             <Grid ColumnDefinitions="*,Auto,*"
                   ColumnSpacing="8"
-                  IsVisible="{Binding IsResolved, Converter={StaticResource InvertedBoolConverter}}">
+                  IsVisible="{Binding CanGoBackToBase, Converter={StaticResource InvertedBoolConverter}}">
                 <Grid.Triggers>
                     <DataTrigger TargetType="Grid" Binding="{Binding CanRollDice}" Value="False">
                         <Setter Property="Opacity" Value="0.45" />
@@ -307,7 +307,7 @@
                     BorderColor="{StaticResource Signal}"
                     BorderWidth="1"
                     FontAttributes="Bold"
-                    IsVisible="{Binding IsResolved}"
+                    IsVisible="{Binding CanGoBackToBase}"
                     Command="{Binding BackToBaseCommand}" />
         </VerticalStackLayout>
 

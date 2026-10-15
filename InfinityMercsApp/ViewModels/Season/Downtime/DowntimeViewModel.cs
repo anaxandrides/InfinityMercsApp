@@ -32,7 +32,7 @@ public partial class DowntimeViewModel(
     private int _testTarget;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanRollDice), nameof(IsResolved), nameof(IsSpendingCr))]
+    [NotifyPropertyChangedFor(nameof(CanRollDice), nameof(IsResolved), nameof(CanGoBackToBase), nameof(IsSpendingCr))]
     [NotifyCanExecuteChangedFor(
         nameof(RollCommand), nameof(RealCommand), nameof(PickEventCommand), nameof(NoEventCommand),
         nameof(PickChoiceCommand), nameof(PickParticipantCommand), nameof(ConfirmSpendCommand))]
@@ -112,6 +112,9 @@ public partial class DowntimeViewModel(
     public bool CanRollDice => Stage is DowntimeStage.AwaitingEventRoll or DowntimeStage.AwaitingTestRoll;
 
     public bool IsResolved => Stage == DowntimeStage.Resolved;
+
+    /// <summary>Back to Base is offered once the event is settled, or when it can't go on, so nobody is left stuck.</summary>
+    public bool CanGoBackToBase => Stage is DowntimeStage.Resolved or DowntimeStage.Blocked;
 
     public bool IsSpendingCr => Stage == DowntimeStage.SpendingCr;
 
@@ -257,6 +260,11 @@ public partial class DowntimeViewModel(
         }
 
         HasNoCandidates = Participants.Count == 0;
+        if (HasNoCandidates)
+        {
+            RollPrompt = "Nobody can take this choice.";
+        }
+
         Stage = HasNoCandidates ? DowntimeStage.Blocked : DowntimeStage.ChoosingParticipant;
 
         await seasonFiles.UpdateLatestRoundAsync(_seasonFilePath, round =>
