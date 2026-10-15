@@ -369,7 +369,7 @@ public partial class UnitDetailViewModel(
                 }
 
                 var swc = string.IsNullOrWhiteSpace(option.Swc) ? "-" : option.Swc;
-                if (request.MercsOnly && ProfileValues.IsPositiveSwc(swc))
+                if (request.MercsOnly && ProfileValues.CostsSwc(swc))
                 {
                     continue;
                 }
@@ -414,7 +414,8 @@ public partial class UnitDetailViewModel(
                     Peripherals = peripherals,
                     PeripheralsFormatted = UnitDetailFormatting.Lines(UnitDetailText.LinkedLines(peripheralEntries, peripheralLinks), UnitDetailFormatting.PeripheralColor),
                     Swc = swc,
-                    SwcDisplay = request.MercsOnly ? string.Empty : $"SWC {swc}",
+                    // A mercenary profile costs no SWC, but one may give it ("+1").
+                    SwcDisplay = request.MercsOnly && ProfileValues.SwcGrant(swc) == 0 ? string.Empty : $"SWC {swc}",
                     Cost = cost,
                     ShowProfileTacticalAwarenessIcon = !ShowTacticalAwarenessIcon &&
                         skillEntries.Any(x => x.Name.Contains("tactical awareness", StringComparison.OrdinalIgnoreCase))

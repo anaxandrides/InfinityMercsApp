@@ -12,7 +12,7 @@ public static class UnitOptionFilter
 
     /// <summary>
     /// True when at least one option passes the visibility rules (optional name predicate, Lieutenant only,
-    /// no positive SWC, cost cap) and matches every non-classification term and the points range.
+    /// no SWC cost, cost cap) and matches every non-classification term and the points range.
     /// </summary>
     public static bool HasVisibleOption(
         UnitProfileGroups groups,
@@ -205,7 +205,7 @@ public static class UnitOptionFilter
             return false;
         }
 
-        if (requireZeroSwc && option.HasPositiveSwc)
+        if (requireZeroSwc && option.CostsSwc)
         {
             return false;
         }

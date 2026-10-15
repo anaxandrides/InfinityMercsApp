@@ -681,7 +681,7 @@ unit army-101:16
   filter-options ammo: []
 unit army-101:1814
   has-lieutenant-option: false
-  has-visible-option(zero-swc): false
+  has-visible-option(zero-swc): true
   faction-ids: [101, 107]
   group 1 isc="Dr. Priya Harper, Archeo-raider" controller=false
     profile 1 name="DR. PRIYA HARPER, ARCHEO-RAIDER" mov=10-10 cc=17 bs=12 ph=10 wip=13 arm=1 bts=3 w=1 s=2 ava=1 type=1 str=false

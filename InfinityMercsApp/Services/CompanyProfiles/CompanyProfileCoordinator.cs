@@ -32,7 +32,7 @@ internal sealed class CompanyProfileCoordinator
 
             foreach (var option in group.Options)
             {
-                if (option.HasPositiveSwc)
+                if (option.CostsSwc)
                 {
                     continue;
                 }
@@ -74,7 +74,7 @@ internal sealed class CompanyProfileCoordinator
             foreach (var option in group.Options)
             {
                 var swc = option.Swc;
-                if (option.HasPositiveSwc)
+                if (option.CostsSwc)
                 {
                     continue;
                 }

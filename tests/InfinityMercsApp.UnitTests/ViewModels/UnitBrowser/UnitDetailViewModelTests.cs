@@ -46,8 +46,19 @@ public sealed class UnitDetailViewModelTests
         var mercs = Load(mercsOnly: true);
 
         Assert.True(mercs.Profiles.Count < all.Profiles.Count);
-        Assert.All(mercs.Profiles, p => Assert.False(ProfileValues.IsPositiveSwc(p.Swc)));
+        Assert.All(mercs.Profiles, p => Assert.False(ProfileValues.CostsSwc(p.Swc)));
         Assert.All(mercs.Profiles, p => Assert.Equal(string.Empty, p.SwcDisplay));
+    }
+
+    [Fact]
+    public void MercsOnlyKeepsConfigurationsThatGiveSwc()
+    {
+        var joan = Army101Data.UnitNamed("JOAN OF ARC");
+        var detail = new UnitDetailViewModel(Army101Data.Create());
+
+        detail.Load(new UnitDetailRequest(Army101Data.PanOceania, joan.Id, "Joan of Arc", "logo.svg", MercsOnly: true, LieutenantOnly: true));
+
+        Assert.Contains(detail.Profiles, p => p.Swc == "+1" && p.SwcDisplay == "SWC +1");
     }
 
     [Fact]

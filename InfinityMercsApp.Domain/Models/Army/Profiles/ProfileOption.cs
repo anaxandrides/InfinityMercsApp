@@ -44,7 +44,8 @@ public sealed class ProfileOption
     /// <summary>The option's cost as a number (see <see cref="ProfileValues.ParseCost"/>).</summary>
     public int CostValue => ProfileValues.ParseCost(Cost);
 
-    public bool HasPositiveSwc => ProfileValues.IsPositiveSwc(Swc);
+    /// <summary>The option costs SWC, which a mercenary profile may not; one that gives SWC ("+1") does not.</summary>
+    public bool CostsSwc => ProfileValues.CostsSwc(Swc);
 
     public bool HasLieutenantOrder => Orders.Any(order => order.IsLieutenant);
 

@@ -38,6 +38,12 @@ public static class ProfileValues
         return decimal.TryParse(swc, NumberStyles.Number, CultureInfo.InvariantCulture, out var value) && value > 0m;
     }
 
+    /// <summary>
+    /// True when an option costs SWC, such as <c>"0.5"</c>. A <c>"+1"</c> gives the army SWC instead (a
+    /// lieutenant's bonus), so it costs none.
+    /// </summary>
+    public static bool CostsSwc(string? swc) => IsPositiveSwc(swc) && SwcGrant(swc) == 0;
+
     /// <summary>The SWC a profile gives rather than costs, written <c>"+1"</c>; 0 for anything else.</summary>
     public static double SwcGrant(string? swc)
     {

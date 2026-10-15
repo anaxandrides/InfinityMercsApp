@@ -137,7 +137,7 @@ internal static class ProfileFacts
                 sb.Append(" option ").Append(Id(option.Id))
                     .Append(" name=").Append(TextOrDash(option.Name))
                     .Append(" swc=").Append(option.Swc)
-                    .Append(" positive-swc=").Append(Bool(option.HasPositiveSwc))
+                    .Append(" positive-swc=").Append(Bool(ProfileValues.CostsSwc(option.Swc)))
                     .Append(" cost=").Append(option.Cost)
                     .Append(" adjusted=").Append(adjusted)
                     .Append(" adjusted-value=").Append(Int(groups.GetAdjustedCostValue(group, option)))

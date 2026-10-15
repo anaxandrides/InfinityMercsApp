@@ -179,7 +179,7 @@ public sealed class UnitProfileGroups
 
     /// <summary>
     /// The first peripheral (name and statline) of the first option visible to the company: controller groups
-    /// only when the unit has any, no positive SWC, and Lieutenant options only when the list is restricted
+    /// only when the unit has any, no SWC cost, and Lieutenant options only when the list is restricted
     /// to Lieutenants (unless the Lieutenant role is forced).
     /// </summary>
     public NamedProfile? FindFirstVisiblePeripheral(
@@ -198,7 +198,7 @@ public sealed class UnitProfileGroups
 
             foreach (var option in group.Options)
             {
-                if (option.HasPositiveSwc)
+                if (option.CostsSwc)
                 {
                     continue;
                 }

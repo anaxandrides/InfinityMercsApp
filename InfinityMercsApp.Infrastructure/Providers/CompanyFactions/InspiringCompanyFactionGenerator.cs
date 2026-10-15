@@ -56,7 +56,7 @@ public sealed class InspiringCompanyFactionGenerator(
     private static IReadOnlyList<ProfileOption> IrregularOptions(ProfileGroup group) =>
         group.Options
             .Where(option => option.Orders.Any(order => string.Equals(order.Type, "IRREGULAR", StringComparison.OrdinalIgnoreCase)))
-            .Where(option => !option.HasPositiveSwc)
+            .Where(option => !option.CostsSwc)
             .ToList();
 
     private void InsertMetadataFactionEntry()

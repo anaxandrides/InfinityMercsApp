@@ -346,7 +346,7 @@ public sealed class TestCompanyReformer(
         var profileGroups = unit.ProfileGroups;
         var options = profileGroups.AllOptions()
             .Select(x => x.Option)
-            .Where(option => !option.HasPositiveSwc)
+            .Where(option => !option.CostsSwc)
             .ToList();
 
         var stableEquip = CompanyUnitDetailsWorkflowService.CommonNames(profileGroups, options, ProfileEntryKind.Equip, equipLookup, entryNames);

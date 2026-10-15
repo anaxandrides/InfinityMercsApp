@@ -74,7 +74,7 @@ public sealed class AirborneCompanyFactionGenerator(
             .Any(skill => skill.Id is int id && airborneSkillIds.Contains(id));
 
         return hasAirborneDeployment
-            ? group.Options.Where(option => !option.HasPositiveSwc).ToList()
+            ? group.Options.Where(option => !option.CostsSwc).ToList()
             : [];
     }
 

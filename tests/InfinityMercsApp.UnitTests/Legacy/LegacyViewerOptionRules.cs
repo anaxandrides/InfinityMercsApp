@@ -1328,9 +1328,10 @@ internal static class LegacyViewerOptionRules
         return 0;
     }
 
+    // Changed after the freeze, as a bug fix: a "+1" gives SWC rather than costing it, so it no longer hides a profile.
     internal static bool IsPositiveSwc(string swc)
     {
-        if (string.IsNullOrWhiteSpace(swc) || swc == "-")
+        if (string.IsNullOrWhiteSpace(swc) || swc == "-" || swc.TrimStart().StartsWith('+'))
         {
             return false;
         }

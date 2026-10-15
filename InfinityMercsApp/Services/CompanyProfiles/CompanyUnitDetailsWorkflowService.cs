@@ -55,7 +55,7 @@ internal static class CompanyUnitDetailsWorkflowService
 
         var visibleOptions = profileGroups.AllOptions()
             .Select(x => x.Option)
-            .Where(option => !option.HasPositiveSwc)
+            .Where(option => !option.CostsSwc)
             .Where(option => !treatAsSpecOps && request.LieutenantOnlyUnits ? option.IsLieutenant(skillsLookup) : true)
             .ToList();
 
