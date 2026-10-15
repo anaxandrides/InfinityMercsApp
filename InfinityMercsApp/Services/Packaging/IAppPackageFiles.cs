@@ -4,4 +4,6 @@ namespace InfinityMercsApp.Services.Packaging;
 public interface IAppPackageFiles
 {
     Task<string> ReadTextAsync(string path);
+
+    Task<bool> ExistsAsync(string path);
 }

@@ -8,4 +8,6 @@ internal sealed class AppPackageFiles : IAppPackageFiles
         using var reader = new StreamReader(stream);
         return await reader.ReadToEndAsync();
     }
+
+    public Task<bool> ExistsAsync(string path) => FileSystem.Current.AppPackageFileExistsAsync(path);
 }

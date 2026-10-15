@@ -1,11 +1,16 @@
 namespace InfinityMercsApp.Views.Behaviors;
 
-/// <summary>Scrolls a vertical list by dragging it with the mouse or a finger; desktop has no touch scrolling.</summary>
+/// <summary>
+/// Scrolls a list by dragging it with the mouse or a finger; desktop has no touch scrolling.
+/// Set <see cref="Orientation"/> to Horizontal for a sideways strip.
+/// </summary>
 public sealed class DragToScrollBehavior : Behavior<ScrollView>
 {
     private readonly PanGestureRecognizer _pan = new();
     private ScrollView? _scrollView;
-    private double _startY;
+    private double _start;
+
+    public ScrollOrientation Orientation { get; set; } = ScrollOrientation.Vertical;
 
     protected override void OnAttachedTo(ScrollView scrollView)
     {
@@ -30,13 +35,17 @@ public sealed class DragToScrollBehavior : Behavior<ScrollView>
             return;
         }
 
+        var horizontal = Orientation == ScrollOrientation.Horizontal;
         switch (e.StatusType)
         {
             case GestureStatus.Started:
-                _startY = _scrollView.ScrollY;
+                _start = horizontal ? _scrollView.ScrollX : _scrollView.ScrollY;
+                break;
+            case GestureStatus.Running when horizontal:
+                await _scrollView.ScrollToAsync(Math.Max(0, _start - e.TotalX), _scrollView.ScrollY, false);
                 break;
             case GestureStatus.Running:
-                await _scrollView.ScrollToAsync(0, Math.Max(0, _startY - e.TotalY), false);
+                await _scrollView.ScrollToAsync(_scrollView.ScrollX, Math.Max(0, _start - e.TotalY), false);
                 break;
         }
     }

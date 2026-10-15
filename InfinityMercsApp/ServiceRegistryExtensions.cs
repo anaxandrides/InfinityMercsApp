@@ -15,6 +15,7 @@ using InfinityMercsApp.Services.Wiki;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.ViewModels.Armory;
 using InfinityMercsApp.ViewModels.Company;
+using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Marketplaces;
 using InfinityMercsApp.ViewModels.Season;
 using InfinityMercsApp.ViewModels.Season.Downtime;
@@ -50,7 +51,8 @@ public static class ServiceRegistryExtensions
                 .AddTransient<AboutPageViewModel>()
                 .AddTransient<MercsSeasonPageViewModel>()
                 .AddTransient<MissionOutcomeViewModel>()
-                .AddTransient<DowntimeViewModel>();
+                .AddTransient<DowntimeViewModel>()
+                .AddTransient<CompanyViewerViewModel>();
 
         return services;
     }
@@ -101,6 +103,8 @@ public static class ServiceRegistryExtensions
                 .AddSingleton(_ => RecordPaths.ForAppData(FileSystem.Current.AppDataDirectory))
                 .AddSingleton<SeasonRecordCatalog>()
                 .AddSingleton<CompanyRecordCatalog>()
+                .AddSingleton<ICompanyFileService, CompanyFileStore>()
+                .AddSingleton<CompanyRoster>()
                 .AddSingleton<DeploymentRoster>()
                 .AddSingleton<TestCompanyReformer>()
                 .AddSingleton<MissionDebrief>()

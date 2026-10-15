@@ -1,10 +1,19 @@
-using InfinityMercsApp.ViewModels;
+using CommunityToolkit.Mvvm.ComponentModel;
+using InfinityMercsApp.Domain.Models.Perks;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 
-namespace InfinityMercsApp.Views;
+namespace InfinityMercsApp.ViewModels.Company.Viewer;
 
-public sealed class CompanyViewerUnitListItem : BaseViewModel, IViewerListItem
+/// <summary>A saved trooper as a tile in a company's unit strip, carrying what its detail view shows.</summary>
+public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewerListItem
 {
+    [ObservableProperty]
+    private string _name = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TileStroke), nameof(TileStrokeThickness))]
+    private bool _isSelected;
+
     public int EntryIndex { get; init; }
     public int SourceFactionId { get; init; }
     public int VisualFactionId { get; init; }
@@ -36,44 +45,15 @@ public sealed class CompanyViewerUnitListItem : BaseViewModel, IViewerListItem
     public string ExperienceRankName => CompanyUnitExperienceRanks.GetRankName(ExperiencePoints);
     public string CaptainIconPackagedPath { get; init; } = string.Empty;
     public string ExperienceIconPackagedPath { get; init; } = string.Empty;
-    private string _name = string.Empty;
-    public string Name
-    {
-        get => _name;
-        set
-        {
-            if (_name == value)
-            {
-                return;
-            }
-
-            _name = value;
-            OnPropertyChanged();
-        }
-    }
     public string BaseUnitName { get; init; } = string.Empty;
     public string BaseUnitDisplayName { get; init; } = string.Empty;
     public string UnitTypeCode { get; init; } = string.Empty;
     public string? CachedLogoPath { get; init; }
     public string? PackagedLogoPath { get; init; }
+
+    /// <summary>A logo to show when neither the cached nor the packaged one exists, e.g. the TAG icon for TAG company units.</summary>
+    public string? FallbackLogoPath { get; init; }
+
     public string? Subtitle { get; init; }
     public bool HasSubtitle => !string.IsNullOrWhiteSpace(Subtitle);
-
-    private bool _isSelected;
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set
-        {
-            if (_isSelected == value)
-            {
-                return;
-            }
-
-            _isSelected = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(TileStroke));
-            OnPropertyChanged(nameof(TileStrokeThickness));
-        }
-    }
 }

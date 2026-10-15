@@ -22,6 +22,7 @@ using InfinityMercsApp.Services.CompanySelection.Visuals;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.Controls;
 using SkiaSharp;
@@ -541,7 +542,10 @@ public partial class SeasonPage : ContentPage, IQueryAttributable
                     SelectionAccentColor = ResolveSelectionAccentColor(logoSourceFactionId),
                     CachedLogoPath = _factionLogoCacheService?.TryGetCachedUnitLogoPath(logoSourceFactionId, logoSourceUnitId),
                     PackagedLogoPath = _factionLogoCacheService?.GetPackagedUnitLogoPath(logoSourceFactionId, logoSourceUnitId)
-                        ?? $"SVGCache/units/{logoSourceFactionId}-{logoSourceUnitId}.svg"
+                        ?? $"SVGCache/units/{logoSourceFactionId}-{logoSourceUnitId}.svg",
+                    FallbackLogoPath = CompanyRoster.EffectiveSourceFactionId(entry) == CompanyRoster.TagCompanyFactionId
+                        ? CompanyRoster.TagCompanyFallbackIconPath
+                        : null
                 });
             }
 

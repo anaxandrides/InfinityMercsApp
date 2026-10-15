@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
@@ -8,8 +9,6 @@ namespace InfinityMercsApp.Views.Controls;
 
 public partial class CompanyViewerUnitTileView : ContentView
 {
-    private const int TagCompanyFactionId = 2003;
-    private const string TagCompanyFallbackIconPath = "SVGCache/MercsIcons/noun-battle-mech-1731140.svg";
 
     private SKPicture? _svgPicture;
     private SKPicture? _captainBadgePicture;
@@ -178,19 +177,9 @@ public partial class CompanyViewerUnitTileView : ContentView
 
     private static IEnumerable<string> BuildFallbackLogoCandidates(IViewerListItem item)
     {
-        if (item is not CompanyViewerUnitListItem companyItem)
+        if (item is CompanyViewerUnitListItem { FallbackLogoPath: { } fallback } && !string.IsNullOrWhiteSpace(fallback))
         {
-            yield break;
-        }
-
-        var isTagCompanyUnit = companyItem.VisualFactionId == TagCompanyFactionId ||
-                               companyItem.SourceFactionId == TagCompanyFactionId ||
-                               companyItem.BaseUnitName.Contains("Repurposed Mining Equipment", StringComparison.OrdinalIgnoreCase) ||
-                               companyItem.BaseUnitName.Contains("Turtlemek", StringComparison.OrdinalIgnoreCase);
-
-        if (isTagCompanyUnit)
-        {
-            yield return TagCompanyFallbackIconPath;
+            yield return fallback;
         }
     }
 
