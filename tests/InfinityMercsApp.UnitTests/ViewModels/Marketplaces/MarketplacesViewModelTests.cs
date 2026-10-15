@@ -55,7 +55,7 @@ public sealed class MarketplacesViewModelTests
 
         Assert.Equal(["Black Market", "Bazaar"], viewModel.StoreNames);
         Assert.False(viewModel.HasStore);
-        Assert.False(viewModel.IsDetailOpen);
+        Assert.False(viewModel.DetailPopup.IsOpen);
     }
 
     [Fact]
@@ -180,12 +180,12 @@ public sealed class MarketplacesViewModelTests
 
         await viewModel.ShowDetailCommand.ExecuteAsync(viewModel.ItemGroups[0].Items[0]);
 
-        Assert.True(viewModel.IsDetailOpen);
-        Assert.Equal("Pistol", viewModel.Detail!.Title);
-        Assert.Single(viewModel.Detail.Weapons);
-        Assert.Equal(WikiStatus.Loaded, viewModel.WikiStatus);
-        Assert.True(viewModel.HasWiki && viewModel.HasWikiBlocks);
-        Assert.Same(blocks, viewModel.WikiBlocks);
+        Assert.True(viewModel.DetailPopup.IsOpen);
+        Assert.Equal("Pistol", viewModel.DetailPopup.Detail!.Title);
+        Assert.Single(viewModel.DetailPopup.Detail.Weapons);
+        Assert.Equal(WikiStatus.Loaded, viewModel.DetailPopup.WikiStatus);
+        Assert.True(viewModel.DetailPopup.HasWiki && viewModel.DetailPopup.HasWikiBlocks);
+        Assert.Same(blocks, viewModel.DetailPopup.WikiBlocks);
     }
 
     [Fact]
@@ -197,8 +197,8 @@ public sealed class MarketplacesViewModelTests
 
         await viewModel.ShowDetailCommand.ExecuteAsync(viewModel.ItemGroups[0].Items[0]);
 
-        Assert.Equal(WikiStatus.Empty, viewModel.WikiStatus);
-        Assert.True(viewModel.IsWikiEmpty);
+        Assert.Equal(WikiStatus.Empty, viewModel.DetailPopup.WikiStatus);
+        Assert.True(viewModel.DetailPopup.IsWikiEmpty);
     }
 
     [Fact]
@@ -209,8 +209,8 @@ public sealed class MarketplacesViewModelTests
 
         await viewModel.ShowDetailCommand.ExecuteAsync(viewModel.ItemGroups[1].Items[0]);
 
-        Assert.Equal(WikiStatus.None, viewModel.WikiStatus);
-        Assert.False(viewModel.HasWiki);
+        Assert.Equal(WikiStatus.None, viewModel.DetailPopup.WikiStatus);
+        Assert.False(viewModel.DetailPopup.HasWiki);
         await _wiki.DidNotReceiveWithAnyArgs().FetchContentAsync(default!);
     }
 
@@ -223,13 +223,13 @@ public sealed class MarketplacesViewModelTests
         var viewModel = await WithBlackMarketAsync();
 
         var showing = viewModel.ShowDetailCommand.ExecuteAsync(viewModel.ItemGroups[0].Items[0]);
-        Assert.True(viewModel.IsWikiLoading);
-        viewModel.CloseDetailCommand.Execute(null);
+        Assert.True(viewModel.DetailPopup.IsWikiLoading);
+        viewModel.DetailPopup.CloseCommand.Execute(null);
         pending.SetResult([new WikiContentBlock { Text = "Late" }]);
         await showing;
 
-        Assert.False(viewModel.IsDetailOpen);
-        Assert.Empty(viewModel.WikiBlocks);
+        Assert.False(viewModel.DetailPopup.IsOpen);
+        Assert.Empty(viewModel.DetailPopup.WikiBlocks);
     }
 
     [Fact]
@@ -240,8 +240,8 @@ public sealed class MarketplacesViewModelTests
 
         await viewModel.ShowDetailCommand.ExecuteAsync(viewModel.TroopTypeRows[0]);
 
-        Assert.Equal<AbilityLink>([new("Mimetism (-3)", "https://wiki/mimetism")], viewModel.Detail!.Abilities);
-        Assert.Equal(WikiStatus.None, viewModel.WikiStatus);
+        Assert.Equal<AbilityLink>([new("Mimetism (-3)", "https://wiki/mimetism")], viewModel.DetailPopup.Detail!.Abilities);
+        Assert.Equal(WikiStatus.None, viewModel.DetailPopup.WikiStatus);
     }
 
     [Fact]
@@ -250,16 +250,16 @@ public sealed class MarketplacesViewModelTests
         var viewModel = await WithBlackMarketAsync();
 
         await viewModel.ShowDetailCommand.ExecuteAsync(viewModel.AugmentRows[0]);
-        Assert.Equal("Cube", viewModel.Detail!.Title);
+        Assert.Equal("Cube", viewModel.DetailPopup.Detail!.Title);
 
-        viewModel.CloseDetailCommand.Execute(null);
-        Assert.Null(viewModel.Detail);
+        viewModel.DetailPopup.CloseCommand.Execute(null);
+        Assert.Null(viewModel.DetailPopup.Detail);
     }
 
     [Fact]
     public async Task OpensSkillLinks()
     {
-        await CreateViewModel().OpenLinkCommand.ExecuteAsync("https://wiki/mimetism");
+        await CreateViewModel().DetailPopup.OpenLinkCommand.ExecuteAsync("https://wiki/mimetism");
 
         await _launcher.Received(1).OpenAsync(Arg.Is<Uri>(uri => uri.ToString() == "https://wiki/mimetism"));
     }
@@ -270,8 +270,8 @@ public sealed class MarketplacesViewModelTests
         _launcher.OpenAsync(Arg.Any<Uri>()).ThrowsAsync(new InvalidOperationException("no browser"));
         var viewModel = CreateViewModel();
 
-        await viewModel.OpenLinkCommand.ExecuteAsync(null);
-        await viewModel.OpenLinkCommand.ExecuteAsync("https://wiki/mimetism");
+        await viewModel.DetailPopup.OpenLinkCommand.ExecuteAsync(null);
+        await viewModel.DetailPopup.OpenLinkCommand.ExecuteAsync("https://wiki/mimetism");
 
         await _launcher.Received(1).OpenAsync(Arg.Any<Uri>());
     }

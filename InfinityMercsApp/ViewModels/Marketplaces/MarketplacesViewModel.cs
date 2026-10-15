@@ -17,8 +17,6 @@ public partial class MarketplacesViewModel : AdaptiveViewModelBase<MarketplacesL
 {
     private readonly IStoreProvider _storeProvider;
     private readonly IMetadataProvider _metadataProvider;
-    private readonly IWikiDescriptionService _wikiDescriptionService;
-    private readonly ILauncher _launcher;
     private SkillWikiLinks? _skillLinks;
 
     public MarketplacesViewModel(
@@ -30,12 +28,14 @@ public partial class MarketplacesViewModel : AdaptiveViewModelBase<MarketplacesL
     {
         _storeProvider = storeProvider;
         _metadataProvider = metadataProvider;
-        _wikiDescriptionService = wikiDescriptionService;
-        _launcher = launcher;
+        DetailPopup = new MarketplaceDetailViewModel(wikiDescriptionService, launcher);
         StoreNames = storeProvider.GetAllStoreNames();
     }
 
     public IReadOnlyList<string> StoreNames { get; }
+
+    /// <summary>The popup showing a row in full.</summary>
+    public MarketplaceDetailViewModel DetailPopup { get; }
 
     [ObservableProperty]
     private string? _selectedStoreName;
@@ -72,28 +72,12 @@ public partial class MarketplacesViewModel : AdaptiveViewModelBase<MarketplacesL
     [ObservableProperty]
     private string _cartTotalDisplay = "Total: 0cr";
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsDetailOpen))]
-    private MarketplaceDetail? _detail;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasWiki), nameof(IsWikiLoading), nameof(IsWikiEmpty), nameof(HasWikiBlocks))]
-    private WikiStatus _wikiStatus;
-
-    [ObservableProperty]
-    private IReadOnlyList<WikiContentBlock> _wikiBlocks = [];
-
     public bool ShowCart => HasStore && Layout.OffersBuying;
     public bool HasItems => ItemGroups.Count > 0;
     public bool HasTroopTypes => TroopTypeRows.Count > 0;
     public bool HasAugments => AugmentRows.Count > 0;
     public bool HasCartLines => CartLines.Count > 0;
     public bool IsCartEmpty => CartLines.Count == 0;
-    public bool IsDetailOpen => Detail is not null;
-    public bool HasWiki => WikiStatus != WikiStatus.None;
-    public bool IsWikiLoading => WikiStatus == WikiStatus.Loading;
-    public bool IsWikiEmpty => WikiStatus == WikiStatus.Empty;
-    public bool HasWikiBlocks => WikiStatus == WikiStatus.Loaded;
 
     protected override void OnLayoutApplied() => OnPropertyChanged(nameof(ShowCart));
 
@@ -154,49 +138,9 @@ public partial class MarketplacesViewModel : AdaptiveViewModelBase<MarketplacesL
             AugmentRow augment => MarketplaceDetail.For(augment),
             _ => null
         };
-        if (detail is null)
+        if (detail is not null)
         {
-            return;
-        }
-
-        WikiBlocks = [];
-        WikiStatus = detail.WikiUrl is null ? WikiStatus.None : WikiStatus.Loading;
-        Detail = detail;
-        if (detail.WikiUrl is null)
-        {
-            return;
-        }
-
-        var blocks = await _wikiDescriptionService.FetchContentAsync(detail.WikiUrl, detail.WikiSection);
-
-        // The popup may have been closed or moved on to another row while the page loaded.
-        if (!ReferenceEquals(Detail, detail))
-        {
-            return;
-        }
-
-        WikiBlocks = blocks;
-        WikiStatus = blocks.Count == 0 ? WikiStatus.Empty : WikiStatus.Loaded;
-    }
-
-    [RelayCommand]
-    private void CloseDetail() => Detail = null;
-
-    [RelayCommand]
-    private async Task OpenLinkAsync(string? url)
-    {
-        if (string.IsNullOrWhiteSpace(url))
-        {
-            return;
-        }
-
-        try
-        {
-            await _launcher.OpenAsync(url);
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Failed to open link '{url}': {ex.Message}");
+            await DetailPopup.ShowAsync(detail);
         }
     }
 

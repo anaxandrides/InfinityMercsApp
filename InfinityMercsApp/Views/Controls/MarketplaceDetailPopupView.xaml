@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- A full-page overlay showing one marketplace row (or weapon); its BindingContext is a MarketplaceDetailViewModel. -->
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:marketplaces="clr-namespace:InfinityMercsApp.ViewModels.Marketplaces"
+             xmlns:metadata="clr-namespace:InfinityMercsApp.Domain.Models.Metadata;assembly=InfinityMercsApp.Domain"
+             x:Class="InfinityMercsApp.Views.Controls.MarketplaceDetailPopupView"
+             x:DataType="marketplaces:MarketplaceDetailViewModel"
+             IsVisible="{Binding IsOpen}">
+    <Grid BackgroundColor="#D00E1116">
+        <Border BackgroundColor="{StaticResource Plate}"
+                Stroke="{StaticResource Hairline}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 4"
+                Margin="16,60,16,24">
+            <Grid RowDefinitions="Auto,*">
+                <Grid Grid.Row="0"
+                      ColumnDefinitions="Auto,*"
+                      BackgroundColor="{StaticResource HairlineBright}"
+                      Padding="4,4">
+                    <Button Grid.Column="0"
+                            Text="← Back"
+                            BackgroundColor="Transparent"
+                            BorderColor="Transparent"
+                            TextColor="{StaticResource Signal}"
+                            FontAttributes="Bold"
+                            Padding="8,0"
+                            Command="{Binding CloseCommand}" />
+                    <Label Grid.Column="1"
+                           Text="{Binding Detail.Title}"
+                           FontSize="{DynamicResource FontSizeBody}"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}"
+                           VerticalTextAlignment="Center"
+                           Padding="4,0,8,0"
+                           LineBreakMode="TailTruncation" />
+                </Grid>
+                <ScrollView Grid.Row="1">
+                    <VerticalStackLayout Padding="16,12" Spacing="6">
+
+                        <!-- Facts: Cost, Category, ARM, ... -->
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Detail.Rows}" Spacing="6">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="marketplaces:DetailRow">
+                                    <Grid ColumnDefinitions="90,*" Margin="0,2">
+                                        <Label Text="{Binding Label}"
+                                               Style="{StaticResource LabelBody}"
+                                               TextColor="{StaticResource TextMuted}"
+                                               VerticalTextAlignment="Center" />
+                                        <Label Grid.Column="1"
+                                               Text="{Binding Value}"
+                                               Style="{StaticResource LabelBody}"
+                                               TextColor="{StaticResource TextPrimary}"
+                                               VerticalTextAlignment="Center"
+                                               LineBreakMode="WordWrap" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <!-- Troop type abilities; known skills link to the wiki -->
+                        <Label Text="ABILITIES &amp; EQUIPMENT"
+                               IsVisible="{Binding Detail.HasAbilities}"
+                               Style="{StaticResource LabelCaption}"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextMuted}"
+                               Margin="0,8,0,4" />
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Detail.Abilities}" Spacing="6">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="metadata:AbilityLink">
+                                    <Label Text="{Binding Text, StringFormat='• {0}'}"
+                                           Style="{StaticResource LabelBody}"
+                                           TextColor="{StaticResource TextPrimary}"
+                                           LineBreakMode="WordWrap">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsSkill}" Value="True">
+                                                <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+                                                <Setter Property="TextDecorations" Value="Underline" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                        <Label.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding OpenLinkCommand, Source={RelativeSource AncestorType={x:Type marketplaces:MarketplaceDetailViewModel}}, x:DataType=marketplaces:MarketplaceDetailViewModel}"
+                                                                  CommandParameter="{Binding WikiUrl}" />
+                                        </Label.GestureRecognizers>
+                                    </Label>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <!-- Item wiki description -->
+                        <VerticalStackLayout Spacing="4" Margin="0,6,0,0" IsVisible="{Binding HasWiki}">
+                            <Label Text="Loading…"
+                                   IsVisible="{Binding IsWikiLoading}"
+                                   Style="{StaticResource LabelBody}"
+                                   TextColor="{StaticResource TextMuted}"
+                                   Margin="0,2,0,0" />
+                            <Label Text="(No description available)"
+                                   IsVisible="{Binding IsWikiEmpty}"
+                                   Style="{StaticResource LabelBody}"
+                                   TextColor="{StaticResource TextMuted}" />
+                            <controls:WikiBlocksView Blocks="{Binding WikiBlocks}" IsVisible="{Binding HasWikiBlocks}" />
+                        </VerticalStackLayout>
+
+                        <!-- Weapon profiles matching the item -->
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Detail.Weapons}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="metadata:Weapon">
+                                    <controls:WeaponDetailCardView Weapon="{Binding}"
+                                                                   ShowUnitsInInches="{Binding ShowUnitsInInches, Source={RelativeSource AncestorType={x:Type marketplaces:MarketplaceDetailViewModel}}, x:DataType=marketplaces:MarketplaceDetailViewModel}"
+                                                                   Margin="0,0,0,8" />
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </ScrollView>
+            </Grid>
+        </Border>
+    </Grid>
+</ContentView>
