@@ -852,7 +852,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
                     PopulateUnitStatsFromFirstProfile = groups => Detail.ApplyFirstProfileStats(groups, FormatMove),
                     SetOrderTraits = Detail.SetOrderTraits,
                     SetTechTraits = Detail.SetTechTraits,
-                    EnsureLieutenantSkill = CompanyProfileTextService.EnsureLieutenantSkill,
+                    EnsureLieutenantSkill = CompanyProfileText.EnsureLieutenantSkill,
                     SetCommonEquipmentSkills = Detail.SetCommonEquipmentAndSkills,
                     SetSummaryText = (equipment, skills) =>
                     {

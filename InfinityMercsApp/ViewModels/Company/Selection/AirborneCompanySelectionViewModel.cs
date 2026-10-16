@@ -30,7 +30,7 @@ public sealed class AirborneCompanySelectionViewModel(CompanySelectionServices s
         }
 
         var existing = new HashSet<string>(commonSkills, StringComparer.OrdinalIgnoreCase);
-        existing.UnionWith(CompanyProfileTextService.SplitDisplayLine(profile.UniqueSkills));
+        existing.UnionWith(CompanyProfileText.SplitDisplayLine(profile.UniqueSkills));
         var skills = commonSkills.ToList();
         skills.AddRange(new List<string> { ParachutistSkill, NetworkSupportSkill }.Where(skill => !existing.Contains(skill)));
         return skills;

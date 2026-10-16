@@ -22,7 +22,7 @@ internal static class CompanyPeripheralStatBlockService
 
         var names = new ProfileEntryNames(filters.Extras, showUnitsInInches);
         var equipmentNames = names.OrderedUnique(peripheralProfile.Equip, filters.Names(ArmyFilterSection.Equip));
-        var skillNames = CompanyProfileTextService.BuildConfigurationSkillNames(
+        var skillNames = CompanyProfileText.BuildConfigurationSkillNames(
             names.OrderedUnique(peripheralProfile.Skills, filters.Names(ArmyFilterSection.Skills)));
         var characteristicNames = names.OrderedUnique(peripheralProfile.Chars, filters.Names(ArmyFilterSection.Chars));
         var weaponNames = names.OrderedUnique(peripheralProfile.Weapons, filters.Names(ArmyFilterSection.Weapons));
@@ -47,11 +47,11 @@ internal static class CompanyPeripheralStatBlockService
             Vitality = vitalityValue,
             S = UnitProfile.StatText(peripheralProfile.S),
             Ava = peripheralProfile.AvaText,
-            Equipment = CompanyProfileTextService.JoinOrDash(equipmentNames),
-            Skills = CompanyProfileTextService.JoinOrDash(skillNames),
-            Characteristics = CompanyProfileTextService.JoinOrDash(characteristicNames),
-            RangedWeapons = CompanyProfileTextService.JoinOrDash(weaponNames.Where(x => !CompanyProfileTextService.IsMeleeWeaponName(x))),
-            CcWeapons = CompanyProfileTextService.JoinOrDash(weaponNames.Where(CompanyProfileTextService.IsMeleeWeaponName))
+            Equipment = CompanyProfileText.JoinOrDash(equipmentNames),
+            Skills = CompanyProfileText.JoinOrDash(skillNames),
+            Characteristics = CompanyProfileText.JoinOrDash(characteristicNames),
+            RangedWeapons = CompanyProfileText.JoinOrDash(weaponNames.Where(x => !CompanyProfileText.IsMeleeWeaponName(x))),
+            CcWeapons = CompanyProfileText.JoinOrDash(weaponNames.Where(CompanyProfileText.IsMeleeWeaponName))
         };
     }
 }

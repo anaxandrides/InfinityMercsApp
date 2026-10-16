@@ -104,18 +104,18 @@ internal static class CompanySelectionRosterWorkflow
         Func<int?, int?, string> formatMoveValue,
         PeripheralMercsCompanyStats? peripheralStats)
     {
-        var combinedEquipment = CompanyProfileTextService.MergeCommonAndUnique(selectedUnitCommonEquipment, profile.UniqueEquipment);
-        var combinedSkills = CompanyProfileTextService.MergeCommonAndUnique(selectedUnitCommonSkills, profile.UniqueSkills);
-        var combinedCharacteristics = CompanyProfileTextService.SplitDisplayLine(profile.Characteristics).ToList();
+        var combinedEquipment = CompanyProfileText.MergeCommonAndUnique(selectedUnitCommonEquipment, profile.UniqueEquipment);
+        var combinedSkills = CompanyProfileText.MergeCommonAndUnique(selectedUnitCommonSkills, profile.UniqueSkills);
+        var combinedCharacteristics = CompanyProfileText.SplitDisplayLine(profile.Characteristics).ToList();
         var inferredPeripheralName = CompanyUnitDetailsShared.ExtractFirstPeripheralName(profile.Peripherals);
         var peripheralHasControlModifier = ProfileHasPeripheralControlModifier(profile, inferredPeripheralName);
         if (peripheralHasControlModifier && !string.IsNullOrWhiteSpace(inferredPeripheralName))
         {
             EnsureSkill(combinedSkills, $"FT Master ({inferredPeripheralName})");
         }
-        var combinedEquipmentText = CompanyProfileTextService.JoinOrDash(combinedEquipment);
-        var combinedSkillsText = CompanyProfileTextService.JoinOrDash(combinedSkills);
-        var combinedCharacteristicsText = CompanyProfileTextService.JoinOrDash(combinedCharacteristics);
+        var combinedEquipmentText = CompanyProfileText.JoinOrDash(combinedEquipment);
+        var combinedSkillsText = CompanyProfileText.JoinOrDash(combinedSkills);
+        var combinedCharacteristicsText = CompanyProfileText.JoinOrDash(combinedCharacteristics);
         var hasInferredPeripheral = !string.IsNullOrWhiteSpace(inferredPeripheralName);
         var hasPeripheralData = peripheralStats is not null || hasInferredPeripheral;
         var peripheralNameHeading = peripheralStats?.NameHeading;
@@ -144,21 +144,21 @@ internal static class CompanySelectionRosterWorkflow
         var peripheralCcWeapons = peripheralStats?.CcWeapons ?? "-";
         if (profile.PeripheralIsIrregular || peripheralHasControlModifier)
         {
-            var peripheralSkillLines = CompanyProfileTextService.SplitDisplayLine(peripheralSkillsText).ToList();
+            var peripheralSkillLines = CompanyProfileText.SplitDisplayLine(peripheralSkillsText).ToList();
             if (!peripheralSkillLines.Any(x => string.Equals(x, "Irregular", StringComparison.OrdinalIgnoreCase)))
             {
                 peripheralSkillLines.Add("Irregular");
             }
 
-            peripheralSkillsText = CompanyProfileTextService.JoinOrDash(peripheralSkillLines);
+            peripheralSkillsText = CompanyProfileText.JoinOrDash(peripheralSkillLines);
 
-            var peripheralCharacteristicLines = CompanyProfileTextService.SplitDisplayLine(peripheralCharacteristicsText).ToList();
+            var peripheralCharacteristicLines = CompanyProfileText.SplitDisplayLine(peripheralCharacteristicsText).ToList();
             if (!peripheralCharacteristicLines.Any(x => string.Equals(x, "Irregular", StringComparison.OrdinalIgnoreCase)))
             {
                 peripheralCharacteristicLines.Add("Irregular");
             }
 
-            peripheralCharacteristicsText = CompanyProfileTextService.JoinOrDash(peripheralCharacteristicLines);
+            peripheralCharacteristicsText = CompanyProfileText.JoinOrDash(peripheralCharacteristicLines);
         }
         var currentUnitMove = formatMoveValue(unitMoveFirstCm, unitMoveSecondCm);
         var statline =
@@ -168,7 +168,7 @@ internal static class CompanySelectionRosterWorkflow
         {
             Name = profile.Name,
             BaseUnitName = selectedUnit.Name,
-            NameFormatted = profile.NameFormatted ?? CompanyProfileTextService.BuildNameFormatted(profile.Name),
+            NameFormatted = profile.NameFormatted ?? CompanyProfileFormatting.BuildNameFormatted(profile.Name),
             Subtitle = statline,
             UnitTypeCode = CompanyStartSharedState.ExtractUnitTypeCode(selectedUnit.Subtitle),
             CostDisplay = $"C {profile.Cost}",
@@ -188,12 +188,12 @@ internal static class CompanySelectionRosterWorkflow
             SavedRangedWeapons = profile.RangedWeapons,
             SavedCcWeapons = profile.MeleeWeapons,
             ExperiencePoints = 0,
-            EquipmentLineFormatted = CompanyProfileTextService.BuildMercsCompanyLineFormatted("Equipment", combinedEquipmentText, Color.FromArgb("#06B6D4")),
+            EquipmentLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Equipment", combinedEquipmentText, Color.FromArgb("#06B6D4")),
             HasEquipmentLine = combinedEquipment.Count > 0,
-            SkillsLineFormatted = CompanyProfileTextService.BuildMercsCompanyLineFormatted("Skills", combinedSkillsText, Color.FromArgb("#F59E0B")),
+            SkillsLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Skills", combinedSkillsText, Color.FromArgb("#F59E0B")),
             HasSkillsLine = combinedSkills.Count > 0,
-            RangedLineFormatted = CompanyProfileTextService.BuildMercsCompanyLineFormatted("Ranged Weapons", profile.RangedWeapons, Color.FromArgb("#EF4444")),
-            CcLineFormatted = CompanyProfileTextService.BuildMercsCompanyLineFormatted("CC Weapons", profile.MeleeWeapons, Color.FromArgb("#22C55E")),
+            RangedLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Ranged Weapons", profile.RangedWeapons, Color.FromArgb("#EF4444")),
+            CcLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("CC Weapons", profile.MeleeWeapons, Color.FromArgb("#22C55E")),
             HasPeripheralStatBlock = hasPeripheralData,
             PeripheralNameHeading = peripheralNameHeading ?? string.Empty,
             PeripheralMov = peripheralMov,
@@ -213,11 +213,11 @@ internal static class CompanySelectionRosterWorkflow
             SavedPeripheralRangedWeapons = peripheralRangedWeapons,
             SavedPeripheralCcWeapons = peripheralCcWeapons,
             PeripheralEquipmentLineFormatted =
-                CompanyProfileTextService.BuildMercsCompanyLineFormatted("Equipment", peripheralEquipment, Color.FromArgb("#06B6D4")),
+                CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Equipment", peripheralEquipment, Color.FromArgb("#06B6D4")),
             HasPeripheralEquipmentLine =
                 hasPeripheralData && !string.IsNullOrWhiteSpace(peripheralEquipment) && peripheralEquipment != "-",
             PeripheralSkillsLineFormatted =
-                CompanyProfileTextService.BuildMercsCompanyLineFormatted("Skills", peripheralSkillsText, Color.FromArgb("#F59E0B")),
+                CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Skills", peripheralSkillsText, Color.FromArgb("#F59E0B")),
             HasPeripheralSkillsLine =
                 hasPeripheralData && !string.IsNullOrWhiteSpace(peripheralSkillsText) && peripheralSkillsText != "-",
             UnitMoveFirstCm = unitMoveFirstCm,

@@ -9,7 +9,7 @@ public sealed record WeaponLists(IReadOnlyList<string> Ranged, IReadOnlyList<str
     {
         var list = weapons.ToList();
         return new WeaponLists(
-            list.Where(name => !CompanyProfileTextService.IsMeleeWeaponName(name)).ToList(),
-            list.Where(CompanyProfileTextService.IsMeleeWeaponName).ToList());
+            list.Where(name => !CompanyProfileText.IsMeleeWeaponName(name)).ToList(),
+            list.Where(CompanyProfileText.IsMeleeWeaponName).ToList());
     }
 }

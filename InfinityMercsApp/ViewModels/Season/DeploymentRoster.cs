@@ -173,7 +173,7 @@ public sealed partial class DeploymentRoster(
             switch (slot)
             {
                 case GearSlot.Primary or GearSlot.Secondary or GearSlot.Sidearm or GearSlot.Accessories:
-                    if (CompanyProfileTextService.IsMeleeWeaponName(item.ItemName))
+                    if (CompanyProfileText.IsMeleeWeaponName(item.ItemName))
                     {
                         profile.MeleeWeapons = AppendKeepingText(profile.MeleeWeapons, [item.ItemName]);
                     }
@@ -319,8 +319,8 @@ public sealed partial class DeploymentRoster(
                 return;
             }
 
-            profile.RangedWeapons = AppendKeepingText(profile.RangedWeapons, Weapons.Where(w => !CompanyProfileTextService.IsMeleeWeaponName(w)).ToList());
-            profile.MeleeWeapons = AppendKeepingText(profile.MeleeWeapons, Weapons.Where(CompanyProfileTextService.IsMeleeWeaponName).ToList());
+            profile.RangedWeapons = AppendKeepingText(profile.RangedWeapons, Weapons.Where(w => !CompanyProfileText.IsMeleeWeaponName(w)).ToList());
+            profile.MeleeWeapons = AppendKeepingText(profile.MeleeWeapons, Weapons.Where(CompanyProfileText.IsMeleeWeaponName).ToList());
             profile.Skills = AppendKeepingText(profile.Skills, Skills);
             profile.Equipment = AppendKeepingText(profile.Equipment, Equipment);
         }

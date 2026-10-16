@@ -1,4 +1,3 @@
-using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
@@ -29,7 +28,7 @@ public static class RosterEntries
         {
             Name = name,
             BaseUnitName = baseName,
-            NameFormatted = CompanyProfileTextService.BuildNameFormatted(name),
+            NameFormatted = CompanyProfileFormatting.BuildNameFormatted(name),
             Subtitle = $"MOV {entry.CurrentMov} | CC {entry.CurrentCc} | BS {entry.CurrentBs} | PH {entry.CurrentPh} | WIP {entry.CurrentWip} | ARM {entry.CurrentArm} | BTS {entry.CurrentBts} | VITA {entry.CurrentVitaOrStr} | S {entry.CurrentS}",
             UnitTypeCode = entry.UnitTypeCode,
             CostDisplay = $"C {entry.Cost}",

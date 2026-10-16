@@ -89,7 +89,7 @@ public sealed class TagCompanySelectionViewModel(CompanySelectionServices servic
     private CompanySpecOpsWorkflowRequest SpecOpsRequest(MercsCompanyEntry entry)
     {
         var sourceFactionId = TagWorkflowFactionId(entry.SourceFactionId);
-        var skillLines = CompanyProfileTextService.SplitDisplayLine(entry.SavedSkills);
+        var skillLines = CompanyProfileText.SplitDisplayLine(entry.SavedSkills);
         if (entry.IsLieutenant)
         {
             LieutenantRules.AddSkillIfMissing(skillLines);

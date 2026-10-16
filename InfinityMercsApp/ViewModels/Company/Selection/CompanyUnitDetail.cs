@@ -5,6 +5,7 @@ using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.CompanySelection.Visuals;
+using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 using InfinityMercsApp.Views.Controls;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
@@ -204,8 +205,8 @@ public sealed partial class CompanyUnitDetail : ObservableObject
         PeripheralAva = stats.Ava;
         PeripheralEquipment = stats.Equipment;
         PeripheralSkills = stats.Skills;
-        PeripheralEquipmentFormatted = Named("Equipment", CompanyProfileTextService.SplitDisplayLine(stats.Equipment), EquipmentColor);
-        PeripheralSkillsFormatted = Named("Skills", CompanyProfileTextService.SplitDisplayLine(stats.Skills), SkillsColor);
+        PeripheralEquipmentFormatted = Named("Equipment", CompanyProfileText.SplitDisplayLine(stats.Equipment), EquipmentColor);
+        PeripheralSkillsFormatted = Named("Skills", CompanyProfileText.SplitDisplayLine(stats.Skills), SkillsColor);
         HasPeripheralStatBlock = true;
     }
 
@@ -227,7 +228,7 @@ public sealed partial class CompanyUnitDetail : ObservableObject
     {
         var accents = CompanySelectionVisualThemeWorkflow.GetSummaryAccentColorsForSecondaryBackground(HeaderColors.Secondary);
         EquipmentSummaryFormatted = Named("Equipment", CommonEquipment, accents.Equipment);
-        SpecialSkillsSummaryFormatted = CompanyProfileTextService.BuildNamedSummaryFormatted(
+        SpecialSkillsSummaryFormatted = CompanyProfileFormatting.BuildNamedSummaryFormatted(
             "Special Skills", CommonSkills, accents.Skills, highlightLieutenantPurple: HighlightLieutenant);
     }
 
@@ -238,5 +239,5 @@ public sealed partial class CompanyUnitDetail : ObservableObject
             UnitDisplayConfigurationsView.DefaultHeaderSecondaryColor);
 
     private static FormattedString Named(string label, IEnumerable<string> values, Color color) =>
-        CompanyProfileTextService.BuildNamedSummaryFormatted(label, values, color);
+        CompanyProfileFormatting.BuildNamedSummaryFormatted(label, values, color);
 }

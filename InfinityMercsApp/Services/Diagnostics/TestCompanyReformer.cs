@@ -384,9 +384,9 @@ public sealed class TestCompanyReformer(
             return false;
         }
 
-        var combinedEquipment = CompanyProfileTextService.MergeCommonAndUnique(stableEquip, selectedProfile.UniqueEquipment);
-        var combinedSkills = CompanyProfileTextService.MergeCommonAndUnique(stableSkills, selectedProfile.UniqueSkills);
-        var combinedCharacteristics = CompanyProfileTextService.SplitDisplayLine(selectedProfile.Characteristics).ToList();
+        var combinedEquipment = CompanyProfileText.MergeCommonAndUnique(stableEquip, selectedProfile.UniqueEquipment);
+        var combinedSkills = CompanyProfileText.MergeCommonAndUnique(stableSkills, selectedProfile.UniqueSkills);
+        var combinedCharacteristics = CompanyProfileText.SplitDisplayLine(selectedProfile.Characteristics).ToList();
 
         var peripheralStats = CompanySelectionRosterWorkflow.BuildMercsCompanyPeripheralStats<PeripheralMercsCompanyStats>(
             selectedProfile,
@@ -396,9 +396,9 @@ public sealed class TestCompanyReformer(
 
         payload = new DbDerivedProfilePayload
         {
-            SavedEquipment = CompanyProfileTextService.JoinOrDash(combinedEquipment),
-            SavedSkills = CompanyProfileTextService.JoinOrDash(combinedSkills),
-            SavedCharacteristics = CompanyProfileTextService.JoinOrDash(combinedCharacteristics),
+            SavedEquipment = CompanyProfileText.JoinOrDash(combinedEquipment),
+            SavedSkills = CompanyProfileText.JoinOrDash(combinedSkills),
+            SavedCharacteristics = CompanyProfileText.JoinOrDash(combinedCharacteristics),
             SavedRangedWeapons = selectedProfile.RangedWeapons,
             SavedCcWeapons = selectedProfile.MeleeWeapons,
             HasPeripheralStatBlock = selectedProfile.HasPeripheralStatBlock || peripheralStats is not null,

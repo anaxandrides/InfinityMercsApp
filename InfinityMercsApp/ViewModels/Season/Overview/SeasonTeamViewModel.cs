@@ -308,7 +308,7 @@ public partial class SeasonTeamViewModel : ObservableObject
                 continue;
             }
 
-            var list = CompanyProfileTextService.IsMeleeWeaponName(weapon) ? melee : ranged;
+            var list = CompanyProfileText.IsMeleeWeaponName(weapon) ? melee : ranged;
             if (!list.Contains(weapon, StringComparer.OrdinalIgnoreCase))
             {
                 list.Add(weapon);

@@ -27,7 +27,7 @@ public static class TagFinalizedEntry
         {
             Name = updatedName,
             BaseUnitName = entry.BaseUnitName,
-            NameFormatted = CompanyProfileTextService.BuildNameFormatted(updatedName),
+            NameFormatted = CompanyProfileFormatting.BuildNameFormatted(updatedName),
             CostDisplay = entry.CostDisplay,
             CostValue = entry.CostValue,
             ProfileKey = entry.ProfileKey,
@@ -66,12 +66,12 @@ public static class TagFinalizedEntry
             SavedPeripheralEquipment = entry.SavedPeripheralEquipment,
             SavedPeripheralSkills = entry.SavedPeripheralSkills,
             SavedPeripheralCharacteristics = entry.SavedPeripheralCharacteristics,
-            EquipmentLineFormatted = CompanyProfileTextService.BuildMercsCompanyLineFormatted("Equipment", mergedEquipment, Color.FromArgb("#B5C0CE")),
+            EquipmentLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Equipment", mergedEquipment, Color.FromArgb("#B5C0CE")),
             HasEquipmentLine = !string.Equals(mergedEquipment, "-", StringComparison.Ordinal),
-            SkillsLineFormatted = CompanyProfileTextService.BuildMercsCompanyLineFormatted("Skills", mergedSkills, Color.FromArgb("#F59E0B")),
+            SkillsLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Skills", mergedSkills, Color.FromArgb("#F59E0B")),
             HasSkillsLine = !string.Equals(mergedSkills, "-", StringComparison.Ordinal),
-            RangedLineFormatted = CompanyProfileTextService.BuildMercsCompanyLineFormatted("Ranged Weapons", mergedRanged, Color.FromArgb("#F87171")),
-            CcLineFormatted = CompanyProfileTextService.BuildMercsCompanyLineFormatted("CC Weapons", mergedCc, Color.FromArgb("#34D399")),
+            RangedLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Ranged Weapons", mergedRanged, Color.FromArgb("#F87171")),
+            CcLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("CC Weapons", mergedCc, Color.FromArgb("#34D399")),
             PeripheralEquipmentLineFormatted = entry.PeripheralEquipmentLineFormatted,
             HasPeripheralEquipmentLine = entry.HasPeripheralEquipmentLine,
             PeripheralSkillsLineFormatted = entry.PeripheralSkillsLineFormatted,
@@ -93,7 +93,7 @@ public static class TagFinalizedEntry
         IEnumerable<string?> additions,
         bool includeMelee)
     {
-        var values = CompanyProfileTextService.SplitDisplayLine(existing);
+        var values = CompanyProfileText.SplitDisplayLine(existing);
         foreach (var addition in additions)
         {
             if (string.IsNullOrWhiteSpace(addition))
@@ -117,6 +117,6 @@ public static class TagFinalizedEntry
             values.Add(trimmed);
         }
 
-        return CompanyProfileTextService.JoinOrDash(values);
+        return CompanyProfileText.JoinOrDash(values);
     }
 }

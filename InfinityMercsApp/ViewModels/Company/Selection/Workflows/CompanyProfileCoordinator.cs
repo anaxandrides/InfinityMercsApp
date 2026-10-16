@@ -51,7 +51,7 @@ internal sealed class CompanyProfileCoordinator
                     equipUsageCounts[name] = equipUsageCounts.TryGetValue(name, out var count) ? count + 1 : 1;
                 }
 
-                var optionSkillNames = CompanyProfileTextService.BuildConfigurationSkillNames(
+                var optionSkillNames = CompanyProfileText.BuildConfigurationSkillNames(
                     names.OrderedUnique(
                         unit.GetEntriesWithIncludes(option, ProfileEntryKind.Skills),
                         request.SkillsLookup));
@@ -91,8 +91,8 @@ internal sealed class CompanyProfileCoordinator
                 var optionWeapons = names.OrderedUnique(
                     unit.GetEntriesWithIncludes(option, ProfileEntryKind.Weapons),
                     request.WeaponsLookup);
-                var rangedWeaponNames = optionWeapons.Where(x => !CompanyProfileTextService.IsMeleeWeaponName(x)).ToList();
-                var meleeWeaponNames = optionWeapons.Where(CompanyProfileTextService.IsMeleeWeaponName).ToList();
+                var rangedWeaponNames = optionWeapons.Where(x => !CompanyProfileText.IsMeleeWeaponName(x)).ToList();
+                var meleeWeaponNames = optionWeapons.Where(CompanyProfileText.IsMeleeWeaponName).ToList();
 
                 var optionEquipmentNames = names.OrderedUnique(
                         unit.GetEntriesWithIncludes(option, ProfileEntryKind.Equip),
@@ -109,7 +109,7 @@ internal sealed class CompanyProfileCoordinator
                         .ToList();
                 }
 
-                var optionSkillNames = CompanyProfileTextService.BuildConfigurationSkillNames(
+                var optionSkillNames = CompanyProfileText.BuildConfigurationSkillNames(
                     names.OrderedUnique(
                         unit.GetEntriesWithIncludes(option, ProfileEntryKind.Skills),
                         request.SkillsLookup));
@@ -208,21 +208,21 @@ internal sealed class CompanyProfileCoordinator
                     Name = optionName,
                     ProfileKey = profileKey,
                     IsLieutenant = isLieutenant,
-                    NameFormatted = CompanyProfileTextService.BuildNameFormatted(optionName),
-                    RangedWeapons = CompanyProfileTextService.JoinOrDash(rangedWeaponNames),
-                    RangedWeaponsFormatted = CompanyProfileTextService.BuildListFormattedString(rangedWeaponNames, Color.FromArgb("#EF4444")),
-                    MeleeWeapons = CompanyProfileTextService.JoinOrDash(meleeWeaponNames),
-                    MeleeWeaponsFormatted = CompanyProfileTextService.BuildListFormattedString(meleeWeaponNames, Color.FromArgb("#22C55E")),
-                    UniqueEquipment = CompanyProfileTextService.JoinOrDash(uniqueEquipmentNames),
-                    UniqueEquipmentFormatted = CompanyProfileTextService.BuildListFormattedString(uniqueEquipmentNames, Color.FromArgb("#06B6D4")),
-                    UniqueSkills = CompanyProfileTextService.JoinOrDash(uniqueSkillsNames),
-                    UniqueSkillsFormatted = CompanyProfileTextService.BuildListFormattedString(
+                    NameFormatted = CompanyProfileFormatting.BuildNameFormatted(optionName),
+                    RangedWeapons = CompanyProfileText.JoinOrDash(rangedWeaponNames),
+                    RangedWeaponsFormatted = CompanyProfileFormatting.BuildListFormattedString(rangedWeaponNames, Color.FromArgb("#EF4444")),
+                    MeleeWeapons = CompanyProfileText.JoinOrDash(meleeWeaponNames),
+                    MeleeWeaponsFormatted = CompanyProfileFormatting.BuildListFormattedString(meleeWeaponNames, Color.FromArgb("#22C55E")),
+                    UniqueEquipment = CompanyProfileText.JoinOrDash(uniqueEquipmentNames),
+                    UniqueEquipmentFormatted = CompanyProfileFormatting.BuildListFormattedString(uniqueEquipmentNames, Color.FromArgb("#06B6D4")),
+                    UniqueSkills = CompanyProfileText.JoinOrDash(uniqueSkillsNames),
+                    UniqueSkillsFormatted = CompanyProfileFormatting.BuildListFormattedString(
                         uniqueSkillsNames,
                         Color.FromArgb("#F59E0B"),
                         highlightLieutenantPurple: request.ForceLieutenant),
-                    Characteristics = CompanyProfileTextService.JoinOrDash(optionCharacteristicNames),
-                    Peripherals = CompanyProfileTextService.JoinOrDash(displayPeripheralNames),
-                    PeripheralsFormatted = CompanyProfileTextService.BuildListFormattedString(displayPeripheralNames, Color.FromArgb("#FACC15")),
+                    Characteristics = CompanyProfileText.JoinOrDash(optionCharacteristicNames),
+                    Peripherals = CompanyProfileText.JoinOrDash(displayPeripheralNames),
+                    PeripheralsFormatted = CompanyProfileFormatting.BuildListFormattedString(displayPeripheralNames, Color.FromArgb("#FACC15")),
                     HasPeripheralStatBlock = hasPeripheralStats,
                     PeripheralNameHeading = peripheralStats?.NameHeading ?? string.Empty,
                     PeripheralMov = peripheralStats is not null
@@ -239,9 +239,9 @@ internal sealed class CompanyProfileCoordinator
                     PeripheralS = peripheralStats?.S ?? "-",
                     PeripheralAva = peripheralStats?.Ava ?? "-",
                     PeripheralSubtitle = CompanyUnitDetailsShared.BuildPeripheralSubtitle(peripheralStats),
-                    PeripheralEquipmentLineFormatted = CompanyProfileTextService.BuildMercsCompanyLineFormatted("Equipment", peripheralEquipment, Color.FromArgb("#06B6D4")),
+                    PeripheralEquipmentLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Equipment", peripheralEquipment, Color.FromArgb("#06B6D4")),
                     HasPeripheralEquipmentLine = hasPeripheralStats && !string.IsNullOrWhiteSpace(peripheralEquipment) && peripheralEquipment != "-",
-                    PeripheralSkillsLineFormatted = CompanyProfileTextService.BuildMercsCompanyLineFormatted("Skills", peripheralSkills, Color.FromArgb("#F59E0B")),
+                    PeripheralSkillsLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Skills", peripheralSkills, Color.FromArgb("#F59E0B")),
                     HasPeripheralSkillsLine = hasPeripheralStats && !string.IsNullOrWhiteSpace(peripheralSkills) && peripheralSkills != "-",
                     PeripheralGrantsFtMaster = peripheralHasControlModifier && !string.IsNullOrWhiteSpace(ftMasterPeripheralName),
                     PeripheralIsIrregular = peripheralHasControlModifier,
@@ -428,13 +428,13 @@ internal sealed class CompanyProfileCoordinator
 
     private static string EnsureSkillLine(string? skillsLine, string skill)
     {
-        var lines = CompanyProfileTextService.SplitDisplayLine(skillsLine).ToList();
+        var lines = CompanyProfileText.SplitDisplayLine(skillsLine).ToList();
         if (!lines.Any(x => string.Equals(x, skill, StringComparison.OrdinalIgnoreCase)))
         {
             lines.Add(skill);
         }
 
-        return CompanyProfileTextService.JoinOrDash(lines);
+        return CompanyProfileText.JoinOrDash(lines);
     }
 
     /// <summary>

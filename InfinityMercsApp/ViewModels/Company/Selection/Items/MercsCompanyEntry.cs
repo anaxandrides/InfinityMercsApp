@@ -123,7 +123,7 @@ public partial class MercsCompanyEntry : ObservableObject, IViewerListItem, ICom
 
     private static string ToCommaSeparatedDisplay(string? value)
     {
-        var parts = CompanyProfileTextService.SplitDisplayLine(value);
+        var parts = CompanyProfileText.SplitDisplayLine(value);
         return parts.Count == 0 ? "-" : string.Join(", ", parts);
     }
 }

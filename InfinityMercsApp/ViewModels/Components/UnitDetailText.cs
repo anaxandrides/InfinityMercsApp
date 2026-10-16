@@ -185,7 +185,7 @@ public static class UnitDetailText
     /// </summary>
     public static bool ContainsHackable(string? equipmentText, string? skillsText)
     {
-        foreach (var line in CompanyProfileTextService.SplitDisplayLine(equipmentText).Concat(CompanyProfileTextService.SplitDisplayLine(skillsText)))
+        foreach (var line in CompanyProfileText.SplitDisplayLine(equipmentText).Concat(CompanyProfileText.SplitDisplayLine(skillsText)))
         {
             var normalized = NormalizeTokenText(line);
             if (Regex.IsMatch(normalized, @"\bhacking\s*device\b|\bhd\s*\+\b|\bkhd\b|\bevo\s*hd\b", RegexOptions.IgnoreCase))
@@ -229,7 +229,7 @@ public static class UnitDetailText
 
         var colonIndex = summaryText.IndexOf(':');
         var payload = colonIndex >= 0 && colonIndex < summaryText.Length - 1 ? summaryText[(colonIndex + 1)..] : summaryText;
-        return CompanyProfileTextService.SplitDisplayLine(payload).Where(x => !string.Equals(x, "-", StringComparison.Ordinal));
+        return CompanyProfileText.SplitDisplayLine(payload).Where(x => !string.Equals(x, "-", StringComparison.Ordinal));
     }
 
     private static IReadOnlyCollection<string> NormalizeLtOrderEntries(IEnumerable<string> values)
