@@ -25,8 +25,8 @@ using System.Text.Json.Serialization;
 /// <inheritdoc/>
 public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyAPI> logger, IArmyJsonReader armyJsonReader) : IInfinityArmyAPI
 {
-    private const string ArmyUrlBase = "https://api.corvusbelli.com/army/units/en/";
-    private const string MetadataUrl = "https://api.corvusbelli.com/army/infinity/en/metadata";
+    internal const string ArmyUrlBase = "https://api.corvusbelli.com/army/units/en/";
+    internal const string MetadataUrl = "https://api.corvusbelli.com/army/infinity/en/metadata";
     private const string DebugDumpFolderName = "external-read-failures";
 
     private static readonly JsonSerializerOptions jsonOptions = new()
@@ -195,7 +195,8 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
     private async Task<string> GetAsync(string url, CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        // The API only answers requests from Corvus Belli's own site, which moved from infinitytheuniverse.com.
+        // The API refuses (403) any request with a User-Agent, which Android always sends, unless the Origin is
+        // Corvus Belli's own site; the site moved from infinitytheuniverse.com in October 2026.
         request.Headers.TryAddWithoutValidation("Origin", "https://infinityuniverse.com");
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));

@@ -27,6 +27,7 @@
 	<ItemGroup>
 		<InternalsVisibleTo Include="InfinityMercsApp" />
 		<InternalsVisibleTo Include="InfinityMercsApp.UnitTests" />
+		<InternalsVisibleTo Include="InfinityMercsApp.IntegrationTests" />
 	</ItemGroup>
 
 	<ItemGroup>
