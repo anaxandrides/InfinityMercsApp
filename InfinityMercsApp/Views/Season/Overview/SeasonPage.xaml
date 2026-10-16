@@ -214,8 +214,8 @@
                         Stroke="{StaticResource Signal}"
                         StrokeThickness="1"
                         StrokeShape="RoundRectangle 4"
-                        Padding="6,5"
-                        WidthRequest="64"
+                        Padding="10,5"
+                        WidthRequest="112"
                         HeightRequest="82"
                         VerticalOptions="Center">
                     <Border.GestureRecognizers>

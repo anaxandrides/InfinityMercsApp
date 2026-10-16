@@ -244,15 +244,17 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
     partial void OnShowFactionStripChanged(bool value) => ShowPanes();
 
+    partial void OnSelectedUnitChanged(ArmyUnitSelectionItem? value) => ShowPanes();
+
     // Which panes show for the layout, the pane picked on compact screens, and whether the faction picker is open.
     private void ShowPanes()
     {
         IsFactionOverlayOpen = IsCompact && ShowFactionStrip;
         ShowsUnitsPane = Layout.ShowsUnits(ActivePane);
         ShowsRightPane = Layout.ShowsRightPane(ActivePane);
-        ShowsDetailPane = Layout.ShowsDetail(ActivePane);
+        ShowsDetailPane = Layout.ShowsDetail(ActivePane, SelectedUnit is not null);
         ShowsCompanyPane = Layout.ShowsCompany(ActivePane);
-        RightPaneRows = Layout.RightPaneRows(ActivePane);
+        RightPaneRows = Layout.RightPaneRows(ActivePane, SelectedUnit is not null);
     }
 
     /// <summary>
@@ -489,22 +491,26 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         }
     }
 
+    /// <summary>
+    /// Opens the faction picker for the tapped slot; tapping the slot the open picker is already filling closes it.
+    /// A recruiting company's factions are fixed, so its picker stays shut.
+    /// </summary>
     [RelayCommand]
     private void SelectSlot(int slot)
     {
-        if (slot == 0 || CanPickRightSlot)
+        if (slot != 0 && !CanPickRightSlot)
         {
-            SetActiveSlot(slot);
+            return;
         }
+
+        var closing = ShowFactionStrip && ActiveSlotIndex == slot;
+        SetActiveSlot(slot);
+        ShowFactionStrip = !closing && IsFoundingCompany;
     }
 
     /// <summary>Makes <paramref name="slot"/> the one the next faction pick goes to.</summary>
     protected virtual void SetActiveSlot(int slot) =>
         ActiveSlotIndex = FixedFactionSlot ?? CompanySelectionFactionSlotsWorkflow.ResolveActiveSlotIndex(slot, ShowRightSlot);
-
-    /// <summary>Opens or closes the faction picker; a recruiting company's factions are fixed, so it stays shut.</summary>
-    [RelayCommand]
-    private void ToggleFactionStrip() => ShowFactionStrip = !ShowFactionStrip && IsFoundingCompany;
 
     [RelayCommand]
     private void OpenFactionStrip() => ShowFactionStrip = IsFoundingCompany;

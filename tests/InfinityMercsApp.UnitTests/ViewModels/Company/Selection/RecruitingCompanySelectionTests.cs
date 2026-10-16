@@ -105,7 +105,7 @@ public sealed class RecruitingCompanySelectionTests
     {
         var viewModel = await OpenAsync(Company());
 
-        viewModel.ToggleFactionStripCommand.Execute(null);
+        viewModel.SelectSlotCommand.Execute(0);
         viewModel.OpenFactionStripCommand.Execute(null);
         await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Factions[0]);
 

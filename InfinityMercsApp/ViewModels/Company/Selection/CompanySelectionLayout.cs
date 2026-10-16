@@ -24,15 +24,18 @@ public sealed record CompanySelectionLayout(string Columns, double ColumnSpacing
 
     public bool ShowsRightPane(CompanySelectionPane pane) => !IsCompact || pane != CompanySelectionPane.Units;
 
-    public bool ShowsDetail(CompanySelectionPane pane) => !IsCompact || pane == CompanySelectionPane.Profile;
+    /// <summary>The unit detail: its tab when compact; otherwise only once a unit is selected, so an empty one takes no room.</summary>
+    public bool ShowsDetail(CompanySelectionPane pane, bool hasSelectedUnit) =>
+        IsCompact ? pane == CompanySelectionPane.Profile : hasSelectedUnit;
 
     public bool ShowsCompany(CompanySelectionPane pane) => !IsCompact || pane == CompanySelectionPane.Company;
 
     /// <summary>
-    /// The right column's rows: detail over company with a gutter, or all the height to the one shown when compact.
+    /// The right column's rows: detail over company with a gutter, or all the height to the company until a unit is
+    /// selected; all the height to the one shown when compact.
     /// </summary>
-    public string RightPaneRows(CompanySelectionPane pane) =>
-        !IsCompact ? "*,3,*"
+    public string RightPaneRows(CompanySelectionPane pane, bool hasSelectedUnit) =>
+        !IsCompact ? hasSelectedUnit ? "*,3,*" : "0,0,*"
         : pane == CompanySelectionPane.Company ? "0,0,*"
         : "*,0,0";
 }

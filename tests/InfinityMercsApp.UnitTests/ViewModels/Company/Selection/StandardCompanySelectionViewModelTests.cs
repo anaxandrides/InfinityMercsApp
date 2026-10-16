@@ -294,6 +294,39 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
+    public async Task WideScreensGiveTheCompanyAllTheHeightUntilAUnitIsSelected()
+    {
+        var viewModel = await OpenAsync();
+        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Medium);
+
+        Assert.Null(viewModel.SelectedUnit);
+        Assert.False(viewModel.ShowsDetailPane);
+        Assert.Equal("0,0,*", viewModel.RightPaneRows);
+
+        await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Factions[0]);
+
+        Assert.NotNull(viewModel.SelectedUnit);
+        Assert.True(viewModel.ShowsDetailPane);
+        Assert.Equal("*,3,*", viewModel.RightPaneRows);
+    }
+
+    [Fact]
+    public async Task TappingAFactionSlotOpensThePickerAndTappingItAgainClosesIt()
+    {
+        var viewModel = await OpenWithFactionAsync();
+        viewModel.CloseFactionStripCommand.Execute(null);
+
+        viewModel.SelectSlotCommand.Execute(0);
+
+        Assert.True(viewModel.ShowFactionStrip);
+        Assert.Equal(0, viewModel.ActiveSlotIndex);
+
+        viewModel.SelectSlotCommand.Execute(0);
+
+        Assert.False(viewModel.ShowFactionStrip);
+    }
+
+    [Fact]
     public async Task TheFactionOverlayOnlyOpensOnCompactScreens()
     {
         var viewModel = await OpenAsync();

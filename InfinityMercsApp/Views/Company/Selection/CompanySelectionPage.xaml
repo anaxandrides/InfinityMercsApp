@@ -35,14 +35,10 @@
     </ContentPage.Resources>
 
     <shell:Shell.TitleView>
-        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
-            <!-- On compact screens the faction picker moves into the page, so these two hide. -->
-            <controls:AddFactionButtonView
-                IsVisible="{Binding IsCompact, Converter={StaticResource InvertedBoolConverter}}"
-                IsExpanded="{Binding ShowFactionStrip}"
-                Command="{Binding ToggleFactionStripCommand}" />
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+            <!-- Tapping a faction slot opens the picker for it. On compact screens the picker moves into the page,
+                 so the slots hide. -->
             <controls:FactionSlotSelectorView
-                Grid.Column="1"
                 VerticalOptions="Center"
                 IsVisible="{Binding IsCompact, Converter={StaticResource InvertedBoolConverter}}"
                 ShowRightSelectionBox="{Binding ShowRightSlot}"
@@ -51,7 +47,7 @@
                 RightSlotSource="{Binding RightSlotLogoSource}"
                 SlotTappedCommand="{Binding SelectSlotCommand}" />
             <controls:SeasonStartPointsView
-                Grid.Column="2"
+                Grid.Column="1"
                 VerticalOptions="Center"
                 IsVisible="{Binding IsFoundingCompany}"
                 SeasonPointsCapText="{Binding SeasonPointsCapText}"
@@ -59,7 +55,7 @@
                 IsCompanyValid="{Binding IsCompanyValid}" />
             <!-- Recruiting spends the company's CR, so what is left shows instead of the starting points. -->
             <Label
-                Grid.Column="2"
+                Grid.Column="1"
                 VerticalOptions="Center"
                 IsVisible="{Binding IsRecruiting}"
                 Text="{Binding CreditsLeftText}"
@@ -199,7 +195,8 @@
                 Profiles="{Binding Profiles}"
                 ProfileTappedCommand="{Binding AddProfileToMercsCompanyCommand}" />
 
-            <Grid Grid.Row="2" RowDefinitions="Auto,*" RowSpacing="0" IsVisible="{Binding ShowsCompanyPane}">
+            <!-- The company: its name, its troopers filling the space, and the button that starts it beneath them. -->
+            <Grid Grid.Row="2" RowDefinitions="Auto,*,Auto" RowSpacing="8" IsVisible="{Binding ShowsCompanyPane}">
                 <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8" VerticalOptions="Center">
                     <VerticalStackLayout Spacing="2" VerticalOptions="Center">
                         <HorizontalStackLayout Spacing="8">
@@ -244,17 +241,14 @@
                 <controls:MercsCompanyEntriesListView
                     Grid.Row="1"
                     VerticalOptions="Fill"
-                    ViewportHeightRatio="0.4"
                     ItemsSource="{Binding MercsCompanyEntries}"
                     SelectEntryCommand="{Binding SelectMercsCompanyEntryCommand}"
                     RemoveEntryCommand="{Binding RemoveMercsCompanyEntryCommand}"
                     ShowOrderModifierBadges="{Binding ShowsOrderModifierBadges}" />
-                <Button Grid.Row="1"
+                <Button Grid.Row="2"
                         Text="{Binding ConfirmText}"
                         HorizontalOptions="End"
-                        VerticalOptions="End"
                         Margin="0,0,10,10"
-                        ZIndex="1"
                         Command="{Binding StartCompanyCommand}" />
             </Grid>
         </Grid>
