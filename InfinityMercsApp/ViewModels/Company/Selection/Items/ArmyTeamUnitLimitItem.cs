@@ -1,8 +1,9 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection.Items;
 
-public class ArmyTeamUnitLimitItem : BaseViewModel, IViewerListItem
+public partial class ArmyTeamUnitLimitItem : ObservableObject, IViewerListItem
 {
     public string Name { get; init; } = string.Empty;
     public string Min { get; init; } = "0";
@@ -16,35 +17,9 @@ public class ArmyTeamUnitLimitItem : BaseViewModel, IViewerListItem
     public string? Subtitle { get; init; }
     public bool HasSubtitle => !string.IsNullOrWhiteSpace(Subtitle);
 
+    [ObservableProperty]
     private bool _isVisible = true;
-    public bool IsVisible
-    {
-        get => _isVisible;
-        set
-        {
-            if (_isVisible == value)
-            {
-                return;
-            }
 
-            _isVisible = value;
-            OnPropertyChanged();
-        }
-    }
-
+    [ObservableProperty]
     private bool _isSelected;
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set
-        {
-            if (_isSelected == value)
-            {
-                return;
-            }
-
-            _isSelected = value;
-            OnPropertyChanged();
-        }
-    }
 }

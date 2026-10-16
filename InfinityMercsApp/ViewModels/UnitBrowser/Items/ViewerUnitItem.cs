@@ -1,6 +1,8 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
-public class ViewerUnitItem : BaseViewModel, IViewerListItem
+public partial class ViewerUnitItem : ObservableObject, IViewerListItem
 {
     public int Id { get; init; }
 
@@ -16,19 +18,6 @@ public class ViewerUnitItem : BaseViewModel, IViewerListItem
 
     public bool HasSubtitle => !string.IsNullOrWhiteSpace(Subtitle);
 
+    [ObservableProperty]
     private bool _isSelected;
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set
-        {
-            if (_isSelected == value)
-            {
-                return;
-            }
-
-            _isSelected = value;
-            OnPropertyChanged();
-        }
-    }
 }

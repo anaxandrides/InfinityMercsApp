@@ -1,9 +1,10 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection.Items;
 
-public class ArmyFactionSelectionItem : BaseViewModel, IViewerListItem, ICompanySourceFaction
+public partial class ArmyFactionSelectionItem : ObservableObject, IViewerListItem, ICompanySourceFaction
 {
     public int Id { get; init; }
 
@@ -19,19 +20,6 @@ public class ArmyFactionSelectionItem : BaseViewModel, IViewerListItem, ICompany
 
     public bool HasSubtitle => false;
 
+    [ObservableProperty]
     private bool _isSelected;
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set
-        {
-            if (_isSelected == value)
-            {
-                return;
-            }
-
-            _isSelected = value;
-            OnPropertyChanged();
-        }
-    }
 }

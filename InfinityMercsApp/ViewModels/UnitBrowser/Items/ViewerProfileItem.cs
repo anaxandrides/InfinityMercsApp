@@ -1,8 +1,9 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 
 namespace InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
-public class ViewerProfileItem : BaseViewModel
+public partial class ViewerProfileItem : ObservableObject
 {
     public string GroupName { get; init; } = string.Empty;
 
@@ -61,51 +62,12 @@ public class ViewerProfileItem : BaseViewModel
     public string Cost { get; init; } = "-";
     public bool ShowProfileTacticalAwarenessIcon { get; init; }
 
+    [ObservableProperty]
     private bool _isVisible = true;
-    public bool IsVisible
-    {
-        get => _isVisible;
-        set
-        {
-            if (_isVisible == value)
-            {
-                return;
-            }
 
-            _isVisible = value;
-            OnPropertyChanged();
-        }
-    }
-
+    [ObservableProperty]
     private bool _isLieutenantBlocked;
-    public bool IsLieutenantBlocked
-    {
-        get => _isLieutenantBlocked;
-        set
-        {
-            if (_isLieutenantBlocked == value)
-            {
-                return;
-            }
 
-            _isLieutenantBlocked = value;
-            OnPropertyChanged();
-        }
-    }
-
+    [ObservableProperty]
     private bool _isSelected;
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set
-        {
-            if (_isSelected == value)
-            {
-                return;
-            }
-
-            _isSelected = value;
-            OnPropertyChanged();
-        }
-    }
 }

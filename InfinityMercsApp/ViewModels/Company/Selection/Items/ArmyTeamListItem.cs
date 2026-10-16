@@ -1,8 +1,9 @@
 using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection.Items;
 
-public class ArmyTeamListItem : BaseViewModel
+public partial class ArmyTeamListItem : ObservableObject
 {
     public string Name { get; init; } = string.Empty;
     public string TeamCountsText { get; init; } = string.Empty;
@@ -12,51 +13,12 @@ public class ArmyTeamListItem : BaseViewModel
 
     public bool ShowTrackingRadioButton => !IsWildcardBucket;
 
+    [ObservableProperty]
     private bool _isTrackedTeam;
-    public bool IsTrackedTeam
-    {
-        get => _isTrackedTeam;
-        set
-        {
-            if (_isTrackedTeam == value)
-            {
-                return;
-            }
 
-            _isTrackedTeam = value;
-            OnPropertyChanged();
-        }
-    }
-
+    [ObservableProperty]
     private bool _isVisible = true;
-    public bool IsVisible
-    {
-        get => _isVisible;
-        set
-        {
-            if (_isVisible == value)
-            {
-                return;
-            }
 
-            _isVisible = value;
-            OnPropertyChanged();
-        }
-    }
-
+    [ObservableProperty]
     private bool _isExpanded;
-    public bool IsExpanded
-    {
-        get => _isExpanded;
-        set
-        {
-            if (_isExpanded == value)
-            {
-                return;
-            }
-
-            _isExpanded = value;
-            OnPropertyChanged();
-        }
-    }
 }
