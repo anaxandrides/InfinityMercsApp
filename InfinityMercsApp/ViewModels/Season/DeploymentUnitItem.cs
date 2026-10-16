@@ -7,7 +7,7 @@ using InfinityMercsApp.ViewModels.UnitBrowser;
 namespace InfinityMercsApp.ViewModels.Season;
 
 /// <summary>A unit in the deployment strip and on the game tracker.</summary>
-public sealed class DeploymentUnitItem : ObservableObject, IViewerListItem
+public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListItem
 {
     // IViewerListItem
     public string Name { get; init; } = string.Empty;
@@ -63,20 +63,21 @@ public sealed class DeploymentUnitItem : ObservableObject, IViewerListItem
     public bool HasRemotePresence { get; init; }
     public int MaxWounds => HasRemotePresence ? StartingVitality + 2 : StartingVitality + 1;
 
+    /// <summary>Wounds taken this game; change them with <see cref="TakeWound"/> and <see cref="HealWound"/>.</summary>
+    [ObservableProperty]
     private int _woundsReceived;
-    public int WoundsReceived
-    {
-        get => _woundsReceived;
-        set
-        {
-            if (SetProperty(ref _woundsReceived, Math.Clamp(value, 0, MaxWounds)))
-            {
-                OnPropertyChanged(nameof(WoundState));
-            }
-        }
-    }
 
-    public WoundState WoundState => WoundStates.For(_woundsReceived, StartingVitality, HasNwi, HasRemotePresence);
+    [ObservableProperty]
+    private WoundState _woundState = WoundState.Healthy;
+
+    /// <summary>One more wound, up to <see cref="MaxWounds"/>.</summary>
+    public void TakeWound() => WoundsReceived = Math.Min(WoundsReceived + 1, MaxWounds);
+
+    /// <summary>One wound fewer, down to none.</summary>
+    public void HealWound() => WoundsReceived = Math.Max(WoundsReceived - 1, 0);
+
+    partial void OnWoundsReceivedChanged(int value) =>
+        WoundState = WoundStates.For(value, StartingVitality, HasNwi, HasRemotePresence);
 
     // XP tracking (accumulated across rounds, never reset)
     public UnitXpData XpData { get; } = new();
@@ -90,31 +91,28 @@ public sealed class DeploymentUnitItem : ObservableObject, IViewerListItem
     public string RangedWeapons { get; init; } = "-";
     public string MeleeWeapons { get; init; } = "-";
 
-    // Deployment checkbox
+    private static readonly Color SelectedStroke = Color.FromArgb("#34D399");
+    private static readonly Color UnselectedStroke = Color.FromArgb("#3A4554");
+
+    /// <summary>Ticked to deploy.</summary>
+    [ObservableProperty]
     private bool _isChecked;
-    public bool IsChecked
-    {
-        get => _isChecked;
-        set => SetProperty(ref _isChecked, value);
-    }
 
-    // Tile selection highlight
+    /// <summary>The tile being shown in full; it gets a green outline.</summary>
+    [ObservableProperty]
     private bool _isSelected;
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set
-        {
-            if (SetProperty(ref _isSelected, value))
-            {
-                OnPropertyChanged(nameof(TileStroke));
-                OnPropertyChanged(nameof(TileStrokeThickness));
-            }
-        }
-    }
 
-    public Color TileStroke => IsSelected ? Color.FromArgb("#34D399") : Color.FromArgb("#3A4554");
-    public double TileStrokeThickness => IsSelected ? 2.0 : 1.0;
+    [ObservableProperty]
+    private Color _tileStroke = UnselectedStroke;
+
+    [ObservableProperty]
+    private double _tileStrokeThickness = 1.0;
+
+    partial void OnIsSelectedChanged(bool value)
+    {
+        TileStroke = value ? SelectedStroke : UnselectedStroke;
+        TileStrokeThickness = value ? 2.0 : 1.0;
+    }
 
     /// <summary>The trooper's part in the contract, for the post-game pages.</summary>
     /// <param name="deploymentXp">The XP for being deployed: the round number, or 0 when it was not deployed.</param>

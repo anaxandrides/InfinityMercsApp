@@ -10,10 +10,15 @@ namespace InfinityMercsApp.ViewModels.Season.Game;
 public sealed partial class XpSheet : ObservableObject
 {
     private readonly UnitXpData _xp;
+    private readonly Action<int>? _totalChanged;
 
-    public XpSheet(string unitName, UnitXpData xp)
+    /// <param name="totalChanged">Told the new total whenever a box changes it.</param>
+    public XpSheet(string unitName, UnitXpData xp, Action<int>? totalChanged = null)
     {
         _xp = xp;
+        _totalChanged = totalChanged;
+        _totalXp = xp.TotalXp;
+        _totalText = TotalTextOf(xp.TotalXp);
         UnitName = unitName;
         Assist = Numbered(xp.Assist);
         InflictState = Numbered(xp.InflictState);
@@ -40,9 +45,11 @@ public sealed partial class XpSheet : ObservableObject
 
     public XpCheck TagAndBag { get; }
 
-    public int TotalXp => _xp.TotalXp;
+    [ObservableProperty]
+    private int _totalXp;
 
-    public string TotalText => $"Total XP Earned: {TotalXp}";
+    [ObservableProperty]
+    private string _totalText;
 
     // Ticks fill from the left and clear from the right: only the last ticked and the first unticked box can change.
     private IReadOnlyList<XpCheck> Numbered(IList<bool> values)
@@ -108,10 +115,14 @@ public sealed partial class XpSheet : ObservableObject
         }
     });
 
+    // Applies a box change, then works out the total again.
     private void Update(Action change)
     {
         change();
-        OnPropertyChanged(nameof(TotalXp));
-        OnPropertyChanged(nameof(TotalText));
+        TotalXp = _xp.TotalXp;
+        TotalText = TotalTextOf(TotalXp);
+        _totalChanged?.Invoke(TotalXp);
     }
+
+    private static string TotalTextOf(int totalXp) => $"Total XP Earned: {totalXp}";
 }

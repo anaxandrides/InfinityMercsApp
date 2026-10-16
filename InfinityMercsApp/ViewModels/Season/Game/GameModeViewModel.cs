@@ -56,8 +56,6 @@ public partial class GameModeViewModel(
     [NotifyPropertyChangedFor(nameof(IsShowingXp))]
     private XpSheet? _openXpSheet;
 
-    private GameUnitItem? _xpUnit;
-
     public ObservableCollection<GameUnitItem> Units { get; } = [];
 
     /// <summary>Lieutenant, impetuous, irregular and regular orders, in the order they are shown.</summary>
@@ -172,19 +170,10 @@ public partial class GameModeViewModel(
     private void CloseWeapon() => OpenWeaponCard = null;
 
     [RelayCommand]
-    private void ShowXp(GameUnitItem unit)
-    {
-        _xpUnit = unit;
-        OpenXpSheet = new XpSheet(unit.Name, unit.Unit.XpData);
-    }
+    private void ShowXp(GameUnitItem unit) => OpenXpSheet = unit.XpSheet();
 
     [RelayCommand]
-    private void CloseXp()
-    {
-        _xpUnit?.RefreshXp();
-        _xpUnit = null;
-        OpenXpSheet = null;
-    }
+    private void CloseXp() => OpenXpSheet = null;
 
     // ── Ending the game ─────────────────────────────────────────────────────
 

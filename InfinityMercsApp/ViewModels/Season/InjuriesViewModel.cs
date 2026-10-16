@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Season.Injuries;
 using InfinityMercsApp.Domain.Season.Troopers;
@@ -30,9 +31,16 @@ public partial class InjuriesViewModel(
 
     public ObservableCollection<InjuryRecoveryItem> Recoveries { get; } = [];
 
-    public bool HasInjuryChecks => Injuries.Count > 0;
+    [ObservableProperty]
+    private bool _hasInjuryChecks;
 
-    public bool HasRecoveries => Recoveries.Count > 0;
+    [ObservableProperty]
+    private bool _hasRecoveries;
+
+    /// <summary>True once every injury check is settled.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ContinueCommand))]
+    private bool _canContinue = true;
 
     public override void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -66,9 +74,9 @@ public partial class InjuriesViewModel(
             }
         }
 
-        OnPropertyChanged(nameof(HasInjuryChecks));
-        OnPropertyChanged(nameof(HasRecoveries));
-        ContinueCommand.NotifyCanExecuteChanged();
+        HasInjuryChecks = Injuries.Count > 0;
+        HasRecoveries = Recoveries.Count > 0;
+        CanContinue = AllSettled();
     }
 
     private async Task<IReadOnlyList<CompanyViewerUnitListItem>> CompanyUnitsAsync()
@@ -96,10 +104,10 @@ public partial class InjuriesViewModel(
             unit.InjuryName = injury.Label;
         }
 
-        ContinueCommand.NotifyCanExecuteChanged();
+        CanContinue = AllSettled();
     }
 
-    private bool CanContinue() => Injuries.All(i => i.IsSettled);
+    private bool AllSettled() => Injuries.All(i => i.IsSettled);
 
     /// <summary>Sheds the chosen injuries, then adds the new ones (so a fresh injury is never the one shed).</summary>
     [RelayCommand(CanExecute = nameof(CanContinue))]

@@ -150,19 +150,41 @@ public sealed class GameModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task TheXpSheetUpdatesTheButtonWhenClosed()
+    public async Task TheXpSheetUpdatesTheButtonAsBoxesAreTicked()
     {
         var viewModel = await OpenAsync();
         var bolt = viewModel.Units[1];
+        Assert.Equal("XP", bolt.XpButtonText);
 
         viewModel.ShowXpCommand.Execute(bolt);
         Assert.True(viewModel.IsShowingXp);
         var sheet = Assert.IsType<XpSheet>(viewModel.OpenXpSheet);
         sheet.Assist[0].IsChecked = true;
-        viewModel.CloseXpCommand.Execute(null);
 
+        Assert.Equal("XP (1)", bolt.XpButtonText);
+        Assert.Equal("Total XP Earned: 1", sheet.TotalText);
+
+        viewModel.CloseXpCommand.Execute(null);
         Assert.False(viewModel.IsShowingXp);
         Assert.Equal("XP (1)", bolt.XpButtonText);
+    }
+
+    [Fact]
+    public async Task WoundsStopAtNoneAndAtTheMost()
+    {
+        var viewModel = await OpenAsync();
+        var bolt = viewModel.Units[1];
+
+        bolt.HealWoundCommand.Execute(null);
+        Assert.Equal(0, bolt.Unit.WoundsReceived);
+
+        for (var i = 0; i < bolt.Unit.MaxWounds + 3; i++)
+        {
+            bolt.TakeWoundCommand.Execute(null);
+        }
+
+        Assert.Equal(bolt.Unit.MaxWounds, bolt.Unit.WoundsReceived);
+        Assert.False(bolt.IsConscious);
     }
 
     [Fact]

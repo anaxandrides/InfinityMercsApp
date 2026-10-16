@@ -23,6 +23,8 @@ public sealed partial class GameUnitItem : ObservableObject
         HasTacticalToken = hasTacticalToken;
         WeaponCards = weaponCards;
         Skills = AttackModifiers.NormalizeSkills(unit.Skills);
+        _xpButtonText = XpText(unit.XpData.TotalXp);
+        ShowWoundState(unit.WoundState);
         unit.PropertyChanged += OnUnitPropertyChanged;
     }
 
@@ -46,31 +48,30 @@ public sealed partial class GameUnitItem : ObservableObject
     /// <summary>An Elite Deployment gives troopers (and a lieutenant with Tactical Awareness) a token to spend.</summary>
     public bool HasTacticalToken { get; }
 
-    public WoundState WoundState => Unit.WoundState;
+    [ObservableProperty]
+    private WoundState _woundState;
 
-    public bool IsConscious => WoundState.IsConscious();
+    [ObservableProperty]
+    private bool _isConscious;
 
-    public string WoundIconPath => WoundState switch
-    {
-        WoundState.Healthy => "SVGCache/NonCBIcons/noun-smiley-face.svg",
-        WoundState.Wounded => "SVGCache/NonCBIcons/noun-sad-face.svg",
-        WoundState.NwiDown => "SVGCache/NonCBIcons/noun-mad-face.svg",
-        WoundState.KnockedOut or WoundState.KnockedOutBody2 => "SVGCache/NonCBIcons/noun-knocked-out-face.svg",
-        _ => "SVGCache/NonCBIcons/noun-gravestone.svg"
-    };
+    [ObservableProperty]
+    private string _woundIconPath = string.Empty;
 
     /// <summary>A Remote Presence trooper knocked out on its second body shows a "2" on its icon.</summary>
-    public bool IsOnSecondBody => WoundState == WoundState.KnockedOutBody2;
+    [ObservableProperty]
+    private bool _isOnSecondBody;
 
-    public string XpButtonText => Unit.XpData.TotalXp > 0 ? $"XP ({Unit.XpData.TotalXp})" : "XP";
+    /// <summary>"XP", or "XP (3)" once the trooper has earned some.</summary>
+    [ObservableProperty]
+    private string _xpButtonText;
 
     public OrderSource OrderSource => new(Unit.IsLieutenant, Unit.IsImpetuous, Unit.IsIrregular, IsConscious);
 
     [RelayCommand]
-    private void TakeWound() => Unit.WoundsReceived++;
+    private void TakeWound() => Unit.TakeWound();
 
     [RelayCommand]
-    private void HealWound() => Unit.WoundsReceived--;
+    private void HealWound() => Unit.HealWound();
 
     [RelayCommand]
     private void ToggleTacticalToken() => IsTacticalTokenSpent = !IsTacticalTokenSpent;
@@ -78,18 +79,33 @@ public sealed partial class GameUnitItem : ObservableObject
     /// <summary>A new round: a token comes back unless its trooper is out of action.</summary>
     public void ResetTacticalToken() => IsTacticalTokenSpent = !IsConscious;
 
-    public void RefreshXp() => OnPropertyChanged(nameof(XpButtonText));
+    /// <summary>The trooper's XP sheet; ticking its boxes updates the XP button as they go.</summary>
+    public XpSheet XpSheet() => new(Name, Unit.XpData, total => XpButtonText = XpText(total));
 
     private void OnUnitPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(DeploymentUnitItem.WoundState))
         {
-            OnPropertyChanged(nameof(WoundState));
-            OnPropertyChanged(nameof(WoundIconPath));
-            OnPropertyChanged(nameof(IsOnSecondBody));
-            OnPropertyChanged(nameof(IsConscious));
+            ShowWoundState(Unit.WoundState);
         }
     }
+
+    private void ShowWoundState(WoundState state)
+    {
+        WoundState = state;
+        IsConscious = state.IsConscious();
+        IsOnSecondBody = state == WoundState.KnockedOutBody2;
+        WoundIconPath = state switch
+        {
+            WoundState.Healthy => "SVGCache/NonCBIcons/noun-smiley-face.svg",
+            WoundState.Wounded => "SVGCache/NonCBIcons/noun-sad-face.svg",
+            WoundState.NwiDown => "SVGCache/NonCBIcons/noun-mad-face.svg",
+            WoundState.KnockedOut or WoundState.KnockedOutBody2 => "SVGCache/NonCBIcons/noun-knocked-out-face.svg",
+            _ => "SVGCache/NonCBIcons/noun-gravestone.svg"
+        };
+    }
+
+    private static string XpText(int totalXp) => totalXp > 0 ? $"XP ({totalXp})" : "XP";
 
     private static IReadOnlyList<string> SortedItems(string? text) =>
         string.IsNullOrWhiteSpace(text)

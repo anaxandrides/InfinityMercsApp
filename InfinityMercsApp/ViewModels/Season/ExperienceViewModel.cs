@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Services.Navigation;
@@ -22,6 +23,11 @@ public partial class ExperienceViewModel(
 
     public ObservableCollection<ExperienceUnitItem> Units { get; } = [];
 
+    /// <summary>True once an MVP is picked, or when nobody was deployed.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
+    private bool _canConfirm = true;
+
     public override void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         _companyFilePath = NavigationParameters.GetString(query, NavigationParameters.CompanyFilePath) ?? _companyFilePath;
@@ -42,7 +48,7 @@ public partial class ExperienceViewModel(
             Units.Add(item);
         }
 
-        ConfirmCommand.NotifyCanExecuteChanged();
+        CanConfirm = HasMvpOrNobody();
         return Task.CompletedTask;
     }
 
@@ -62,10 +68,10 @@ public partial class ExperienceViewModel(
             }
         }
 
-        ConfirmCommand.NotifyCanExecuteChanged();
+        CanConfirm = HasMvpOrNobody();
     }
 
-    private bool CanConfirm() => Units.Count == 0 || Units.Any(u => u.IsMvp);
+    private bool HasMvpOrNobody() => Units.Count == 0 || Units.Any(u => u.IsMvp);
 
     [RelayCommand(CanExecute = nameof(CanConfirm))]
     private async Task ConfirmAsync()

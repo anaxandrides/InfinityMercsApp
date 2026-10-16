@@ -121,6 +121,8 @@ public sealed class InjuriesViewModelTests
     {
         var viewModel = await OpenAsync("14");
         var check = viewModel.Injuries[0];
+        Assert.True(viewModel.HasInjuryChecks);
+        Assert.False(viewModel.CanContinue);
 
         check.FailCommand.Execute(null);
         Assert.True(check.IsInjured);
