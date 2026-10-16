@@ -26,11 +26,13 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<!-- Plain net10.0 builds the app as a library with no platform, so unit tests can reference it. -->
-		<TargetFrameworks>net10.0;net10.0-android</TargetFrameworks>
+		<TargetFrameworks>net10.0-android</TargetFrameworks>
 		<!-- iOS needs Xcode, so Linux builds skip it. -->
 		<TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">$(TargetFrameworks);net10.0-ios</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
+		<!-- Plain net10.0 builds the app as a library with no platform, so unit tests can reference it.
+		     It must stay last: Visual Studio debugs the first framework listed, and a library can't be started. -->
+		<TargetFrameworks>$(TargetFrameworks);net10.0</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net10.0-tizen</TargetFrameworks> -->
 
