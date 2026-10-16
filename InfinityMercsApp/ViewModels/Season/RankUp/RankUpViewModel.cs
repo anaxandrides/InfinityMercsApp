@@ -37,38 +37,38 @@ public partial class RankUpViewModel(
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasTrooper), nameof(AllSpent))]
-    private CompanyViewerUnitListItem? _trooper;
+    public partial CompanyViewerUnitListItem? Trooper { get; set; }
 
     [ObservableProperty]
-    private string _rankText = string.Empty;
+    public partial string RankText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _pointsText = string.Empty;
+    public partial string PointsText { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanRoll))]
-    private PerkPointKind _pointKind;
+    public partial PerkPointKind PointKind { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsChoosing), nameof(IsRolling))]
-    private RankUpMode _mode;
+    public partial RankUpMode Mode { get; set; }
 
     [ObservableProperty]
-    private IReadOnlyList<PerkListChoice> _lists = [];
+    public partial IReadOnlyList<PerkListChoice> Lists { get; set; } = [];
 
     [ObservableProperty]
-    private PerkListChoice? _selectedList;
+    public partial PerkListChoice? SelectedList { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasOptions))]
-    private IReadOnlyList<PerkOption> _options = [];
+    public partial IReadOnlyList<PerkOption> Options { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasRolledLists))]
-    private IReadOnlyList<PerkListChoice> _rolledLists = [];
+    public partial IReadOnlyList<PerkListChoice> RolledLists { get; set; } = [];
 
     [ObservableProperty]
-    private string _rollText = string.Empty;
+    public partial string RollText { get; set; } = string.Empty;
 
     public bool HasTrooper => Trooper is not null;
 

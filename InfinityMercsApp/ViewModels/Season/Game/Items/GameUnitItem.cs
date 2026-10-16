@@ -12,10 +12,10 @@ namespace InfinityMercsApp.ViewModels.Season.Game.Items;
 public sealed partial class GameUnitItem : ObservableObject
 {
     [ObservableProperty]
-    private bool _isExpanded;
+    public partial bool IsExpanded { get; set; }
 
     [ObservableProperty]
-    private bool _isTacticalTokenSpent;
+    public partial bool IsTacticalTokenSpent { get; set; }
 
     public GameUnitItem(DeploymentUnitItem unit, bool hasTacticalToken, IReadOnlyList<GameWeaponCard> weaponCards)
     {
@@ -23,7 +23,7 @@ public sealed partial class GameUnitItem : ObservableObject
         HasTacticalToken = hasTacticalToken;
         WeaponCards = weaponCards;
         Skills = AttackModifiers.NormalizeSkills(unit.Skills);
-        _xpButtonText = XpText(unit.XpData.TotalXp);
+        XpButtonText = XpText(unit.XpData.TotalXp);
         ShowWoundState(unit.WoundState);
         unit.PropertyChanged += OnUnitPropertyChanged;
     }
@@ -47,21 +47,21 @@ public sealed partial class GameUnitItem : ObservableObject
     public bool HasTacticalToken { get; }
 
     [ObservableProperty]
-    private WoundState _woundState;
+    public partial WoundState WoundState { get; set; }
 
     [ObservableProperty]
-    private bool _isConscious;
+    public partial bool IsConscious { get; set; }
 
     [ObservableProperty]
-    private string _woundIconPath = string.Empty;
+    public partial string WoundIconPath { get; set; } = string.Empty;
 
     /// <summary>A Remote Presence trooper knocked out on its second body shows a "2" on its icon.</summary>
     [ObservableProperty]
-    private bool _isOnSecondBody;
+    public partial bool IsOnSecondBody { get; set; }
 
     /// <summary>"XP", or "XP (3)" once the trooper has earned some.</summary>
     [ObservableProperty]
-    private string _xpButtonText;
+    public partial string XpButtonText { get; set; }
 
     public OrderSource OrderSource => new(Unit.IsLieutenant, Unit.IsImpetuous, Unit.IsIrregular, IsConscious);
 

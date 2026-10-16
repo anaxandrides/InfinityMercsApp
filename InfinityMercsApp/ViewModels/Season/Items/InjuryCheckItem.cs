@@ -46,26 +46,26 @@ public partial class InjuryCheckItem : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AvoidText), nameof(IsRollLocked), nameof(CanChooseOutcome))]
     [NotifyCanExecuteChangedFor(nameof(RollCommand), nameof(PassCommand), nameof(FailCommand))]
-    private bool _isInjured;
+    public partial bool IsInjured { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsRollLocked), nameof(CanChooseOutcome))]
     [NotifyCanExecuteChangedFor(nameof(RollCommand), nameof(PassCommand), nameof(FailCommand))]
-    private bool _isPassed;
+    public partial bool IsPassed { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasRolled), nameof(CanChooseOutcome))]
     [NotifyCanExecuteChangedFor(nameof(RollCommand), nameof(PassCommand), nameof(FailCommand))]
-    private string? _rollResultText;
+    public partial string? RollResultText { get; set; }
 
     [ObservableProperty]
-    private bool _rollPassed;
+    public partial bool RollPassed { get; set; }
 
     [ObservableProperty]
-    private bool _isSettled;
+    public partial bool IsSettled { get; set; }
 
     [ObservableProperty]
-    private InjuryTableEntry? _selectedInjury;
+    public partial InjuryTableEntry? SelectedInjury { get; set; }
 
     public bool HasRolled => RollResultText is not null;
 

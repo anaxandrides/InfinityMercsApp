@@ -17,10 +17,10 @@ public sealed partial class GearSlotPicker(GearSlot slot, Action<GearSlot, GearO
     public string Title { get; } = slot.Key().ToUpperInvariant();
 
     [ObservableProperty]
-    private IReadOnlyList<GearOption> _options = [GearOption.None];
+    public partial IReadOnlyList<GearOption> Options { get; set; } = [GearOption.None];
 
     [ObservableProperty]
-    private GearOption? _selectedOption = GearOption.None;
+    public partial GearOption? SelectedOption { get; set; } = GearOption.None;
 
     /// <summary>Replaces the options and shows <paramref name="selected"/> as chosen, without reporting a pick.</summary>
     public void Show(IReadOnlyList<GearOption> options, GearOption selected)

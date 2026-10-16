@@ -14,11 +14,11 @@ public partial class ArmyTeamListItem : ObservableObject
     public bool ShowTrackingRadioButton => !IsWildcardBucket;
 
     [ObservableProperty]
-    private bool _isTrackedTeam;
+    public partial bool IsTrackedTeam { get; set; }
 
     [ObservableProperty]
-    private bool _isVisible = true;
+    public partial bool IsVisible { get; set; } = true;
 
     [ObservableProperty]
-    private bool _isExpanded;
+    public partial bool IsExpanded { get; set; }
 }

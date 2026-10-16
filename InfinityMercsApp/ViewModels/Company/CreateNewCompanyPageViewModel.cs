@@ -20,10 +20,10 @@ public partial class CreateNewCompanyPageViewModel : AdaptiveViewModelBase<Creat
 
     /// <summary>The cards in display order. Lone Wolf has a command but no card until it is ready.</summary>
     [ObservableProperty]
-    private IReadOnlyList<CompanyChoice> _choices = [];
+    public partial IReadOnlyList<CompanyChoice> Choices { get; set; } = [];
 
     [ObservableProperty]
-    private string _choiceRows = string.Empty;
+    public partial string ChoiceRows { get; set; } = string.Empty;
 
     protected override void OnLayoutApplied() => LayOutChoices();
 

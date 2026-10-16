@@ -35,37 +35,37 @@ public partial class SeasonMarketplaceViewModel(
     private bool _choosingStore;
 
     [ObservableProperty]
-    private IReadOnlyList<StoreChoice> _stores = [];
+    public partial IReadOnlyList<StoreChoice> Stores { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsServicesStore), nameof(IsRecruitmentStore), nameof(ShowsStock))]
-    private StoreChoice? _selectedStore;
+    public partial StoreChoice? SelectedStore { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowsStock))]
-    private bool _hasStore;
+    public partial bool HasStore { get; set; }
 
     [ObservableProperty]
-    private string _storeName = string.Empty;
+    public partial string StoreName { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasAlignmentText))]
-    private string _alignmentText = string.Empty;
+    public partial string AlignmentText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private IReadOnlyList<StoreItemGroup> _itemGroups = [];
+    public partial IReadOnlyList<StoreItemGroup> ItemGroups { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasTroopTypes))]
-    private IReadOnlyList<TroopTypeRow> _troopTypeRows = [];
+    public partial IReadOnlyList<TroopTypeRow> TroopTypeRows { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasAugments))]
-    private IReadOnlyList<AugmentRow> _augmentRows = [];
+    public partial IReadOnlyList<AugmentRow> AugmentRows { get; set; } = [];
 
     /// <summary>The CR left once the cart is paid for, and the company's SWC, e.g. "12 CR - 1.5 SWC".</summary>
     [ObservableProperty]
-    private string _resourcesText = SeasonEconomy.BalanceText(0, 0);
+    public partial string ResourcesText { get; set; } = SeasonEconomy.BalanceText(0, 0);
 
     /// <summary>The popup showing a row in full.</summary>
     public MarketplaceDetailViewModel DetailPopup => detailPopup;
@@ -85,7 +85,7 @@ public partial class SeasonMarketplaceViewModel(
     /// <summary>Something is in the cart, so it can be bought.</summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(BuyCommand))]
-    private bool _hasCartItems;
+    public partial bool HasCartItems { get; set; }
 
     /// <summary>The markets of the company's factions, which it may take as its War Market without rolling.</summary>
     public IReadOnlyList<string> FactionMarketNames { get; private set; } = [];

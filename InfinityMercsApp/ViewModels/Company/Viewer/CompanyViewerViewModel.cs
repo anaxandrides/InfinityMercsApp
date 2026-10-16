@@ -29,44 +29,44 @@ public partial class CompanyViewerViewModel(
     private SavedImprovedCaptainStats _captain = new();
 
     [ObservableProperty]
-    private string _title = DefaultTitle;
+    public partial string Title { get; set; } = DefaultTitle;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasStatusMessage))]
-    private string _statusMessage = string.Empty;
+    public partial string StatusMessage { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(EditNameCommand), nameof(SaveNameCommand))]
-    private CompanyViewerUnitListItem? _selectedUnit;
+    public partial CompanyViewerUnitListItem? SelectedUnit { get; set; }
 
     [ObservableProperty]
-    private string _selectedName = string.Empty;
+    public partial string SelectedName { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedBaseName))]
-    private string _selectedBaseName = string.Empty;
+    public partial string SelectedBaseName { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedUnitType))]
-    private string _selectedUnitType = string.Empty;
+    public partial string SelectedUnitType { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _nameDraft = string.Empty;
+    public partial string NameDraft { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _isEditingName;
+    public partial bool IsEditingName { get; set; }
 
     [ObservableProperty]
-    private FormattedString _rangedWeaponsFormatted = CompanyRoster.Simple(null, CompanyRoster.RangedColor);
+    public partial FormattedString RangedWeaponsFormatted { get; set; } = CompanyRoster.Simple(null, CompanyRoster.RangedColor);
 
     [ObservableProperty]
-    private FormattedString _meleeWeaponsFormatted = CompanyRoster.Simple(null, CompanyRoster.MeleeColor);
+    public partial FormattedString MeleeWeaponsFormatted { get; set; } = CompanyRoster.Simple(null, CompanyRoster.MeleeColor);
 
     [ObservableProperty]
-    private FormattedString _peripheralsFormatted = CompanyRoster.Simple(null, CompanyRoster.PeripheralsColor);
+    public partial FormattedString PeripheralsFormatted { get; set; } = CompanyRoster.Simple(null, CompanyRoster.PeripheralsColor);
 
     [ObservableProperty]
-    private bool _hasPeripherals;
+    public partial bool HasPeripherals { get; set; }
 
     /// <summary>The selected trooper's stat line, icons and summaries.</summary>
     public UnitDetailViewModel Detail { get; } = detail;

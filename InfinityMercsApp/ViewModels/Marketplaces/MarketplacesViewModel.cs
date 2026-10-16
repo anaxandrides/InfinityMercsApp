@@ -32,42 +32,42 @@ public partial class MarketplacesViewModel : AdaptiveViewModelBase<MarketplacesL
     public MarketplaceDetailViewModel DetailPopup { get; }
 
     [ObservableProperty]
-    private string? _selectedStoreName;
+    public partial string? SelectedStoreName { get; set; }
 
     [ObservableProperty]
-    private bool _hasStore;
+    public partial bool HasStore { get; set; }
 
     /// <summary>The cart shows once a store is open, on layouts that offer buying.</summary>
     [ObservableProperty]
-    private bool _showCart;
+    public partial bool ShowCart { get; set; }
 
     [ObservableProperty]
-    private string _storeName = string.Empty;
+    public partial string StoreName { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _storeFactionsDisplay = string.Empty;
+    public partial string StoreFactionsDisplay { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _storeMetaDisplay = string.Empty;
+    public partial string StoreMetaDisplay { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasItems))]
-    private IReadOnlyList<StoreItemGroup> _itemGroups = [];
+    public partial IReadOnlyList<StoreItemGroup> ItemGroups { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasTroopTypes))]
-    private IReadOnlyList<TroopTypeRow> _troopTypeRows = [];
+    public partial IReadOnlyList<TroopTypeRow> TroopTypeRows { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasAugments))]
-    private IReadOnlyList<AugmentRow> _augmentRows = [];
+    public partial IReadOnlyList<AugmentRow> AugmentRows { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasCartLines), nameof(IsCartEmpty))]
-    private IReadOnlyList<MarketplaceCartLine> _cartLines = [];
+    public partial IReadOnlyList<MarketplaceCartLine> CartLines { get; set; } = [];
 
     [ObservableProperty]
-    private string _cartTotalDisplay = "Total: 0cr";
+    public partial string CartTotalDisplay { get; set; } = "Total: 0cr";
 
     public bool HasItems => ItemGroups.Count > 0;
     public bool HasTroopTypes => TroopTypeRows.Count > 0;

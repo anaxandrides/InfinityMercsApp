@@ -25,21 +25,21 @@ public sealed partial class CompanyUnitDetail : ObservableObject, IUnitDisplay
     private int? _peripheralMoveFirstCm;
     private int? _peripheralMoveSecondCm;
 
-    [ObservableProperty] private string _unitNameHeading = NoUnitHeading;
-    [ObservableProperty] private string? _logoSource;
+    [ObservableProperty] public partial string UnitNameHeading { get; set; } = NoUnitHeading;
+    [ObservableProperty] public partial string? LogoSource { get; set; }
 
-    [ObservableProperty] private UnitStatLine _stats = UnitStatLine.Empty;
-    [ObservableProperty] private UnitHeaderIcons _icons = UnitHeaderIcons.None;
-    [ObservableProperty] private PeripheralStatBlock? _peripheral;
+    [ObservableProperty] public partial UnitStatLine Stats { get; set; } = UnitStatLine.Empty;
+    [ObservableProperty] public partial UnitHeaderIcons Icons { get; set; } = UnitHeaderIcons.None;
+    [ObservableProperty] public partial PeripheralStatBlock? Peripheral { get; set; }
 
-    [ObservableProperty] private string _equipmentSummary = "Equipment: -";
-    [ObservableProperty] private string _specialSkillsSummary = "Special Skills: -";
-    [ObservableProperty] private FormattedString _equipmentSummaryFormatted = new();
-    [ObservableProperty] private FormattedString _specialSkillsSummaryFormatted = new();
+    [ObservableProperty] public partial string EquipmentSummary { get; set; } = "Equipment: -";
+    [ObservableProperty] public partial string SpecialSkillsSummary { get; set; } = "Special Skills: -";
+    [ObservableProperty] public partial FormattedString EquipmentSummaryFormatted { get; set; } = new();
+    [ObservableProperty] public partial FormattedString SpecialSkillsSummaryFormatted { get; set; } = new();
 
-    [ObservableProperty] private bool _showUnitsInInches = true;
+    [ObservableProperty] public partial bool ShowUnitsInInches { get; set; } = true;
 
-    [ObservableProperty] private CompanyHeaderColors _headerColors = HeaderColorsFor(null);
+    [ObservableProperty] public partial CompanyHeaderColors HeaderColors { get; set; } = HeaderColorsFor(null);
 
     /// <summary>The selected unit's MOV in centimetres, kept to re-format it when the display units change.</summary>
     public int? UnitMoveFirstCm { get; private set; }

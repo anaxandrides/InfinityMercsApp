@@ -27,7 +27,7 @@ public partial class ExperienceViewModel(
     /// <summary>True once an MVP is picked, or when nobody was deployed.</summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
-    private bool _canConfirm = true;
+    public partial bool CanConfirm { get; set; } = true;
 
     public override void ApplyQueryAttributes(IDictionary<string, object> query)
     {

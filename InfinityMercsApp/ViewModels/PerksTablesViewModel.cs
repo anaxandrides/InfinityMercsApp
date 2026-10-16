@@ -17,11 +17,11 @@ public partial class PerksTablesViewModel : ViewModelBase
     public IReadOnlyList<PerkTableOption> PerkTableOptions { get; }
 
     [ObservableProperty]
-    private PerkTableOption? _selectedPerkTableOption;
+    public partial PerkTableOption? SelectedPerkTableOption { get; set; }
 
     /// <summary>The selected list's table, or null when nothing is selected.</summary>
     [ObservableProperty]
-    private PerkTable? _table;
+    public partial PerkTable? Table { get; set; }
 
     partial void OnSelectedPerkTableOptionChanged(PerkTableOption? value)
     {

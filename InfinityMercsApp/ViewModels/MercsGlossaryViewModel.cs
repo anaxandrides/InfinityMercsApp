@@ -26,31 +26,31 @@ public partial class MercsGlossaryViewModel(
     public ObservableCollection<GlossaryEntry> GlossaryItems { get; } = [];
 
     [ObservableProperty]
-    private GlossaryEntry? _selectedItem;
+    public partial GlossaryEntry? SelectedItem { get; set; }
 
     [ObservableProperty]
-    private string _selectedTitle = NoSelectionTitle;
+    public partial string SelectedTitle { get; set; } = NoSelectionTitle;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ContentSource))]
-    private string _selectedContentHtml = MercsGlossary.TextPage(NoSelectionText);
+    public partial string SelectedContentHtml { get; set; } = MercsGlossary.TextPage(NoSelectionText);
 
     /// <summary>Whether the rule text replaces the index on narrow screens.</summary>
     [ObservableProperty]
-    private bool _isShowingDetail;
+    public partial bool IsShowingDetail { get; set; }
 
     [ObservableProperty]
-    private bool _isIndexPaneVisible = true;
+    public partial bool IsIndexPaneVisible { get; set; } = true;
 
     [ObservableProperty]
-    private bool _isDetailPaneVisible;
+    public partial bool IsDetailPaneVisible { get; set; }
 
     /// <summary>
     /// Rules-index text size, scaled to the available width so long titles stay readable and fit inside the
     /// index box. Compact has the full screen width; the medium and wider rail is narrow.
     /// </summary>
     [ObservableProperty]
-    private double _listFontSize = 17d;
+    public partial double ListFontSize { get; set; } = 17d;
 
     protected override void OnLayoutApplied()
     {

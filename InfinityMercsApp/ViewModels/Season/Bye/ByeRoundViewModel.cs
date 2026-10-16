@@ -34,7 +34,7 @@ public partial class ByeRoundViewModel(
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsFourTroopers), nameof(IsSixTroopers))]
-    private ByeXpSplit _split = ByeXpSplit.FourTroopers;
+    public partial ByeXpSplit Split { get; set; } = ByeXpSplit.FourTroopers;
 
     public bool IsFourTroopers => Split == ByeXpSplit.FourTroopers;
 
@@ -42,25 +42,25 @@ public partial class ByeRoundViewModel(
 
     /// <summary>The round the bye stands in for.</summary>
     [ObservableProperty]
-    private int _roundNumber = 1;
+    public partial int RoundNumber { get; set; } = 1;
 
     /// <summary>The round's credits plus the bye's 12.</summary>
     [ObservableProperty]
-    private int _credits;
+    public partial int Credits { get; set; }
 
     /// <summary>"2 / 4 troopers · 7 XP each".</summary>
     [ObservableProperty]
-    private string _selectionText = string.Empty;
+    public partial string SelectionText { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
-    private bool _isValid = true;
+    public partial bool IsValid { get; set; } = true;
 
     [ObservableProperty]
-    private ByeInjuryOption? _selectedInjury;
+    public partial ByeInjuryOption? SelectedInjury { get; set; }
 
     [ObservableProperty]
-    private bool _hasInjuries;
+    public partial bool HasInjuries { get; set; }
 
     public override void ApplyQueryAttributes(IDictionary<string, object> query)
     {

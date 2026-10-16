@@ -23,11 +23,11 @@ public partial class SeasonInventoryViewModel(
     private string? _seasonFilePath;
 
     [ObservableProperty]
-    private IReadOnlyList<InventorySection> _sections = [];
+    public partial IReadOnlyList<InventorySection> Sections { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasMessage))]
-    private string _message = string.Empty;
+    public partial string Message { get; set; } = string.Empty;
 
     public bool HasMessage => Message.Length > 0;
 

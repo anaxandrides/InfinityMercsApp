@@ -15,17 +15,17 @@ public partial class SettingsViewModel(
 {
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowUnitsInCentimeters))]
-    private bool _showUnitsInInches = true;
+    public partial bool ShowUnitsInInches { get; set; } = true;
 
     [ObservableProperty]
-    private string _updateStatus = "No update run yet.";
+    public partial string UpdateStatus { get; set; } = "No update run yet.";
 
     [ObservableProperty]
-    private string _updateProgressMessage = string.Empty;
+    public partial string UpdateProgressMessage { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(UpdateAllDataCommand))]
-    private bool _isUpdateInProgress;
+    public partial bool IsUpdateInProgress { get; set; }
 
     // Loading the stored preference must not write it straight back.
     private bool _loading;

@@ -11,13 +11,13 @@ public sealed partial class FilterCriterionItem(UnitFilterField field, string ti
 
     /// <summary>"Any", or the match mode and chosen values, e.g. "All: Climbing Plus, Mimetism".</summary>
     [ObservableProperty]
-    private string _summary = "Any";
+    public partial string Summary { get; set; } = "Any";
 
     /// <summary>The criterion whose value chips are currently shown in the editor.</summary>
     [ObservableProperty]
-    private bool _isCurrent;
+    public partial bool IsCurrent { get; set; }
 
     /// <summary>True when this criterion has committed (active) values; drives the chip's active marker.</summary>
     [ObservableProperty]
-    private bool _hasSelections;
+    public partial bool HasSelections { get; set; }
 }

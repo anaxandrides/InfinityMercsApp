@@ -30,25 +30,25 @@ public partial class UnitDetailViewModel(
 
     public ObservableCollection<ViewerProfileItem> Profiles { get; } = [];
 
-    [ObservableProperty] private string _profilesStatus = "Select a unit.";
-    [ObservableProperty] private string _unitNameHeading = NoUnit;
-    [ObservableProperty] private string? _logoSource;
+    [ObservableProperty] public partial string ProfilesStatus { get; set; } = "Select a unit.";
+    [ObservableProperty] public partial string UnitNameHeading { get; set; } = NoUnit;
+    [ObservableProperty] public partial string? LogoSource { get; set; }
 
-    [ObservableProperty] private UnitStatLine _stats = UnitStatLine.Empty;
-    [ObservableProperty] private UnitHeaderIcons _icons = UnitHeaderIcons.None;
-    [ObservableProperty] private CompanyHeaderColors _headerColors = CompanyHeaderColors.Default;
+    [ObservableProperty] public partial UnitStatLine Stats { get; set; } = UnitStatLine.Empty;
+    [ObservableProperty] public partial UnitHeaderIcons Icons { get; set; } = UnitHeaderIcons.None;
+    [ObservableProperty] public partial CompanyHeaderColors HeaderColors { get; set; } = CompanyHeaderColors.Default;
 
     /// <summary>A unit read from army data shows no separate peripheral statline.</summary>
     public PeripheralStatBlock? Peripheral => null;
 
-    [ObservableProperty] private string _equipmentSummary = "Equipment: -";
-    [ObservableProperty] private string _specialSkillsSummary = "Special Skills: -";
-    [ObservableProperty] private FormattedString _equipmentSummaryFormatted = new();
-    [ObservableProperty] private FormattedString _specialSkillsSummaryFormatted = new();
+    [ObservableProperty] public partial string EquipmentSummary { get; set; } = "Equipment: -";
+    [ObservableProperty] public partial string SpecialSkillsSummary { get; set; } = "Special Skills: -";
+    [ObservableProperty] public partial FormattedString EquipmentSummaryFormatted { get; set; } = new();
+    [ObservableProperty] public partial FormattedString SpecialSkillsSummaryFormatted { get; set; } = new();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowUnitsInCentimeters))]
-    private bool _showUnitsInInches = true;
+    public partial bool ShowUnitsInInches { get; set; } = true;
 
     public bool ShowUnitsInCentimeters
     {

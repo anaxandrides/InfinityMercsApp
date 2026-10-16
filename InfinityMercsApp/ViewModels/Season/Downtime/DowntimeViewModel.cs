@@ -43,68 +43,68 @@ public partial class DowntimeViewModel(
     [NotifyCanExecuteChangedFor(
         nameof(RollCommand), nameof(RealCommand), nameof(PickEventCommand), nameof(NoEventCommand),
         nameof(PickChoiceCommand), nameof(PickParticipantCommand), nameof(ConfirmSpendCommand))]
-    private DowntimeStage _stage = DowntimeStage.AwaitingEventRoll;
+    public partial DowntimeStage Stage { get; set; } = DowntimeStage.AwaitingEventRoll;
 
     [ObservableProperty]
-    private string _rollPrompt = EventRollPrompt;
+    public partial string RollPrompt { get; set; } = EventRollPrompt;
 
     [ObservableProperty]
-    private int? _selectedRealRoll;
+    public partial int? SelectedRealRoll { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasEvent), nameof(IsShowingEventDetails), nameof(IsChoosingFromEventList), nameof(HasEventTraits), nameof(EventTraitsText))]
-    private DowntimeEvent? _currentEvent;
+    public partial DowntimeEvent? CurrentEvent { get; set; }
 
     [ObservableProperty]
-    private string _rollHeader = string.Empty;
+    public partial string RollHeader { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _isEventListClosed;
+    public partial bool IsEventListClosed { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasChoice))]
-    private DowntimeChoiceCard? _selectedChoice;
+    public partial DowntimeChoiceCard? SelectedChoice { get; set; }
 
     [ObservableProperty]
-    private string _participantPrompt = string.Empty;
+    public partial string ParticipantPrompt { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _hasNoCandidates;
+    public partial bool HasNoCandidates { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasParticipant), nameof(PerformedByText))]
-    private ExperienceUnitResult? _participant;
+    public partial ExperienceUnitResult? Participant { get; set; }
 
     [ObservableProperty]
-    private bool _showsCrSpend;
+    public partial bool ShowsCrSpend { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CrSpendTargetText))]
-    private int _crSpendBaseTarget;
+    public partial int CrSpendBaseTarget { get; set; }
 
     /// <summary>The CR stepper's value; a double because that is what a stepper binds.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CrSpendTargetText))]
-    private double _crToSpend;
+    public partial double CrToSpend { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasTestText))]
-    private string _testText = string.Empty;
+    public partial string TestText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _isTestUnresolvable;
+    public partial bool IsTestUnresolvable { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasRolledText))]
-    private string _rolledText = string.Empty;
+    public partial string RolledText { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasOutcome), nameof(OutcomeText))]
-    private PassFailOutcome _outcome = PassFailOutcome.None;
+    public partial PassFailOutcome Outcome { get; set; } = PassFailOutcome.None;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasNoConsequences))]
-    private IReadOnlyList<string> _consequenceLines = [];
+    public partial IReadOnlyList<string> ConsequenceLines { get; set; } = [];
 
     /// <summary>The values the REAL picker offers: 1 to 20.</summary>
     public IReadOnlyList<int> RealRolls { get; } = Enumerable.Range(1, 20).ToList();

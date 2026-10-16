@@ -33,59 +33,59 @@ public sealed partial class ConfigureCaptainViewModel : ObservableObject
     private readonly CaptainStatUpgrade _vitality;
 
     [ObservableProperty]
-    private string _captainName;
+    public partial string CaptainName { get; set; }
 
     [ObservableProperty]
-    private string _captainNameDraft;
+    public partial string CaptainNameDraft { get; set; }
 
     [ObservableProperty]
-    private bool _isEditingName;
+    public partial bool IsEditingName { get; set; }
 
     [ObservableProperty]
-    private CaptainStatBonuses _selectedBonuses = CaptainStatBonuses.None;
+    public partial CaptainStatBonuses SelectedBonuses { get; set; } = CaptainStatBonuses.None;
 
     /// <summary>The unit's statline with the chosen bonuses applied.</summary>
     [ObservableProperty]
-    private IReadOnlyList<CaptainStatCell> _statCells = [];
+    public partial IReadOnlyList<CaptainStatCell> StatCells { get; set; } = [];
 
     [ObservableProperty]
-    private string _rangedText = ProfileText.Empty;
+    public partial string RangedText { get; set; } = ProfileText.Empty;
 
     /// <summary>The skills with chosen ones appended, split so lieutenant mentions can be highlighted.</summary>
     [ObservableProperty]
-    private IReadOnlyList<TextRun> _skillRuns = [];
+    public partial IReadOnlyList<TextRun> SkillRuns { get; set; } = [];
 
     [ObservableProperty]
-    private string _equipmentText = ProfileText.Empty;
+    public partial string EquipmentText { get; set; } = ProfileText.Empty;
 
     [ObservableProperty]
-    private int _spentExperience;
+    public partial int SpentExperience { get; set; }
 
     [ObservableProperty]
-    private int _experienceRemaining;
+    public partial int ExperienceRemaining { get; set; }
 
     [ObservableProperty]
-    private string _experienceRemainingText = string.Empty;
+    public partial string ExperienceRemainingText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _isOverspent;
+    public partial bool IsOverspent { get; set; }
 
     /// <summary>What breaks the rules in the build so far, one message per problem.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasProblems))]
-    private IReadOnlyList<string> _problems = [];
+    public partial IReadOnlyList<string> Problems { get; set; } = [];
 
     /// <summary>True when the build follows the rules and can be confirmed.</summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
-    private bool _isValid = true;
+    public partial bool IsValid { get; set; } = true;
 
     public ConfigureCaptainViewModel(CaptainUpgradePopupContext context)
     {
         _context = context;
         _statline = Statline.Entries(context.Unit.Statline);
-        _captainName = TextOr(context.DefaultUnitCustomName, DefaultCaptainName);
-        _captainNameDraft = _captainName;
+        CaptainName = TextOr(context.DefaultUnitCustomName, DefaultCaptainName);
+        CaptainNameDraft = CaptainName;
 
         var baseStats = Statline.NumericStats(context.Unit.Statline);
         int BaseOf(params IEnumerable<Stat> stats) =>

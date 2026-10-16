@@ -85,21 +85,21 @@ public partial class SeasonViewModel : ViewModelBase
 
     /// <summary>"Round 0" before the first round, then "Round N Marketplace".</summary>
     [ObservableProperty]
-    private string _roundTitle = DefaultName;
+    public partial string RoundTitle { get; set; } = DefaultName;
 
     [ObservableProperty]
-    private string _companyName = DefaultName;
+    public partial string CompanyName { get; set; } = DefaultName;
 
     [ObservableProperty]
-    private string _companyType = string.Empty;
+    public partial string CompanyType { get; set; } = string.Empty;
 
     /// <summary>The company's renown: its troopers' costs, gear and XP, and its victories.</summary>
     [ObservableProperty]
-    private int _renown;
+    public partial int Renown { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsTeamTab), nameof(IsInventoryTab), nameof(IsMarketplaceTab))]
-    private SeasonTab _activeTab = SeasonTab.Team;
+    public partial SeasonTab ActiveTab { get; set; } = SeasonTab.Team;
 
     public bool IsTeamTab => ActiveTab == SeasonTab.Team;
     public bool IsInventoryTab => ActiveTab == SeasonTab.Inventory;

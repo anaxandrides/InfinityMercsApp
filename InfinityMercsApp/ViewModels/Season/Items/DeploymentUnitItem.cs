@@ -71,10 +71,10 @@ public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListIt
 
     /// <summary>Wounds taken this game; change them with <see cref="TakeWound"/> and <see cref="HealWound"/>.</summary>
     [ObservableProperty]
-    private int _woundsReceived;
+    public partial int WoundsReceived { get; set; }
 
     [ObservableProperty]
-    private WoundState _woundState = WoundState.Healthy;
+    public partial WoundState WoundState { get; set; } = WoundState.Healthy;
 
     /// <summary>One more wound, up to <see cref="MaxWounds"/>.</summary>
     public void TakeWound() => WoundsReceived = Math.Min(WoundsReceived + 1, MaxWounds);
@@ -99,11 +99,11 @@ public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListIt
 
     /// <summary>Ticked to deploy.</summary>
     [ObservableProperty]
-    private bool _isChecked;
+    public partial bool IsChecked { get; set; }
 
     /// <summary>The tile being shown in full; the tile view outlines it.</summary>
     [ObservableProperty]
-    private bool _isSelected;
+    public partial bool IsSelected { get; set; }
 
     /// <summary>The trooper's part in the contract, for the post-game pages.</summary>
     /// <param name="deploymentXp">The XP for being deployed: the round number, or 0 when it was not deployed.</param>

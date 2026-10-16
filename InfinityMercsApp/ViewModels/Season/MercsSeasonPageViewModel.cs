@@ -9,7 +9,7 @@ namespace InfinityMercsApp.ViewModels.Season;
 public partial class MercsSeasonPageViewModel(INavigationService navigationService) : AdaptiveViewModelBase<MercsSeasonLayout>(navigationService, MercsSeasonLayout.For)
 {
     [ObservableProperty]
-    private bool _isChoosingNewSeason;
+    public partial bool IsChoosingNewSeason { get; set; }
 
     /// <summary>Always return to the main two-button state when the page reappears.</summary>
     public override Task InitializeAsync()

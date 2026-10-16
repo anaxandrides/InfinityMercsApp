@@ -16,7 +16,7 @@ public sealed partial class InjuryRecoveryItem : ObservableObject
         Name = name;
         Reason = isCaptain ? "Captain — recovers even when deployed" : "Rested this contract";
         Injuries = injuries.Select(InjuryRules.EntryFor).ToList();
-        _selectedInjury = Injuries.FirstOrDefault();
+        SelectedInjury = Injuries.FirstOrDefault();
     }
 
     public int EntryIndex { get; }
@@ -28,5 +28,5 @@ public sealed partial class InjuryRecoveryItem : ObservableObject
     public IReadOnlyList<InjuryTableEntry> Injuries { get; }
 
     [ObservableProperty]
-    private InjuryTableEntry? _selectedInjury;
+    public partial InjuryTableEntry? SelectedInjury { get; set; }
 }

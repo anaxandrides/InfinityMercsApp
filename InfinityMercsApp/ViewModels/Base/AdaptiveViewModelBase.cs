@@ -17,10 +17,10 @@ public abstract partial class AdaptiveViewModelBase<TLayout>(
 {
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsCompact), nameof(IsWide))]
-    private AdaptiveLayoutMode _layoutMode;
+    public partial AdaptiveLayoutMode LayoutMode { get; set; }
 
     [ObservableProperty]
-    private TLayout _layout = layoutFor(AdaptiveLayoutMode.Compact);
+    public partial TLayout Layout { get; set; } = layoutFor(AdaptiveLayoutMode.Compact);
 
     public bool IsCompact => LayoutMode == AdaptiveLayoutMode.Compact;
     public bool IsWide => LayoutMode == AdaptiveLayoutMode.Wide;

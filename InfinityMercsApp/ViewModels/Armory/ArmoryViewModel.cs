@@ -20,21 +20,21 @@ public partial class ArmoryViewModel(
     public ObservableCollection<WeaponGroup> WeaponGroups { get; } = [];
 
     [ObservableProperty]
-    private string _searchText = string.Empty;
+    public partial string SearchText { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedWeaponName), nameof(HasSelectedWeapon), nameof(NoWeaponSelected))]
-    private WeaponGroup? _selectedWeaponGroup;
+    public partial WeaponGroup? SelectedWeaponGroup { get; set; }
 
     /// <summary>Whether the detail pane replaces the list on narrow screens.</summary>
     [ObservableProperty]
-    private bool _isShowingDetail;
+    public partial bool IsShowingDetail { get; set; }
 
     [ObservableProperty]
-    private bool _isListPaneVisible = true;
+    public partial bool IsListPaneVisible { get; set; } = true;
 
     [ObservableProperty]
-    private bool _isDetailPaneVisible;
+    public partial bool IsDetailPaneVisible { get; set; }
 
     protected override void OnLayoutApplied() => ShowPanes();
 

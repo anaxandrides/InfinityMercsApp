@@ -8,10 +8,10 @@ namespace InfinityMercsApp.ViewModels.Season.Downtime.Items;
 public sealed partial class DowntimeParticipantItem : ObservableObject
 {
     [ObservableProperty]
-    private bool _isSelected;
+    public partial bool IsSelected { get; set; }
 
     [ObservableProperty]
-    private bool _isDimmed;
+    public partial bool IsDimmed { get; set; }
 
     private DowntimeParticipantItem(ExperienceUnitResult unit, string displayName, IReadOnlyList<string> missing, int? target)
     {
@@ -19,7 +19,7 @@ public sealed partial class DowntimeParticipantItem : ObservableObject
         DisplayName = displayName;
         Missing = missing;
         Target = target;
-        _isDimmed = !IsEligible;
+        IsDimmed = !IsEligible;
     }
 
     public ExperienceUnitResult Unit { get; }

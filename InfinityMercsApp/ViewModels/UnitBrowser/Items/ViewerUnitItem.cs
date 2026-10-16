@@ -22,5 +22,5 @@ public partial class ViewerUnitItem : ObservableObject, IViewerListItem
     public bool HasSubtitle => !string.IsNullOrWhiteSpace(Subtitle);
 
     [ObservableProperty]
-    private bool _isSelected;
+    public partial bool IsSelected { get; set; }
 }

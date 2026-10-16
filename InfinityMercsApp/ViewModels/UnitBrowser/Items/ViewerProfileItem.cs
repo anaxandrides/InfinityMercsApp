@@ -63,11 +63,11 @@ public partial class ViewerProfileItem : ObservableObject
     public bool ShowProfileTacticalAwarenessIcon { get; init; }
 
     [ObservableProperty]
-    private bool _isVisible = true;
+    public partial bool IsVisible { get; set; } = true;
 
     [ObservableProperty]
-    private bool _isLieutenantBlocked;
+    public partial bool IsLieutenantBlocked { get; set; }
 
     [ObservableProperty]
-    private bool _isSelected;
+    public partial bool IsSelected { get; set; }
 }

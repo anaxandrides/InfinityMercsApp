@@ -37,24 +37,24 @@ public partial class UnitEncyclopediaViewModel(
     public ObservableCollection<ViewerUnitItem> Units { get; } = [];
     public ObservableCollection<FireteamTeamItem> Fireteams { get; } = [];
 
-    [ObservableProperty] private bool _isLoading;
-    [ObservableProperty] private string _status = "Loading factions...";
-    [ObservableProperty] private string _unitsStatus = "Select a faction.";
-    [ObservableProperty] private string _fireteamDuoCount = "-";
-    [ObservableProperty] private string _fireteamHarisCount = "-";
-    [ObservableProperty] private string _fireteamCoreCount = "-";
-    [ObservableProperty] private string _fireteamsStatus = "Select a faction.";
+    [ObservableProperty] public partial bool IsLoading { get; set; }
+    [ObservableProperty] public partial string Status { get; set; } = "Loading factions...";
+    [ObservableProperty] public partial string UnitsStatus { get; set; } = "Select a faction.";
+    [ObservableProperty] public partial string FireteamDuoCount { get; set; } = "-";
+    [ObservableProperty] public partial string FireteamHarisCount { get; set; } = "-";
+    [ObservableProperty] public partial string FireteamCoreCount { get; set; } = "-";
+    [ObservableProperty] public partial string FireteamsStatus { get; set; } = "Select a faction.";
     [ObservableProperty]
-    private BrowseStep _step = BrowseStep.Factions;
+    public partial BrowseStep Step { get; set; } = BrowseStep.Factions;
 
     [ObservableProperty]
-    private bool _isFactionsPaneVisible = true;
+    public partial bool IsFactionsPaneVisible { get; set; } = true;
 
     [ObservableProperty]
-    private bool _isBrowsePaneVisible;
+    public partial bool IsBrowsePaneVisible { get; set; }
 
     [ObservableProperty]
-    private bool _isDetailPaneVisible;
+    public partial bool IsDetailPaneVisible { get; set; }
 
     protected override void OnLayoutApplied() => ShowPanes();
 
@@ -69,11 +69,11 @@ public partial class UnitEncyclopediaViewModel(
     }
 
     [ObservableProperty]
-    private bool _showUnitsTab = true;
+    public partial bool ShowUnitsTab { get; set; } = true;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowAllFactionEntries), nameof(ShowFactionEntriesOnly), nameof(ShowSectorialEntriesOnly))]
-    private FactionListFilter _factionFilter = FactionListFilter.All;
+    public partial FactionListFilter FactionFilter { get; set; } = FactionListFilter.All;
 
     public bool ShowAllFactionEntries
     {
@@ -93,11 +93,11 @@ public partial class UnitEncyclopediaViewModel(
         set { if (value) FactionFilter = FactionListFilter.Sectorials; }
     }
 
-    [ObservableProperty] private bool _mercsOnlyUnits;
-    [ObservableProperty] private bool _lieutenantOnlyUnits;
-    [ObservableProperty] private UnitFilterCriteria _activeUnitFilter = UnitFilterCriteria.None;
-    [ObservableProperty] private ViewerFactionItem? _selectedFaction;
-    [ObservableProperty] private ViewerUnitItem? _selectedUnit;
+    [ObservableProperty] public partial bool MercsOnlyUnits { get; set; }
+    [ObservableProperty] public partial bool LieutenantOnlyUnits { get; set; }
+    [ObservableProperty] public partial UnitFilterCriteria ActiveUnitFilter { get; set; } = UnitFilterCriteria.None;
+    [ObservableProperty] public partial ViewerFactionItem? SelectedFaction { get; set; }
+    [ObservableProperty] public partial ViewerUnitItem? SelectedUnit { get; set; }
 
     /// <summary>Loads the faction list unless it is already there.</summary>
     public override Task InitializeAsync() => Factions.Count > 0 || IsLoading ? Task.CompletedTask : LoadFactionsAsync();
@@ -197,7 +197,7 @@ public partial class UnitEncyclopediaViewModel(
     /// <summary>The open unit filter popup; null while it is closed.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsUnitFilterOpen))]
-    private UnitFilterViewModel? _unitFilter;
+    public partial UnitFilterViewModel? UnitFilter { get; set; }
 
     public bool IsUnitFilterOpen => UnitFilter is not null;
 

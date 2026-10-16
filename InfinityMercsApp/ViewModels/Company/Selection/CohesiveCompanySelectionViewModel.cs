@@ -30,11 +30,11 @@ public sealed partial class CohesiveCompanySelectionViewModel : CompanySelection
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TrackedFireteamNameDisplay))]
-    private string _trackedFireteamName = string.Empty;
+    public partial string TrackedFireteamName { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TrackedFireteamLevelBonusText), nameof(HasTrackedFireteamLevelBonus), nameof(TrackedFireteamLevelIcon))]
-    private int _trackedFireteamLevel;
+    public partial int TrackedFireteamLevel { get; set; }
 
     public CohesiveCompanySelectionViewModel(CompanySelectionServices services, ArmySourceSelectionMode mode)
         : base(services, mode)

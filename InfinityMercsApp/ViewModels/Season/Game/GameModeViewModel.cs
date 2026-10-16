@@ -41,21 +41,21 @@ public partial class GameModeViewModel(
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(RoundText), nameof(CanEndGame), nameof(HasNextRound))]
     [NotifyCanExecuteChangedFor(nameof(NextRoundCommand), nameof(EndGameCommand))]
-    private int _currentRound = 1;
+    public partial int CurrentRound { get; set; } = 1;
 
     [ObservableProperty]
-    private bool _isEliteDeployment;
+    public partial bool IsEliteDeployment { get; set; }
 
     [ObservableProperty]
-    private bool _showUnitsInInches = true;
+    public partial bool ShowUnitsInInches { get; set; } = true;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsShowingWeapon))]
-    private GameWeaponCard? _openWeaponCard;
+    public partial GameWeaponCard? OpenWeaponCard { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsShowingXp))]
-    private XpSheet? _openXpSheet;
+    public partial XpSheet? OpenXpSheet { get; set; }
 
     public ObservableCollection<GameUnitItem> Units { get; } = [];
 

@@ -71,53 +71,53 @@ public partial class SeasonTeamViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PickerTitle))]
-    private CompanyViewerUnitListItem? _selectedUnit;
+    public partial CompanyViewerUnitListItem? SelectedUnit { get; set; }
 
     [ObservableProperty]
-    private bool _isUnitPickerOpen;
+    public partial bool IsUnitPickerOpen { get; set; }
 
     [ObservableProperty]
-    private string _selectedName = string.Empty;
+    public partial string SelectedName { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedBaseName))]
-    private string _selectedBaseName = string.Empty;
+    public partial string SelectedBaseName { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedUnitType))]
-    private string _selectedUnitType = string.Empty;
+    public partial string SelectedUnitType { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private ProfileColumns _equipment = ProfileColumns.Empty;
+    public partial ProfileColumns Equipment { get; set; } = ProfileColumns.Empty;
 
     [ObservableProperty]
-    private ProfileColumns _skills = ProfileColumns.Empty;
+    public partial ProfileColumns Skills { get; set; } = ProfileColumns.Empty;
 
     [ObservableProperty]
-    private ProfileColumns _rangedWeapons = ProfileColumns.Empty;
+    public partial ProfileColumns RangedWeapons { get; set; } = ProfileColumns.Empty;
 
     [ObservableProperty]
-    private ProfileColumns _meleeWeapons = ProfileColumns.Empty;
+    public partial ProfileColumns MeleeWeapons { get; set; } = ProfileColumns.Empty;
 
     /// <summary>The selected trooper's rank and XP, e.g. "Hired Gun · 18 XP".</summary>
     [ObservableProperty]
-    private string _rankText = string.Empty;
+    public partial string RankText { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPerks))]
-    private IReadOnlyList<string> _perks = [];
+    public partial IReadOnlyList<string> Perks { get; set; } = [];
 
     /// <summary>The selected trooper's injuries with their effects, e.g. "Arms: -1 BS".</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasInjuries))]
-    private IReadOnlyList<string> _injuries = [];
+    public partial IReadOnlyList<string> Injuries { get; set; } = [];
 
     [ObservableProperty]
-    private bool _hasPerkPointsToSpend;
+    public partial bool HasPerkPointsToSpend { get; set; }
 
     /// <summary>The company's equipped SWC against its SWC, e.g. "SWC EQUIPPED 1.5 / 2".</summary>
     [ObservableProperty]
-    private string _swcText = string.Empty;
+    public partial string SwcText { get; set; } = string.Empty;
 
     public bool HasPerks => Perks.Count > 0;
 

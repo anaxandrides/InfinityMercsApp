@@ -24,5 +24,5 @@ public partial class ViewerFactionItem : ObservableObject, IViewerListItem
     public bool HasSubtitle => false;
 
     [ObservableProperty]
-    private bool _isSelected;
+    public partial bool IsSelected { get; set; }
 }

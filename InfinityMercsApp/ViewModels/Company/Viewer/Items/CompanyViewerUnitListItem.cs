@@ -10,10 +10,10 @@ namespace InfinityMercsApp.ViewModels.Company.Viewer.Items;
 public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewerListItem, IUnitTile
 {
     [ObservableProperty]
-    private string _name = string.Empty;
+    public partial string Name { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _isSelected;
+    public partial bool IsSelected { get; set; }
 
     public int EntryIndex { get; init; }
     public int SourceFactionId { get; init; }
@@ -61,7 +61,7 @@ public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewe
 
     /// <summary>The logo to draw, once worked out from the paths above.</summary>
     [ObservableProperty]
-    private string? _logoSource;
+    public partial string? LogoSource { get; set; }
 
     public string? Subtitle { get; init; }
     public bool HasSubtitle => !string.IsNullOrWhiteSpace(Subtitle);

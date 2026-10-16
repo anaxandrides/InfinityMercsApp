@@ -90,25 +90,25 @@ public sealed partial class UnitFilterViewModel : ObservableObject
     /// <summary>The criterion whose value chips are shown.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedCriterionTitle))]
-    private FilterCriterionItem? _selectedCriterion;
+    public partial FilterCriterionItem? SelectedCriterion { get; set; }
 
     public string SelectedCriterionTitle => SelectedCriterion?.Title ?? "Select a criterion";
 
     /// <summary>Whether the open criterion matches units with any or all of its values.</summary>
     [ObservableProperty]
-    private string _selectedActiveMatchMode = AnyMode;
+    public partial string SelectedActiveMatchMode { get; set; } = AnyMode;
 
     [ObservableProperty]
-    private string? _selectedMinPoints;
+    public partial string? SelectedMinPoints { get; set; }
 
     [ObservableProperty]
-    private string? _selectedMaxPoints;
+    public partial string? SelectedMaxPoints { get; set; }
 
     [ObservableProperty]
-    private bool _selectedLieutenantOnlyUnits;
+    public partial bool SelectedLieutenantOnlyUnits { get; set; }
 
     [ObservableProperty]
-    private bool _selectedTeamsView;
+    public partial bool SelectedTeamsView { get; set; }
 
     // Leaving a criterion keeps what was chosen in it.
     partial void OnSelectedCriterionChanging(FilterCriterionItem? oldValue, FilterCriterionItem? newValue)

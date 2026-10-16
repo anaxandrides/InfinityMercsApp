@@ -21,8 +21,8 @@ public partial class ArmyTeamUnitLimitItem : ObservableObject, IViewerListItem
     public bool HasSubtitle => !string.IsNullOrWhiteSpace(Subtitle);
 
     [ObservableProperty]
-    private bool _isVisible = true;
+    public partial bool IsVisible { get; set; } = true;
 
     [ObservableProperty]
-    private bool _isSelected;
+    public partial bool IsSelected { get; set; }
 }

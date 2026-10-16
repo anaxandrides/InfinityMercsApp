@@ -25,5 +25,5 @@ public partial class ArmyFactionSelectionItem : ObservableObject, IViewerListIte
     public bool HasSubtitle => false;
 
     [ObservableProperty]
-    private bool _isSelected;
+    public partial bool IsSelected { get; set; }
 }

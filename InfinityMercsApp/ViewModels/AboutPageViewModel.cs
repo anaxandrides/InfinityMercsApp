@@ -20,7 +20,7 @@ public partial class AboutPageViewModel(
 
     /// <summary>Each attribution entry's width: half the page on screens wider than 500, else -1 for its natural width.</summary>
     [ObservableProperty]
-    private double _attributionEntryWidth = -1;
+    public partial double AttributionEntryWidth { get; set; } = -1;
 
     [RelayCommand]
     private void FitAttributionColumns(double pageWidth) =>

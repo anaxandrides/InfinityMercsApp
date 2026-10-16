@@ -63,6 +63,7 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
 		<NoWarn>$(NoWarn);XC0022;XC0025</NoWarn>
+		<WarningsAsErrors>$(WarningsAsErrors);MVVMTK0042;MVVMTK0045</WarningsAsErrors>
 	</PropertyGroup>
 
 	<ItemGroup>

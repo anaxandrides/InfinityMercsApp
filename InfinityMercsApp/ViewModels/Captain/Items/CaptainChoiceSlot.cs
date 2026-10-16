@@ -9,7 +9,7 @@ public sealed partial class CaptainChoiceSlot : ObservableObject
     private readonly Action _selectionChanged;
 
     [ObservableProperty]
-    private string? _selectedChoice = CaptainChoiceLabel.None;
+    public partial string? SelectedChoice { get; set; } = CaptainChoiceLabel.None;
 
     public CaptainChoiceSlot(IReadOnlyList<string> options, Action selectionChanged)
     {

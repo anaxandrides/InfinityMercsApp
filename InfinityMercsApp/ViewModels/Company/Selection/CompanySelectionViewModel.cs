@@ -41,96 +41,96 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     private bool _isPreparingRecruitment;
 
     [ObservableProperty]
-    private bool _showFactionStrip = true;
+    public partial bool ShowFactionStrip { get; set; } = true;
 
     [ObservableProperty]
-    private ArmyFactionSelectionItem? _leftSlotFaction;
+    public partial ArmyFactionSelectionItem? LeftSlotFaction { get; set; }
 
     [ObservableProperty]
-    private ArmyFactionSelectionItem? _rightSlotFaction;
+    public partial ArmyFactionSelectionItem? RightSlotFaction { get; set; }
 
     [ObservableProperty]
-    private string? _leftSlotLogoSource;
+    public partial string? LeftSlotLogoSource { get; set; }
 
     [ObservableProperty]
-    private string? _rightSlotLogoSource;
+    public partial string? RightSlotLogoSource { get; set; }
 
     [ObservableProperty]
-    private int _activeSlotIndex;
+    public partial int ActiveSlotIndex { get; set; }
 
     [ObservableProperty]
-    private ArmyUnitSelectionItem? _selectedUnit;
+    public partial ArmyUnitSelectionItem? SelectedUnit { get; set; }
 
     [ObservableProperty]
-    private bool _lieutenantOnlyUnits;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowUnitsList), nameof(ShowTeamsList))]
-    private bool _teamsView;
+    public partial bool LieutenantOnlyUnits { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowUnitsList), nameof(ShowTeamsList))]
-    private bool _areTeamEntriesReady = true;
+    public partial bool TeamsView { get; set; }
 
     [ObservableProperty]
-    private string _profilesStatus = "Select a unit.";
+    [NotifyPropertyChangedFor(nameof(ShowUnitsList), nameof(ShowTeamsList))]
+    public partial bool AreTeamEntriesReady { get; set; } = true;
 
     [ObservableProperty]
-    private UnitFilterCriteria _activeUnitFilter = UnitFilterCriteria.None;
+    public partial string ProfilesStatus { get; set; } = "Select a unit.";
 
     [ObservableProperty]
-    private bool _isUnitFilterActive;
+    public partial UnitFilterCriteria ActiveUnitFilter { get; set; } = UnitFilterCriteria.None;
+
+    [ObservableProperty]
+    public partial bool IsUnitFilterActive { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsUnitFilterOpen))]
-    private UnitFilterViewModel? _unitFilter;
+    public partial UnitFilterViewModel? UnitFilter { get; set; }
 
     [ObservableProperty]
-    private string _selectedStartSeasonPoints = "75";
+    public partial string SelectedStartSeasonPoints { get; set; } = "75";
 
     /// <summary>The starting points picked in the title bar; they set the points limit while founding a company.</summary>
     [ObservableProperty]
-    private string _startPointsChoice = "75";
+    public partial string StartPointsChoice { get; set; } = "75";
 
     /// <summary>"40 CR LEFT" while recruiting.</summary>
     [ObservableProperty]
-    private string _creditsLeftText = string.Empty;
+    public partial string CreditsLeftText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _seasonPointsCapText = "0";
+    public partial string SeasonPointsCapText { get; set; } = "0";
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(StartCompanyCommand))]
-    private bool _isCompanyValid;
+    public partial bool IsCompanyValid { get; set; }
 
     [ObservableProperty]
-    private string _companyName = DefaultCompanyName;
+    public partial string CompanyName { get; set; } = DefaultCompanyName;
 
     [ObservableProperty]
-    private bool _showCompanyNameValidationError;
+    public partial bool ShowCompanyNameValidationError { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsUnitsPaneActive), nameof(IsProfilePaneActive), nameof(IsCompanyPaneActive))]
-    private CompanySelectionPane _activePane = CompanySelectionPane.Units;
+    public partial CompanySelectionPane ActivePane { get; set; } = CompanySelectionPane.Units;
 
     /// <summary>On compact screens the faction picker is a full-screen overlay while the strip is open.</summary>
     [ObservableProperty]
-    private bool _isFactionOverlayOpen;
+    public partial bool IsFactionOverlayOpen { get; set; }
 
     [ObservableProperty]
-    private bool _showsUnitsPane;
+    public partial bool ShowsUnitsPane { get; set; }
 
     [ObservableProperty]
-    private bool _showsRightPane;
+    public partial bool ShowsRightPane { get; set; }
 
     [ObservableProperty]
-    private bool _showsDetailPane;
+    public partial bool ShowsDetailPane { get; set; }
 
     [ObservableProperty]
-    private bool _showsCompanyPane;
+    public partial bool ShowsCompanyPane { get; set; }
 
     [ObservableProperty]
-    private string _rightPaneRows = string.Empty;
+    public partial string RightPaneRows { get; set; } = string.Empty;
 
     /// <summary>
     /// True when an existing company is hiring new troopers mid-season, rather than a company being founded.
@@ -138,20 +138,20 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsFoundingCompany))]
-    private bool _isRecruiting;
+    public partial bool IsRecruiting { get; set; }
 
     [ObservableProperty]
-    private string _pageTitle;
+    public partial string PageTitle { get; set; }
 
     [ObservableProperty]
-    private string _confirmText = "START COMPANY";
+    public partial string ConfirmText { get; set; } = "START COMPANY";
 
     protected CompanySelectionViewModel(CompanySelectionServices services, ArmySourceSelectionMode mode)
         : base(services.Navigation, CompanySelectionLayout.For)
     {
         Services = services;
         Mode = mode;
-        _pageTitle = Heading;
+        PageTitle = Heading;
         ShowPanes();
     }
 

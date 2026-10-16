@@ -38,7 +38,7 @@ public partial class MercsCompanyEntry : ObservableObject, IViewerListItem, ICom
     /// <summary>The statline, e.g. "MOV 10-5 | CC 13 | …".</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSubtitle))]
-    private string? _subtitle;
+    public partial string? Subtitle { get; set; }
 
     public string UnitTypeCode { get; init; } = string.Empty;
     public string SavedEquipment { get; init; } = "-";
@@ -57,7 +57,7 @@ public partial class MercsCompanyEntry : ObservableObject, IViewerListItem, ICom
     public string PeripheralNameHeading { get; init; } = string.Empty;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PeripheralSubtitle))]
-    private string _peripheralMov = "-";
+    public partial string PeripheralMov { get; set; } = "-";
 
     public string PeripheralCc { get; init; } = "-";
     public string PeripheralBs { get; init; } = "-";
@@ -93,7 +93,7 @@ public partial class MercsCompanyEntry : ObservableObject, IViewerListItem, ICom
     /// <summary>The trooper's XP; never below 0.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ExperienceRankName))]
-    private int _experiencePoints;
+    public partial int ExperiencePoints { get; set; }
 
     partial void OnExperiencePointsChanged(int value)
     {
@@ -107,20 +107,20 @@ public partial class MercsCompanyEntry : ObservableObject, IViewerListItem, ICom
     public List<CompanyTrooperPerkState> Perks { get; init; } = [];
 
     [ObservableProperty]
-    private bool _isSelected;
+    public partial bool IsSelected { get; set; }
 
     [ObservableProperty]
-    private bool _isDetailsExpanded;
+    public partial bool IsDetailsExpanded { get; set; }
 
     /// <summary>Irregular in this company (a Cohesive company's trooper outside its tracked fireteam).</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowRegularModifier))]
-    private bool _isIrregular;
+    public partial bool IsIrregular { get; set; }
 
     /// <summary>Irregular by profile, so being regular here is worth a badge.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowRegularModifier))]
-    private bool _normallyIrregular;
+    public partial bool NormallyIrregular { get; set; }
 
     public bool ShowRegularModifier => NormallyIrregular && !IsIrregular;
 

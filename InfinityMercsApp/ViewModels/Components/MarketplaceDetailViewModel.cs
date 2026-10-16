@@ -20,18 +20,18 @@ public partial class MarketplaceDetailViewModel(
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsOpen))]
-    private MarketplaceDetail? _detail;
+    public partial MarketplaceDetail? Detail { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasWiki), nameof(IsWikiLoading), nameof(IsWikiEmpty), nameof(HasWikiBlocks))]
-    private WikiStatus _wikiStatus;
+    public partial WikiStatus WikiStatus { get; set; }
 
     [ObservableProperty]
-    private IReadOnlyList<WikiContentBlock> _wikiBlocks = [];
+    public partial IReadOnlyList<WikiContentBlock> WikiBlocks { get; set; } = [];
 
     /// <summary>Whether weapon ranges are shown in inches rather than centimetres.</summary>
     [ObservableProperty]
-    private bool _showUnitsInInches = true;
+    public partial bool ShowUnitsInInches { get; set; } = true;
 
     public bool IsOpen => Detail is not null;
     public bool HasWiki => WikiStatus != WikiStatus.None;

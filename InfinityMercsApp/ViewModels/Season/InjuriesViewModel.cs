@@ -34,15 +34,15 @@ public partial class InjuriesViewModel(
     public ObservableCollection<InjuryRecoveryItem> Recoveries { get; } = [];
 
     [ObservableProperty]
-    private bool _hasInjuryChecks;
+    public partial bool HasInjuryChecks { get; set; }
 
     [ObservableProperty]
-    private bool _hasRecoveries;
+    public partial bool HasRecoveries { get; set; }
 
     /// <summary>True once every injury check is settled.</summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ContinueCommand))]
-    private bool _canContinue = true;
+    public partial bool CanContinue { get; set; } = true;
 
     public override void ApplyQueryAttributes(IDictionary<string, object> query)
     {

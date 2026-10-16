@@ -17,8 +17,8 @@ public sealed partial class XpSheet : ObservableObject
     {
         _xp = xp;
         _totalChanged = totalChanged;
-        _totalXp = xp.TotalXp;
-        _totalText = TotalTextOf(xp.TotalXp);
+        TotalXp = xp.TotalXp;
+        TotalText = TotalTextOf(xp.TotalXp);
         UnitName = unitName;
         Assist = Numbered(xp.Assist);
         InflictState = Numbered(xp.InflictState);
@@ -46,10 +46,10 @@ public sealed partial class XpSheet : ObservableObject
     public XpCheck TagAndBag { get; }
 
     [ObservableProperty]
-    private int _totalXp;
+    public partial int TotalXp { get; set; }
 
     [ObservableProperty]
-    private string _totalText;
+    public partial string TotalText { get; set; }
 
     // Ticks fill from the left and clear from the right: only the last ticked and the first unticked box can change.
     private IReadOnlyList<XpCheck> Numbered(IList<bool> values)

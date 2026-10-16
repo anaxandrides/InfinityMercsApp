@@ -25,17 +25,17 @@ public partial class MissionOutcomeViewModel(
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MissionCredits), nameof(CreditsTotal))]
-    private int _roundNumber = 1;
+    public partial int RoundNumber { get; set; } = 1;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsVictory), nameof(IsDefeat), nameof(VictoryBonus), nameof(CreditsTotal))]
     [NotifyCanExecuteChangedFor(nameof(GoToExperienceCommand))]
-    private bool? _victory;
+    public partial bool? Victory { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ObjectiveCredits), nameof(CreditsTotal))]
     [NotifyCanExecuteChangedFor(nameof(GoToExperienceCommand))]
-    private int? _pointsScored;
+    public partial int? PointsScored { get; set; }
 
     public bool IsVictory => Victory == true;
 

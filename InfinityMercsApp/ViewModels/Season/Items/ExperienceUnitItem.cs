@@ -12,8 +12,8 @@ public partial class ExperienceUnitItem : ObservableObject
         Unit = unit;
         LogoSource = UnitLogo.Source(unit.CachedLogoPath, unit.PackagedLogoPath);
         XpLines = MissionExperience.Lines(unit);
-        _isMvp = unit.IsMvp;
-        _totalText = TotalTextOf(unit);
+        IsMvp = unit.IsMvp;
+        TotalText = TotalTextOf(unit);
     }
 
     public ExperienceUnitResult Unit { get; }
@@ -28,10 +28,10 @@ public partial class ExperienceUnitItem : ObservableObject
 
     /// <summary>"Total: 9 XP", the MVP's included.</summary>
     [ObservableProperty]
-    private string _totalText;
+    public partial string TotalText { get; set; }
 
     [ObservableProperty]
-    private bool _isMvp;
+    public partial bool IsMvp { get; set; }
 
     // The result carries the MVP choice on to the season, and the total takes it in.
     partial void OnIsMvpChanged(bool value)

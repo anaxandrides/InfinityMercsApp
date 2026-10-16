@@ -6,10 +6,10 @@ namespace InfinityMercsApp.ViewModels.Season.Game.Items;
 public sealed partial class XpCheck(string label, bool isChecked, Action<XpCheck> changed) : ObservableObject
 {
     [ObservableProperty]
-    private bool _isChecked = isChecked;
+    public partial bool IsChecked { get; set; } = isChecked;
 
     [ObservableProperty]
-    private bool _isEnabled = true;
+    public partial bool IsEnabled { get; set; } = true;
 
     public string Label { get; } = label;
 

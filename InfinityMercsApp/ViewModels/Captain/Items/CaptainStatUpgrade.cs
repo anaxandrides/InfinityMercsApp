@@ -8,10 +8,11 @@ namespace InfinityMercsApp.ViewModels.Captain.Items;
 /// <summary>One stat a captain can improve, with its upgrade tiers and the tier currently picked.</summary>
 public sealed partial class CaptainStatUpgrade : ObservableObject
 {
-    private readonly Action _selectionChanged;
+    // Reports a new pick; a no-op until the constructor has made the first one.
+    private Action _selectionChanged = static () => { };
 
     [ObservableProperty]
-    private StatPickerOption? _selectedOption;
+    public partial StatPickerOption? SelectedOption { get; set; }
 
     private CaptainStatUpgrade(Stat stat, int baseValue, CaptainStatChart chart, IReadOnlyList<StatPickerOption> options, Action selectionChanged)
     {
@@ -19,8 +20,8 @@ public sealed partial class CaptainStatUpgrade : ObservableObject
         BaseValue = baseValue;
         Chart = chart;
         Options = options;
+        SelectedOption = options.Count > 0 ? options[0] : null;
         _selectionChanged = selectionChanged;
-        _selectedOption = options.Count > 0 ? options[0] : null;
     }
 
     public Stat Stat { get; }

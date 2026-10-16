@@ -8,5 +8,5 @@ public sealed partial class SelectableFilterOption(string value) : ObservableObj
     public string Value { get; } = value;
 
     [ObservableProperty]
-    private bool _isSelected;
+    public partial bool IsSelected { get; set; }
 }

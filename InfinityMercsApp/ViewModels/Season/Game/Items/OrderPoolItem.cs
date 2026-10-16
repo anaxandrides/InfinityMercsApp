@@ -9,11 +9,11 @@ public sealed partial class OrderPoolItem(OrderKind kind) : ObservableObject
 {
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(UseCommand))]
-    private int _available;
+    public partial int Available { get; set; }
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RestoreCommand))]
-    private int _used;
+    public partial int Used { get; set; }
 
     public OrderKind Kind { get; } = kind;
 

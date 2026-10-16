@@ -15,26 +15,26 @@ public partial class FeedbackBugsPageViewModel(
     public IReadOnlyList<string> Categories { get; } = ["Bug", "Feedback"];
 
     [ObservableProperty]
-    private string? _selectedCategory = "Bug";
+    public partial string? SelectedCategory { get; set; } = "Bug";
 
     [ObservableProperty]
-    private string? _userEmail;
+    public partial string? UserEmail { get; set; }
 
     [ObservableProperty]
-    private string? _ticketTitle;
+    public partial string? TicketTitle { get; set; }
 
     [ObservableProperty]
-    private string? _description;
+    public partial string? Description { get; set; }
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SubmitCommand))]
-    private bool _isSubmitting;
+    public partial bool IsSubmitting { get; set; }
 
     [ObservableProperty]
-    private string _statusMessage = string.Empty;
+    public partial string StatusMessage { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _isStatusError;
+    public partial bool IsStatusError { get; set; }
 
     private bool CanSubmit() => !IsSubmitting;
 

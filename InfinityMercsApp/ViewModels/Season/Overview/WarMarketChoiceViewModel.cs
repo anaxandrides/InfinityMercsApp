@@ -25,44 +25,44 @@ public partial class WarMarketChoiceViewModel(
     private string? _seasonFilePath;
 
     [ObservableProperty]
-    private bool _isOpen;
+    public partial bool IsOpen { get; set; }
 
     /// <summary>No War Market is chosen for this round yet.</summary>
     [ObservableProperty]
-    private bool _isNeeded;
+    public partial bool IsNeeded { get; set; }
 
     /// <summary>A War Market can be rolled for: a contract has been played.</summary>
     [ObservableProperty]
-    private bool _canRoll;
+    public partial bool CanRoll { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasFactionMarkets))]
-    private IReadOnlyList<string> _factionMarketChoices = [];
+    public partial IReadOnlyList<string> FactionMarketChoices { get; set; } = [];
 
     [ObservableProperty]
-    private string? _selectedFactionMarket;
+    public partial string? SelectedFactionMarket { get; set; }
 
     [ObservableProperty]
-    private string _resultText = NotRolled;
+    public partial string ResultText { get; set; } = NotRolled;
 
     [ObservableProperty]
-    private StoreSearchTone _resultTone;
+    public partial StoreSearchTone ResultTone { get; set; }
 
     [ObservableProperty]
-    private bool _isChoosingAny;
+    public partial bool IsChoosingAny { get; set; }
 
     [ObservableProperty]
-    private StoreRollOption? _selectedRoll;
+    public partial StoreRollOption? SelectedRoll { get; set; }
 
     [ObservableProperty]
-    private IReadOnlyList<string> _choices = [];
+    public partial IReadOnlyList<string> Choices { get; set; } = [];
 
     [ObservableProperty]
-    private string? _selectedChoice;
+    public partial string? SelectedChoice { get; set; }
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
-    private string? _pendingStore;
+    public partial string? PendingStore { get; set; }
 
     public IReadOnlyList<StoreRollOption> RollOptions => StoreRollOption.All;
 

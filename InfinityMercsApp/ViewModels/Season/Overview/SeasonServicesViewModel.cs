@@ -39,30 +39,30 @@ public partial class SeasonServicesViewModel : ObservableObject
     public IReadOnlyList<ServiceOption> Options { get; }
 
     [ObservableProperty]
-    private IReadOnlyList<CompanyViewerUnitListItem> _troopers = [];
+    public partial IReadOnlyList<CompanyViewerUnitListItem> Troopers { get; set; } = [];
 
     [ObservableProperty]
-    private CompanyViewerUnitListItem? _selectedTrooper;
+    public partial CompanyViewerUnitListItem? SelectedTrooper { get; set; }
 
     [ObservableProperty]
-    private IReadOnlyList<InjuryTableEntry> _injuries = [];
+    public partial IReadOnlyList<InjuryTableEntry> Injuries { get; set; } = [];
 
     [ObservableProperty]
-    private InjuryTableEntry? _selectedInjury;
+    public partial InjuryTableEntry? SelectedInjury { get; set; }
 
     /// <summary>The selected trooper's perks taken this season that nothing builds on.</summary>
     [ObservableProperty]
-    private IReadOnlyList<PerkOption> _retrainablePerks = [];
+    public partial IReadOnlyList<PerkOption> RetrainablePerks { get; set; } = [];
 
     [ObservableProperty]
-    private PerkOption? _selectedRetrainPerk;
+    public partial PerkOption? SelectedRetrainPerk { get; set; }
 
     /// <summary>Perks of the same tier the trooper could take instead.</summary>
     [ObservableProperty]
-    private IReadOnlyList<PerkOption> _replacements = [];
+    public partial IReadOnlyList<PerkOption> Replacements { get; set; } = [];
 
     [ObservableProperty]
-    private PerkOption? _selectedReplacement;
+    public partial PerkOption? SelectedReplacement { get; set; }
 
     /// <summary>Shows the services for the company's troopers, keeping the trooper picked before.</summary>
     public void Show(string? seasonFilePath, SeasonFile? season, IReadOnlyList<CompanyViewerUnitListItem> troopers)

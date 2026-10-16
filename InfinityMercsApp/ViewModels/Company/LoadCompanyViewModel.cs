@@ -20,7 +20,7 @@ public partial class LoadCompanyViewModel(
     public ObservableCollection<CompanyRecord> SavedRecords { get; } = [];
 
     [ObservableProperty]
-    private bool _hasSavedRecords;
+    public partial bool HasSavedRecords { get; set; }
 
     public override void ApplyQueryAttributes(IDictionary<string, object> query)
     {

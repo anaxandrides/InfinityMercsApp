@@ -34,7 +34,7 @@ public partial class PlayModeViewModel(
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedUnit), nameof(NoUnitSelected))]
-    private DeploymentUnitItem? _selectedUnit;
+    public partial DeploymentUnitItem? SelectedUnit { get; set; }
 
     public bool HasSelectedUnit => SelectedUnit is not null;
 
@@ -42,7 +42,7 @@ public partial class PlayModeViewModel(
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsEliteDeployment), nameof(DeploymentStatusText))]
-    private int _deployedSlotCount;
+    public partial int DeployedSlotCount { get; set; }
 
     public bool IsEliteDeployment => DeployedSlotCount is > 0 and <= MaxEliteSlots;
 
