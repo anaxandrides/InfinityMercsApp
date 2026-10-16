@@ -27,6 +27,9 @@ public partial class FactionSelectorOverlayView : ContentView
     public static readonly BindableProperty CloseCommandProperty =
         BindableProperty.Create(nameof(CloseCommand), typeof(ICommand), typeof(FactionSelectorOverlayView));
 
+    public static readonly BindableProperty IsLoadingProperty =
+        BindableProperty.Create(nameof(IsLoading), typeof(bool), typeof(FactionSelectorOverlayView), false);
+
     public FactionSelectorOverlayView()
     {
         InitializeComponent();
@@ -75,5 +78,12 @@ public partial class FactionSelectorOverlayView : ContentView
     {
         get => (ICommand?)GetValue(CloseCommandProperty);
         set => SetValue(CloseCommandProperty, value);
+    }
+
+    /// <summary>True while the factions are still being loaded; the list shows "Loading..." instead.</summary>
+    public bool IsLoading
+    {
+        get => (bool)GetValue(IsLoadingProperty);
+        set => SetValue(IsLoadingProperty, value);
     }
 }

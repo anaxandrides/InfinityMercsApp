@@ -1,17 +1,19 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Import;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 
 namespace InfinityMercsApp.ViewModels;
 
-/// <summary>The display-units preference and a forced online data update.</summary>
+/// <summary>The display-units preference, and a check for army data updates like the one at startup.</summary>
 public partial class SettingsViewModel(
     INavigationService navigationService,
     IAppSettingsProvider appSettings,
-    IImportService importService) : ViewModelBase(navigationService)
+    IArmyDataUpdater updater,
+    IDialogService dialogs) : ViewModelBase(navigationService)
 {
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowUnitsInCentimeters))]
@@ -74,20 +76,18 @@ public partial class SettingsViewModel(
 
     private bool CanUpdateAllData() => !IsUpdateInProgress;
 
+    /// <summary>Downloads the army data and, when it has changed, stores it if the user agrees.</summary>
     [RelayCommand(CanExecute = nameof(CanUpdateAllData))]
     private async Task UpdateAllDataAsync()
     {
         try
         {
             IsUpdateInProgress = true;
-            UpdateStatus = "Running online update...";
-            UpdateProgressMessage = "Starting update...";
+            UpdateStatus = "Checking for army data updates...";
+            var progress = new Progress<ArmyDataProgress>(step => UpdateProgressMessage = step.Message);
 
-            await foreach (var result in importService.ImportAllDataAsync(force: true))
-            {
-                UpdateProgressMessage = result.Message;
-                UpdateStatus = result.Message;
-            }
+            var check = await updater.CheckAsync(progress);
+            UpdateStatus = await UpdateStatusAfterAsync(check, progress);
         }
         catch (Exception ex)
         {
@@ -99,5 +99,35 @@ public partial class SettingsViewModel(
             IsUpdateInProgress = false;
             UpdateProgressMessage = string.Empty;
         }
+    }
+
+    private async Task<string> UpdateStatusAfterAsync(ArmyDataCheck check, IProgress<ArmyDataProgress> progress)
+    {
+        if (!check.Succeeded)
+        {
+            return check.FailureMessage;
+        }
+
+        var unavailable = check.FailedFactions.Count == 0
+            ? string.Empty
+            : $" These armies couldn't be downloaded: {string.Join(", ", check.FailedFactions)}.";
+        if (!check.HasUpdates)
+        {
+            return "The army data is up to date." + unavailable;
+        }
+
+        if (!await dialogs.ConfirmAsync(
+                "Army Data Update",
+                $"The Infinity Army data has changed:\n\n{check.UpdateSummary}\n\nUpdate the stored data now?",
+                "Update",
+                "Not Now"))
+        {
+            return "The stored army data was kept." + unavailable;
+        }
+
+        var notStored = await updater.ApplyAsync(check, progress);
+        return (notStored.Count == 0
+            ? "The army data is updated."
+            : $"The army data is updated, except: {string.Join(", ", notStored)}.") + unavailable;
     }
 }

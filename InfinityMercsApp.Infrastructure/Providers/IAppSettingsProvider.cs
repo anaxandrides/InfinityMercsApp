@@ -29,15 +29,9 @@ public interface IAppSettingsProvider
     /// <param name="endpoint"></param>
     public void SetFeedbackApiEndpoint(string endpoint);
 
-    /// <summary>
-    /// Gets the last startup update attempt timestamp in UTC.
-    /// </summary>
-    /// <returns>The timestamp if present and parseable; otherwise null.</returns>
-    public DateTimeOffset? GetStartupUpdateLastAttemptUtc();
+    /// <summary>The fingerprint of the metadata last stored, to tell whether a download changed it; null before any.</summary>
+    public string? GetMetadataFingerprint();
 
-    /// <summary>
-    /// Sets the last startup update attempt timestamp in UTC.
-    /// </summary>
-    /// <param name="attemptedAtUtc">The UTC timestamp to persist.</param>
-    public void SetStartupUpdateLastAttemptUtc(DateTimeOffset attemptedAtUtc);
+    /// <summary>Records the fingerprint of the metadata just stored.</summary>
+    public void SetMetadataFingerprint(string fingerprint);
 }

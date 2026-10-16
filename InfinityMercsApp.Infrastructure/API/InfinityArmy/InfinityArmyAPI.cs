@@ -19,6 +19,8 @@ using ApiMetadataWeapon = InfinityMercsApp.Infrastructure.Models.API.Metadata.We
 using Microsoft.Extensions.Logging;
 using System.IO.Compression;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -58,7 +60,9 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
                 return null;
             }
 
-            return MapMetadataDocument(apiDocument);
+            var document = MapMetadataDocument(apiDocument);
+            document.Fingerprint = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload)));
+            return document;
         }
         catch (JsonException ex)
         {

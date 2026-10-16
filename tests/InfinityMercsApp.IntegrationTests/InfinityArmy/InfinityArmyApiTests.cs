@@ -48,6 +48,20 @@ public sealed class InfinityArmyApiTests : IDisposable
         Assert.NotEmpty(metadata.Ammunitions);
     }
 
+    // Startup compares the fingerprint with the stored one; if it changed between identical downloads, every launch
+    // would offer an update.
+    [Fact]
+    public async Task Metadata_FingerprintIsTheSameForEachDownload()
+    {
+        var first = await _api.GetMetaDataAsync();
+        var second = await _api.GetMetaDataAsync();
+
+        Assert.NotNull(first);
+        Assert.NotNull(second);
+        Assert.NotEmpty(first.Fingerprint);
+        Assert.Equal(first.Fingerprint, second.Fingerprint);
+    }
+
     [Fact]
     public async Task Metadata_ListsEveryVanillaArmy()
     {

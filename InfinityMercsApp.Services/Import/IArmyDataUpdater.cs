@@ -1,0 +1,18 @@
+namespace InfinityMercsApp.Services.Import;
+
+/// <summary>
+/// Keeps the stored army data in step with the Infinity Army API, the data's source of truth. Checking downloads
+/// everything and compares it with what is stored; applying stores a check's changes.
+/// </summary>
+public interface IArmyDataUpdater
+{
+    /// <summary>True when metadata and armies from an earlier download are stored, so the app can run on them.</summary>
+    bool HasStoredData();
+
+    /// <summary>Downloads the metadata and every army and compares them with what is stored. Never throws for a failed download.</summary>
+    Task<ArmyDataCheck> CheckAsync(IProgress<ArmyDataProgress>? progress = null, CancellationToken cancellationToken = default);
+
+    /// <summary>Stores a successful check's changes and rebuilds the generated company factions.</summary>
+    /// <returns>The factions whose army could not be stored.</returns>
+    Task<IReadOnlyList<string>> ApplyAsync(ArmyDataCheck check, IProgress<ArmyDataProgress>? progress = null, CancellationToken cancellationToken = default);
+}

@@ -26,13 +26,13 @@
                 TextColor="#E6EBF2"
                 HorizontalTextAlignment="Center" />
 
-            <ActivityIndicator
-                IsRunning="True"
-                Color="#34D399"
+            <ProgressBar
+                Progress="{Binding UpdateProgress}"
+                ProgressColor="#34D399"
+                WidthRequest="280"
                 HorizontalOptions="Center" />
 
             <Label
-                x:Name="StatusLabel"
                 Text="{Binding UpdateProgressMessage}"
                 FontSize="{DynamicResource FontSizeSectionHeader}"
                 TextColor="#8A97A8"

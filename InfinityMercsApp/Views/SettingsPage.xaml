@@ -26,7 +26,7 @@
             </VerticalStackLayout>
 
             <Button
-                Text="Force online update"
+                Text="Check for army data updates"
                 Command="{Binding UpdateAllDataCommand}"
                 HorizontalOptions="Fill" />
 
@@ -47,7 +47,7 @@
                 MinimumWidthRequest="280">
                 <VerticalStackLayout Spacing="10">
                     <Label
-                        Text="Force Update Running"
+                        Text="Checking Army Data"
                         FontAttributes="Bold"
                         FontSize="{DynamicResource FontSizeSubHeadline}"
                         HorizontalTextAlignment="Center" />

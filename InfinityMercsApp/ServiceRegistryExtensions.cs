@@ -121,7 +121,7 @@ public static class ServiceRegistryExtensions
                     DeviceInfo.Current.Platform.ToString(),
                     $"{DeviceInfo.Current.Manufacturer} {DeviceInfo.Current.Model}",
                     DeviceInfo.Current.Name))
-                .AddSingleton<IImportService, ImportService>()
+                .AddSingleton<IArmyDataUpdater, ArmyDataUpdater>()
                 .AddSingleton<ISeasonFileService, SeasonFileStore>()
                 .AddSingleton<IDialogService, MauiDialogService>()
                 .AddSingleton<ICaptainConfigurationDialog, MauiCaptainConfigurationDialog>()

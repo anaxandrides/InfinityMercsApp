@@ -2,6 +2,9 @@ namespace InfinityMercsApp.Domain.Models.Metadata;
 
 public class MetadataDocument
 {
+    /// <summary>A hash of the document as downloaded; it changes whenever any of the metadata does.</summary>
+    public string Fingerprint { get; set; } = string.Empty;
+
     public List<Faction> Factions { get; set; } = [];
 
     public List<Ammunition> Ammunitions { get; set; } = [];

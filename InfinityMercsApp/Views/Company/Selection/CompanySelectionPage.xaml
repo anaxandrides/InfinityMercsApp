@@ -78,6 +78,7 @@
             IsVisible="{Binding ShowFactionStrip}"
             ItemsSource="{Binding Factions}"
             SelectFactionCommand="{Binding SelectFactionCommand}" />
+        <controls:LoadingLabel Grid.ColumnSpan="2" IsVisible="{Binding IsLoadingFactions}" />
 
         <!-- Compact: the chosen faction(s), tapped to reopen the picker. -->
         <controls:SelectedFactionButtonView
@@ -180,6 +181,8 @@
                     </VerticalStackLayout>
                 </VerticalStackLayout>
             </ScrollView>
+
+            <controls:LoadingLabel Grid.RowSpan="2" VerticalOptions="Start" IsVisible="{Binding IsLoadingUnits}" />
         </Grid>
 
         <!-- The selected unit over the company; one at a time on compact screens. -->
@@ -274,6 +277,7 @@
             IsOpen="{Binding IsFactionOverlayOpen}"
             ItemsSource="{Binding Factions}"
             SelectFactionCommand="{Binding SelectFactionCommand}"
-            CloseCommand="{Binding CloseFactionStripCommand}" />
+            CloseCommand="{Binding CloseFactionStripCommand}"
+            IsLoading="{Binding IsLoadingFactions}" />
     </Grid>
 </layout:AdaptiveContentPage>

@@ -71,6 +71,11 @@
                 </BindableLayout.ItemTemplate>
             </VerticalStackLayout>
         </ScrollView>
+
+        <controls:LoadingLabel
+            Grid.Row="1"
+            VerticalOptions="Start"
+            IsVisible="{Binding Source={x:Reference FactionSelectorOverlayRoot}, Path=IsLoading, x:DataType=controls:FactionSelectorOverlayView}" />
     </Grid>
 
 </ContentView>

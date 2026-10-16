@@ -43,6 +43,14 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     [ObservableProperty]
     public partial bool ShowFactionStrip { get; set; } = true;
 
+    /// <summary>True while the faction list is being loaded.</summary>
+    [ObservableProperty]
+    public partial bool IsLoadingFactions { get; set; }
+
+    /// <summary>True while the chosen factions' units are being loaded.</summary>
+    [ObservableProperty]
+    public partial bool IsLoadingUnits { get; set; }
+
     [ObservableProperty]
     public partial ArmyFactionSelectionItem? LeftSlotFaction { get; set; }
 
@@ -341,6 +349,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
     protected async Task LoadFactionsAsync(CancellationToken cancellationToken = default)
     {
+        IsLoadingFactions = true;
         try
         {
             var records = await LoadFactionRecordsAsync(cancellationToken);
@@ -359,6 +368,10 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Loading the factions failed: {ex.Message}");
+        }
+        finally
+        {
+            IsLoadingFactions = false;
         }
     }
 
@@ -524,6 +537,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             return;
         }
 
+        IsLoadingUnits = true;
         try
         {
             var merged = await CompanySelectionUnitLoadWorkflow.BuildMergedUnitsAndTeamsAsync(
@@ -572,6 +586,10 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             Console.Error.WriteLine($"Loading the units failed: {ex.Message}");
             OnUnitsLoadFailed();
             AreTeamEntriesReady = false;
+        }
+        finally
+        {
+            IsLoadingUnits = false;
         }
     }
 
