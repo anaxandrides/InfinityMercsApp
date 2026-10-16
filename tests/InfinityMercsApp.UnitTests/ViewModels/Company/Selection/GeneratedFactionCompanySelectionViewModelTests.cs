@@ -115,7 +115,7 @@ public sealed class GeneratedFactionCompanySelectionViewModelTests
             Entries = [new SavedCompanyEntry { EntryIndex = 0, Name = "Captain", IsLieutenant = true, SourceFactionId = SelectionTestKit.Sectorial, SourceUnitId = 1, Cost = 20 }]
         };
         var viewModel = new AirborneCompanySelectionViewModel(_kit.Services);
-        viewModel.PrepareRecruitment(new CompanyRecruitment("/records/sky.json", "/records/sky-season.json", company, Credits: 30));
+        viewModel.PrepareRecruitment(new CompanyRecruitment("/records/sky.json", "/records/sky-season.json", company, Credits: 30, RetiredEntries: []));
 
         await SelectionTestKit.OpenAsync(viewModel);
 

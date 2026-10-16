@@ -18,7 +18,7 @@ public sealed class RosterEntriesTests
     [Fact]
     public void TheTroopersGoOnTheRosterLieutenantFirstWithoutPeripherals()
     {
-        var entries = RosterEntries.From(Company());
+        var entries = RosterEntries.From(Company(), []);
 
         Assert.Equal(["Kestrel", "Fusilier"], entries.Select(entry => entry.Name));
         Assert.All(entries, entry => Assert.True(entry.IsOnRoster));
@@ -29,10 +29,19 @@ public sealed class RosterEntriesTests
     [Fact]
     public void EachKeepsWhatAvaAndThePointsNeed()
     {
-        var kestrel = RosterEntries.From(Company())[0];
+        var kestrel = RosterEntries.From(Company(), [])[0];
 
         Assert.Equal((101, 7, 20, "C 20"), (kestrel.SourceFactionId, kestrel.SourceUnitId, kestrel.CostValue, kestrel.CostDisplay));
         Assert.Equal("SVGCache/units/101-7.svg", kestrel.PackagedLogoPath);
         Assert.Contains("BS 13", kestrel.Subtitle);
+    }
+
+    [Fact]
+    public void RetiredTroopersStayForAvaNamedAsRetired()
+    {
+        var entries = RosterEntries.From(Company(), [0]);
+
+        Assert.Equal(["Kestrel", "Fusilier (Retired)"], entries.Select(entry => entry.Name));
+        Assert.Equal(5, entries[1].SourceUnitId);
     }
 }

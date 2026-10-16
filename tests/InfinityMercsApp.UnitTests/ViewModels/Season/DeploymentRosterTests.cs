@@ -46,6 +46,14 @@ public sealed class DeploymentRosterTests : IDisposable
         _roster.LoadAsync(_records.WriteCompany("c.json", Company), SeasonPath, showUnitsInInches: true, deployed);
 
     [Fact]
+    public async Task RetiredTroopersAreNotDeployable()
+    {
+        _seasonFiles.LoadAsync(SeasonPath).Returns(new SeasonFile { Retired = [new RetiredTrooper { EntryIndex = 2 }] });
+
+        Assert.Equal([1, 4], (await LoadAsync()).Select(u => u.EntryIndex));
+    }
+
+    [Fact]
     public async Task ListsTheLieutenantFirstAndLeavesOutPeripherals()
     {
         var units = await LoadAsync();

@@ -5,15 +5,19 @@ using InfinityMercsApp.Domain.Season.Inventory;
 namespace InfinityMercsApp.Domain.Season.Renown;
 
 /// <summary>
-/// How well known a company is: the renown of each of its troopers, plus 10 for every contract it has won.
+/// How well known a company is: the renown of each of its troopers, what retired troopers kept, plus 10 for every
+/// contract it has won.
 /// </summary>
 public static class CompanyRenown
 {
     public const int VictoryRenown = 10;
 
-    /// <summary>The company's renown from its troopers' renown and the contracts won this season.</summary>
+    /// <summary>
+    /// The company's renown from its active troopers' renown, what its retired troopers kept, and the contracts won
+    /// this season.
+    /// </summary>
     public static int Of(IEnumerable<TrooperRenown> troopers, SeasonFile? seasonFile) =>
-        troopers.Sum(trooper => trooper.Total) + VictoryRenown * Victories(seasonFile);
+        troopers.Sum(trooper => trooper.Total) + (seasonFile?.RetiredRenown ?? 0) + VictoryRenown * Victories(seasonFile);
 
     /// <summary>The contracts won this season; a bye round is not a win.</summary>
     public static int Victories(SeasonFile? seasonFile) =>

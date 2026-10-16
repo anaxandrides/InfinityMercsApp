@@ -17,11 +17,13 @@ public sealed class SeasonTeamViewModelTests
     private readonly SeasonTestKit _kit = new();
     private readonly MarketplaceDetailViewModel _popup;
     private readonly SeasonTeamViewModel _team;
+    private readonly Func<Task> _seasonChanged = Substitute.For<Func<Task>>();
 
     public SeasonTeamViewModelTests()
     {
         _popup = _kit.Popup();
-        _team = new SeasonTeamViewModel(new CompanyRoster(_kit.ArmyData), new UnitDetailViewModel(_kit.ArmyData, _kit.Settings), _kit.PackageFiles, _kit.SeasonFiles, _popup, _kit.Dialogs);
+        _seasonChanged().Returns(Task.CompletedTask);
+        _team = new SeasonTeamViewModel(new CompanyRoster(_kit.ArmyData), new UnitDetailViewModel(_kit.ArmyData, _kit.Settings), _kit.PackageFiles, _kit.SeasonFiles, _popup, _kit.Dialogs, _seasonChanged);
     }
 
     // The company's Combi Rifle, two pistols (one bought at each market), Light Armour and a WIP augment.
@@ -351,5 +353,49 @@ public sealed class SeasonTeamViewModelTests
         await LoadAsync();
 
         Assert.Equal("Bolt", _team.SelectedName);
+    }
+
+    [Theory]
+    [InlineData("Captain", false)]
+    [InlineData("Traktor Mul", false)]
+    [InlineData("Bolt", true)]
+    public async Task AnyoneButTheCaptainCanBeRetired(string name, bool canRetire)
+    {
+        await LoadAsync();
+
+        _team.SelectUnitCommand.Execute(Unit(name));
+
+        Assert.Equal(canRetire, _team.CanRetireSelected);
+        Assert.Equal(canRetire, _team.RetireCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task RetiringReturnsTheGearAndKeepsTheRenown()
+    {
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(1, GearSlot.Sidearm, "Pistol");
+        await LoadAsync(loadouts);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        _kit.Dialogs.ConfirmAsync("Retire Trooper", Arg.Any<string>(), "Retire", "Cancel").Returns(true);
+
+        await _team.RetireCommand.ExecuteAsync(null);
+
+        Assert.True(_kit.Season.IsRetired(1));
+        Assert.False(_kit.Season.UnitGear.ContainsKey(1));
+        Assert.Equal(20, _kit.Season.RetiredRenown);
+        await _seasonChanged.Received(1)();
+    }
+
+    [Fact]
+    public async Task BackingOutKeepsTheTrooper()
+    {
+        await LoadAsync();
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        _kit.Dialogs.ConfirmAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(false);
+
+        await _team.RetireCommand.ExecuteAsync(null);
+
+        Assert.Empty(_kit.Season.Retired);
+        await _seasonChanged.DidNotReceive()();
     }
 }

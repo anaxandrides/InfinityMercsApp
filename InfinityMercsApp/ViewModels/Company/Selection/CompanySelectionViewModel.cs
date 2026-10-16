@@ -263,7 +263,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         try
         {
             MercsCompanyEntries.Clear();
-            foreach (var entry in RosterEntries.From(recruitment.Company))
+            foreach (var entry in RosterEntries.From(recruitment.Company, recruitment.RetiredEntries))
             {
                 MercsCompanyEntries.Add(entry);
             }

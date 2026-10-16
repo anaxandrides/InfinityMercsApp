@@ -8,6 +8,7 @@ using InfinityMercsApp.Domain.Models.Perks.Catalog;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Season.Inventory;
+using InfinityMercsApp.Domain.Season.Retirement;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
@@ -26,7 +27,7 @@ namespace InfinityMercsApp.ViewModels.Season.Overview;
 /// The season's Team tab: the company's troopers in a drop-down, and the chosen one's stats, equipment,
 /// skills and weapons, with a picker per gear slot for the season gear the company owns. Gear choices are
 /// saved to the season file; an augment that sets a stat ("WIP=12") changes the stat line. The SWC of the gear
-/// equipped across the company may not go over the company's SWC.
+/// equipped across the company may not go over the company's SWC. Any trooper but the captain can be retired.
 /// </summary>
 public partial class SeasonTeamViewModel : ObservableObject
 {
@@ -37,6 +38,8 @@ public partial class SeasonTeamViewModel : ObservableObject
     private readonly ISeasonFileService _seasonFiles;
     private readonly MarketplaceDetailViewModel _detailPopup;
     private readonly IDialogService _dialogs;
+    private readonly Func<Task> _seasonChanged;
+    private SavedCompanyFile? _company;
     private SavedImprovedCaptainStats _captain = new();
     private CompanyLoadouts _loadouts = new();
     private SeasonInventory _inventory = SeasonInventory.Empty;
@@ -50,9 +53,11 @@ public partial class SeasonTeamViewModel : ObservableObject
         IAppPackageFiles packageFiles,
         ISeasonFileService seasonFiles,
         MarketplaceDetailViewModel detailPopup,
-        IDialogService dialogs)
+        IDialogService dialogs,
+        Func<Task> seasonChanged)
     {
         _dialogs = dialogs;
+        _seasonChanged = seasonChanged;
         _roster = roster;
         _packageFiles = packageFiles;
         _seasonFiles = seasonFiles;
@@ -115,6 +120,11 @@ public partial class SeasonTeamViewModel : ObservableObject
     [ObservableProperty]
     public partial bool HasPerkPointsToSpend { get; set; }
 
+    /// <summary>Whether the selected trooper can retire: anyone but the captain (a peripheral leaves with its trooper).</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(RetireCommand))]
+    public partial bool CanRetireSelected { get; set; }
+
     /// <summary>The company's equipped SWC against its SWC, e.g. "SWC EQUIPPED 1.5 / 2".</summary>
     [ObservableProperty]
     public partial string SwcText { get; set; } = string.Empty;
@@ -137,6 +147,7 @@ public partial class SeasonTeamViewModel : ObservableObject
     public async Task LoadAsync(SavedCompanyFile company, string? seasonFilePath, SeasonFile? season)
     {
         var shownEntry = SelectedUnit?.EntryIndex;
+        _company = company;
         _captain = company.ImprovedCaptainStats ?? new SavedImprovedCaptainStats();
         _seasonFilePath = seasonFilePath;
         _loadouts = CompanyLoadouts.From(season?.UnitGear ?? []);
@@ -160,6 +171,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         Units.Clear();
         SelectedUnit = null;
         SelectedName = SelectedBaseName = SelectedUnitType = string.Empty;
+        CanRetireSelected = false;
     }
 
     /// <summary>
@@ -210,6 +222,43 @@ public partial class SeasonTeamViewModel : ObservableObject
         ShowSelected();
     }
 
+    /// <summary>
+    /// Retires the selected trooper once confirmed: its gear goes back to the inventory, it keeps its cost and XP
+    /// as renown for the company, and it leaves the season's troopers (with any peripherals it has).
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanRetireSelected))]
+    private async Task RetireAsync()
+    {
+        if (SelectedUnit is not { } item || _company is not { } company ||
+            await _seasonFiles.LoadAsync(_seasonFilePath) is not { } season ||
+            SeasonRetirement.For(company, item.EntryIndex, season, _catalog) is not { } trooper)
+        {
+            return;
+        }
+
+        var peripherals = trooper.Peripherals.Count == 0
+            ? string.Empty
+            : $" {string.Join(", ", trooper.Peripherals.Select(peripheral => peripheral.Name))} will leave with them.";
+        if (!await _dialogs.ConfirmAsync(
+                "Retire Trooper",
+                $"Retire {trooper.Name}? Their gear goes back to the inventory, they keep {trooper.Renown} renown for the " +
+                $"company, and they can't be used in later contracts.{peripherals}",
+                "Retire",
+                "Cancel"))
+        {
+            return;
+        }
+
+        if (!await _seasonFiles.UpdateAsync(_seasonFilePath, seasonFile => TrooperRetirement.Apply(seasonFile, trooper)))
+        {
+            await _dialogs.ShowAlertAsync("Retire Failed", $"{trooper.Name} couldn't be retired: the season file couldn't be saved.");
+            return;
+        }
+
+        SelectedUnit = null;
+        await _seasonChanged();
+    }
+
     [RelayCommand]
     private Task ShowWeaponAsync(ProfileLine? line) =>
         line is null || line.IsPlaceholder ? Task.CompletedTask : _detailPopup.ShowWeaponAsync(line.Text);
@@ -235,6 +284,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         var baseName = string.IsNullOrWhiteSpace(item.BaseUnitName) ? profile.Name : item.BaseUnitName;
         SelectedBaseName = string.Equals(baseName.Trim(), item.Name.Trim(), StringComparison.OrdinalIgnoreCase) ? string.Empty : baseName;
         SelectedUnitType = item.UnitTypeCode;
+        CanRetireSelected = !item.IsLieutenant && !item.IsPeripheralUnit;
         ShowProgress(item.Progress);
 
         Detail.HeaderColors = _roster.HeaderColorsFor(item.VisualFactionId > 0 ? item.VisualFactionId : item.SourceFactionId);

@@ -54,7 +54,7 @@ public sealed class CompanyRecruitmentWorkflowTests
 
     private Task<RecruitmentOutcome> HireAsync(params IEnumerable<MercsCompanyEntry> recruits) =>
         CompanyRecruitmentWorkflow.HireAsync(
-            new CompanyRecruitment(CompanyPath, SeasonPath, _company, Credits: 50),
+            new CompanyRecruitment(CompanyPath, SeasonPath, _company, Credits: 50, RetiredEntries: []),
             recruits.ToList(),
             Army101Data.Create(),
             _companyFiles,

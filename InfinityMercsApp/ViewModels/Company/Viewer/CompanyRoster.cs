@@ -36,7 +36,8 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
 
     /// <summary>
     /// The company's troopers, lieutenant first and then in saved order, with the captain's upgrades on the
-    /// lieutenant. With a season, each also carries its experience, injuries, perks and other changes so far.
+    /// lieutenant. With a season, each also carries its experience, injuries, perks and other changes so far, and
+    /// troopers retired this season are left out.
     /// </summary>
     public IReadOnlyList<CompanyViewerUnitListItem> UnitsOf(SavedCompanyFile company, SeasonFile? season = null)
     {
@@ -44,6 +45,7 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         var captainName = string.IsNullOrWhiteSpace(captain.CaptainName) ? "Captain" : captain.CaptainName.Trim();
 
         return company.Entries
+            .Where(entry => season?.IsRetired(entry.EntryIndex) != true)
             .OrderByDescending(entry => entry.IsLieutenant)
             .ThenBy(entry => entry.EntryIndex)
             .Select((entry, position) => UnitOf(entry, position, captain, captainName, season))

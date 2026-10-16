@@ -17,9 +17,12 @@ public static class SeasonRenown
 
     /// <summary>
     /// The company's renown. Peripherals are left out: their cost and gear count toward the trooper they belong to.
+    /// Retired troopers count with the renown they kept when they left.
     /// </summary>
     public static int OfCompany(SavedCompanyFile company, SeasonFile? season, InventoryCatalog catalog) =>
         CompanyRenown.Of(
-            company.Entries.Where(entry => !entry.IsPeripheralUnit).Select(entry => Of(entry, season, catalog)),
+            company.Entries
+                .Where(entry => !entry.IsPeripheralUnit && season?.IsRetired(entry.EntryIndex) != true)
+                .Select(entry => Of(entry, season, catalog)),
             season);
 }

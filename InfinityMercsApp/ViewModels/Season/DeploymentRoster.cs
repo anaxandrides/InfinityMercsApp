@@ -31,7 +31,7 @@ public sealed partial class DeploymentRoster(
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     /// <summary>
-    /// The company's units, lieutenant first then in company order; peripherals are left out.
+    /// The company's units, lieutenant first then in company order; peripherals and retired troopers are left out.
     /// </summary>
     /// <param name="deployedEntryIndices">When given, only these entries are included.</param>
     /// <returns>No units when the company file is missing or unreadable.</returns>
@@ -65,7 +65,7 @@ public sealed partial class DeploymentRoster(
         var catalog = await stores.CatalogAsync();
 
         return company.Entries
-            .Where(e => !e.IsPeripheralUnit)
+            .Where(e => !e.IsPeripheralUnit && season?.IsRetired(e.EntryIndex) != true)
             .Where(e => deployedEntryIndices is null || deployedEntryIndices.Contains(e.EntryIndex))
             .OrderByDescending(e => e.IsLieutenant)
             .ThenBy(e => e.EntryIndex)

@@ -19,6 +19,14 @@ public class SeasonFile
     // Key = SavedCompanyEntry.EntryIndex; injuries, perks and other changes for that trooper.
     public Dictionary<int, SeasonTrooper> Troopers { get; set; } = new();
 
+    /// <summary>Troopers retired this season, in the order they left; a peripheral leaves with its trooper.</summary>
+    public List<RetiredTrooper> Retired { get; set; } = [];
+
+    public bool IsRetired(int entryIndex) => Retired.Any(trooper => trooper.EntryIndex == entryIndex);
+
+    /// <summary>The renown the retired troopers keep for the company.</summary>
+    public int RetiredRenown => Retired.Sum(trooper => trooper.Renown);
+
     /// <summary>The trooper's season record, added when it has none yet.</summary>
     public SeasonTrooper TrooperFor(int entryIndex)
     {

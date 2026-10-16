@@ -62,7 +62,7 @@ public partial class SeasonViewModel : ViewModelBase
         _dialogs = dialogs;
         _companySelection = companySelection;
         DetailPopup = detailPopup;
-        Team = new SeasonTeamViewModel(roster, detail, packageFiles, seasonFiles, detailPopup, dialogs);
+        Team = new SeasonTeamViewModel(roster, detail, packageFiles, seasonFiles, detailPopup, dialogs, RefreshSeasonAsync);
         Inventory = new SeasonInventoryViewModel(seasonFiles, dialogs, RefreshSeasonAsync);
         Marketplace = new SeasonMarketplaceViewModel(storeProvider, seasonFiles, dialogs, detailPopup, RefreshSeasonAsync);
         WarMarketChoice = new WarMarketChoiceViewModel(seasonFiles, dice, OnWarMarketChosenAsync);
@@ -165,8 +165,10 @@ public partial class SeasonViewModel : ViewModelBase
             return;
         }
 
-        var credits = SeasonEconomy.Ledger(await _seasonFiles.LoadAsync(seasonFilePath)).CreditsBalance;
-        if (!await _companySelection.OpenRecruitmentAsync(new CompanyRecruitment(_companyFilePath, seasonFilePath, company, credits)))
+        var season = await _seasonFiles.LoadAsync(seasonFilePath);
+        var credits = SeasonEconomy.Ledger(season).CreditsBalance;
+        var retired = season?.Retired.Select(trooper => trooper.EntryIndex).ToList() ?? [];
+        if (!await _companySelection.OpenRecruitmentAsync(new CompanyRecruitment(_companyFilePath, seasonFilePath, company, credits, retired)))
         {
             await _dialogs.ShowAlertAsync("Can't Recruit", $"There is no recruitment screen for a {company.CompanyType}.");
         }

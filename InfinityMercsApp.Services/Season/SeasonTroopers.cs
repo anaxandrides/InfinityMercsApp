@@ -12,16 +12,19 @@ public static class SeasonTroopers
     /// The trooper's season progress. Results saved before entries were recorded match the name the deployment
     /// screens used: the custom name, else the unit's.
     /// </summary>
-    public static TrooperProgress ProgressOf(SavedCompanyEntry entry, SeasonFile? season)
-    {
-        var baseName = string.IsNullOrWhiteSpace(entry.BaseUnitName) ? entry.Name : entry.BaseUnitName;
-        var name = string.IsNullOrWhiteSpace(entry.CustomName) ? baseName : entry.CustomName.Trim();
-        return TrooperProgress.For(
+    public static TrooperProgress ProgressOf(SavedCompanyEntry entry, SeasonFile? season) =>
+        TrooperProgress.For(
             entry.EntryIndex,
-            name,
+            NameOf(entry),
             entry.ExperiencePoints,
             entry.Perks.Select(perk => perk.Id).ToList(),
             UnitTypeCodes.IsTag(entry.UnitTypeCode),
             season);
+
+    /// <summary>The name the season screens show: the custom name, else the unit's.</summary>
+    public static string NameOf(SavedCompanyEntry entry)
+    {
+        var baseName = string.IsNullOrWhiteSpace(entry.BaseUnitName) ? entry.Name : entry.BaseUnitName;
+        return string.IsNullOrWhiteSpace(entry.CustomName) ? baseName : entry.CustomName.Trim();
     }
 }

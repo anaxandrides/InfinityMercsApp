@@ -15,6 +15,18 @@ public sealed class CompanyRenownTests
         Assert.Equal(28 + 15 + 9, new TrooperRenown(InitialCost: 28, GearCost: 15, Experience: 9).Total);
 
     [Fact]
+    public void ARetiringTrooperKeepsItsCostAndXpButNotItsGear() =>
+        Assert.Equal(28 + 9, new TrooperRenown(InitialCost: 28, GearCost: 15, Experience: 9).WithoutGear);
+
+    [Fact]
+    public void RetiredTroopersStillCountTowardTheCompany()
+    {
+        var season = new SeasonFile { Retired = [new RetiredTrooper { EntryIndex = 4, Renown = 31 }] };
+
+        Assert.Equal(20 + 31, CompanyRenown.Of([new TrooperRenown(20, 0, 0)], season));
+    }
+
+    [Fact]
     public void NothingNegativeIsCounted() =>
         Assert.Equal(5, new TrooperRenown(InitialCost: -3, GearCost: 0, Experience: 5).Total);
 

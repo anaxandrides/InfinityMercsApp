@@ -1,16 +1,17 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Injuries;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Records;
+using InfinityMercsApp.Services.Rolls;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Company.Viewer;
-using InfinityMercsApp.ViewModels.Season.Items;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
-using InfinityMercsApp.Services.Rolls;
+using InfinityMercsApp.ViewModels.Season.Items;
 
 namespace InfinityMercsApp.ViewModels.Season;
 
@@ -66,7 +67,7 @@ public partial class InjuriesViewModel(
             Injuries.Add(new InjuryCheckItem(injury, Carried(injury.EntryIndex), dice, OnSettled));
         }
 
-        foreach (var unit in await CompanyUnitsAsync())
+        foreach (var unit in await CompanyUnitsAsync(seasonFile))
         {
             var carried = Carried(unit.EntryIndex);
             var deployed = debrief.Units.Any(deployedUnit => deployedUnit.EntryIndex == unit.EntryIndex);
@@ -81,12 +82,13 @@ public partial class InjuriesViewModel(
         CanContinue = AllSettled();
     }
 
-    private async Task<IReadOnlyList<CompanyViewerUnitListItem>> CompanyUnitsAsync()
+    // The troopers still in the company; one retired this season has no injuries to recover from.
+    private async Task<IReadOnlyList<CompanyViewerUnitListItem>> CompanyUnitsAsync(SeasonFile? seasonFile)
     {
         try
         {
             return companyFiles.Exists(_companyFilePath) && await companyFiles.LoadAsync(_companyFilePath) is { } company
-                ? roster.UnitsOf(company)
+                ? roster.UnitsOf(company, seasonFile)
                 : [];
         }
         catch (Exception ex)

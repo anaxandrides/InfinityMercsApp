@@ -1,11 +1,12 @@
 using InfinityMercsApp.Domain.Company;
+using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.ViewModels.Company.Viewer;
-using NSubstitute;
-using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
+using InfinityMercsApp.ViewModels.Components;
+using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Viewer;
 
@@ -44,6 +45,16 @@ public sealed class CompanyRosterTests
         CurrentPh = "10",
         CurrentVitaOrStr = "1"
     };
+
+    [Fact]
+    public void ASeasonLeavesOutItsRetiredTroopers()
+    {
+        var company = new SavedCompanyFile { Entries = [Entry(1, "Fusilier", isLieutenant: true), Entry(2, "Bolt"), Entry(3, "Zhanshi")] };
+        var season = new SeasonFile { Retired = [new RetiredTrooper { EntryIndex = 2 }] };
+
+        Assert.Equal([1, 3], Create().UnitsOf(company, season).Select(unit => unit.EntryIndex));
+        Assert.Equal(3, Create().UnitsOf(company).Count);
+    }
 
     [Fact]
     public void TheLieutenantComesFirstThenSavedOrder()

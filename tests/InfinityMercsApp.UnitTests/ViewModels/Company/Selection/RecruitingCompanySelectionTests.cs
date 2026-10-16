@@ -54,7 +54,7 @@ public sealed class RecruitingCompanySelectionTests
     {
         _kit.CompanyFiles.LoadAsync(CompanyPath).Returns(company);
         var viewModel = new StandardCompanySelectionViewModel(_kit.Services, ArmySourceSelectionMode.VanillaFactions);
-        viewModel.PrepareRecruitment(new CompanyRecruitment(CompanyPath, SeasonPath, company, Credits));
+        viewModel.PrepareRecruitment(new CompanyRecruitment(CompanyPath, SeasonPath, company, Credits, []));
         return await SelectionTestKit.OpenAsync(viewModel);
     }
 
