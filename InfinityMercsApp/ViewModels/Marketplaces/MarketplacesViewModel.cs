@@ -33,8 +33,11 @@ public partial class MarketplacesViewModel : AdaptiveViewModelBase<MarketplacesL
     private string? _selectedStoreName;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowCart))]
     private bool _hasStore;
+
+    /// <summary>The cart shows once a store is open, on layouts that offer buying.</summary>
+    [ObservableProperty]
+    private bool _showCart;
 
     [ObservableProperty]
     private string _storeName = string.Empty;
@@ -64,14 +67,15 @@ public partial class MarketplacesViewModel : AdaptiveViewModelBase<MarketplacesL
     [ObservableProperty]
     private string _cartTotalDisplay = "Total: 0cr";
 
-    public bool ShowCart => HasStore && Layout.OffersBuying;
     public bool HasItems => ItemGroups.Count > 0;
     public bool HasTroopTypes => TroopTypeRows.Count > 0;
     public bool HasAugments => AugmentRows.Count > 0;
     public bool HasCartLines => CartLines.Count > 0;
     public bool IsCartEmpty => CartLines.Count == 0;
 
-    protected override void OnLayoutApplied() => OnPropertyChanged(nameof(ShowCart));
+    protected override void OnLayoutApplied() => ShowCart = HasStore && Layout.OffersBuying;
+
+    partial void OnHasStoreChanged(bool value) => ShowCart = value && Layout.OffersBuying;
 
     partial void OnSelectedStoreNameChanged(string? value) => SelectStoreCommand.Execute(value);
 

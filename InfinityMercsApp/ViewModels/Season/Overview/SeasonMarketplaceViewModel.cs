@@ -80,7 +80,10 @@ public partial class SeasonMarketplaceViewModel(
     public bool ShowsStock => HasStore && !IsServicesStore && !IsRecruitmentStore;
     public bool HasTroopTypes => TroopTypeRows.Count > 0;
     public bool HasAugments => AugmentRows.Count > 0;
-    public bool HasCartItems => _cart.Count > 0;
+    /// <summary>Something is in the cart, so it can be bought.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(BuyCommand))]
+    private bool _hasCartItems;
 
     /// <summary>The markets of the company's factions, which it may take as its War Market without rolling.</summary>
     public IReadOnlyList<string> FactionMarketNames { get; private set; } = [];
@@ -90,7 +93,7 @@ public partial class SeasonMarketplaceViewModel(
     {
         _ledger = SeasonEconomy.Ledger(seasonFile);
         _companyNotoriety = SeasonRounds.CompanyNotoriety(seasonFile);
-        RefreshAffordability();
+        ShowAffordability();
     }
 
     /// <summary>
@@ -166,7 +169,7 @@ public partial class SeasonMarketplaceViewModel(
         TroopTypeRows = store.TroopTypes.Select(troop => FromCart(new TroopTypeRow(troop, notoriety.Price(troop.CostCr)))).ToList();
         AugmentRows = store.Augments.Select(augment => FromCart(new AugmentRow(augment, notoriety.Price(augment.CostCr)))).ToList();
         HasStore = true;
-        RefreshAffordability();
+        ShowAffordability();
     }
 
     [RelayCommand]
@@ -240,7 +243,7 @@ public partial class SeasonMarketplaceViewModel(
             row.Quantity = 0;
         }
 
-        RefreshAffordability();
+        ShowAffordability();
         await purchased();
     }
 
@@ -261,7 +264,7 @@ public partial class SeasonMarketplaceViewModel(
             _cart.Remove(CartKey(row));
         }
 
-        RefreshAffordability();
+        ShowAffordability();
     }
 
     private string CartKey(MarketplaceRow row) => $"{_shownStoreName}|{row.CartName}";
@@ -270,7 +273,7 @@ public partial class SeasonMarketplaceViewModel(
         [.. ItemGroups.SelectMany(group => group.Items), .. TroopTypeRows, .. AugmentRows];
 
     // A row is affordable while one more fits in the CR left after the cart; SWC only limits equipping.
-    private void RefreshAffordability()
+    private void ShowAffordability()
     {
         var remainingCr = _ledger.CreditsBalance - _cart.Values.Sum(line => line.TotalCr);
         ResourcesText = SeasonEconomy.BalanceText(remainingCr, _ledger.CompanySwc);
@@ -279,7 +282,6 @@ public partial class SeasonMarketplaceViewModel(
             row.IsAffordable = row.CostCr <= remainingCr;
         }
 
-        OnPropertyChanged(nameof(HasCartItems));
-        BuyCommand.NotifyCanExecuteChanged();
+        HasCartItems = _cart.Count > 0;
     }
 }

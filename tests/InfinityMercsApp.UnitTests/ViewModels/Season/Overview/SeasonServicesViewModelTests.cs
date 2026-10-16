@@ -78,13 +78,15 @@ public sealed class SeasonServicesViewModelTests
     }
 
     [Fact]
-    public void TherapyNeedsAnInjury()
+    public async Task TherapyNeedsAnInjury()
     {
         Show();
 
         Assert.Equal("No injury to write off.", Option(SeasonService.AdvancedTherapy).UnavailableReason);
         Assert.False(Option(SeasonService.FullTherapy).IsAvailable);
-        Assert.False(_services.BuyCommand.CanExecute(Option(SeasonService.FullTherapy)));
+
+        await _services.BuyCommand.ExecuteAsync(Option(SeasonService.FullTherapy));
+        await _kit.Dialogs.DidNotReceiveWithAnyArgs().ConfirmAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
     }
 
     [Fact]

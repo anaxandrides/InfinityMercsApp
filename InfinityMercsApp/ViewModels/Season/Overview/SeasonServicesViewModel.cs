@@ -71,7 +71,7 @@ public partial class SeasonServicesViewModel : ObservableObject
         var picked = SelectedTrooper?.EntryIndex;
         Troopers = troopers;
         SelectedTrooper = troopers.FirstOrDefault(trooper => trooper.EntryIndex == picked) ?? troopers.FirstOrDefault();
-        RefreshOptions();
+        ShowAvailability();
     }
 
     partial void OnSelectedTrooperChanged(CompanyViewerUnitListItem? value)
@@ -88,7 +88,7 @@ public partial class SeasonServicesViewModel : ObservableObject
                 .Select(pick => new PerkOption(pick))
                 .ToList();
         SelectedRetrainPerk = RetrainablePerks.FirstOrDefault();
-        RefreshOptions();
+        ShowAvailability();
     }
 
     partial void OnSelectedRetrainPerkChanged(PerkOption? value)
@@ -97,12 +97,12 @@ public partial class SeasonServicesViewModel : ObservableObject
             ? []
             : ReplacementsFor(trooper, progress, value.Pick);
         SelectedReplacement = Replacements.FirstOrDefault();
-        RefreshOptions();
+        ShowAvailability();
     }
 
-    partial void OnSelectedReplacementChanged(PerkOption? value) => RefreshOptions();
+    partial void OnSelectedReplacementChanged(PerkOption? value) => ShowAvailability();
 
-    partial void OnSelectedInjuryChanged(InjuryTableEntry? value) => RefreshOptions();
+    partial void OnSelectedInjuryChanged(InjuryTableEntry? value) => ShowAvailability();
 
     // Any perk of the same tier from the same kind of list that the trooper could take, the old one aside.
     private static IReadOnlyList<PerkOption> ReplacementsFor(CompanyViewerUnitListItem trooper, TrooperProgress progress, PerkPick old)
@@ -118,14 +118,12 @@ public partial class SeasonServicesViewModel : ObservableObject
     }
 
 
-    private void RefreshOptions()
+    private void ShowAvailability()
     {
         foreach (var option in Options)
         {
             option.UnavailableReason = ReasonUnavailable(option.Service);
         }
-
-        BuyCommand.NotifyCanExecuteChanged();
     }
 
     private string ReasonUnavailable(SeasonService service)
@@ -155,10 +153,11 @@ public partial class SeasonServicesViewModel : ObservableObject
         };
     }
 
-    private bool CanBuy(ServiceOption? option) => option is { IsAvailable: true };
-
-    /// <summary>After confirming, pays for the service and applies it to the selected trooper.</summary>
-    [RelayCommand(CanExecute = nameof(CanBuy))]
+    /// <summary>
+    /// After confirming, pays for the service and applies it to the selected trooper. Each option's button is
+    /// enabled by its own <see cref="ServiceOption.IsAvailable"/>; an unavailable one does nothing.
+    /// </summary>
+    [RelayCommand]
     private async Task BuyAsync(ServiceOption? option)
     {
         if (option is not { IsAvailable: true } || SelectedTrooper is not { } trooper)

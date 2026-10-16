@@ -34,11 +34,10 @@ public partial class FeedbackBugsPageViewModel(
     private string _statusMessage = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(StatusColor))]
     private bool _isStatusError;
 
     public Color StatusColor => IsStatusError ? Colors.OrangeRed : Colors.LightGreen;
-
-    partial void OnIsStatusErrorChanged(bool value) => OnPropertyChanged(nameof(StatusColor));
 
     private bool CanSubmit() => !IsSubmitting;
 
