@@ -5,5 +5,8 @@ public interface IAppPackageFiles
 {
     Task<string> ReadTextAsync(string path);
 
+    /// <summary>Opens a bundled file for reading; the caller disposes the stream.</summary>
+    Task<Stream> OpenAsync(string path);
+
     Task<bool> ExistsAsync(string path);
 }

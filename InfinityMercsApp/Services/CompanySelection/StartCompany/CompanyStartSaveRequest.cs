@@ -19,6 +19,8 @@ internal sealed class CompanyStartSaveRequest<TFaction, TEntry>
     public required ISpecOpsProvider SpecOpsProvider { get; init; }
     /// <summary>Shows the captain popup; only <see cref="CompanyStartSaveWorkflow.RunAsync{TFaction, TEntry}"/> needs it.</summary>
     public ICaptainConfigurationDialog? CaptainDialog { get; init; }
+    /// <summary>Where the company file is written; only <see cref="CompanyStartSaveWorkflow.RunAsync{TFaction, TEntry}"/> needs it.</summary>
+    public string CompaniesDirectory { get; init; } = string.Empty;
     public required bool ShowUnitsInInches { get; init; }
     public required string SelectedStartSeasonPoints { get; init; }
     public required string SeasonPointsCapText { get; init; }

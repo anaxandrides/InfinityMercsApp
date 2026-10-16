@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using InfinityMercsApp.Services.Packaging;
+using InfinityMercsApp.Services.Records;
 using DomainFaction = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using DomainArmyImportResume = InfinityMercsApp.Domain.Models.Army.ArmyImportResume;
 using DomainResume = InfinityMercsApp.Domain.Models.Army.Resume;
@@ -13,13 +15,15 @@ public class FactionLogoCacheService
 
     private const string PackagedCacheRoot = "SVGCache";
     private readonly HttpClient _httpClient;
+    private readonly IAppPackageFiles _packageFiles;
     private readonly string _localCacheDirectory;
     private readonly string _localUnitCacheDirectory;
 
-    public FactionLogoCacheService(HttpClient httpClient)
+    public FactionLogoCacheService(HttpClient httpClient, RecordPaths paths, IAppPackageFiles packageFiles)
     {
         _httpClient = httpClient;
-        _localCacheDirectory = Path.Combine(FileSystem.Current.AppDataDirectory, "svg-cache");
+        _packageFiles = packageFiles;
+        _localCacheDirectory = paths.FactionLogoDirectory;
         _localUnitCacheDirectory = Path.Combine(_localCacheDirectory, "units");
     }
 
@@ -225,7 +229,7 @@ public class FactionLogoCacheService
         bool exists;
         try
         {
-            exists = await FileSystem.Current.AppPackageFileExistsAsync(packagedPath);
+            exists = await _packageFiles.ExistsAsync(packagedPath);
         }
         catch
         {
@@ -272,7 +276,7 @@ public class FactionLogoCacheService
             && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
     }
 
-    private static async Task<bool> TryCopyPackagedAssetAsync(string packagedPath, string localPath, CancellationToken cancellationToken)
+    private async Task<bool> TryCopyPackagedAssetAsync(string packagedPath, string localPath, CancellationToken cancellationToken)
     {
         try
         {
@@ -282,7 +286,7 @@ public class FactionLogoCacheService
                 Directory.CreateDirectory(localDirectory);
             }
 
-            await using var packageStream = await FileSystem.Current.OpenAppPackageFileAsync(packagedPath);
+            await using var packageStream = await _packageFiles.OpenAsync(packagedPath);
             await using var fileStream = File.Create(localPath);
             await packageStream.CopyToAsync(fileStream, cancellationToken);
             return true;

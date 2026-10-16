@@ -119,7 +119,7 @@ internal static class CompanyStartSaveWorkflow
             return;
         }
 
-        var saveDir = Path.Combine(FileSystem.Current.AppDataDirectory, "MercenaryRecords");
+        var saveDir = request.CompaniesDirectory;
         var filePath = Path.Combine(saveDir, NextCompanyFileName(saveDir, request.CompanyName));
         await WriteCompanyFileAsync(request, improvedCaptainStats, filePath);
         await request.NavigateToCompanyViewerAsync(filePath);

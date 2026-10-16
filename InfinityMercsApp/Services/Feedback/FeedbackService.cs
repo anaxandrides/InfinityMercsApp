@@ -9,10 +9,12 @@ public sealed class FeedbackService : IFeedbackService
     private static readonly Uri FeedbackEndpoint = new($"https://formsubmit.co/ajax/{FeedbackRecipientEmail}");
 
     private readonly HttpClient _httpClient;
+    private readonly DeviceDetails _device;
 
-    public FeedbackService(HttpClient httpClient)
+    public FeedbackService(HttpClient httpClient, DeviceDetails device)
     {
         _httpClient = httpClient;
+        _device = device;
     }
 
     public async Task<FeedbackSubmitResult> SubmitAsync(FeedbackSubmission submission, CancellationToken cancellationToken = default)
@@ -61,17 +63,17 @@ public sealed class FeedbackService : IFeedbackService
         return FeedbackSubmitResult.Ok(null);
     }
 
-    private static string BuildMessage(FeedbackSubmission submission)
+    private string BuildMessage(FeedbackSubmission submission)
     {
         return string.Join(Environment.NewLine, [
             $"Category: {submission.Category.Trim()}",
             $"Title: {submission.Title.Trim()}",
             $"User Email: {submission.UserEmail.Trim()}",
             $"Submitted At (UTC): {DateTimeOffset.UtcNow:O}",
-            $"App Version: {AppInfo.Current.VersionString}",
-            $"Platform: {DeviceInfo.Current.Platform}",
-            $"Device: {DeviceInfo.Current.Manufacturer} {DeviceInfo.Current.Model}",
-            $"Device Name: {DeviceInfo.Current.Name}",
+            $"App Version: {_device.AppVersion}",
+            $"Platform: {_device.Platform}",
+            $"Device: {_device.Model}",
+            $"Device Name: {_device.Name}",
             string.Empty,
             "Description:",
             submission.Description.Trim()

@@ -32,6 +32,7 @@ internal sealed class SelectionTestKit
     public IAppSettingsProvider Settings { get; } = Substitute.For<IAppSettingsProvider>();
     public ICompanyFileService CompanyFiles { get; } = Substitute.For<ICompanyFileService>();
     public ISeasonFileService SeasonFiles { get; } = Substitute.For<ISeasonFileService>();
+    public RecordPaths Paths { get; } = new(Path.Combine(Path.GetTempPath(), "mercs-selection-tests"));
     public IArmyDataService ArmyData { get; } = Army101Data.Create();
 
     public SelectionTestKit()
@@ -84,7 +85,7 @@ internal sealed class SelectionTestKit
             .ToList()
     };
 
-    public CompanySelectionServices Services => new(Navigation, Dialogs, CaptainDialog, ArmyData, SpecOps, PackageFiles, CompanyFiles, SeasonFiles, Settings);
+    public CompanySelectionServices Services => new(Navigation, Dialogs, CaptainDialog, ArmyData, SpecOps, PackageFiles, CompanyFiles, SeasonFiles, Paths, Settings);
 
     private static IReadOnlyList<Resume> Resumes(int factionId) =>
         Army101Data.Definition.Resume

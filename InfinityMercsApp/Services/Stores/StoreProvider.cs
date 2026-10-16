@@ -1,10 +1,11 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using InfinityMercsApp.Domain.Models.Stores;
+using InfinityMercsApp.Services.Packaging;
 
 namespace InfinityMercsApp.Services.Stores;
 
-public sealed class StoreProvider : IStoreProvider
+public sealed class StoreProvider(IAppPackageFiles packageFiles) : IStoreProvider
 {
     private static readonly IReadOnlyDictionary<string, string> StoreAssetPaths =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -76,9 +77,7 @@ public sealed class StoreProvider : IStoreProvider
             if (!StoreAssetPaths.TryGetValue(name, out var assetPath))
                 return null;
 
-            await using var stream = await FileSystem.Current
-                .OpenAppPackageFileAsync(assetPath)
-                .ConfigureAwait(false);
+            await using var stream = await packageFiles.OpenAsync(assetPath).ConfigureAwait(false);
 
             var store = await JsonSerializer
                 .DeserializeAsync<Store>(stream, JsonOptions, cancellationToken)

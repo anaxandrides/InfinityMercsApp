@@ -1268,6 +1268,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
                 ArmyDataService = Services.ArmyData,
                 SpecOpsProvider = Services.SpecOps,
                 CaptainDialog = Services.CaptainDialog,
+                CompaniesDirectory = Services.Paths.CompaniesDirectory,
                 ShowUnitsInInches = Detail.ShowUnitsInInches,
                 SelectedStartSeasonPoints = SelectedStartSeasonPoints,
                 SeasonPointsCapText = SeasonPointsCapText,

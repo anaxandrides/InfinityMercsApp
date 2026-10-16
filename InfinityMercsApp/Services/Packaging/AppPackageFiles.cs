@@ -9,5 +9,7 @@ internal sealed class AppPackageFiles : IAppPackageFiles
         return await reader.ReadToEndAsync();
     }
 
+    public Task<Stream> OpenAsync(string path) => FileSystem.Current.OpenAppPackageFileAsync(path);
+
     public Task<bool> ExistsAsync(string path) => FileSystem.Current.AppPackageFileExistsAsync(path);
 }

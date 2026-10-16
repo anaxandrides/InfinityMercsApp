@@ -2,11 +2,12 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Services.Records;
 
 namespace InfinityMercsApp.Services.Season;
 
 /// <summary>Season files as indented JSON under the app's MercenaryRecords/Seasons folder.</summary>
-internal sealed class SeasonFileStore : ISeasonFileService
+internal sealed class SeasonFileStore(RecordPaths paths) : ISeasonFileService
 {
     private static readonly JsonSerializerOptions ReadOptions = new()
     {
@@ -22,7 +23,7 @@ internal sealed class SeasonFileStore : ISeasonFileService
     public async Task<string> CreateAsync(string companyName, string companyIdentifier, string companyFilePath)
     {
         var now = DateTimeOffset.UtcNow;
-        var seasonsDir = Path.Combine(FileSystem.Current.AppDataDirectory, "MercenaryRecords", "Seasons");
+        var seasonsDir = paths.SeasonsDirectory;
         Directory.CreateDirectory(seasonsDir);
 
         var fileName = $"{companyName.Replace(' ', '_')}-{now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)}.json";

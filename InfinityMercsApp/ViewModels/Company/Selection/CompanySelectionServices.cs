@@ -19,5 +19,6 @@ public sealed record CompanySelectionServices(
     IAppPackageFiles PackageFiles,
     ICompanyFileService CompanyFiles,
     ISeasonFileService SeasonFiles,
+    RecordPaths Paths,
     IAppSettingsProvider? Settings = null,
     FactionLogoCacheService? Logos = null);

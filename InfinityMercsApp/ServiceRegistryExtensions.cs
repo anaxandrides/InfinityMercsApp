@@ -121,6 +121,11 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<StoreCatalog>()
                 .AddSingleton<FactionLogoCacheService>()
                 .AddSingleton<IFeedbackService, FeedbackService>()
+                .AddSingleton(_ => new DeviceDetails(
+                    AppInfo.Current.VersionString,
+                    DeviceInfo.Current.Platform.ToString(),
+                    $"{DeviceInfo.Current.Manufacturer} {DeviceInfo.Current.Model}",
+                    DeviceInfo.Current.Name))
                 .AddSingleton<IImportService, ImportService>()
                 .AddSingleton<ISeasonFileService, SeasonFileStore>()
                 .AddSingleton<IDialogService, MauiDialogService>()
