@@ -10,6 +10,7 @@ using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
+using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.ViewModels.Season;
 
 namespace InfinityMercsApp.Services.Season;
@@ -21,6 +22,7 @@ namespace InfinityMercsApp.Services.Season;
 public sealed partial class DeploymentRoster(
     IArmyDataService armyData,
     ISeasonFileService seasonFiles,
+    StoreCatalog stores,
     FactionLogoCacheService? logos = null)
 {
     internal const int TagCompanyFactionId = 2003;
@@ -59,13 +61,20 @@ public sealed partial class DeploymentRoster(
         var season = string.IsNullOrWhiteSpace(seasonFilePath) ? null : await seasonFiles.LoadAsync(seasonFilePath);
         var seasonGear = season?.UnitGear ?? [];
         var captain = CaptainUpgrades.From(company.ImprovedCaptainStats);
+        var catalog = await stores.CatalogAsync();
 
         return company.Entries
             .Where(e => !e.IsPeripheralUnit)
             .Where(e => deployedEntryIndices is null || deployedEntryIndices.Contains(e.EntryIndex))
             .OrderByDescending(e => e.IsLieutenant)
             .ThenBy(e => e.EntryIndex)
-            .Select(entry => BuildUnit(entry, captain, seasonGear.GetValueOrDefault(entry.EntryIndex), SeasonTroopers.ProgressOf(entry, season), showUnitsInInches))
+            .Select(entry => BuildUnit(
+                entry,
+                captain,
+                seasonGear.GetValueOrDefault(entry.EntryIndex),
+                SeasonTroopers.ProgressOf(entry, season),
+                SeasonRenown.Of(entry, season, catalog).Total,
+                showUnitsInInches))
             .ToList();
     }
 
@@ -74,6 +83,7 @@ public sealed partial class DeploymentRoster(
         CaptainUpgrades captain,
         IReadOnlyList<SeasonUnitGear>? gear,
         TrooperProgress progress,
+        int renown,
         bool showUnitsInInches)
     {
         var factionId = EffectiveSourceFactionId(entry);
@@ -134,7 +144,7 @@ public sealed partial class DeploymentRoster(
             UnitBts = profile.Bts,
             UnitVitality = profile.Vitality,
             UnitS = profile.S,
-            Renown = entry.Cost + progress.TotalXp,
+            Renown = renown,
             VitalityStat = StatKeys.VitalityFor(entry.UnitTypeCode),
             StartingVitality = Math.Max(1, int.TryParse(entry.CurrentVitaOrStr, out var vitality) ? vitality : 1),
             HasNwi = HasLine(profile.Skills, "No Wound Incapacitation"),

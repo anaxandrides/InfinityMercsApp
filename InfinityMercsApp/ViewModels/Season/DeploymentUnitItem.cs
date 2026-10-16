@@ -81,7 +81,7 @@ public sealed class DeploymentUnitItem : ObservableObject, IViewerListItem
     // XP tracking (accumulated across rounds, never reset)
     public UnitXpData XpData { get; } = new();
 
-    // Renown — unit cost (loadout-inclusive) + accumulated XP from the saved file.
+    /// <summary>The unit's cost, the base cost of its season gear, and its XP.</summary>
     public int Renown { get; init; }
 
     // Resolved display text

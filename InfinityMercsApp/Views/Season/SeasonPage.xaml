@@ -200,6 +200,11 @@
                            TextColor="{StaticResource TextSecondary}"
                            MaxLines="1"
                            LineBreakMode="TailTruncation" />
+                    <Label Text="{Binding Renown, StringFormat='RENOWN {0}'}"
+                           FontSize="{DynamicResource FontSizeCaption}"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Signal}"
+                           MaxLines="1" />
                 </VerticalStackLayout>
                 <Border Grid.Column="1"
                         BackgroundColor="{StaticResource Signal}"

@@ -20,6 +20,22 @@ public sealed class SeasonEconomyTests
         Assert.Equal(12, SeasonEconomy.ObjectiveCredits(3));
         Assert.Equal(10, SeasonEconomy.VictoryBonus(true));
         Assert.Equal(0, SeasonEconomy.VictoryBonus(false));
+        Assert.Equal(12, SeasonEconomy.ByeCredits(true));
+        Assert.Equal(0, SeasonEconomy.ByeCredits(false));
+    }
+
+    [Fact]
+    public void Ledger_AByeEarnsTheRoundsRewardsAnd12Cr()
+    {
+        var season = new SeasonFile
+        {
+            Rounds = [new SeasonRound { RoundIndex = 3, MissionResults = new SeasonMissionResult { IsBye = true } }]
+        };
+
+        var ledger = SeasonEconomy.Ledger(season);
+
+        Assert.Equal(30 + 12, ledger.CrEarned);
+        Assert.Equal(SeasonEconomy.SwcPerMission, ledger.SwcEarned);
     }
 
     [Fact]

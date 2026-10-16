@@ -10,6 +10,7 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.Services.Wiki;
 using InfinityMercsApp.UnitTests.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Company.Viewer;
@@ -130,7 +131,7 @@ internal sealed class SeasonTestKit
     public MarketplaceDetailViewModel Popup() => new(Metadata, Substitute.For<IWikiDescriptionService>(), Substitute.For<ILauncher>());
 
     public SeasonViewModel SeasonViewModel() => new(
-        Navigation, CompanyFiles, SeasonFiles, Stores, ArmyData, Dialogs, Dice, PackageFiles,
+        Navigation, CompanyFiles, SeasonFiles, Stores, new StoreCatalog(Stores), ArmyData, Dialogs, Dice, PackageFiles,
         new CompanyRoster(ArmyData), new UnitDetailViewModel(ArmyData, Settings), Popup());
 
     /// <summary>A season page opened on the company with its season file, as the page would be on appearing.</summary>

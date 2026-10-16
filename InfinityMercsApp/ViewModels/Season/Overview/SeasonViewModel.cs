@@ -12,6 +12,7 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Marketplaces;
@@ -30,13 +31,11 @@ public partial class SeasonViewModel : ViewModelBase
 
     private readonly ICompanyFileService _companyFiles;
     private readonly ISeasonFileService _seasonFiles;
-    private readonly IStoreProvider _storeProvider;
+    private readonly StoreCatalog _stores;
     private readonly IArmyDataService _armyData;
     private string _companyFilePath = string.Empty;
     private string? _seasonFilePath;
     private bool _needsLoad;
-    private IReadOnlyList<Store>? _allStores;
-    private InventoryCatalog _catalog = InventoryCatalog.Empty;
     private SavedCompanyFile? _company;
 
     public SeasonViewModel(
@@ -44,6 +43,7 @@ public partial class SeasonViewModel : ViewModelBase
         ICompanyFileService companyFiles,
         ISeasonFileService seasonFiles,
         IStoreProvider storeProvider,
+        StoreCatalog stores,
         IArmyDataService armyData,
         IDialogService dialogs,
         IDice dice,
@@ -54,7 +54,7 @@ public partial class SeasonViewModel : ViewModelBase
     {
         _companyFiles = companyFiles;
         _seasonFiles = seasonFiles;
-        _storeProvider = storeProvider;
+        _stores = stores;
         _armyData = armyData;
         DetailPopup = detailPopup;
         Team = new SeasonTeamViewModel(roster, detail, packageFiles, seasonFiles, detailPopup, dialogs);
@@ -87,6 +87,10 @@ public partial class SeasonViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _companyType = string.Empty;
+
+    /// <summary>The company's renown: its troopers' costs, gear and XP, and its victories.</summary>
+    [ObservableProperty]
+    private int _renown;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsTeamTab), nameof(IsInventoryTab), nameof(IsMarketplaceTab))]
@@ -213,38 +217,19 @@ public partial class SeasonViewModel : ViewModelBase
         var currentRound = SeasonRounds.Current(seasonFile);
         RoundTitle = currentRound == 0 ? "Round 0" : $"Round {currentRound} Marketplace";
 
-        var stores = await AllStoresAsync();
-        var inventory = SeasonInventory.From(seasonFile, _catalog);
+        var stores = await _stores.AllAsync();
+        var catalog = await _stores.CatalogAsync();
+        Renown = _company is { } renowned ? SeasonRenown.OfCompany(renowned, seasonFile, catalog) : 0;
+        var inventory = SeasonInventory.From(seasonFile, catalog);
         Marketplace.RefreshBalance(seasonFile);
         Inventory.Show(_seasonFilePath, seasonFile, inventory);
         Services.Show(_seasonFilePath, seasonFile, Team.Units.ToList());
-        Team.ShowOwnedGear(inventory, _catalog, SeasonEconomy.Ledger(seasonFile).CompanySwc);
+        Team.ShowOwnedGear(inventory, catalog, SeasonEconomy.Ledger(seasonFile).CompanySwc);
         WarMarketChoice.Prepare(
             _seasonFilePath,
             seasonFile,
             Marketplace.FactionMarketNames,
             stores.Where(store => store.IsWarMarket).Select(store => store.Name).ToList());
-    }
-
-    // Every store, read once; the catalog of their stock gives owned items their category, price and SWC.
-    private async Task<IReadOnlyList<Store>> AllStoresAsync()
-    {
-        if (_allStores is null)
-        {
-            List<Store> stores = [];
-            foreach (var name in _storeProvider.GetAllStoreNames())
-            {
-                if (await _storeProvider.GetStoreByNameAsync(name) is { } store)
-                {
-                    stores.Add(store);
-                }
-            }
-
-            _allStores = stores;
-            _catalog = InventoryCatalog.From(stores);
-        }
-
-        return _allStores;
     }
 
     // The new War Market joins the market list straight away.

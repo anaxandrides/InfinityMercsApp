@@ -2,8 +2,11 @@ using System.Text.Json;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
-using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Services.Stores;
+using InfinityMercsApp.UnitTests.Season.Inventory;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Season;
 using NSubstitute;
@@ -16,9 +19,10 @@ public sealed class DeploymentRosterTests : IDisposable
 
     private readonly TempRecords _records = new();
     private readonly ISeasonFileService _seasonFiles = Substitute.For<ISeasonFileService>();
+    private readonly IStoreProvider _stores = Substitute.For<IStoreProvider>();
     private readonly DeploymentRoster _roster;
 
-    public DeploymentRosterTests() => _roster = new DeploymentRoster(Army101Data.Create(), _seasonFiles);
+    public DeploymentRosterTests() => _roster = new DeploymentRoster(Army101Data.Create(), _seasonFiles, new StoreCatalog(_stores));
 
     public void Dispose() => _records.Dispose();
 
@@ -175,5 +179,25 @@ public sealed class DeploymentRosterTests : IDisposable
         Assert.Contains("Courage", fusilier.Skills);
         Assert.Equal(10 + 17, fusilier.Renown);
         Assert.EndsWith("noun-2-stars.svg", fusilier.ExperienceIconPackagedPath);
+    }
+
+    [Fact]
+    public async Task RenownCountsTheBaseCostOfSeasonGear()
+    {
+        _stores.GetAllStoreNames().Returns(["Number One"]);
+        _stores.GetStoreByNameAsync("Number One", Arg.Any<CancellationToken>()).Returns(InventoryTestStores.NumberOne);
+        var season = new SeasonFile();
+        season.UnitGear[2] =
+        [
+            new SeasonUnitGear { ItemName = "Spitfire", Slot = GearSlot.Primary.Key() },
+            new SeasonUnitGear { ItemName = "Light Armour (LI)", Slot = GearSlot.Armor.Key() },
+            new SeasonUnitGear { ItemName = "Unknown Gadget", Slot = GearSlot.Accessories.Key() }
+        ];
+        _seasonFiles.LoadAsync(SeasonPath).Returns(season);
+
+        var fusilier = (await LoadAsync())[1];
+
+        // Cost 10 and 5 XP, then the Spitfire's 20 CR and the armour's 10; gear no market sells adds nothing.
+        Assert.Equal(15 + 20 + 10, fusilier.Renown);
     }
 }

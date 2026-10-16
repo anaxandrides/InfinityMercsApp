@@ -105,6 +105,7 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<ICompanySelectionNavigator, CompanySelectionNavigator>()
                 .AddSingleton<IArmyDataService, ArmyDataService>()
                 .AddSingleton<IStoreProvider, StoreProvider>()
+                .AddSingleton<StoreCatalog>()
                 .AddSingleton<FactionLogoCacheService>()
                 .AddSingleton<IFeedbackService, FeedbackService>()
                 .AddSingleton<IImportService, ImportService>()

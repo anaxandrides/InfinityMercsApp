@@ -17,6 +17,9 @@ public static class SeasonEconomy
 
     public const int VictoryCredits = 10;
 
+    /// <summary>A bye round makes up for the lost game with 3 OP worth of CR.</summary>
+    public const int ByeObjectives = 3;
+
     private const int MaxMissionCredits = 40;
 
     /// <summary>Credits for playing a round: 10 per round number (from 1), at most 40.</summary>
@@ -25,6 +28,9 @@ public static class SeasonEconomy
     public static int ObjectiveCredits(int objectivesScored) => CreditsPerObjective * objectivesScored;
 
     public static int VictoryBonus(bool won) => won ? VictoryCredits : 0;
+
+    /// <summary>The CR a bye round adds to the normal rewards: 12.</summary>
+    public static int ByeCredits(bool isBye) => isBye ? ObjectiveCredits(ByeObjectives) : 0;
 
     /// <summary>
     /// Everything earned and spent over the season: the starting funds, what was bought before the first
@@ -54,6 +60,7 @@ public static class SeasonEconomy
             crEarned += MissionCredits(round.RoundIndex)
                         + ObjectiveCredits(round.MissionResults.OpScored)
                         + VictoryBonus(round.MissionResults.Won)
+                        + ByeCredits(round.MissionResults.IsBye)
                         + round.Downtime.CrGain;
             crSpent += round.Downtime.SpentCr;
 

@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Navigation;
@@ -28,6 +29,18 @@ public sealed class SeasonViewModelTests
         Assert.True(viewModel.Marketplace.HasStore);
         Assert.False(viewModel.WarMarketChoice.IsOpen);
         await _kit.SeasonFiles.DidNotReceiveWithAnyArgs().CreateAsync(default!, default!, default!);
+    }
+
+    [Fact]
+    public async Task TheCompanysRenownCountsGearXpAndWins()
+    {
+        _kit.Season.Rounds[0].MissionResults = new SeasonMissionResult { Won = true, UnitResults = [new() { EntryIndex = 1, XpGained = 5 }] };
+        _kit.Season.UnitGear[1] = [new SeasonUnitGear { ItemName = "Knife", Slot = GearSlot.Sidearm.Key() }];
+
+        var viewModel = await _kit.OpenAsync();
+
+        // Two troopers at 20 each (the peripheral is left out), the Knife's 2 CR, Bolt's 5 XP and one win.
+        Assert.Equal(20 + 20 + 2 + 5 + 10, viewModel.Renown);
     }
 
     [Fact]
