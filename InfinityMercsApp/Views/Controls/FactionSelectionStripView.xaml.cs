@@ -6,6 +6,8 @@ namespace InfinityMercsApp.Views.Controls;
 /// <summary>
 /// Horizontal faction picker strip. Backed by a virtualized <see cref="CollectionView"/> so only the
 /// on-screen faction tiles are realised; tapping a tile runs <see cref="SelectFactionCommand"/>.
+/// Hiding the strip keeps its tiles: dropping them while a tap is still running left each tile's command binding
+/// without its strip, and the binding threw.
 /// </summary>
 public partial class FactionSelectionStripView : ContentView
 {
@@ -30,22 +32,5 @@ public partial class FactionSelectionStripView : ContentView
     {
         get => (ICommand?)GetValue(SelectFactionCommandProperty);
         set => SetValue(SelectFactionCommandProperty, value);
-    }
-
-    /// <summary>
-    /// The item source actually bound to the inner list. Faction tiles are SVG-heavy, so a hidden
-    /// strip binds nothing and pays no build cost until it is shown.
-    /// </summary>
-    public IEnumerable? EffectiveItemsSource => IsVisible ? ItemsSource : null;
-
-    protected override void OnPropertyChanged(string? propertyName = null)
-    {
-        base.OnPropertyChanged(propertyName);
-
-        if (propertyName == IsVisibleProperty.PropertyName ||
-            propertyName == ItemsSourceProperty.PropertyName)
-        {
-            OnPropertyChanged(nameof(EffectiveItemsSource));
-        }
     }
 }

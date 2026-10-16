@@ -14,7 +14,7 @@
                     SelectionMode="None"
                     HorizontalScrollBarVisibility="Always"
                     VerticalScrollBarVisibility="Never"
-                    ItemsSource="{Binding Source={x:Reference FactionSelectionStripRoot}, Path=EffectiveItemsSource, x:DataType=controls:FactionSelectionStripView}">
+                    ItemsSource="{Binding Source={x:Reference FactionSelectionStripRoot}, Path=ItemsSource, x:DataType=controls:FactionSelectionStripView}">
         <CollectionView.ItemsLayout>
             <LinearItemsLayout Orientation="Horizontal" ItemSpacing="2" />
         </CollectionView.ItemsLayout>
