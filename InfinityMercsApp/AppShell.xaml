@@ -65,14 +65,6 @@
         Title="Debug"
         Route="Debug">
         <ShellContent
-            Title="Debug"
-            ContentTemplate="{DataTemplate views:DebugPage}"
-            Route="DebugPage" />
-        <ShellContent
-            Title="Perk Tester"
-            ContentTemplate="{DataTemplate unitBrowserViews:PerkTesterPage}"
-            Route="PerkTesterPage" />
-        <ShellContent
             Title="Load Company"
             ContentTemplate="{DataTemplate companyViews:LoadCompanyPage}"
             Route="LoadCompanyPage" />

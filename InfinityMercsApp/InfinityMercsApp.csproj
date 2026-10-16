@@ -86,7 +86,6 @@
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 		<MauiAsset Include="Resources\Images\MercsIcons\**\*" LogicalName="MercsIcons/%(RecursiveDir)%(Filename)%(Extension)" />
-		<MauiAsset Remove="Resources\Raw\DebugTestCompanyManifest.json" Condition="'$(Configuration)' == 'Release'" />
 		<!-- Static UI icons bundled with the app. factions/ and units/ are excluded — downloaded at runtime. -->
 		<MauiAsset Include="SVGCache\CBIcons\**\*" LogicalName="SVGCache/CBIcons/%(RecursiveDir)%(Filename)%(Extension)" />
 		<MauiAsset Include="SVGCache\NonCBIcons\**\*" LogicalName="SVGCache/NonCBIcons/%(RecursiveDir)%(Filename)%(Extension)" />

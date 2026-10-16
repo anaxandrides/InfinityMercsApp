@@ -1,6 +1,5 @@
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Services.ArmyData;
-using InfinityMercsApp.Services.Diagnostics;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Feedback;
 using InfinityMercsApp.Services.Import;
@@ -54,13 +53,11 @@ public static class ServiceRegistryExtensions
                 .AddTransient<MarketplacesViewModel>()
                 .AddTransient<MarketplaceDetailViewModel>()
                 .AddTransient<PlayModeViewModel>()
-                .AddTransient<DebugViewModel>()
                 .AddTransient<ExperienceViewModel>()
                 .AddTransient<InjuriesViewModel>()
                 .AddTransient<MercsGlossaryViewModel>()
                 .AddTransient<UnitDetailViewModel>()
                 .AddTransient<UnitEncyclopediaViewModel>()
-                .AddTransient<PerkTesterViewModel>()
                 .AddTransient<CreateNewCompanyPageViewModel>()
                 .AddTransient<StandardCompanySourcePopupPageViewModel>()
                 .AddTransient<FeedbackBugsPageViewModel>()
@@ -86,8 +83,6 @@ public static class ServiceRegistryExtensions
                 .AddTransient<StandardCompanySourcePopupPage>()
                 .AddTransient<SplashPage>()
                 .AddTransient<SettingsPage>()
-                .AddTransient<DebugPage>()
-                .AddTransient<PerkTesterPage>()
                 .AddTransient<CompanyViewerPage>()
                 .AddTransient<UnitEncyclopediaPage>()
                 .AddTransient<FeedbackBugsPage>()
@@ -136,7 +131,6 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<ICompanyFileService, CompanyFileStore>()
                 .AddSingleton<CompanyRoster>()
                 .AddSingleton<DeploymentRoster>()
-                .AddSingleton<TestCompanyReformer>()
                 .AddSingleton<MissionDebrief>()
                 .AddSingleton<IDice, Dice>()
                 .AddSingleton<IAppPackageFiles, AppPackageFiles>();

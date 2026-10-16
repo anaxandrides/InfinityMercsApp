@@ -9,7 +9,6 @@ namespace InfinityMercsApp.Services.Logos;
 
 public class FactionLogoCacheService
 {
-    public const int DebugFactionId = 1199;
     private const int TagCompanyFactionId = 2003;
     private const int TagCompanyUnitId = 1;
 
@@ -172,22 +171,6 @@ public class FactionLogoCacheService
     {
         var path = GetCachedUnitLogoPath(factionId, unitId);
         return File.Exists(path) ? path : null;
-    }
-
-    public LogoCacheDebugInfo GetDebugInfo(int factionId, string? expectedLogoUrl = null)
-    {
-        var localPath = GetCachedLogoPath(factionId);
-        var exists = File.Exists(localPath);
-        var bytes = exists ? new FileInfo(localPath).Length : 0;
-
-        return new LogoCacheDebugInfo
-        {
-            FactionId = factionId,
-            ExpectedLogoUrl = expectedLogoUrl,
-            LocalPath = localPath,
-            Exists = exists,
-            SizeBytes = bytes
-        };
     }
 
     private async Task<EnsureResult> EnsureFactionLogoAvailableAsync(int factionId, string? logoUrl, CancellationToken cancellationToken)
