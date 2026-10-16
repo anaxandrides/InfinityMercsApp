@@ -1,27 +1,35 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.Views;
 
 namespace InfinityMercsApp.ViewModels.Company;
 
 /// <summary>Picks the kind of company to build and opens its selection screen.</summary>
-public partial class CreateNewCompanyPageViewModel(
-    INavigationService navigationService,
-    ICompanySelectionNavigator companySelection)
-    : AdaptiveViewModelBase<CreateNewCompanyLayout>(navigationService, CreateNewCompanyLayout.For)
+public partial class CreateNewCompanyPageViewModel : AdaptiveViewModelBase<CreateNewCompanyLayout>
 {
-    private IReadOnlyList<CompanyChoice>? _choices;
+    private readonly ICompanySelectionNavigator _companySelection;
+
+    public CreateNewCompanyPageViewModel(INavigationService navigationService, ICompanySelectionNavigator companySelection)
+        : base(navigationService, CreateNewCompanyLayout.For)
+    {
+        _companySelection = companySelection;
+        LayOutChoices();
+    }
 
     /// <summary>The cards in display order. Lone Wolf has a command but no card until it is ready.</summary>
-    public IReadOnlyList<CompanyChoice> Choices => _choices ??= ChoicesFor(Layout);
+    [ObservableProperty]
+    private IReadOnlyList<CompanyChoice> _choices = [];
 
-    public string ChoiceRows => Layout.GridRowsFor(Choices.Count);
+    [ObservableProperty]
+    private string _choiceRows = string.Empty;
 
-    protected override void OnLayoutApplied()
+    protected override void OnLayoutApplied() => LayOutChoices();
+
+    private void LayOutChoices()
     {
-        _choices = null;
-        OnPropertiesChanged(nameof(Choices), nameof(ChoiceRows));
+        Choices = ChoicesFor(Layout);
+        ChoiceRows = Layout.GridRowsFor(Choices.Count);
     }
 
     private IReadOnlyList<CompanyChoice> ChoicesFor(CreateNewCompanyLayout layout)
@@ -44,17 +52,17 @@ public partial class CreateNewCompanyPageViewModel(
     private Task OpenStandardCompanyPopupAsync() => NavigationService.NavigateToAsync("//StandardCompanySourcePopupPage");
 
     [RelayCommand]
-    private Task OpenCohesiveCompanyPageAsync() => companySelection.OpenAsync(CompanyKind.Cohesive, ArmySourceSelectionMode.Sectorials);
+    private Task OpenCohesiveCompanyPageAsync() => _companySelection.OpenAsync(CompanyKind.Cohesive, ArmySourceSelectionMode.Sectorials);
 
     [RelayCommand]
-    private Task OpenInspiringLeadershipPageAsync() => companySelection.OpenAsync(CompanyKind.Inspiring);
+    private Task OpenInspiringLeadershipPageAsync() => _companySelection.OpenAsync(CompanyKind.Inspiring);
 
     [RelayCommand]
-    private Task OpenAirborneCompanyPageAsync() => companySelection.OpenAsync(CompanyKind.Airborne);
+    private Task OpenAirborneCompanyPageAsync() => _companySelection.OpenAsync(CompanyKind.Airborne);
 
     [RelayCommand]
-    private Task OpenTAGCompanyPageAsync() => companySelection.OpenAsync(CompanyKind.Tag, ArmySourceSelectionMode.Sectorials);
+    private Task OpenTAGCompanyPageAsync() => _companySelection.OpenAsync(CompanyKind.Tag, ArmySourceSelectionMode.Sectorials);
 
     [RelayCommand]
-    private Task OpenLoneWolfCompanyPopupAsync() => companySelection.OpenAsync(CompanyKind.LoneWolf, ArmySourceSelectionMode.VanillaFactions);
+    private Task OpenLoneWolfCompanyPopupAsync() => _companySelection.OpenAsync(CompanyKind.LoneWolf, ArmySourceSelectionMode.VanillaFactions);
 }

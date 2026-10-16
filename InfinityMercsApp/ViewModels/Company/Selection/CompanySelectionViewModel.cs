@@ -47,7 +47,6 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     private bool _isPreparingRecruitment;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsFactionOverlayOpen))]
     private bool _showFactionStrip = true;
 
     [ObservableProperty]
@@ -120,16 +119,49 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     private Color _companyNameBorderColor = DefaultCompanyNameBorder;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(
-        nameof(ShowsUnitsPane), nameof(ShowsRightPane), nameof(ShowsDetailPane), nameof(ShowsCompanyPane), nameof(RightPaneRows),
-        nameof(IsUnitsPaneActive), nameof(IsProfilePaneActive), nameof(IsCompanyPaneActive))]
+    [NotifyPropertyChangedFor(nameof(IsUnitsPaneActive), nameof(IsProfilePaneActive), nameof(IsCompanyPaneActive))]
     private CompanySelectionPane _activePane = CompanySelectionPane.Units;
+
+    /// <summary>On compact screens the faction picker is a full-screen overlay while the strip is open.</summary>
+    [ObservableProperty]
+    private bool _isFactionOverlayOpen;
+
+    [ObservableProperty]
+    private bool _showsUnitsPane;
+
+    [ObservableProperty]
+    private bool _showsRightPane;
+
+    [ObservableProperty]
+    private bool _showsDetailPane;
+
+    [ObservableProperty]
+    private bool _showsCompanyPane;
+
+    [ObservableProperty]
+    private string _rightPaneRows = string.Empty;
+
+    /// <summary>
+    /// True when an existing company is hiring new troopers mid-season, rather than a company being founded.
+    /// Its factions are fixed, its troopers are already on the roster, and its CR is the budget.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsFoundingCompany))]
+    private bool _isRecruiting;
+
+    [ObservableProperty]
+    private string _pageTitle;
+
+    [ObservableProperty]
+    private string _confirmText = "START COMPANY";
 
     protected CompanySelectionViewModel(CompanySelectionServices services, ArmySourceSelectionMode mode)
         : base(services.Navigation, CompanySelectionLayout.For)
     {
         Services = services;
         Mode = mode;
+        _pageTitle = Heading;
+        ShowPanes();
     }
 
     protected CompanySelectionServices Services { get; }
@@ -151,17 +183,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     /// <summary>The company type written to the saved company file.</summary>
     public abstract string CompanyTypeLabel { get; }
 
-    /// <summary>
-    /// True when an existing company is hiring new troopers mid-season, rather than a company being founded.
-    /// Its factions are fixed, its troopers are already on the roster, and its CR is the budget.
-    /// </summary>
-    public bool IsRecruiting => _recruitment is not null;
-
     public bool IsFoundingCompany => !IsRecruiting;
-
-    public string PageTitle => _recruitment is { } recruitment ? $"Recruit for {recruitment.Company.CompanyName}" : Heading;
-
-    public string ConfirmText => IsRecruiting ? "HIRE RECRUITS" : "START COMPANY";
 
     /// <summary>Whether the company draws units from a second faction slot.</summary>
     public virtual bool ShowRightSlot => false;
@@ -192,14 +214,6 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
     public bool IsUnitFilterOpen => UnitFilterRequest is not null;
 
-    /// <summary>On compact screens the faction picker is a full-screen overlay while the strip is open.</summary>
-    public bool IsFactionOverlayOpen => IsCompact && ShowFactionStrip;
-
-    public bool ShowsUnitsPane => Layout.ShowsUnits(ActivePane);
-    public bool ShowsRightPane => Layout.ShowsRightPane(ActivePane);
-    public bool ShowsDetailPane => Layout.ShowsDetail(ActivePane);
-    public bool ShowsCompanyPane => Layout.ShowsCompany(ActivePane);
-    public string RightPaneRows => Layout.RightPaneRows(ActivePane);
     public bool IsUnitsPaneActive => ActivePane == CompanySelectionPane.Units;
     public bool IsProfilePaneActive => ActivePane == CompanySelectionPane.Profile;
     public bool IsCompanyPaneActive => ActivePane == CompanySelectionPane.Company;
@@ -225,9 +239,22 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     protected int PointsRemaining =>
         CompanySelectionVisibilityWorkflow.ComputePointsRemaining(SelectedStartSeasonPoints, SeasonPointsCapText);
 
-    protected override void OnLayoutApplied() => OnPropertiesChanged(
-        nameof(IsFactionOverlayOpen), nameof(ShowsUnitsPane), nameof(ShowsRightPane), nameof(ShowsDetailPane),
-        nameof(ShowsCompanyPane), nameof(RightPaneRows));
+    protected override void OnLayoutApplied() => ShowPanes();
+
+    partial void OnActivePaneChanged(CompanySelectionPane value) => ShowPanes();
+
+    partial void OnShowFactionStripChanged(bool value) => ShowPanes();
+
+    // Which panes show for the layout, the pane picked on compact screens, and whether the faction picker is open.
+    private void ShowPanes()
+    {
+        IsFactionOverlayOpen = IsCompact && ShowFactionStrip;
+        ShowsUnitsPane = Layout.ShowsUnits(ActivePane);
+        ShowsRightPane = Layout.ShowsRightPane(ActivePane);
+        ShowsDetailPane = Layout.ShowsDetail(ActivePane);
+        ShowsCompanyPane = Layout.ShowsCompany(ActivePane);
+        RightPaneRows = Layout.RightPaneRows(ActivePane);
+    }
 
     /// <summary>
     /// Turns the screen into recruiting for an existing company: its troopers go on the roster (counted for AVA
@@ -237,6 +264,9 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     public void PrepareRecruitment(CompanyRecruitment recruitment)
     {
         _recruitment = recruitment;
+        IsRecruiting = true;
+        PageTitle = $"Recruit for {recruitment.Company.CompanyName}";
+        ConfirmText = "HIRE RECRUITS";
         CompanyName = string.IsNullOrWhiteSpace(recruitment.Company.CompanyName) ? DefaultCompanyName : recruitment.Company.CompanyName;
         _isPreparingRecruitment = true;
         try
@@ -255,8 +285,6 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         {
             _isPreparingRecruitment = false;
         }
-
-        OnPropertiesChanged(nameof(IsRecruiting), nameof(IsFoundingCompany), nameof(PageTitle), nameof(ConfirmText));
     }
 
     /// <summary>Loads the faction list the first time the screen appears; while recruiting, the company's own factions.</summary>

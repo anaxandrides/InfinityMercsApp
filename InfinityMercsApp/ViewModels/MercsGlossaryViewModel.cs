@@ -37,25 +37,40 @@ public partial class MercsGlossaryViewModel(
 
     /// <summary>Whether the rule text replaces the index on narrow screens.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsIndexPaneVisible), nameof(IsDetailPaneVisible))]
     private bool _isShowingDetail;
 
-    public bool IsIndexPaneVisible => Layout.ShowsList(IsShowingDetail);
-    public bool IsDetailPaneVisible => Layout.ShowsDetail(IsShowingDetail);
+    [ObservableProperty]
+    private bool _isIndexPaneVisible = true;
+
+    [ObservableProperty]
+    private bool _isDetailPaneVisible;
 
     /// <summary>
     /// Rules-index text size, scaled to the available width so long titles stay readable and fit inside the
     /// index box. Compact has the full screen width; the medium and wider rail is narrow.
     /// </summary>
-    public double ListFontSize => LayoutMode switch
-    {
-        AdaptiveLayoutMode.Compact => 17d,
-        AdaptiveLayoutMode.Medium => 14d,
-        AdaptiveLayoutMode.Expanded => 15d,
-        _ => 16d
-    };
+    [ObservableProperty]
+    private double _listFontSize = 17d;
 
-    protected override void OnLayoutApplied() => OnPropertiesChanged(nameof(IsIndexPaneVisible), nameof(IsDetailPaneVisible), nameof(ListFontSize));
+    protected override void OnLayoutApplied()
+    {
+        ShowPanes();
+        ListFontSize = LayoutMode switch
+        {
+            AdaptiveLayoutMode.Compact => 17d,
+            AdaptiveLayoutMode.Medium => 14d,
+            AdaptiveLayoutMode.Expanded => 15d,
+            _ => 16d
+        };
+    }
+
+    partial void OnIsShowingDetailChanged(bool value) => ShowPanes();
+
+    private void ShowPanes()
+    {
+        IsIndexPaneVisible = Layout.ShowsList(IsShowingDetail);
+        IsDetailPaneVisible = Layout.ShowsDetail(IsShowingDetail);
+    }
 
     public HtmlWebViewSource ContentSource => new() { Html = SelectedContentHtml };
 

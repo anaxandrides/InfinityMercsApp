@@ -43,15 +43,28 @@ public partial class UnitEncyclopediaViewModel(
     [ObservableProperty] private string _fireteamCoreCount = "-";
     [ObservableProperty] private string _fireteamsStatus = "Select a faction.";
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsFactionsPaneVisible), nameof(IsBrowsePaneVisible), nameof(IsDetailPaneVisible))]
     private BrowseStep _step = BrowseStep.Factions;
 
-    public bool IsFactionsPaneVisible => Layout.Shows(BrowseStep.Factions, Step);
-    public bool IsBrowsePaneVisible => Layout.Shows(BrowseStep.Units, Step);
-    public bool IsDetailPaneVisible => Layout.Shows(BrowseStep.Detail, Step);
+    [ObservableProperty]
+    private bool _isFactionsPaneVisible = true;
 
-    protected override void OnLayoutApplied() =>
-        OnPropertiesChanged(nameof(IsFactionsPaneVisible), nameof(IsBrowsePaneVisible), nameof(IsDetailPaneVisible));
+    [ObservableProperty]
+    private bool _isBrowsePaneVisible;
+
+    [ObservableProperty]
+    private bool _isDetailPaneVisible;
+
+    protected override void OnLayoutApplied() => ShowPanes();
+
+    partial void OnStepChanged(BrowseStep value) => ShowPanes();
+
+    // Which panes show for the layout and the step the user is on.
+    private void ShowPanes()
+    {
+        IsFactionsPaneVisible = Layout.Shows(BrowseStep.Factions, Step);
+        IsBrowsePaneVisible = Layout.Shows(BrowseStep.Units, Step);
+        IsDetailPaneVisible = Layout.Shows(BrowseStep.Detail, Step);
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowFireteamsTab))]

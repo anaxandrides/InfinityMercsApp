@@ -32,16 +32,8 @@ public abstract partial class AdaptiveViewModelBase<TLayout>(
         OnLayoutApplied();
     }
 
-    /// <summary>Override to raise change notifications for properties that combine the layout with other state.</summary>
+    /// <summary>Override to work out again the values that combine the layout with other state.</summary>
     protected virtual void OnLayoutApplied()
     {
-    }
-
-    protected void OnPropertiesChanged(params IEnumerable<string> propertyNames)
-    {
-        foreach (var propertyName in propertyNames)
-        {
-            OnPropertyChanged(propertyName);
-        }
     }
 }

@@ -99,6 +99,7 @@ public sealed class MercsGlossaryViewModelTests
     public async Task ScalesTheIndexTextToTheWidth(AdaptiveLayoutMode mode, double fontSize)
     {
         var viewModel = await OpenAsync();
+        viewModel.ApplyLayoutCommand.Execute(mode == AdaptiveLayoutMode.Wide ? AdaptiveLayoutMode.Compact : AdaptiveLayoutMode.Wide);
         var changed = new List<string?>();
         viewModel.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
 

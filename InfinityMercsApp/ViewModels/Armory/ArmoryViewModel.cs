@@ -27,13 +27,23 @@ public partial class ArmoryViewModel(
 
     /// <summary>Whether the detail pane replaces the list on narrow screens.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsListPaneVisible), nameof(IsDetailPaneVisible))]
     private bool _isShowingDetail;
 
-    public bool IsListPaneVisible => Layout.ShowsList(IsShowingDetail);
-    public bool IsDetailPaneVisible => Layout.ShowsDetail(IsShowingDetail);
+    [ObservableProperty]
+    private bool _isListPaneVisible = true;
 
-    protected override void OnLayoutApplied() => OnPropertiesChanged(nameof(IsListPaneVisible), nameof(IsDetailPaneVisible));
+    [ObservableProperty]
+    private bool _isDetailPaneVisible;
+
+    protected override void OnLayoutApplied() => ShowPanes();
+
+    partial void OnIsShowingDetailChanged(bool value) => ShowPanes();
+
+    private void ShowPanes()
+    {
+        IsListPaneVisible = Layout.ShowsList(IsShowingDetail);
+        IsDetailPaneVisible = Layout.ShowsDetail(IsShowingDetail);
+    }
 
     public string SelectedWeaponName => SelectedWeaponGroup?.Name ?? "Select a weapon";
 
