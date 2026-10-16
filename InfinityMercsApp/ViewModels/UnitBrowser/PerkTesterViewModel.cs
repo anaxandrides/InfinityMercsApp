@@ -122,9 +122,9 @@ public partial class PerkTesterViewModel : UnitEncyclopediaViewModel
     public static string GrantedText(PerkNode? node)
     {
         var parts = (node?.SkillsEquipmentGained ?? [])
-            .Select(gained => (Name: gained.Item1?.Trim(), Extra: gained.Item2?.Trim()))
-            .Where(gained => !string.IsNullOrWhiteSpace(gained.Name))
-            .Select(gained => string.IsNullOrWhiteSpace(gained.Extra) ? gained.Name! : $"{gained.Name} ({gained.Extra})")
+            .Select(gained => (Name: gained.Item1?.Trim() ?? string.Empty, Extra: gained.Item2?.Trim()))
+            .Where(gained => gained.Name.Length > 0)
+            .Select(gained => string.IsNullOrWhiteSpace(gained.Extra) ? gained.Name : $"{gained.Name} ({gained.Extra})")
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 

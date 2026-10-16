@@ -52,8 +52,9 @@ public sealed partial record PerkTable(int TierCount, IReadOnlyList<PerkTableTra
             .Select(group => group.First())
             .ToList();
         var nodesByTrack = nodes
-            .Where(node => PerkPosition.Parse(node.Id) is not null)
-            .GroupBy(node => PerkPosition.Parse(node.Id)!.Track)
+            .Select(node => (Node: node, Position: PerkPosition.Parse(node.Id)))
+            .Where(placed => placed.Position is not null)
+            .GroupBy(placed => placed.Position?.Track ?? 0, placed => placed.Node)
             .OrderBy(group => group.Key)
             .ToList();
         if (nodesByTrack.Count == 0)

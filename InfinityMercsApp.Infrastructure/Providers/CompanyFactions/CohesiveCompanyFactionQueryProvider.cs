@@ -94,12 +94,16 @@ public sealed class CohesiveCompanyFactionQueryProvider(IFactionProvider faction
                 .Where(id => id > 0)
                 .Distinct()
                 .ToList();
-            var lookup = unitIds.ToDictionary(
-                id => id,
-                id => factionProvider.GetUnit(factionId, id));
-            unitLookupByFaction[factionId] = lookup
-                .Where(x => x.Value is not null)
-                .ToDictionary(x => x.Key, x => x.Value!);
+            var lookup = new Dictionary<int, Unit>();
+            foreach (var id in unitIds)
+            {
+                if (factionProvider.GetUnit(factionId, id) is { } unit)
+                {
+                    lookup[id] = unit;
+                }
+            }
+
+            unitLookupByFaction[factionId] = lookup;
         }
 
         var mergedByUnitName = new Dictionary<string, MutableMercsArmyListEntry>(StringComparer.OrdinalIgnoreCase);

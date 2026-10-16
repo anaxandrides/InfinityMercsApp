@@ -92,5 +92,5 @@ public sealed class WikiBlocksView : ContentView
         return row;
     }
 
-    private static Style LabelStyle(string key) => (Style)Application.Current!.Resources[key];
+    private static Style LabelStyle(string key) => AppStyles.Named(key);
 }

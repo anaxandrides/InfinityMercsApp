@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using DomainFaction = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using DomainArmyImportResume = InfinityMercsApp.Domain.Models.Army.ArmyImportResume;
 using DomainResume = InfinityMercsApp.Domain.Models.Army.Resume;
@@ -195,7 +196,7 @@ public class FactionLogoCacheService
 
         if (IsPackagedAssetPath(logoUrl))
         {
-            var copied = await TryCopyPackagedAssetAsync(logoUrl!, localPath, cancellationToken);
+            var copied = await TryCopyPackagedAssetAsync(logoUrl, localPath, cancellationToken);
             return copied ? EnsureResult.Downloaded : EnsureResult.NotAvailable;
         }
 
@@ -204,7 +205,7 @@ public class FactionLogoCacheService
             return EnsureResult.NotAvailable;
         }
 
-        var downloaded = await TryDownloadRemoteAssetAsync(logoUrl!, localPath, cancellationToken);
+        var downloaded = await TryDownloadRemoteAssetAsync(logoUrl, localPath, cancellationToken);
         if (downloaded)
         {
             return EnsureResult.Downloaded;
@@ -245,7 +246,7 @@ public class FactionLogoCacheService
 
         if (IsPackagedAssetPath(logoUrl))
         {
-            var copied = await TryCopyPackagedAssetAsync(logoUrl!, localPath, cancellationToken);
+            var copied = await TryCopyPackagedAssetAsync(logoUrl, localPath, cancellationToken);
             return copied ? EnsureResult.Downloaded : EnsureResult.NotAvailable;
         }
 
@@ -254,17 +255,17 @@ public class FactionLogoCacheService
             return EnsureResult.NotAvailable;
         }
 
-        var downloaded = await TryDownloadRemoteAssetAsync(logoUrl!, localPath, cancellationToken);
+        var downloaded = await TryDownloadRemoteAssetAsync(logoUrl, localPath, cancellationToken);
         return downloaded ? EnsureResult.Downloaded : EnsureResult.NotAvailable;
     }
 
-    private static bool IsPackagedAssetPath(string? url)
+    private static bool IsPackagedAssetPath([NotNullWhen(true)] string? url)
     {
         return !string.IsNullOrWhiteSpace(url)
             && url.StartsWith(PackagedCacheRoot + "/", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static bool IsDownloadableUrl(string? url)
+    private static bool IsDownloadableUrl([NotNullWhen(true)] string? url)
     {
         return !string.IsNullOrWhiteSpace(url)
             && Uri.TryCreate(url, UriKind.Absolute, out var uri)

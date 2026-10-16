@@ -411,12 +411,14 @@ public partial class UnitEncyclopediaViewModel(
         FireteamCoreCount = fireteamChart.SpecDisplay(FireteamType.Core);
 
         var allowedSlugs = unitSlugs
+            .OfType<string>()
             .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Select(x => x!.Trim())
+            .Select(x => x.Trim())
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var allowedNames = unitNames
+            .OfType<string>()
             .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Select(x => UnitDetailText.NormalizeFireteamUnitName(x!.Trim()))
+            .Select(x => UnitDetailText.NormalizeFireteamUnitName(x.Trim()))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         foreach (var team in UnitDetailText.FireteamTeams(chart, MercsOnlyUnits, allowedSlugs, allowedNames))

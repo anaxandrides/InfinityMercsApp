@@ -38,7 +38,15 @@ internal sealed class JsonScalarConverter : JsonConverter<JsonScalar>
         switch (value.Kind)
         {
             case JsonScalarKind.Number:
-                writer.WriteRawValue(value.Text!);
+                if (value.Text is { } number)
+                {
+                    writer.WriteRawValue(number);
+                }
+                else
+                {
+                    writer.WriteNullValue();
+                }
+
                 break;
             case JsonScalarKind.String:
                 writer.WriteStringValue(value.Text);

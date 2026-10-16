@@ -148,9 +148,11 @@ public sealed class TestCompanyReformer(
         DebugSavedCompanyFile source)
     {
         var sourcePeripheralByParentIndex = source.Entries
-            .Where(x => x.IsPeripheralUnit && x.ParentEntryIndex.HasValue)
-            .GroupBy(x => x.ParentEntryIndex!.Value)
-            .ToDictionary(g => g.Key, g => g.First());
+            .Where(x => x.IsPeripheralUnit)
+            .Select(x => (Entry: x, Parent: x.ParentEntryIndex))
+            .Where(x => x.Parent.HasValue)
+            .GroupBy(x => x.Parent.GetValueOrDefault())
+            .ToDictionary(g => g.Key, g => g.First().Entry);
 
         var primaryEntries = source.Entries
             .Where(x => !x.IsPeripheralUnit)

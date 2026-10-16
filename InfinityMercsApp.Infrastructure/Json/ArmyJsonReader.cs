@@ -373,7 +373,7 @@ public sealed class ArmyJsonReader : IArmyJsonReader
             dto.Min.AsInvariantInt32(),
             dto.Max.AsInvariantInt32(),
             dto.Group.AsBool(),
-            dto.Units?.Where(unit => unit?.Unit is not null).Select(unit => unit.Unit!.Value).ToList() ?? [])).ToList() ?? [];
+            dto.Units?.Select(unit => unit?.Unit).OfType<int>().ToList() ?? [])).ToList() ?? [];
 
     internal static SpecopsCatalog MapSpecops(SpecopsDto? dto)
     {
@@ -388,18 +388,22 @@ public sealed class ArmyJsonReader : IArmyJsonReader
             Equip = MapChoices(dto.Equip),
             Weapons = MapChoices(dto.Weapons),
             // A spec-ops unit without an id cannot be stored or looked up.
-            Units = dto.Units?.Where(unit => unit?.Id is not null).Select(unit => MapUnit(unit, unit.Id!.Value)).ToList() ?? []
+            Units = dto.Units?.Select(unit => unit is { Id: int id } ? MapUnit(unit, id) : null).OfType<ArmyUnitDefinition>().ToList() ?? []
         };
     }
 
     private static IReadOnlyList<SpecopsChoice>? MapChoices(List<SpecopsChoiceDto>? dtos) =>
-        dtos?.Where(dto => dto?.Id is not null).Select(dto => new SpecopsChoice(
-            dto.Id!.Value,
-            dto.Exp.AsInvariantInt32() ?? 0,
-            dto.Extras ?? [],
-            MapLinks(dto.Skills),
-            MapLinks(dto.Equip),
-            MapLinks(dto.Weapons))).ToList();
+        dtos?.Select(dto => dto is { Id: int id }
+                ? new SpecopsChoice(
+                    id,
+                    dto.Exp.AsInvariantInt32() ?? 0,
+                    dto.Extras ?? [],
+                    MapLinks(dto.Skills),
+                    MapLinks(dto.Equip),
+                    MapLinks(dto.Weapons))
+                : null)
+            .OfType<SpecopsChoice>()
+            .ToList();
 
     private static IReadOnlyList<SpecopsLink> MapLinks(List<SpecopsLinkDto>? dtos) =>
         dtos?.Select(link => new SpecopsLink(link.Id, link.Extras)).ToList() ?? [];
@@ -544,8 +548,8 @@ public sealed class ArmyJsonReader : IArmyJsonReader
         Disabled = dto.Disabled.AsBool() ?? false,
         Orders = dto.Orders?.Select(order => new OrderEntry(order.Type, order.List.AsInt32(), order.Total.AsInt32())).ToList() ?? [],
         Includes = dto.Includes?
-            .Where(include => include.Group.HasValue && include.Option.HasValue)
-            .Select(include => new IncludeReference(include.Group!.Value, include.Option!.Value))
+            .Select(include => include is { Group: int group, Option: int option } ? new IncludeReference(group, option) : null)
+            .OfType<IncludeReference>()
             .ToList() ?? [],
         Chars = MapEntries(dto.Chars),
         Skills = MapEntries(dto.Skills),
@@ -576,7 +580,7 @@ public sealed class ArmyJsonReader : IArmyJsonReader
             int? order = entry.Order.TryGetNumberInt32(out var parsedOrder) ? parsedOrder : null;
             IReadOnlyList<int> extras = entry.Extra is null
                 ? []
-                : entry.Extra.Where(x => x.HasValue).Select(x => x!.Value).ToList();
+                : entry.Extra.OfType<int>().ToList();
             mapped.Add(new ProfileEntry(entry.Id, quantity, order, extras));
         }
 
@@ -623,8 +627,8 @@ public sealed class ArmyJsonReader : IArmyJsonReader
         {
             var parts = dto.Move.Items
                 .Select(part => part.AsInt32())
-                .Where(part => part.HasValue)
-                .Select(part => part!.Value.ToString())
+                .OfType<int>()
+                .Select(part => part.ToString())
                 .ToList();
             if (parts.Count > 0)
             {
@@ -671,7 +675,7 @@ public sealed class ArmyJsonReader : IArmyJsonReader
         {
             if (dto.Move.Items is not null)
             {
-                return dto.Move.Items.Select(x => x.AsInvariantInt32()).Where(x => x.HasValue).Select(x => x!.Value).ToList();
+                return dto.Move.Items.Select(x => x.AsInvariantInt32()).OfType<int>().ToList();
             }
 
             return dto.Move.Text is not null ? SplitMoveText(dto.Move.Text) : [];
@@ -693,8 +697,7 @@ public sealed class ArmyJsonReader : IArmyJsonReader
                     JsonValueKind.String when int.TryParse(item.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) => parsed,
                     _ => null
                 })
-                .Where(x => x.HasValue)
-                .Select(x => x!.Value)
+                .OfType<int>()
                 .ToList(),
             _ => []
         };
@@ -703,8 +706,7 @@ public sealed class ArmyJsonReader : IArmyJsonReader
     private static List<int> SplitMoveText(string text) =>
         text.Split('-', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
             .Select(x => int.TryParse(x, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) ? (int?)parsed : null)
-            .Where(x => x.HasValue)
-            .Select(x => x!.Value)
+            .OfType<int>()
             .ToList();
 
     /// <summary>An undeclared property by exact name, else the first one whose name matches ignoring case.</summary>

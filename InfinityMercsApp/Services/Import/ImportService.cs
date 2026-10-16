@@ -205,9 +205,12 @@ internal class ImportService(
 
         foreach (var result in queuedForSerialImport)
         {
+            if (result is not { Version: { } latestVersion, Army: { } latestArmy })
+            {
+                continue;
+            }
+
             var factionId = result.Faction.Id;
-            var latestVersion = result.Version!;
-            var latestArmy = result.Army!;
 
             var snapshot = factionProvider.GetFactionSnapshot(factionId);
             var storedVersion = snapshot?.Version;

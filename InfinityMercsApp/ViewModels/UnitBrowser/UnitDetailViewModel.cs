@@ -348,7 +348,7 @@ public partial class UnitDetailViewModel(
             {
                 var equip = entryNames.InApiOrder(profile.Equip, _equipmentLookup).Select(x => x.Name);
                 var skills = entryNames.InApiOrder(profile.Skills, _skillsLookup).Select(x => x.Name);
-                if (commonEquip is null)
+                if (commonEquip is null || commonSkills is null)
                 {
                     commonEquip = new HashSet<string>(equip, StringComparer.OrdinalIgnoreCase);
                     commonSkills = new HashSet<string>(skills, StringComparer.OrdinalIgnoreCase);
@@ -356,7 +356,7 @@ public partial class UnitDetailViewModel(
                 else
                 {
                     commonEquip.IntersectWith(equip);
-                    commonSkills!.IntersectWith(skills);
+                    commonSkills.IntersectWith(skills);
                 }
             }
 

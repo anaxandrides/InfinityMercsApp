@@ -72,8 +72,7 @@ public static class NavigationParameters
             string text => text
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(part => int.TryParse(part.Trim(), out var n) ? n : (int?)null)
-                .Where(n => n.HasValue)
-                .Select(n => n!.Value)
+                .OfType<int>()
                 .ToHashSet(),
             IEnumerable items => items.OfType<int>().ToHashSet(),
             _ => null

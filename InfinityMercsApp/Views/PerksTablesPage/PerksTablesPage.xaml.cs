@@ -186,7 +186,7 @@ public partial class PerksTablesPage : AdaptiveContentPage
             Content = new Label
             {
                 Text = text,
-                Style = (Style)Application.Current!.Resources["LabelBody"],
+                Style = AppStyles.Named("LabelBody"),
                 LineBreakMode = LineBreakMode.WordWrap,
                 VerticalTextAlignment = TextAlignment.Center,
                 HorizontalTextAlignment = TextAlignment.Center,

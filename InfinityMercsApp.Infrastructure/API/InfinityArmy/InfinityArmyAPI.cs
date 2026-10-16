@@ -186,8 +186,8 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
     private static WeaponDistance? MapDistance(Dictionary<string, Models.API.Metadata.WeaponDistanceBand?>? distance)
     {
         var bands = distance?
-            .Where(band => band.Value is not null)
-            .Select(band => new WeaponDistanceBand { Name = band.Key, Max = band.Value!.Max, Mod = band.Value.Mod ?? "0" })
+            .Select(band => band.Value is { } value ? new WeaponDistanceBand { Name = band.Key, Max = value.Max, Mod = value.Mod ?? "0" } : null)
+            .OfType<WeaponDistanceBand>()
             .ToList();
         return bands is null || bands.Count == 0 ? null : new WeaponDistance { Bands = bands };
     }

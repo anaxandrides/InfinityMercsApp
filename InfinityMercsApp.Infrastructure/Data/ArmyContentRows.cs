@@ -199,13 +199,13 @@ public sealed class ArmyContentRows
         {
             var ordered = section.Where(row => row.Position >= 0).OrderBy(row => row.Position).ToList();
             sections[section.Key.Section] = ordered
-                .Where(row => row.ItemId is not null)
-                .Select(row => new ArmyFilterItem(row.ItemId!.Value, row.Name, row.Type, row.Url) { Mercs = row.Mercs, SpecOps = row.SpecOps })
+                .Select(row => row.ItemId is int itemId ? new ArmyFilterItem(itemId, row.Name, row.Type, row.Url) { Mercs = row.Mercs, SpecOps = row.SpecOps } : null)
+                .OfType<ArmyFilterItem>()
                 .ToList();
 
             var keyed = ordered
-                .Where(row => row.ItemId is null && row.ItemKey is not null)
-                .Select(row => new ArmyFilterKeyedItem(row.ItemKey!, row.Name, row.Abbr, row.Min, row.Max))
+                .Select(row => row is { ItemId: null, ItemKey: { } key } ? new ArmyFilterKeyedItem(key, row.Name, row.Abbr, row.Min, row.Max) : null)
+                .OfType<ArmyFilterKeyedItem>()
                 .ToList();
             if (keyed.Count > 0)
             {

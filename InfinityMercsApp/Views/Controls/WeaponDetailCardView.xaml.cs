@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Metadata.Wiki;
@@ -175,7 +176,7 @@ public partial class WeaponDetailCardView : ContentView
                 Text = weapon.Mode,
                 TextColor = Color.FromArgb("#E6EBF2"),
                 FontAttributes = FontAttributes.Bold,
-                Style = (Style)Application.Current!.Resources["LabelBody"],
+                Style = AppStyles.Named("LabelBody"),
                 Margin = new Thickness(0, 0, 0, 4)
             });
         }
@@ -192,7 +193,7 @@ public partial class WeaponDetailCardView : ContentView
             ContentStack.Children.Add(new Label
             {
                 Text = "SPECIAL RULES",
-                Style = (Style)Application.Current!.Resources["LabelCaption"],
+                Style = AppStyles.Named("LabelCaption"),
                 FontAttributes = FontAttributes.Bold,
                 TextColor = Color.FromArgb("#8A97A8"),
                 Margin = new Thickness(0, 6, 0, 2)
@@ -212,7 +213,7 @@ public partial class WeaponDetailCardView : ContentView
                 var label = new Label
                 {
                     Text = prop,
-                    Style = (Style)Application.Current!.Resources["LabelBody"],
+                    Style = AppStyles.Named("LabelBody"),
                     TextColor = Color.FromArgb("#34D399"),
                     TextDecorations = TextDecorations.Underline,
                     LineBreakMode = LineBreakMode.WordWrap
@@ -253,7 +254,7 @@ public partial class WeaponDetailCardView : ContentView
             Text = DisplayName,
             TextColor = Color.FromArgb("#E6EBF2"),
             FontAttributes = FontAttributes.Bold,
-            Style = (Style)Application.Current!.Resources["LabelCaption"],
+            Style = AppStyles.Named("LabelCaption"),
             VerticalTextAlignment = TextAlignment.Center,
             LineBreakMode = LineBreakMode.TailTruncation
         };
@@ -264,7 +265,7 @@ public partial class WeaponDetailCardView : ContentView
 
         if (!IsDash(weapon.Burst))
         {
-            var burst = weapon.Burst!;
+            var burst = weapon.Burst;
             if (BurstBonus > 0 && int.TryParse(burst.Trim(), out var bv))
                 burst = (bv + BurstBonus).ToString();
             rightStack.Children.Add(BuildStatChip("B", burst));
@@ -272,10 +273,10 @@ public partial class WeaponDetailCardView : ContentView
 
         var damageDisplay = ApplyDamageReduction(weapon.Damage, DamageReduction);
         if (!IsDash(damageDisplay))
-            rightStack.Children.Add(BuildStatChip("DAM", damageDisplay!));
+            rightStack.Children.Add(BuildStatChip("DAM", damageDisplay));
 
         if (!string.IsNullOrWhiteSpace(AmmoType))
-            rightStack.Children.Add(BuildAmmoPill(AmmoType!));
+            rightStack.Children.Add(BuildAmmoPill(AmmoType));
 
         rightStack.Children.Add(new Label
         {
@@ -314,14 +315,14 @@ public partial class WeaponDetailCardView : ContentView
         inner.Children.Add(new Label
         {
             Text = label,
-            Style = (Style)Application.Current!.Resources["LabelCaption"],
+            Style = AppStyles.Named("LabelCaption"),
             TextColor = Color.FromArgb("#8A97A8"),
             VerticalTextAlignment = TextAlignment.Center
         });
         inner.Children.Add(new Label
         {
             Text = value,
-            Style = (Style)Application.Current!.Resources["LabelCaption"],
+            Style = AppStyles.Named("LabelCaption"),
             FontAttributes = FontAttributes.Bold,
             TextColor = Color.FromArgb("#E6EBF2"),
             VerticalTextAlignment = TextAlignment.Center
@@ -355,7 +356,7 @@ public partial class WeaponDetailCardView : ContentView
         border.Content = new Label
         {
             Text = ammo,
-            Style = (Style)Application.Current!.Resources["LabelCaption"],
+            Style = AppStyles.Named("LabelCaption"),
             FontAttributes = FontAttributes.Bold,
             TextColor = Color.FromArgb("#F59E0B"),
             VerticalTextAlignment = TextAlignment.Center
@@ -370,16 +371,16 @@ public partial class WeaponDetailCardView : ContentView
 
         if (!IsDash(weapon.Burst))
         {
-            var burst = weapon.Burst!;
+            var burst = weapon.Burst;
             if (burstBonus > 0 && int.TryParse(burst.Trim(), out var bv))
                 burst = (bv + burstBonus).ToString();
             leftStats.Add(new CardStat("Burst", burst));
         }
         var damageDisplay = ApplyDamageReduction(weapon.Damage, damageReduction);
-        if (!IsDash(damageDisplay)) leftStats.Add(new CardStat("Damage", damageDisplay!));
-        if (!string.IsNullOrWhiteSpace(ammoType)) leftStats.Add(new CardStat("Ammo", ammoType!));
-        if (!IsDash(weapon.Saving)) rightStats.Add(new CardStat("Saving", weapon.Saving!));
-        if (!IsDash(weapon.SavingNum)) rightStats.Add(new CardStat("Saving Rolls", weapon.SavingNum!));
+        if (!IsDash(damageDisplay)) leftStats.Add(new CardStat("Damage", damageDisplay));
+        if (!string.IsNullOrWhiteSpace(ammoType)) leftStats.Add(new CardStat("Ammo", ammoType));
+        if (!IsDash(weapon.Saving)) rightStats.Add(new CardStat("Saving", weapon.Saving));
+        if (!IsDash(weapon.SavingNum)) rightStats.Add(new CardStat("Saving Rolls", weapon.SavingNum));
 
         if (leftStats.Count == 0 && rightStats.Count == 0)
             return null;
@@ -423,7 +424,7 @@ public partial class WeaponDetailCardView : ContentView
         row.Children.Add(new Label
         {
             Text = label,
-            Style = (Style)Application.Current!.Resources["LabelCaption"],
+            Style = AppStyles.Named("LabelCaption"),
             TextColor = Color.FromArgb("#8A97A8"),
             VerticalTextAlignment = TextAlignment.Center,
             Margin = new Thickness(0, 0, 6, 0)
@@ -432,7 +433,7 @@ public partial class WeaponDetailCardView : ContentView
         var valueLabel = new Label
         {
             Text = value,
-            Style = (Style)Application.Current!.Resources["LabelCaption"],
+            Style = AppStyles.Named("LabelCaption"),
             FontAttributes = FontAttributes.Bold,
             TextColor = Color.FromArgb("#E6EBF2"),
             VerticalTextAlignment = TextAlignment.Center,
@@ -453,12 +454,12 @@ public partial class WeaponDetailCardView : ContentView
     private static string? ApplyDamageReduction(string? damage, int reduction)
     {
         if (reduction <= 0 || IsDash(damage)) return damage;
-        if (int.TryParse(damage!.Trim(), out var val))
+        if (int.TryParse(damage.Trim(), out var val))
             return Math.Max(1, val - reduction).ToString();
         return damage;
     }
 
-    private static bool IsDash(string? v) =>
+    private static bool IsDash([NotNullWhen(false)] string? v) =>
         string.IsNullOrWhiteSpace(v) || v.Trim() == "-";
 
     private static async Task OpenLinkAsync(string url)

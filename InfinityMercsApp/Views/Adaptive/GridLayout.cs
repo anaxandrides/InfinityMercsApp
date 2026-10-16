@@ -42,17 +42,19 @@ public static class GridLayout
 
     private static void OnColumnsChanged(BindableObject grid, object? oldValue, object? newValue)
     {
-        if (grid is Grid target && newValue is string columns)
+        if (grid is Grid target && newValue is string columns &&
+            ColumnsConverter.ConvertFromInvariantString(columns) is ColumnDefinitionCollection definitions)
         {
-            target.ColumnDefinitions = (ColumnDefinitionCollection)ColumnsConverter.ConvertFromInvariantString(columns)!;
+            target.ColumnDefinitions = definitions;
         }
     }
 
     private static void OnRowsChanged(BindableObject grid, object? oldValue, object? newValue)
     {
-        if (grid is Grid target && newValue is string rows)
+        if (grid is Grid target && newValue is string rows &&
+            RowsConverter.ConvertFromInvariantString(rows) is RowDefinitionCollection definitions)
         {
-            target.RowDefinitions = (RowDefinitionCollection)RowsConverter.ConvertFromInvariantString(rows)!;
+            target.RowDefinitions = definitions;
         }
     }
 }

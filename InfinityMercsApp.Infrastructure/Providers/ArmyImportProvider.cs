@@ -166,9 +166,14 @@ public class ArmyImportProvider(ISQLiteRepository sqliteRepository, IArmyContent
         Func<string, int, SpecopsChoice, TRow> createRow)
     {
         var rows = new List<TRow>();
-        for (var entryOrder = 0; entryOrder < (choices?.Count ?? 0); entryOrder++)
+        if (choices is null)
         {
-            var choice = choices![entryOrder];
+            return rows;
+        }
+
+        for (var entryOrder = 0; entryOrder < choices.Count; entryOrder++)
+        {
+            var choice = choices[entryOrder];
             var key = $"{factionId}:{entryOrder}:{choice.Id}:{choice.Exp}";
             rows.Add(createRow(key, entryOrder, choice));
             links.Add(factionId, key, SpecopsChoiceLinks.From(choice));

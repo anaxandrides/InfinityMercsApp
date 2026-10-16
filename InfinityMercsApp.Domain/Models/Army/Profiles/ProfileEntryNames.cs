@@ -46,8 +46,8 @@ public sealed class ProfileEntryNames
     public List<string> OrderedUnique(IEnumerable<ProfileEntry> entries, IReadOnlyDictionary<int, string> lookup) =>
         entries
             .Select(entry => DisplayName(entry, lookup))
+            .OfType<string>()
             .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Select(x => x!)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -145,7 +145,7 @@ public sealed class ProfileEntryNames
     /// Display names with their ids in API order (entries without an order last, then by name). Not de-duplicated.
     /// </summary>
     public List<NamedEntry> InApiOrder(IEnumerable<ProfileEntry> entries, IReadOnlyDictionary<int, string> lookup) =>
-        InApiOrder(entries, entry => DisplayName(entry, lookup)!);
+        InApiOrder(entries, (entry, _) => DisplayName(entry, lookup) ?? string.Empty);
 
     /// <summary>
     /// Display names with summed quantities (e.g. <c>"Drone (2)"</c>) and the id of the first entry of each,
@@ -176,13 +176,13 @@ public sealed class ProfileEntryNames
     /// Plain looked-up names (the id itself when unknown, no extras) with their ids, in API order.
     /// </summary>
     public static List<NamedEntry> PlainNamesInApiOrder(IEnumerable<ProfileEntry> entries, IReadOnlyDictionary<int, string> lookup) =>
-        InApiOrder(entries, entry => lookup.TryGetValue(entry.Id!.Value, out var name) ? name : entry.Id!.Value.ToString());
+        InApiOrder(entries, (_, id) => lookup.TryGetValue(id, out var name) ? name : id.ToString());
 
     // Entries with an id, by API order and then by name (entries without an order sort last).
-    private static List<NamedEntry> InApiOrder(IEnumerable<ProfileEntry> entries, Func<ProfileEntry, string> nameOf) =>
+    private static List<NamedEntry> InApiOrder(IEnumerable<ProfileEntry> entries, Func<ProfileEntry, int, string> nameOf) =>
         entries
-            .Where(entry => entry.Id.HasValue)
-            .Select(entry => new { entry.SortOrder, Entry = new NamedEntry(entry.Id!.Value, nameOf(entry)) })
+            .Select(entry => entry.Id is int id ? new OrderedEntry(entry.SortOrder, new NamedEntry(id, nameOf(entry, id))) : null)
+            .OfType<OrderedEntry>()
             .OrderBy(x => x.SortOrder)
             .ThenBy(x => x.Entry.Name, StringComparer.OrdinalIgnoreCase)
             .Select(x => x.Entry)
@@ -190,4 +190,6 @@ public sealed class ProfileEntryNames
 
     private string FormatExtra(ExtraDefinition definition) =>
         definition.IsDistance ? DistanceText.Convert(definition.Name, _showUnitsInInches) : definition.Name;
+
+    private sealed record OrderedEntry(int SortOrder, NamedEntry Entry);
 }

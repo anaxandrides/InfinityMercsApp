@@ -43,9 +43,9 @@ public sealed record MarketplaceDetail(string Title, IReadOnlyList<DetailRow> Ro
     public static MarketplaceDetail For(AugmentRow augment)
     {
         List<DetailRow> rows = [new("Cost", augment.CostDisplay)];
-        if (augment.HasRequirement)
+        if (augment.HasRequirement && augment.Requirement is { } requirement)
         {
-            rows.Add(new("Requires", augment.Requirement!));
+            rows.Add(new("Requires", requirement));
         }
 
         if (!string.IsNullOrWhiteSpace(augment.CostNote))

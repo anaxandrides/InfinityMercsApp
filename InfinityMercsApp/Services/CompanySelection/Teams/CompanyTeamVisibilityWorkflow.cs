@@ -36,8 +36,8 @@ internal static class CompanyTeamVisibilityWorkflow
         var visibleUnitSlugs = new HashSet<string>(
             visibleUnits
                 .Select(x => readUnitSlug(x)?.Trim())
-                .Where(x => !string.IsNullOrWhiteSpace(x))!
-                .Select(x => x!),
+                .OfType<string>()
+                .Where(x => x.Length > 0),
             StringComparer.OrdinalIgnoreCase);
         var visibleNormalizedNames = visibleUnits
             .Select(x => FireteamMatching.NormalizeTeamUnitName(readUnitName(x)))
