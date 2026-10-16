@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views.Season.Downtime"
              xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
              xmlns:downtime="clr-namespace:InfinityMercsApp.ViewModels.Season.Downtime"
              xmlns:downtimeItems="clr-namespace:InfinityMercsApp.ViewModels.Season.Downtime.Items"
              xmlns:outcomes="clr-namespace:InfinityMercsApp.Domain.Season.Downtime;assembly=InfinityMercsApp.Domain"
              xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
              x:Class="InfinityMercsApp.Views.Season.Downtime.DowntimePage"
+             x:Name="DowntimePageRoot"
              x:DataType="downtime:DowntimeViewModel"
              Title="Downtime"
              BackgroundColor="{StaticResource Void}">
@@ -88,13 +90,13 @@
                                 <Border Style="{StaticResource Card}" Padding="12,10">
                                     <Border.Triggers>
                                         <DataTrigger TargetType="Border"
-                                                     Binding="{Binding IsEventListClosed, Source={RelativeSource AncestorType={x:Type downtime:DowntimeViewModel}}, x:DataType=downtime:DowntimeViewModel}"
+                                                     Binding="{Binding ViewModel.IsEventListClosed, Source={x:Reference DowntimePageRoot}, x:DataType=view:DowntimePage}"
                                                      Value="True">
                                             <Setter Property="Opacity" Value="0.35" />
                                         </DataTrigger>
                                     </Border.Triggers>
                                     <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding PickEventCommand, Source={RelativeSource AncestorType={x:Type downtime:DowntimeViewModel}}, x:DataType=downtime:DowntimeViewModel}"
+                                        <TapGestureRecognizer Command="{Binding ViewModel.PickEventCommand, Source={x:Reference DowntimePageRoot}, x:DataType=view:DowntimePage}"
                                                               CommandParameter="{Binding .}" />
                                     </Border.GestureRecognizers>
                                     <Label Text="{Binding Text}" TextColor="#E6EBF2" FontSize="13" LineBreakMode="WordWrap" />
@@ -126,7 +128,7 @@
                                     <Button Text="PICK"
                                             Style="{StaticResource ActionButton}"
                                             Margin="0,4,0,0"
-                                            Command="{Binding PickChoiceCommand, Source={RelativeSource AncestorType={x:Type downtime:DowntimeViewModel}}, x:DataType=downtime:DowntimeViewModel}"
+                                            Command="{Binding ViewModel.PickChoiceCommand, Source={x:Reference DowntimePageRoot}, x:DataType=view:DowntimePage}"
                                             CommandParameter="{Binding .}" />
                                 </VerticalStackLayout>
                             </Border>
@@ -161,7 +163,7 @@
                                         </DataTrigger>
                                     </Border.Triggers>
                                     <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding PickParticipantCommand, Source={RelativeSource AncestorType={x:Type downtime:DowntimeViewModel}}, x:DataType=downtime:DowntimeViewModel}"
+                                        <TapGestureRecognizer Command="{Binding ViewModel.PickParticipantCommand, Source={x:Reference DowntimePageRoot}, x:DataType=view:DowntimePage}"
                                                               CommandParameter="{Binding .}" />
                                     </Border.GestureRecognizers>
                                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">

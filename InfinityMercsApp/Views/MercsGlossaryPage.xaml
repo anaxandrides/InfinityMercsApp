@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views"
              xmlns:glossary="clr-namespace:InfinityMercsApp.Services.Glossary;assembly=InfinityMercsApp.Services"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
@@ -56,7 +57,7 @@
                                        Text="{Binding Title}"
                                        VerticalTextAlignment="Center"
                                        LineBreakMode="WordWrap"
-                                       FontSize="{Binding ListFontSize, Source={RelativeSource AncestorType={x:Type viewModels:MercsGlossaryViewModel}}, x:DataType=viewModels:MercsGlossaryViewModel}">
+                                       FontSize="{Binding ViewModel.ListFontSize, Source={x:Reference MercsGlossaryRoot}, x:DataType=view:MercsGlossaryPage}">
                                     <Label.Triggers>
                                         <DataTrigger TargetType="Label" Binding="{Binding IsHeader}" Value="True">
                                             <Setter Property="FontAttributes" Value="Bold" />

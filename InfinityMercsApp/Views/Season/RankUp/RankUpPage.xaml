@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views.Season.RankUp"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:rankUp="clr-namespace:InfinityMercsApp.ViewModels.Season.RankUp"
              xmlns:rankUpItems="clr-namespace:InfinityMercsApp.ViewModels.Season.RankUp.Items"
              xmlns:viewerItems="clr-namespace:InfinityMercsApp.ViewModels.Company.Viewer.Items"
              xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
              x:Class="InfinityMercsApp.Views.Season.RankUp.RankUpPage"
+             x:Name="RankUpPageRoot"
              x:DataType="rankUp:RankUpViewModel"
              Title="RANK UP"
              BackgroundColor="{StaticResource Void}">
@@ -41,7 +43,7 @@
                     <DataTemplate x:DataType="viewerItems:CompanyViewerUnitListItem">
                         <controls:CompanyViewerUnitTileView
                             SelectedStroke="{Binding SelectionAccentColor}"
-                            ItemTappedCommand="{Binding SelectTrooperCommand, Source={RelativeSource AncestorType={x:Type rankUp:RankUpViewModel}}, x:DataType=rankUp:RankUpViewModel}" />
+                            ItemTappedCommand="{Binding ViewModel.SelectTrooperCommand, Source={x:Reference RankUpPageRoot}, x:DataType=view:RankUpPage}" />
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
             </HorizontalStackLayout>
@@ -87,7 +89,7 @@
                                 <DataTemplate x:DataType="rankUpItems:PerkListChoice">
                                     <Button Text="{Binding Name}"
                                             Style="{StaticResource ModeButton}"
-                                            Command="{Binding RollTrackCommand, Source={RelativeSource AncestorType={x:Type rankUp:RankUpViewModel}}, x:DataType=rankUp:RankUpViewModel}"
+                                            Command="{Binding ViewModel.RollTrackCommand, Source={x:Reference RankUpPageRoot}, x:DataType=view:RankUpPage}"
                                             CommandParameter="{Binding .}" />
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
@@ -100,7 +102,7 @@
                             <DataTemplate x:DataType="rankUpItems:PerkOption">
                                 <Border BackgroundColor="{StaticResource Plate}" Stroke="{StaticResource HairlineBright}" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="12,8">
                                     <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding TakePerkCommand, Source={RelativeSource AncestorType={x:Type rankUp:RankUpViewModel}}, x:DataType=rankUp:RankUpViewModel}"
+                                        <TapGestureRecognizer Command="{Binding ViewModel.TakePerkCommand, Source={x:Reference RankUpPageRoot}, x:DataType=view:RankUpPage}"
                                                               CommandParameter="{Binding .}" />
                                     </Border.GestureRecognizers>
                                     <VerticalStackLayout Spacing="2">

@@ -1,3 +1,5 @@
+using InfinityMercsApp.ViewModels.Components.UnitFilter;
+
 namespace InfinityMercsApp.Views.Controls.UnitFilter;
 
 /// <summary>The unit filter popup; its BindingContext is the host's <c>UnitFilterViewModel</c>.</summary>
@@ -12,6 +14,15 @@ public partial class UnitFilterPopupView : ContentView
     public UnitFilterPopupView()
     {
         InitializeComponent();
+    }
+
+    /// <summary>The BindingContext as its ViewModel, which item templates bind to through x:Reference.</summary>
+    public UnitFilterViewModel? ViewModel => BindingContext as UnitFilterViewModel;
+
+    protected override void OnBindingContextChanged()
+    {
+        base.OnBindingContextChanged();
+        OnPropertyChanged(nameof(ViewModel));
     }
 
     private void OnPopupSizeChanged(object? sender, EventArgs e)

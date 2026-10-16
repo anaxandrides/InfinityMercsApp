@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views.Season.Overview"
              xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:marketplacesItems="clr-namespace:InfinityMercsApp.ViewModels.Marketplaces.Items"
@@ -107,7 +108,7 @@
                     </DataTrigger>
                 </Label.Triggers>
                 <Label.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding Team.ShowWeaponCommand, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
+                    <TapGestureRecognizer Command="{Binding ViewModel.Team.ShowWeaponCommand, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
                                           CommandParameter="{Binding}" />
                 </Label.GestureRecognizers>
             </Label>
@@ -121,7 +122,7 @@
                     </DataTrigger>
                 </Label.Triggers>
                 <Label.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding Team.ShowWeaponCommand, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
+                    <TapGestureRecognizer Command="{Binding ViewModel.Team.ShowWeaponCommand, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
                                           CommandParameter="{Binding}" />
                 </Label.GestureRecognizers>
             </Label>
@@ -134,7 +135,7 @@
                         Style="{StaticResource QuantityButton}"
                         TextColor="{StaticResource Signal}"
                         IsEnabled="{Binding IsAffordable}"
-                        Command="{Binding Marketplace.IncrementCommand, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
+                        Command="{Binding ViewModel.Marketplace.IncrementCommand, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
                         CommandParameter="{Binding}" />
                 <Label Text="{Binding Quantity}"
                        Style="{StaticResource LabelBody}"
@@ -145,7 +146,7 @@
                 <Button Text="−"
                         Style="{StaticResource QuantityButton}"
                         TextColor="{StaticResource Danger}"
-                        Command="{Binding Marketplace.DecrementCommand, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
+                        Command="{Binding ViewModel.Marketplace.DecrementCommand, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
                         CommandParameter="{Binding}" />
             </HorizontalStackLayout>
         </ControlTemplate>
@@ -493,7 +494,7 @@
                                     <VerticalStackLayout>
                                         <Grid ColumnDefinitions="44,*" MinimumHeightRequest="48" Padding="10,6">
                                             <Grid.GestureRecognizers>
-                                                <TapGestureRecognizer Command="{Binding Team.SelectUnitCommand, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
+                                                <TapGestureRecognizer Command="{Binding ViewModel.Team.SelectUnitCommand, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
                                                                       CommandParameter="{Binding}" />
                                             </Grid.GestureRecognizers>
                                             <Grid WidthRequest="36" HeightRequest="36">
@@ -577,7 +578,7 @@
                                                                     FontAttributes="Bold"
                                                                     Padding="8,4"
                                                                     HeightRequest="36"
-                                                                    Command="{Binding Inventory.SellCommand, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
+                                                                    Command="{Binding ViewModel.Inventory.SellCommand, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
                                                                     CommandParameter="{Binding}" />
                                                         </HorizontalStackLayout>
                                                     </Grid>
@@ -654,7 +655,7 @@
                                                         FontSize="{DynamicResource FontSizeCaption}"
                                                         TextColor="{StaticResource Signal}"
                                                         IsEnabled="{Binding IsAvailable}"
-                                                        Command="{Binding Services.BuyCommand, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
+                                                        Command="{Binding ViewModel.Services.BuyCommand, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
                                                         CommandParameter="{Binding .}" />
                                             </Grid>
                                             <Label Text="{Binding Description}" Style="{StaticResource LabelCaption}" TextColor="{StaticResource TextSecondary}" LineBreakMode="WordWrap" />
@@ -663,21 +664,21 @@
                                             <!-- Advanced Therapy: which injury goes -->
                                             <Picker Title="Injury to write off…"
                                                     IsVisible="{Binding ChoosesInjury}"
-                                                    ItemsSource="{Binding Services.Injuries, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
-                                                    SelectedItem="{Binding Services.SelectedInjury, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
+                                                    ItemsSource="{Binding ViewModel.Services.Injuries, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
+                                                    SelectedItem="{Binding ViewModel.Services.SelectedInjury, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
                                                     Style="{StaticResource OverlayPicker}" />
 
                                             <!-- Forced Retraining: the perk to drop and the one of the same tier to take -->
                                             <VerticalStackLayout Spacing="6" IsVisible="{Binding ChoosesPerks}">
                                                 <Picker Title="Perk to retrain…"
-                                                        ItemsSource="{Binding Services.RetrainablePerks, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
+                                                        ItemsSource="{Binding ViewModel.Services.RetrainablePerks, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
                                                         ItemDisplayBinding="{Binding Name, x:DataType=rankUpItems:PerkOption}"
-                                                        SelectedItem="{Binding Services.SelectedRetrainPerk, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
+                                                        SelectedItem="{Binding ViewModel.Services.SelectedRetrainPerk, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
                                                         Style="{StaticResource OverlayPicker}" />
                                                 <Picker Title="New perk…"
-                                                        ItemsSource="{Binding Services.Replacements, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
+                                                        ItemsSource="{Binding ViewModel.Services.Replacements, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
                                                         ItemDisplayBinding="{Binding Name, x:DataType=rankUpItems:PerkOption}"
-                                                        SelectedItem="{Binding Services.SelectedReplacement, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
+                                                        SelectedItem="{Binding ViewModel.Services.SelectedReplacement, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
                                                         Style="{StaticResource OverlayPicker}" />
                                             </VerticalStackLayout>
                                         </VerticalStackLayout>
@@ -732,7 +733,7 @@
                                                         <Grid ColumnDefinitions="*,Auto" MinimumHeightRequest="52">
                                                             <VerticalStackLayout Spacing="2" VerticalOptions="Center">
                                                                 <VerticalStackLayout.GestureRecognizers>
-                                                                    <TapGestureRecognizer Command="{Binding Marketplace.ShowDetailCommand, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
+                                                                    <TapGestureRecognizer Command="{Binding ViewModel.Marketplace.ShowDetailCommand, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
                                                                                           CommandParameter="{Binding}" />
                                                                 </VerticalStackLayout.GestureRecognizers>
                                                                 <Label Text="{Binding Name}" Style="{StaticResource LabelBody}" TextColor="{StaticResource TextPrimary}">
@@ -769,7 +770,7 @@
                                         <Grid ColumnDefinitions="*,Auto" MinimumHeightRequest="52">
                                             <VerticalStackLayout Spacing="2" VerticalOptions="Center">
                                                 <VerticalStackLayout.GestureRecognizers>
-                                                    <TapGestureRecognizer Command="{Binding Marketplace.ShowDetailCommand, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
+                                                    <TapGestureRecognizer Command="{Binding ViewModel.Marketplace.ShowDetailCommand, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
                                                                           CommandParameter="{Binding}" />
                                                 </VerticalStackLayout.GestureRecognizers>
                                                 <Label Text="{Binding DisplayName}" Style="{StaticResource LabelBody}" TextColor="{StaticResource TextPrimary}">
@@ -808,7 +809,7 @@
                                         <Grid ColumnDefinitions="*,Auto" MinimumHeightRequest="52">
                                             <VerticalStackLayout Spacing="2" VerticalOptions="Center">
                                                 <VerticalStackLayout.GestureRecognizers>
-                                                    <TapGestureRecognizer Command="{Binding Marketplace.ShowDetailCommand, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
+                                                    <TapGestureRecognizer Command="{Binding ViewModel.Marketplace.ShowDetailCommand, Source={x:Reference Root}, x:DataType=view:SeasonPage}"
                                                                           CommandParameter="{Binding}" />
                                                 </VerticalStackLayout.GestureRecognizers>
                                                 <Label Text="{Binding Name}" Style="{StaticResource LabelBody}" TextColor="{StaticResource TextPrimary}">

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views.Marketplaces"
              xmlns:marketplaces="clr-namespace:InfinityMercsApp.ViewModels.Marketplaces"
              xmlns:marketplacesItems="clr-namespace:InfinityMercsApp.ViewModels.Marketplaces.Items"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
@@ -69,17 +70,17 @@
         <ControlTemplate x:Key="QuantityControls" x:DataType="marketplacesItems:MarketplaceRow">
             <HorizontalStackLayout Spacing="6"
                                    VerticalOptions="Center"
-                                   IsVisible="{Binding Layout.OffersBuying, Source={RelativeSource AncestorType={x:Type marketplaces:MarketplacesViewModel}}, x:DataType=marketplaces:MarketplacesViewModel}">
+                                   IsVisible="{Binding ViewModel.Layout.OffersBuying, Source={x:Reference Root}, x:DataType=view:MarketplacesPage}">
                 <Button Text="−"
                         Style="{StaticResource QuantityButton}"
                         TextColor="{StaticResource Danger}"
-                        Command="{Binding DecrementCommand, Source={RelativeSource AncestorType={x:Type marketplaces:MarketplacesViewModel}}, x:DataType=marketplaces:MarketplacesViewModel}"
+                        Command="{Binding ViewModel.DecrementCommand, Source={x:Reference Root}, x:DataType=view:MarketplacesPage}"
                         CommandParameter="{Binding}" />
                 <Label Text="{Binding Quantity}" Style="{StaticResource QuantityLabel}" />
                 <Button Text="+"
                         Style="{StaticResource QuantityButton}"
                         TextColor="{StaticResource Signal}"
-                        Command="{Binding IncrementCommand, Source={RelativeSource AncestorType={x:Type marketplaces:MarketplacesViewModel}}, x:DataType=marketplaces:MarketplacesViewModel}"
+                        Command="{Binding ViewModel.IncrementCommand, Source={x:Reference Root}, x:DataType=view:MarketplacesPage}"
                         CommandParameter="{Binding}" />
             </HorizontalStackLayout>
         </ControlTemplate>
@@ -152,7 +153,7 @@
                                                     <DataTemplate x:DataType="marketplacesItems:StoreItemRow">
                                                         <Border Style="{StaticResource RowCard}">
                                                             <Border.GestureRecognizers>
-                                                                <TapGestureRecognizer Command="{Binding ShowDetailCommand, Source={RelativeSource AncestorType={x:Type marketplaces:MarketplacesViewModel}}, x:DataType=marketplaces:MarketplacesViewModel}"
+                                                                <TapGestureRecognizer Command="{Binding ViewModel.ShowDetailCommand, Source={x:Reference Root}, x:DataType=view:MarketplacesPage}"
                                                                                       CommandParameter="{Binding}" />
                                                             </Border.GestureRecognizers>
                                                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
@@ -182,7 +183,7 @@
                                     <DataTemplate x:DataType="marketplacesItems:TroopTypeRow">
                                         <Border Style="{StaticResource RowCard}">
                                             <Border.GestureRecognizers>
-                                                <TapGestureRecognizer Command="{Binding ShowDetailCommand, Source={RelativeSource AncestorType={x:Type marketplaces:MarketplacesViewModel}}, x:DataType=marketplaces:MarketplacesViewModel}"
+                                                <TapGestureRecognizer Command="{Binding ViewModel.ShowDetailCommand, Source={x:Reference Root}, x:DataType=view:MarketplacesPage}"
                                                                       CommandParameter="{Binding}" />
                                             </Border.GestureRecognizers>
                                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
@@ -214,7 +215,7 @@
                                     <DataTemplate x:DataType="marketplacesItems:AugmentRow">
                                         <Border Style="{StaticResource RowCard}">
                                             <Border.GestureRecognizers>
-                                                <TapGestureRecognizer Command="{Binding ShowDetailCommand, Source={RelativeSource AncestorType={x:Type marketplaces:MarketplacesViewModel}}, x:DataType=marketplaces:MarketplacesViewModel}"
+                                                <TapGestureRecognizer Command="{Binding ViewModel.ShowDetailCommand, Source={x:Reference Root}, x:DataType=view:MarketplacesPage}"
                                                                       CommandParameter="{Binding}" />
                                             </Border.GestureRecognizers>
                                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">

@@ -201,7 +201,7 @@
                                 </Border.Triggers>
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer
-                                        Command="{Binding ProfileTappedCommand, Source={RelativeSource AncestorType={x:Type controls:UnitDisplayConfigurationsView}}, x:DataType=controls:UnitDisplayConfigurationsView}"
+                                        Command="{Binding ProfileTappedCommand, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}"
                                         CommandParameter="{Binding .}" />
                                 </Border.GestureRecognizers>
                                 <VerticalStackLayout Spacing="2">
@@ -219,7 +219,7 @@
                                     </Grid>
                                     <!-- Wide layout: ranged | melee | equipment | skills in a single row of four columns. -->
                                     <Grid ColumnSpacing="8" ColumnDefinitions="*,*,*,*"
-                                          IsVisible="{Binding IsCompactProfileLayout, Source={RelativeSource AncestorType={x:Type controls:UnitDisplayConfigurationsView}}, x:DataType=controls:UnitDisplayConfigurationsView, Converter={StaticResource InvertedBoolConverter}}">
+                                          IsVisible="{Binding IsCompactProfileLayout, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView, Converter={StaticResource InvertedBoolConverter}}">
                                         <Label Grid.Column="0" FormattedText="{Binding RangedWeaponsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#EF4444" />
                                         <Label Grid.Column="1" FormattedText="{Binding MeleeWeaponsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#22C55E" />
                                         <Label Grid.Column="2" FormattedText="{Binding UniqueEquipmentFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#06B6D4" />
@@ -227,7 +227,7 @@
                                     </Grid>
                                     <!-- Small-screen layout: 2x2 grid. Top row equipment | skills, bottom row ranged | close combat. -->
                                     <Grid ColumnSpacing="8" RowSpacing="2" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto"
-                                          IsVisible="{Binding IsCompactProfileLayout, Source={RelativeSource AncestorType={x:Type controls:UnitDisplayConfigurationsView}}, x:DataType=controls:UnitDisplayConfigurationsView}">
+                                          IsVisible="{Binding IsCompactProfileLayout, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}">
                                         <Label Grid.Row="0" Grid.Column="0" FormattedText="{Binding UniqueEquipmentFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#06B6D4" />
                                         <Label Grid.Row="0" Grid.Column="1" FormattedText="{Binding UniqueSkillsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#F59E0B" />
                                         <Label Grid.Row="1" Grid.Column="0" FormattedText="{Binding RangedWeaponsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#EF4444" />

@@ -5,8 +5,12 @@ namespace InfinityMercsApp.Views.Marketplaces;
 
 public partial class MarketplacesPage : AdaptiveContentPage
 {
+    /// <summary>The page's ViewModel, which item templates bind to through x:Reference.</summary>
+    public MarketplacesViewModel ViewModel { get; }
+
     public MarketplacesPage(MarketplacesViewModel viewModel)
     {
+        ViewModel = viewModel;
         InitializeComponent();
         BindingContext = viewModel;
     }

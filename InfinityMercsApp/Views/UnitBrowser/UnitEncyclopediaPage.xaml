@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views.UnitBrowser"
              xmlns:unitFilter="clr-namespace:InfinityMercsApp.Views.Controls.UnitFilter"
              xmlns:unitBrowser="clr-namespace:InfinityMercsApp.ViewModels.UnitBrowser"
              xmlns:unitBrowserItems="clr-namespace:InfinityMercsApp.ViewModels.UnitBrowser.Items"
@@ -64,7 +65,7 @@
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="unitBrowserItems:ViewerFactionItem">
                                 <controls:ViewerListRowView
-                                    ItemTappedCommand="{Binding SelectFactionCommand, Source={RelativeSource AncestorType={x:Type unitBrowser:UnitEncyclopediaViewModel}}, x:DataType=unitBrowser:UnitEncyclopediaViewModel}" />
+                                    ItemTappedCommand="{Binding ViewModel.SelectFactionCommand, Source={x:Reference UnitEncyclopediaPageRoot}, x:DataType=view:UnitEncyclopediaPage}" />
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
                     </VerticalStackLayout>
@@ -149,7 +150,7 @@
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="unitBrowserItems:ViewerUnitItem">
                                 <controls:ViewerListRowView
-                                    ItemTappedCommand="{Binding SelectUnitCommand, Source={RelativeSource AncestorType={x:Type unitBrowser:UnitEncyclopediaViewModel}}, x:DataType=unitBrowser:UnitEncyclopediaViewModel}" />
+                                    ItemTappedCommand="{Binding ViewModel.SelectUnitCommand, Source={x:Reference UnitEncyclopediaPageRoot}, x:DataType=view:UnitEncyclopediaPage}" />
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
                     </VerticalStackLayout>

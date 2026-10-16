@@ -6,8 +6,12 @@ namespace InfinityMercsApp.Views.Season;
 
 public partial class PlayModePage : ContentPageBase
 {
+    /// <summary>The page's ViewModel, which item templates bind to through x:Reference.</summary>
+    public PlayModeViewModel ViewModel { get; }
+
     public PlayModePage(PlayModeViewModel viewModel)
     {
+        ViewModel = viewModel;
         InitializeComponent();
         BindingContext = viewModel;
         TileStripPanCommand = new Command<object>(delta =>

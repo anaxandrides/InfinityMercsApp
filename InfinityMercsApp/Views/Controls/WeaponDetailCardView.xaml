@@ -53,13 +53,13 @@
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                             <Label Text="{Binding Left.Text}" Style="{StaticResource RuleLink}">
                                 <Label.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding OpenLinkCommand, Source={RelativeSource AncestorType={x:Type controls:WeaponDetailCardView}}, x:DataType=controls:WeaponDetailCardView}"
+                                    <TapGestureRecognizer Command="{Binding OpenLinkCommand, Source={x:Reference WeaponCardRoot}, x:DataType=controls:WeaponDetailCardView}"
                                                           CommandParameter="{Binding Left.Url}" />
                                 </Label.GestureRecognizers>
                             </Label>
                             <Label Grid.Column="1" Text="{Binding Right.Text}" IsVisible="{Binding HasRight}" Style="{StaticResource RuleLink}">
                                 <Label.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding OpenLinkCommand, Source={RelativeSource AncestorType={x:Type controls:WeaponDetailCardView}}, x:DataType=controls:WeaponDetailCardView}"
+                                    <TapGestureRecognizer Command="{Binding OpenLinkCommand, Source={x:Reference WeaponCardRoot}, x:DataType=controls:WeaponDetailCardView}"
                                                           CommandParameter="{Binding Right.Url}" />
                                 </Label.GestureRecognizers>
                             </Label>

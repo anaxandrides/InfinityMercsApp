@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views.Company.Viewer"
              xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:viewer="clr-namespace:InfinityMercsApp.ViewModels.Company.Viewer"
              xmlns:viewerItems="clr-namespace:InfinityMercsApp.ViewModels.Company.Viewer.Items"
              xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
              x:Class="InfinityMercsApp.Views.Company.Viewer.CompanyViewerPage"
+             x:Name="CompanyViewerPageRoot"
              x:DataType="viewer:CompanyViewerViewModel"
              Title="{Binding Title}">
 
@@ -29,7 +31,7 @@
                     <DataTemplate x:DataType="viewerItems:CompanyViewerUnitListItem">
                         <controls:CompanyViewerUnitTileView
                             SelectedStroke="{Binding SelectionAccentColor}"
-                            ItemTappedCommand="{Binding SelectUnitCommand, Source={RelativeSource AncestorType={x:Type viewer:CompanyViewerViewModel}}, x:DataType=viewer:CompanyViewerViewModel}" />
+                            ItemTappedCommand="{Binding ViewModel.SelectUnitCommand, Source={x:Reference CompanyViewerPageRoot}, x:DataType=view:CompanyViewerPage}" />
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
             </HorizontalStackLayout>

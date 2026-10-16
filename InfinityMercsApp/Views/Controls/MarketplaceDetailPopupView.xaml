@@ -7,6 +7,7 @@
              xmlns:metadata="clr-namespace:InfinityMercsApp.Domain.Models.Metadata;assembly=InfinityMercsApp.Domain"
              xmlns:wiki="clr-namespace:InfinityMercsApp.Domain.Models.Metadata.Wiki;assembly=InfinityMercsApp.Domain"
              x:Class="InfinityMercsApp.Views.Controls.MarketplaceDetailPopupView"
+             x:Name="MarketplaceDetailPopupViewRoot"
              x:DataType="components:MarketplaceDetailViewModel"
              IsVisible="{Binding IsOpen}">
     <Grid BackgroundColor="#D00E1116">
@@ -81,7 +82,7 @@
                                             </DataTrigger>
                                         </Label.Triggers>
                                         <Label.GestureRecognizers>
-                                            <TapGestureRecognizer Command="{Binding OpenLinkCommand, Source={RelativeSource AncestorType={x:Type components:MarketplaceDetailViewModel}}, x:DataType=components:MarketplaceDetailViewModel}"
+                                            <TapGestureRecognizer Command="{Binding ViewModel.OpenLinkCommand, Source={x:Reference MarketplaceDetailPopupViewRoot}, x:DataType=controls:MarketplaceDetailPopupView}"
                                                                   CommandParameter="{Binding WikiUrl}" />
                                         </Label.GestureRecognizers>
                                     </Label>
@@ -108,7 +109,7 @@
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="metadata:Weapon">
                                     <controls:WeaponDetailCardView Weapon="{Binding}"
-                                                                   ShowUnitsInInches="{Binding ShowUnitsInInches, Source={RelativeSource AncestorType={x:Type components:MarketplaceDetailViewModel}}, x:DataType=components:MarketplaceDetailViewModel}"
+                                                                   ShowUnitsInInches="{Binding ViewModel.ShowUnitsInInches, Source={x:Reference MarketplaceDetailPopupViewRoot}, x:DataType=controls:MarketplaceDetailPopupView}"
                                                                    Margin="0,0,0,8" />
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>

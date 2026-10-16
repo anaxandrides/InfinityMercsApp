@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views.Company.Selection"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:selection="clr-namespace:InfinityMercsApp.ViewModels.Company.Selection"
@@ -149,7 +150,7 @@
                                             <Label Text="{Binding Name}" VerticalOptions="Center" />
                                             <!-- Cohesive companies track one fireteam. -->
                                             <ContentView Grid.Column="1"
-                                                         IsVisible="{Binding ShowsFireteamTracking, Source={RelativeSource AncestorType={x:Type selection:CompanySelectionViewModel}}, x:DataType=selection:CompanySelectionViewModel}">
+                                                         IsVisible="{Binding ViewModel.ShowsFireteamTracking, Source={x:Reference CompanySelectionRoot}, x:DataType=view:CompanySelectionPage}">
                                                 <RadioButton VerticalOptions="Center"
                                                              GroupName="CohesiveCoreFireteamSelection"
                                                              IsVisible="{Binding ShowTrackingRadioButton}"
@@ -169,7 +170,7 @@
                                                         <Label Grid.Column="1" Text="{Binding Max}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
                                                         <controls:UnitSelectionListItemView
                                                             Grid.Column="2"
-                                                            ItemTappedCommand="{Binding SelectTeamAllowedProfileCommand, Source={RelativeSource AncestorType={x:Type selection:CompanySelectionViewModel}}, x:DataType=selection:CompanySelectionViewModel}" />
+                                                            ItemTappedCommand="{Binding ViewModel.SelectTeamAllowedProfileCommand, Source={x:Reference CompanySelectionRoot}, x:DataType=view:CompanySelectionPage}" />
                                                     </Grid>
                                                 </DataTemplate>
                                             </BindableLayout.ItemTemplate>

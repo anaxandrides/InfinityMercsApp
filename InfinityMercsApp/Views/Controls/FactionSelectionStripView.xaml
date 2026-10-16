@@ -8,7 +8,8 @@
 
     <!-- Virtualized horizontal list: only the on-screen faction tiles are realised, so opening the
          picker no longer builds a Skia canvas for every faction up-front. The per-item tap command is
-         bound via RelativeSource (not x:Reference) so it resolves inside the CollectionView template. -->
+         bound through x:Reference, a fixed source: a RelativeSource binding is re-applied with a null
+         source when its tile leaves the tree, and MAUI 10's compiled getter then throws. -->
     <CollectionView x:Name="FactionCollectionView"
                     HeightRequest="100"
                     SelectionMode="None"
@@ -22,7 +23,7 @@
             <DataTemplate x:DataType="selectionItems:ArmyFactionSelectionItem">
                 <controls:FactionListItemView
                     WidthRequest="138"
-                    ItemTappedCommand="{Binding SelectFactionCommand, Source={RelativeSource AncestorType={x:Type controls:FactionSelectionStripView}}, x:DataType=controls:FactionSelectionStripView}" />
+                    ItemTappedCommand="{Binding SelectFactionCommand, Source={x:Reference FactionSelectionStripRoot}, x:DataType=controls:FactionSelectionStripView}" />
             </DataTemplate>
         </CollectionView.ItemTemplate>
     </CollectionView>

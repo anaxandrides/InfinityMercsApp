@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views.Season.Game"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:game="clr-namespace:InfinityMercsApp.ViewModels.Season.Game"
              xmlns:gameItems="clr-namespace:InfinityMercsApp.ViewModels.Season.Game.Items"
@@ -8,6 +9,7 @@
              xmlns:stats="clr-namespace:InfinityMercsApp.Domain.Models.Army.Stats;assembly=InfinityMercsApp.Domain"
              xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
              x:Class="InfinityMercsApp.Views.Season.Game.GameModePage"
+             x:Name="GameModePageRoot"
              x:DataType="game:GameModeViewModel"
              Title="CONTRACT IN PROGRESS"
              BackgroundColor="{StaticResource Void}">
@@ -170,7 +172,7 @@
                         <VerticalStackLayout Spacing="0">
                             <Grid MinimumHeightRequest="48" Padding="16,8" ColumnSpacing="4" ColumnDefinitions="24,*,Auto,32">
                                 <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding ToggleUnitCommand, Source={RelativeSource AncestorType={x:Type game:GameModeViewModel}}, x:DataType=game:GameModeViewModel}"
+                                    <TapGestureRecognizer Command="{Binding ViewModel.ToggleUnitCommand, Source={x:Reference GameModePageRoot}, x:DataType=view:GameModePage}"
                                                           CommandParameter="{Binding .}" />
                                 </Grid.GestureRecognizers>
                                 <Label Text="▶"
@@ -222,7 +224,7 @@
                                             Text="{Binding XpButtonText}"
                                             Style="{StaticResource RowButton}"
                                             TextColor="#34D399"
-                                            Command="{Binding ShowXpCommand, Source={RelativeSource AncestorType={x:Type game:GameModeViewModel}}, x:DataType=game:GameModeViewModel}"
+                                            Command="{Binding ViewModel.ShowXpCommand, Source={x:Reference GameModePageRoot}, x:DataType=view:GameModePage}"
                                             CommandParameter="{Binding .}" />
                                 </Grid>
 
@@ -258,7 +260,7 @@
                                         <DataTemplate x:DataType="gameItems:GameWeaponCard">
                                             <Border Style="{StaticResource WeaponCard}">
                                                 <Border.GestureRecognizers>
-                                                    <TapGestureRecognizer Command="{Binding ShowWeaponCommand, Source={RelativeSource AncestorType={x:Type game:GameModeViewModel}}, x:DataType=game:GameModeViewModel}"
+                                                    <TapGestureRecognizer Command="{Binding ViewModel.ShowWeaponCommand, Source={x:Reference GameModePageRoot}, x:DataType=view:GameModePage}"
                                                                           CommandParameter="{Binding .}" />
                                                 </Border.GestureRecognizers>
                                                 <VerticalStackLayout Spacing="0">
@@ -316,7 +318,7 @@
                                                     </VerticalStackLayout>
                                                     <controls:WeaponRangeBandBarView Distance="{Binding Range}"
                                                                                      IsVisible="{Binding HasRange}"
-                                                                                     ShowUnitsInInches="{Binding ShowUnitsInInches, Source={RelativeSource AncestorType={x:Type game:GameModeViewModel}}, x:DataType=game:GameModeViewModel}"
+                                                                                     ShowUnitsInInches="{Binding ViewModel.ShowUnitsInInches, Source={x:Reference GameModePageRoot}, x:DataType=view:GameModePage}"
                                                                                      BarHeightRequest="44"
                                                                                      XVisorActive="{Binding HasXVisor}"
                                                                                      Margin="0,6,0,0"
@@ -351,8 +353,8 @@
                                                            RangeBandHeightRequest="88"
                                                            DamageReduction="{Binding Modifiers.DamageReduction}"
                                                            BurstBonus="{Binding Modifiers.BurstBonus}"
-                                                           ShowUnitsInInches="{Binding ShowUnitsInInches, Source={RelativeSource AncestorType={x:Type game:GameModeViewModel}}, x:DataType=game:GameModeViewModel}"
-                                                           XVisorActive="{Binding OpenWeaponCard.HasXVisor, Source={RelativeSource AncestorType={x:Type game:GameModeViewModel}}, x:DataType=game:GameModeViewModel, FallbackValue=False}" />
+                                                           ShowUnitsInInches="{Binding ViewModel.ShowUnitsInInches, Source={x:Reference GameModePageRoot}, x:DataType=view:GameModePage}"
+                                                           XVisorActive="{Binding ViewModel.OpenWeaponCard.HasXVisor, Source={x:Reference GameModePageRoot}, x:DataType=view:GameModePage, FallbackValue=False}" />
                         </DataTemplate>
                     </BindableLayout.ItemTemplate>
                 </VerticalStackLayout>
@@ -409,7 +411,7 @@
 
                 <BoxView Style="{StaticResource Divider}" Margin="0,8,0,4" />
                 <Button Style="{StaticResource DoneButton}"
-                        Command="{Binding CloseXpCommand, Source={RelativeSource AncestorType={x:Type game:GameModeViewModel}}, x:DataType=game:GameModeViewModel}" />
+                        Command="{Binding ViewModel.CloseXpCommand, Source={x:Reference GameModePageRoot}, x:DataType=view:GameModePage}" />
             </VerticalStackLayout>
         </ScrollView>
 

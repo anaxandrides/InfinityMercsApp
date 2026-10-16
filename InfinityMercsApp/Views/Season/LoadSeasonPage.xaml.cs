@@ -5,8 +5,12 @@ namespace InfinityMercsApp.Views.Season;
 
 public partial class LoadSeasonPage : AdaptiveContentPage
 {
+    /// <summary>The page's ViewModel, which item templates bind to through x:Reference.</summary>
+    public LoadSeasonViewModel ViewModel { get; }
+
     public LoadSeasonPage(LoadSeasonViewModel viewModel)
     {
+        ViewModel = viewModel;
         InitializeComponent();
         BindingContext = viewModel;
     }
