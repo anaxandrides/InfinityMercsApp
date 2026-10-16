@@ -47,12 +47,14 @@ public static class SvgPictureCache
                 : await TryLoadAsync(source, () => FileSystem.Current.OpenAppPackageFileAsync(source.ToLowerInvariant())));
     }
 
+    // Parsing is synchronous CPU work, so it runs off the UI thread; a whole list of logos loading at once
+    // would otherwise hold up the list. An SKPicture is immutable once built, so it can be drawn anywhere.
     private static async Task<SKPicture?> TryLoadAsync(string source, Func<Task<Stream>> open)
     {
         try
         {
             await using var stream = await open();
-            return new SKSvg().Load(stream);
+            return await Task.Run(() => new SKSvg().Load(stream));
         }
         catch (Exception ex)
         {

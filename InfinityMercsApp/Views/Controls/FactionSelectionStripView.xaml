@@ -21,9 +21,7 @@
             <DataTemplate>
                 <controls:FactionListItemView
                     WidthRequest="138"
-                    UseVerticalTileLayout="True"
-                    ItemTappedCommand="{Binding Source={RelativeSource AncestorType={x:Type controls:FactionSelectionStripView}}, Path=SelectFactionCommand}"
-                    ItemTappedCommandParameter="{Binding .}" />
+                    ItemTappedCommand="{Binding Source={RelativeSource AncestorType={x:Type controls:FactionSelectionStripView}}, Path=SelectFactionCommand}" />
             </DataTemplate>
         </CollectionView.ItemTemplate>
     </CollectionView>

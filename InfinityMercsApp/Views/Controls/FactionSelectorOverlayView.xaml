@@ -64,9 +64,7 @@
                                 <RoundRectangle CornerRadius="4" />
                             </Border.StrokeShape>
                             <controls:FactionListItemView
-                                UseVerticalTileLayout="True"
-                                ItemTappedCommand="{Binding Source={x:Reference FactionSelectorOverlayRoot}, Path=ItemTappedCommand}"
-                                ItemTappedCommandParameter="{Binding .}" />
+                                ItemTappedCommand="{Binding Source={x:Reference FactionSelectorOverlayRoot}, Path=ItemTappedCommand}" />
                         </Border>
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
