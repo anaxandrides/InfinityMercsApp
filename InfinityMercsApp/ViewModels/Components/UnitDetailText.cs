@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Fireteams;
@@ -14,8 +13,6 @@ namespace InfinityMercsApp.ViewModels.Components;
 /// </summary>
 public static class UnitDetailText
 {
-    private const string Cube2Pattern = @"\bcube\s*2(?:\.0)?\b|\bcube2(?:\.0)?\b";
-
     /// <summary>"Label: a, b" with distinct values sorted, or "Label: -".</summary>
     public static string NamedSummary(string label, IEnumerable<string> values)
     {
@@ -138,69 +135,6 @@ public static class UnitDetailText
         }
 
         return null;
-    }
-
-    /// <summary>The first non-blank wiki link whose name matches.</summary>
-    public static string? FirstLinkWhere(
-        IReadOnlyDictionary<int, string> nameLookup,
-        IReadOnlyDictionary<int, string> links,
-        Func<string, bool> predicate)
-    {
-        foreach (var (id, name) in nameLookup)
-        {
-            if (links.TryGetValue(id, out var url) && !string.IsNullOrWhiteSpace(url) && predicate(name))
-            {
-                return url;
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>Lower-case letters, digits and dots, other characters collapsed to single spaces.</summary>
-    public static string NormalizeTokenText(string value)
-    {
-        var sb = new StringBuilder(value.Length);
-        foreach (var c in value.ToLowerInvariant())
-        {
-            sb.Append(char.IsLetterOrDigit(c) || c == '.' ? c : ' ');
-        }
-
-        return Regex.Replace(sb.ToString(), @"\s+", " ").Trim();
-    }
-
-    /// <summary>Names a Cube, but not Cube 2.0.</summary>
-    public static bool IsCubeName(string name)
-    {
-        var normalized = NormalizeTokenText(name);
-        return Regex.IsMatch(normalized, @"\bcube\b", RegexOptions.IgnoreCase) &&
-               !Regex.IsMatch(normalized, Cube2Pattern, RegexOptions.IgnoreCase);
-    }
-
-    public static bool IsCube2Name(string name) => Regex.IsMatch(NormalizeTokenText(name), Cube2Pattern, RegexOptions.IgnoreCase);
-
-    /// <summary>
-    /// Whether the equipment or skills shown name a hacking device or the Hackable trait
-    /// (not "non-hackable").
-    /// </summary>
-    public static bool ContainsHackable(string? equipmentText, string? skillsText)
-    {
-        foreach (var line in CompanyProfileText.SplitDisplayLine(equipmentText).Concat(CompanyProfileText.SplitDisplayLine(skillsText)))
-        {
-            var normalized = NormalizeTokenText(line);
-            if (Regex.IsMatch(normalized, @"\bhacking\s*device\b|\bhd\s*\+\b|\bkhd\b|\bevo\s*hd\b", RegexOptions.IgnoreCase))
-            {
-                return true;
-            }
-
-            if (Regex.IsMatch(normalized, @"\bhackable\b", RegexOptions.IgnoreCase) &&
-                !Regex.IsMatch(normalized, @"\b(non[\s-]*hackable|not[\s-]*hackable)\b", RegexOptions.IgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /// <summary>

@@ -164,7 +164,7 @@ public sealed class RecruitingCompanySelectionTests
         await HireableProfileAsync(first);
         var unit = first.SelectedUnit;
         Assert.NotNull(unit);
-        var ava = CompanySelectionSharedUtilities.ParseAvaLimit(first.Detail.UnitAva);
+        var ava = CompanySelectionSharedUtilities.ParseAvaLimit(first.Detail.Stats.Ava);
         Assert.NotNull(ava);
 
         var full = await OpenAsync(Company(unit.Id, ava.Value));

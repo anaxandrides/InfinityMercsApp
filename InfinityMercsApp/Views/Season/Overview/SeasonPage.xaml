@@ -326,39 +326,11 @@
 
                     <controls:UnitDisplayConfigurationsView
                         Grid.Row="1"
-                        SelectedUnitLogoSource="{Binding Team.Detail.LogoSource}"
-                        UnitNameHeading="{Binding Team.Detail.UnitNameHeading}"
-                        ShowRegularOrderIcon="{Binding Team.Detail.ShowRegularOrderIcon}"
-                        ShowIrregularOrderIcon="{Binding Team.Detail.ShowIrregularOrderIcon}"
-                        ShowImpetuousIcon="{Binding Team.Detail.ShowImpetuousIcon}"
-                        ShowTacticalAwarenessIcon="{Binding Team.Detail.ShowTacticalAwarenessIcon}"
-                        ShowCubeIcon="{Binding Team.Detail.ShowCubeIcon}"
-                        ShowCube2Icon="{Binding Team.Detail.ShowCube2Icon}"
-                        ShowHackableIcon="{Binding Team.Detail.ShowHackableIcon}"
-                        ShowLieutenantIcon="{Binding Team.ShowLieutenantIcon}"
-                        LieutenantIconCount="{Binding Team.LieutenantIconCount}"
-                        ShowPeripheralIcon="{Binding Team.ShowPeripheralIcon}"
-                        UnitHeaderPrimaryColor="{Binding Team.HeaderColors.Primary}"
-                        UnitHeaderSecondaryColor="{Binding Team.HeaderColors.Secondary}"
-                        UnitHeaderPrimaryTextColor="{Binding Team.HeaderColors.PrimaryText}"
-                        UnitHeaderSecondaryTextColor="{Binding Team.HeaderColors.SecondaryText}"
-                        UnitMov="{Binding Team.Detail.UnitMov}"
-                        UnitCc="{Binding Team.Detail.UnitCc}"
-                        UnitBs="{Binding Team.Detail.UnitBs}"
-                        UnitPh="{Binding Team.Detail.UnitPh}"
-                        UnitWip="{Binding Team.Detail.UnitWip}"
-                        UnitArm="{Binding Team.Detail.UnitArm}"
-                        UnitBts="{Binding Team.Detail.UnitBts}"
-                        UnitVitalityHeader="{Binding Team.Detail.UnitVitalityHeader}"
-                        UnitVitality="{Binding Team.Detail.UnitVitality}"
-                        UnitS="{Binding Team.Detail.UnitS}"
-                        UnitAva="{Binding Team.Detail.UnitAva}"
+                        Unit="{Binding Team.Detail}"
                         ShowConfigurationsSection="False"
                         ShowUnitName="False"
                         ShowAva="False"
-                        ShowSummaryRows="False"
-                        EquipmentSummaryFormatted="{Binding Team.Detail.EquipmentSummaryFormatted}"
-                        SpecialSkillsSummaryFormatted="{Binding Team.Detail.SpecialSkillsSummaryFormatted}" />
+                        ShowSummaryRows="False" />
 
                     <!-- Equipment, Skills, Perks, Weapons, CC Weapons, then the gear slots -->
                     <ScrollView Grid.Row="2">

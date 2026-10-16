@@ -54,8 +54,7 @@ public sealed class CompanyViewerViewModelTests
         Assert.Equal("Fusilier", viewModel.SelectedBaseName);
         Assert.True(viewModel.HasSelectedBaseName);
         Assert.Equal("LI", viewModel.SelectedUnitType);
-        Assert.True(viewModel.ShowLieutenantIcon);
-        Assert.Equal(1, viewModel.LieutenantIconCount);
+        Assert.Equal(1, viewModel.Detail.Icons.Lieutenants);
         Assert.False(viewModel.HasStatusMessage);
         Assert.Equal("Captain", viewModel.Detail.UnitNameHeading);
     }
@@ -80,7 +79,7 @@ public sealed class CompanyViewerViewModelTests
         Assert.False(viewModel.CompanyUnits[0].IsSelected);
         Assert.Equal("Bolt", viewModel.SelectedName);
         Assert.False(viewModel.HasSelectedBaseName);
-        Assert.False(viewModel.ShowLieutenantIcon);
+        Assert.Equal(0, viewModel.Detail.Icons.Lieutenants);
         Assert.Equal("Combi Rifle", Assert.Single(viewModel.RangedWeaponsFormatted.Spans).Text);
     }
 
@@ -91,7 +90,7 @@ public sealed class CompanyViewerViewModelTests
 
         await viewModel.SelectUnitCommand.ExecuteAsync(viewModel.CompanyUnits[2]);
 
-        Assert.True(viewModel.ShowPeripheralIcon);
+        Assert.True(viewModel.Detail.Icons.Peripheral);
     }
 
     [Fact]

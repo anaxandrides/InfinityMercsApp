@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Captain;
-using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Perks.Catalog;
@@ -20,7 +19,6 @@ using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Season.Overview.Items;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
-using InfinityMercsApp.ViewModels.Themes;
 
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 
@@ -88,18 +86,6 @@ public partial class SeasonTeamViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedUnitType))]
     private string _selectedUnitType = string.Empty;
-
-    [ObservableProperty]
-    private CompanyHeaderColors _headerColors = CompanyHeaderColors.Default;
-
-    [ObservableProperty]
-    private bool _showLieutenantIcon;
-
-    [ObservableProperty]
-    private int _lieutenantIconCount;
-
-    [ObservableProperty]
-    private bool _showPeripheralIcon;
 
     [ObservableProperty]
     private ProfileColumns _equipment = ProfileColumns.Empty;
@@ -251,11 +237,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         SelectedUnitType = item.UnitTypeCode;
         ShowProgress(item.Progress);
 
-        HeaderColors = _roster.HeaderColorsFor(item.VisualFactionId > 0 ? item.VisualFactionId : item.SourceFactionId);
-        ShowLieutenantIcon = profile.IsLieutenant;
-        LieutenantIconCount = CompanyRoster.LieutenantIconCount(profile);
-        ShowPeripheralIcon = UnitTraitIcons
-            .From(profile.Characteristics, profile.UniqueSkills, profile.UniqueEquipment, item.IsPeripheralUnit).Peripheral;
+        Detail.HeaderColors = _roster.HeaderColorsFor(item.VisualFactionId > 0 ? item.VisualFactionId : item.SourceFactionId);
 
         Equipment = ProfileColumns.From(ProfileText.Lines(profile.UniqueEquipment));
         Skills = ProfileColumns.From(SkillLines(profile, loadout));

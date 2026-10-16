@@ -185,9 +185,19 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
     /// </summary>
     public static void ShowOn(UnitDetailViewModel detail, CompanyViewerUnitListItem item, ViewerProfileItem profile, SavedImprovedCaptainStats captain)
     {
-        detail.ApplySavedUnitSnapshot(
-            item.Name, item.UnitMov, item.UnitCc, item.UnitBs, item.UnitPh, item.UnitWip, item.UnitArm, item.UnitBts,
-            StatKeys.VitalityFor(item.UnitTypeCode).Key(), item.UnitVitality, item.UnitS, item.IsLieutenant);
+        detail.ApplySavedUnitSnapshot(item.Name, new UnitStatLine
+        {
+            Mov = item.UnitMov,
+            Cc = item.UnitCc,
+            Bs = item.UnitBs,
+            Ph = item.UnitPh,
+            Wip = item.UnitWip,
+            Arm = item.UnitArm,
+            Bts = item.UnitBts,
+            VitalityHeader = StatKeys.VitalityFor(item.UnitTypeCode).Key(),
+            Vitality = item.UnitVitality,
+            S = item.UnitS
+        });
 
         if (item.IsLieutenant && captain.IsEnabled)
         {
@@ -197,12 +207,9 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         detail.Profiles.Clear();
         detail.Profiles.Add(profile);
         detail.ApplySelectedProfileTopSummaries(profile);
-        detail.ApplyHackableOverrideFromCurrentConfiguration(profile.UniqueEquipment, profile.UniqueSkills);
-
-        var icons = UnitTraitIcons.From(profile.Characteristics, profile.UniqueSkills, profile.UniqueEquipment, item.IsPeripheralUnit);
-        detail.SetOrderTypeIconState(icons.Regular, icons.Irregular);
-        detail.ApplyTacticalAwarenessOverride(icons.TacticalAwareness);
-        detail.SetTechTraitIconState(icons.Cube, icons.Cube2, icons.Hackable);
+        detail.Icons = UnitHeaderIcons.From(
+            UnitTraitIcons.From(profile.Characteristics, profile.UniqueSkills, profile.UniqueEquipment, item.IsPeripheralUnit),
+            LieutenantIconCount(profile));
     }
 
     /// <summary>The trooper's logo: the downloaded one, else the packaged one (in either case), else its fallback.</summary>

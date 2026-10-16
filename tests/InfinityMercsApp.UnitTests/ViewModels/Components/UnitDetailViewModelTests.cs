@@ -24,8 +24,8 @@ public sealed class UnitDetailViewModelTests
 
         Assert.Equal("Swiss Guard", detail.UnitNameHeading);
         Assert.Equal("logo.svg", detail.LogoSource);
-        Assert.NotEqual("-", detail.UnitBs);
-        Assert.Contains("-", detail.UnitMov);
+        Assert.NotEqual("-", detail.Stats.Bs);
+        Assert.Contains("-", detail.Stats.Mov);
         Assert.NotEmpty(detail.Profiles);
         Assert.Equal($"{detail.Profiles.Count} configurations loaded.", detail.ProfilesStatus);
         Assert.StartsWith("Equipment: ", detail.EquipmentSummary);
@@ -80,7 +80,7 @@ public sealed class UnitDetailViewModelTests
 
         Assert.Equal("Select a unit", detail.UnitNameHeading);
         Assert.Empty(detail.Profiles);
-        Assert.Equal("-", detail.UnitBs);
+        Assert.Equal("-", detail.Stats.Bs);
         Assert.Null(detail.LogoSource);
     }
 
@@ -89,26 +89,23 @@ public sealed class UnitDetailViewModelTests
     {
         var detail = new UnitDetailViewModel(Army101Data.Create());
 
-        detail.ApplySavedUnitSnapshot("Hero", "4-4", "15", "12", "", "13", "1", "0", "VITA", "1", "2", isLieutenant: true);
+        detail.ApplySavedUnitSnapshot("Hero", new UnitStatLine { Mov = "4-4", Cc = "15", Bs = "12", Ph = "", Wip = "13", Arm = "1", Bts = "0", Vitality = "1", S = "2" });
         detail.ApplyCaptainStatBonuses(new CaptainStatBonuses(1, 2, 0, 0, 0, 0, 0));
         detail.ApplyAugmentStatOverride(new StatOverride(Stat.Ph, 14));
 
-        Assert.Equal(("Hero", "10-10", "16", "14", "14"), (detail.UnitNameHeading, detail.UnitMov, detail.UnitCc, detail.UnitBs, detail.UnitPh));
-        Assert.False(detail.ShowRegularOrderIcon);
-
-        detail.ApplyHackableOverrideFromCurrentConfiguration("Hacking Device", null);
-        Assert.True(detail.ShowHackableIcon);
+        Assert.Equal(("Hero", "10-10", "16", "14", "14"), (detail.UnitNameHeading, detail.Stats.Mov, detail.Stats.Cc, detail.Stats.Bs, detail.Stats.Ph));
+        Assert.Equal(UnitHeaderIcons.None, detail.Icons);
     }
 
     [Fact]
     public void SwitchingToCentimetresReformatsMove()
     {
         var detail = new UnitDetailViewModel(Army101Data.Create());
-        detail.ApplySavedUnitSnapshot("Hero", "4-2", "", "", "", "", "", "", "", "", "", false);
+        detail.ApplySavedUnitSnapshot("Hero", new UnitStatLine { Mov = "4-2" });
 
         detail.ShowUnitsInCentimeters = true;
 
         Assert.False(detail.ShowUnitsInInches);
-        Assert.Equal("10-5", detail.UnitMov);
+        Assert.Equal("10-5", detail.Stats.Mov);
     }
 }

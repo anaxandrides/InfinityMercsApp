@@ -1,23 +1,20 @@
-using InfinityMercsApp.ViewModels.Themes;
-using InfinityMercsApp.Domain.Models.Army.Stats;
-using SkiaSharp;
-using SkiaSharp.Views.Maui;
+using System.Collections;
+using System.Windows.Input;
+using InfinityMercsApp.ViewModels.Components;
 
 namespace InfinityMercsApp.Views.Controls;
 
 /// <summary>
-/// Shared selected-unit panel that forwards canvas/size events to hosting pages.
+/// The selected unit's header (trait icons, logo, name, statline, peripheral and summaries) over its
+/// profiles. The header shows <see cref="Unit"/>; this code only fits fonts and columns to the width.
 /// </summary>
 public partial class UnitDisplayConfigurationsView : ContentView
 {
-    private const int MaxHeaderIcons = 6;
-    private const float IconSize = 24f;
-    private const float IconVerticalGap = 5f;
-    private const float IconHorizontalGap = 6f;
-    private const double DefaultUnitHeadingMinFontSize = 11d;
-    private const double DefaultUnitHeadingFontStep = 0.5d;
-    private const string DefaultStatValue = "-";
-    private static readonly string DefaultVitalityHeader = Stat.Vita.Key();
+    private const double HeadingMinFontSize = 11d;
+    private const double HeadingFontStep = 0.5d;
+    private const double DefaultStatFontSize = 10d;
+    private const int AvaColumn = 9;
+
     // The faction emblem shrinks as the pane narrows and only disappears when there
     // is genuinely no room, so the selected unit's faction stays identifiable at
     // small window sizes instead of the header reading as an empty, cut-off box.
@@ -36,10 +33,30 @@ public partial class UnitDisplayConfigurationsView : ContentView
     private const double IconColumnFullCanvasSize = 50d;
     private const double IconColumnCompactWidth = 34d;
     private const double IconColumnCompactCanvasSize = 30d;
-    private sealed record HeaderIconRenderItem(SKPicture Picture);
-    private double _profilesPanLastTotalY;
+
+    public static readonly BindableProperty UnitProperty =
+        BindableProperty.Create(nameof(Unit), typeof(IUnitDisplay), typeof(UnitDisplayConfigurationsView));
+    public static readonly BindableProperty ProfilesProperty =
+        BindableProperty.Create(nameof(Profiles), typeof(IEnumerable), typeof(UnitDisplayConfigurationsView));
+    public static readonly BindableProperty ProfileTappedCommandProperty =
+        BindableProperty.Create(nameof(ProfileTappedCommand), typeof(ICommand), typeof(UnitDisplayConfigurationsView));
+    public static readonly BindableProperty ShowConfigurationsSectionProperty =
+        BindableProperty.Create(nameof(ShowConfigurationsSection), typeof(bool), typeof(UnitDisplayConfigurationsView), true,
+            propertyChanged: (bindable, _, _) => ((UnitDisplayConfigurationsView)bindable).UpdateConfigurationRows());
+    public static readonly BindableProperty ShowUnitNameProperty =
+        BindableProperty.Create(nameof(ShowUnitName), typeof(bool), typeof(UnitDisplayConfigurationsView), true);
+    public static readonly BindableProperty ShowSummaryRowsProperty =
+        BindableProperty.Create(nameof(ShowSummaryRows), typeof(bool), typeof(UnitDisplayConfigurationsView), true);
+    public static readonly BindableProperty ShowAvaProperty =
+        BindableProperty.Create(nameof(ShowAva), typeof(bool), typeof(UnitDisplayConfigurationsView), true,
+            propertyChanged: (bindable, _, _) => ((UnitDisplayConfigurationsView)bindable).UpdateAvaColumns());
+    public static readonly BindableProperty IsCompactProfileLayoutProperty =
+        BindableProperty.Create(nameof(IsCompactProfileLayout), typeof(bool), typeof(UnitDisplayConfigurationsView), false);
+
     private double _logoColumnWidth = -1d;
     private double _iconColumnWidth = -1d;
+    private double _statFontSize = DefaultStatFontSize;
+    private double _statHeaderFontSize = DefaultStatFontSize;
 
     // Re-entrancy guards for the two size-driven font fitters below. Both adjust a font size from
     // inside a SizeChanged callback, which re-measures the element and re-raises SizeChanged; without
@@ -47,480 +64,43 @@ public partial class UnitDisplayConfigurationsView : ContentView
     private bool _adjustingHeadingFontSize;
     private bool _adjustingStatFontSize;
 
-    /// <summary>
-    /// Unit MOV value shown in the primary statline.
-    /// </summary>
-    public static readonly BindableProperty UnitMovProperty =
-        BindableProperty.Create(nameof(UnitMov), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty UnitCcProperty =
-        BindableProperty.Create(nameof(UnitCc), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty UnitBsProperty =
-        BindableProperty.Create(nameof(UnitBs), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty UnitPhProperty =
-        BindableProperty.Create(nameof(UnitPh), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty UnitWipProperty =
-        BindableProperty.Create(nameof(UnitWip), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty UnitArmProperty =
-        BindableProperty.Create(nameof(UnitArm), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty UnitBtsProperty =
-        BindableProperty.Create(nameof(UnitBts), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty UnitVitalityHeaderProperty =
-        BindableProperty.Create(nameof(UnitVitalityHeader), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultVitalityHeader);
-    public static readonly BindableProperty UnitVitalityProperty =
-        BindableProperty.Create(nameof(UnitVitality), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty UnitSProperty =
-        BindableProperty.Create(nameof(UnitS), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty UnitAvaProperty =
-        BindableProperty.Create(nameof(UnitAva), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty HasPeripheralStatBlockProperty =
-        BindableProperty.Create(nameof(HasPeripheralStatBlock), typeof(bool), typeof(UnitDisplayConfigurationsView), false);
-    public static readonly BindableProperty PeripheralNameHeadingProperty =
-        BindableProperty.Create(nameof(PeripheralNameHeading), typeof(string), typeof(UnitDisplayConfigurationsView), string.Empty);
-    public static readonly BindableProperty PeripheralMovProperty =
-        BindableProperty.Create(nameof(PeripheralMov), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty PeripheralCcProperty =
-        BindableProperty.Create(nameof(PeripheralCc), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty PeripheralBsProperty =
-        BindableProperty.Create(nameof(PeripheralBs), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty PeripheralPhProperty =
-        BindableProperty.Create(nameof(PeripheralPh), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty PeripheralWipProperty =
-        BindableProperty.Create(nameof(PeripheralWip), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty PeripheralArmProperty =
-        BindableProperty.Create(nameof(PeripheralArm), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty PeripheralBtsProperty =
-        BindableProperty.Create(nameof(PeripheralBts), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty PeripheralVitalityHeaderProperty =
-        BindableProperty.Create(nameof(PeripheralVitalityHeader), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultVitalityHeader);
-    public static readonly BindableProperty PeripheralVitalityProperty =
-        BindableProperty.Create(nameof(PeripheralVitality), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty PeripheralSProperty =
-        BindableProperty.Create(nameof(PeripheralS), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty PeripheralAvaProperty =
-        BindableProperty.Create(nameof(PeripheralAva), typeof(string), typeof(UnitDisplayConfigurationsView), DefaultStatValue);
-    public static readonly BindableProperty ShowRegularOrderIconProperty =
-        BindableProperty.Create(nameof(ShowRegularOrderIcon), typeof(bool), typeof(UnitDisplayConfigurationsView), false, propertyChanged: OnHeaderIconVisibilityChanged);
-    public static readonly BindableProperty ShowIrregularOrderIconProperty =
-        BindableProperty.Create(nameof(ShowIrregularOrderIcon), typeof(bool), typeof(UnitDisplayConfigurationsView), false, propertyChanged: OnHeaderIconVisibilityChanged);
-    public static readonly BindableProperty ShowLieutenantIconProperty =
-        BindableProperty.Create(nameof(ShowLieutenantIcon), typeof(bool), typeof(UnitDisplayConfigurationsView), false, propertyChanged: OnHeaderIconVisibilityChanged);
-    public static readonly BindableProperty ShowPeripheralIconProperty =
-        BindableProperty.Create(nameof(ShowPeripheralIcon), typeof(bool), typeof(UnitDisplayConfigurationsView), false, propertyChanged: OnHeaderIconVisibilityChanged);
-    public static readonly BindableProperty LieutenantIconCountProperty =
-        BindableProperty.Create(nameof(LieutenantIconCount), typeof(int), typeof(UnitDisplayConfigurationsView), 0, propertyChanged: OnHeaderIconVisibilityChanged);
-    public static readonly BindableProperty ShowImpetuousIconProperty =
-        BindableProperty.Create(nameof(ShowImpetuousIcon), typeof(bool), typeof(UnitDisplayConfigurationsView), false, propertyChanged: OnHeaderIconVisibilityChanged);
-    public static readonly BindableProperty ShowTacticalAwarenessIconProperty =
-        BindableProperty.Create(nameof(ShowTacticalAwarenessIcon), typeof(bool), typeof(UnitDisplayConfigurationsView), false, propertyChanged: OnHeaderIconVisibilityChanged);
-    public static readonly BindableProperty ShowCubeIconProperty =
-        BindableProperty.Create(nameof(ShowCubeIcon), typeof(bool), typeof(UnitDisplayConfigurationsView), false, propertyChanged: OnHeaderIconVisibilityChanged);
-    public static readonly BindableProperty ShowCube2IconProperty =
-        BindableProperty.Create(nameof(ShowCube2Icon), typeof(bool), typeof(UnitDisplayConfigurationsView), false, propertyChanged: OnHeaderIconVisibilityChanged);
-    public static readonly BindableProperty ShowHackableIconProperty =
-        BindableProperty.Create(nameof(ShowHackableIcon), typeof(bool), typeof(UnitDisplayConfigurationsView), false, propertyChanged: OnHeaderIconVisibilityChanged);
-    public static readonly BindableProperty ShowUnitsInInchesProperty =
-        BindableProperty.Create(nameof(ShowUnitsInInches), typeof(bool), typeof(UnitDisplayConfigurationsView), true);
-    public static readonly BindableProperty UnitMoveFirstCmProperty =
-        BindableProperty.Create(nameof(UnitMoveFirstCm), typeof(int?), typeof(UnitDisplayConfigurationsView), null);
-    public static readonly BindableProperty UnitMoveSecondCmProperty =
-        BindableProperty.Create(nameof(UnitMoveSecondCm), typeof(int?), typeof(UnitDisplayConfigurationsView), null);
-    public static readonly BindableProperty PeripheralMoveFirstCmProperty =
-        BindableProperty.Create(nameof(PeripheralMoveFirstCm), typeof(int?), typeof(UnitDisplayConfigurationsView), null);
-    public static readonly BindableProperty PeripheralMoveSecondCmProperty =
-        BindableProperty.Create(nameof(PeripheralMoveSecondCm), typeof(int?), typeof(UnitDisplayConfigurationsView), null);
-    public static readonly BindableProperty UnitNameHeadingProperty =
-        BindableProperty.Create(nameof(UnitNameHeading), typeof(string), typeof(UnitDisplayConfigurationsView), "Select a unit",
-            propertyChanged: (bindable, _, _) => ((UnitDisplayConfigurationsView)bindable).RefreshUnitHeadingFontSize());
-    public static readonly BindableProperty UnitNameHeadingFontSizeProperty =
-        BindableProperty.Create(nameof(UnitNameHeadingFontSize), typeof(double), typeof(UnitDisplayConfigurationsView), 24d);
-    public static readonly BindableProperty UnitHeaderPrimaryColorProperty =
-        BindableProperty.Create(nameof(UnitHeaderPrimaryColor), typeof(Color), typeof(UnitDisplayConfigurationsView), CompanyHeaderColors.DefaultPrimary);
-    public static readonly BindableProperty UnitHeaderSecondaryColorProperty =
-        BindableProperty.Create(nameof(UnitHeaderSecondaryColor), typeof(Color), typeof(UnitDisplayConfigurationsView), CompanyHeaderColors.DefaultSecondary);
-    public static readonly BindableProperty UnitHeaderPrimaryTextColorProperty =
-        BindableProperty.Create(nameof(UnitHeaderPrimaryTextColor), typeof(Color), typeof(UnitDisplayConfigurationsView), Colors.White);
-    public static readonly BindableProperty UnitHeaderSecondaryTextColorProperty =
-        BindableProperty.Create(nameof(UnitHeaderSecondaryTextColor), typeof(Color), typeof(UnitDisplayConfigurationsView), Colors.White);
-    public static readonly BindableProperty PeripheralEquipmentProperty =
-        BindableProperty.Create(
-            nameof(PeripheralEquipment),
-            typeof(string),
-            typeof(UnitDisplayConfigurationsView),
-            "-",
-            propertyChanged: (bindable, _, _) =>
+    public UnitDisplayConfigurationsView()
+    {
+        InitializeComponent();
+        UnitNameHeadingLabel.FontSize = HeadingMaxFontSize();
+        UnitNameHeadingLabel.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == Label.TextProperty.PropertyName)
             {
-                if (bindable is UnitDisplayConfigurationsView view)
-                {
-                    view.OnPropertyChanged(nameof(HasPeripheralEquipment));
-                }
-            });
-    public static readonly BindableProperty PeripheralSkillsProperty =
-        BindableProperty.Create(
-            nameof(PeripheralSkills),
-            typeof(string),
-            typeof(UnitDisplayConfigurationsView),
-            "-",
-            propertyChanged: (bindable, _, _) =>
-            {
-                if (bindable is UnitDisplayConfigurationsView view)
-                {
-                    view.OnPropertyChanged(nameof(HasPeripheralSkills));
-                }
-            });
-    public static readonly BindableProperty EquipmentSummaryProperty =
-        BindableProperty.Create(nameof(EquipmentSummary), typeof(string), typeof(UnitDisplayConfigurationsView), "Equipment: -");
-    public static readonly BindableProperty SpecialSkillsSummaryProperty =
-        BindableProperty.Create(nameof(SpecialSkillsSummary), typeof(string), typeof(UnitDisplayConfigurationsView), "Special Skills: -");
-    public static readonly BindableProperty EquipmentSummaryFormattedProperty =
-        BindableProperty.Create(nameof(EquipmentSummaryFormatted), typeof(FormattedString), typeof(UnitDisplayConfigurationsView), new FormattedString());
-    public static readonly BindableProperty SpecialSkillsSummaryFormattedProperty =
-        BindableProperty.Create(nameof(SpecialSkillsSummaryFormatted), typeof(FormattedString), typeof(UnitDisplayConfigurationsView), new FormattedString());
-    public static readonly BindableProperty PeripheralEquipmentFormattedProperty =
-        BindableProperty.Create(nameof(PeripheralEquipmentFormatted), typeof(FormattedString), typeof(UnitDisplayConfigurationsView), new FormattedString());
-    public static readonly BindableProperty PeripheralSkillsFormattedProperty =
-        BindableProperty.Create(nameof(PeripheralSkillsFormatted), typeof(FormattedString), typeof(UnitDisplayConfigurationsView), new FormattedString());
-    public static readonly BindableProperty ShowConfigurationsSectionProperty =
-        BindableProperty.Create(
-            nameof(ShowConfigurationsSection),
-            typeof(bool),
-            typeof(UnitDisplayConfigurationsView),
-            true,
-            propertyChanged: OnShowConfigurationsSectionChanged);
-    public static readonly BindableProperty ShowUnitNameProperty =
-        BindableProperty.Create(nameof(ShowUnitName), typeof(bool), typeof(UnitDisplayConfigurationsView), true);
-    public static readonly BindableProperty ShowSummaryRowsProperty =
-        BindableProperty.Create(nameof(ShowSummaryRows), typeof(bool), typeof(UnitDisplayConfigurationsView), true);
-    public static readonly BindableProperty ShowAvaProperty =
-        BindableProperty.Create(nameof(ShowAva), typeof(bool), typeof(UnitDisplayConfigurationsView), true,
-            propertyChanged: OnShowAvaChanged);
-    public static readonly BindableProperty StatFontSizeProperty =
-        BindableProperty.Create(nameof(StatFontSize), typeof(double), typeof(UnitDisplayConfigurationsView), 10.0);
-    public static readonly BindableProperty StatHeaderFontSizeProperty =
-        BindableProperty.Create(nameof(StatHeaderFontSize), typeof(double), typeof(UnitDisplayConfigurationsView), 10.0);
-    public static readonly BindableProperty IsCompactProfileLayoutProperty =
-        BindableProperty.Create(nameof(IsCompactProfileLayout), typeof(bool), typeof(UnitDisplayConfigurationsView), false,
-            propertyChanged: OnIsCompactProfileLayoutChanged);
-    public static readonly BindableProperty IsWideProfileLayoutProperty =
-        BindableProperty.Create(nameof(IsWideProfileLayout), typeof(bool), typeof(UnitDisplayConfigurationsView), true);
-
-    public string UnitMov
-    {
-        get => (string)GetValue(UnitMovProperty);
-        set => SetValue(UnitMovProperty, value);
+                FitHeadingFontSize();
+            }
+        };
+        ApplyStatFontSizes(DefaultStatFontSize, DefaultStatFontSize);
+        UpdateConfigurationRows();
     }
 
-    public string UnitCc
+    /// <summary>The unit the header shows.</summary>
+    public IUnitDisplay? Unit
     {
-        get => (string)GetValue(UnitCcProperty);
-        set => SetValue(UnitCcProperty, value);
+        get => (IUnitDisplay?)GetValue(UnitProperty);
+        set => SetValue(UnitProperty, value);
     }
 
-    public string UnitBs
+    /// <summary>The configurations listed under the header.</summary>
+    public IEnumerable? Profiles
     {
-        get => (string)GetValue(UnitBsProperty);
-        set => SetValue(UnitBsProperty, value);
+        get => (IEnumerable?)GetValue(ProfilesProperty);
+        set => SetValue(ProfilesProperty, value);
     }
 
-    public string UnitPh
+    /// <summary>Runs with the tapped configuration, e.g. to add it to the company.</summary>
+    public ICommand? ProfileTappedCommand
     {
-        get => (string)GetValue(UnitPhProperty);
-        set => SetValue(UnitPhProperty, value);
+        get => (ICommand?)GetValue(ProfileTappedCommandProperty);
+        set => SetValue(ProfileTappedCommandProperty, value);
     }
 
-    public string UnitWip
-    {
-        get => (string)GetValue(UnitWipProperty);
-        set => SetValue(UnitWipProperty, value);
-    }
-
-    public string UnitArm
-    {
-        get => (string)GetValue(UnitArmProperty);
-        set => SetValue(UnitArmProperty, value);
-    }
-
-    public string UnitBts
-    {
-        get => (string)GetValue(UnitBtsProperty);
-        set => SetValue(UnitBtsProperty, value);
-    }
-
-    public string UnitVitalityHeader
-    {
-        get => (string)GetValue(UnitVitalityHeaderProperty);
-        set => SetValue(UnitVitalityHeaderProperty, value);
-    }
-
-    public string UnitVitality
-    {
-        get => (string)GetValue(UnitVitalityProperty);
-        set => SetValue(UnitVitalityProperty, value);
-    }
-
-    public string UnitS
-    {
-        get => (string)GetValue(UnitSProperty);
-        set => SetValue(UnitSProperty, value);
-    }
-
-    public string UnitAva
-    {
-        get => (string)GetValue(UnitAvaProperty);
-        set => SetValue(UnitAvaProperty, value);
-    }
-
-    public bool HasPeripheralStatBlock
-    {
-        get => (bool)GetValue(HasPeripheralStatBlockProperty);
-        set => SetValue(HasPeripheralStatBlockProperty, value);
-    }
-
-    public string PeripheralNameHeading
-    {
-        get => (string)GetValue(PeripheralNameHeadingProperty);
-        set => SetValue(PeripheralNameHeadingProperty, value);
-    }
-
-    public string PeripheralMov
-    {
-        get => (string)GetValue(PeripheralMovProperty);
-        set => SetValue(PeripheralMovProperty, value);
-    }
-
-    public string PeripheralCc
-    {
-        get => (string)GetValue(PeripheralCcProperty);
-        set => SetValue(PeripheralCcProperty, value);
-    }
-
-    public string PeripheralBs
-    {
-        get => (string)GetValue(PeripheralBsProperty);
-        set => SetValue(PeripheralBsProperty, value);
-    }
-
-    public string PeripheralPh
-    {
-        get => (string)GetValue(PeripheralPhProperty);
-        set => SetValue(PeripheralPhProperty, value);
-    }
-
-    public string PeripheralWip
-    {
-        get => (string)GetValue(PeripheralWipProperty);
-        set => SetValue(PeripheralWipProperty, value);
-    }
-
-    public string PeripheralArm
-    {
-        get => (string)GetValue(PeripheralArmProperty);
-        set => SetValue(PeripheralArmProperty, value);
-    }
-
-    public string PeripheralBts
-    {
-        get => (string)GetValue(PeripheralBtsProperty);
-        set => SetValue(PeripheralBtsProperty, value);
-    }
-
-    public string PeripheralVitalityHeader
-    {
-        get => (string)GetValue(PeripheralVitalityHeaderProperty);
-        set => SetValue(PeripheralVitalityHeaderProperty, value);
-    }
-
-    public string PeripheralVitality
-    {
-        get => (string)GetValue(PeripheralVitalityProperty);
-        set => SetValue(PeripheralVitalityProperty, value);
-    }
-
-    public string PeripheralS
-    {
-        get => (string)GetValue(PeripheralSProperty);
-        set => SetValue(PeripheralSProperty, value);
-    }
-
-    public string PeripheralAva
-    {
-        get => (string)GetValue(PeripheralAvaProperty);
-        set => SetValue(PeripheralAvaProperty, value);
-    }
-
-    public bool ShowRegularOrderIcon
-    {
-        get => (bool)GetValue(ShowRegularOrderIconProperty);
-        set => SetValue(ShowRegularOrderIconProperty, value);
-    }
-
-    public bool ShowIrregularOrderIcon
-    {
-        get => (bool)GetValue(ShowIrregularOrderIconProperty);
-        set => SetValue(ShowIrregularOrderIconProperty, value);
-    }
-
-    public bool ShowLieutenantIcon
-    {
-        get => (bool)GetValue(ShowLieutenantIconProperty);
-        set => SetValue(ShowLieutenantIconProperty, value);
-    }
-
-    public bool ShowPeripheralIcon
-    {
-        get => (bool)GetValue(ShowPeripheralIconProperty);
-        set => SetValue(ShowPeripheralIconProperty, value);
-    }
-
-    public int LieutenantIconCount
-    {
-        get => (int)GetValue(LieutenantIconCountProperty);
-        set => SetValue(LieutenantIconCountProperty, Math.Max(0, value));
-    }
-
-    public bool ShowImpetuousIcon
-    {
-        get => (bool)GetValue(ShowImpetuousIconProperty);
-        set => SetValue(ShowImpetuousIconProperty, value);
-    }
-
-    public bool ShowTacticalAwarenessIcon
-    {
-        get => (bool)GetValue(ShowTacticalAwarenessIconProperty);
-        set => SetValue(ShowTacticalAwarenessIconProperty, value);
-    }
-
-    public bool ShowCubeIcon
-    {
-        get => (bool)GetValue(ShowCubeIconProperty);
-        set => SetValue(ShowCubeIconProperty, value);
-    }
-
-    public bool ShowCube2Icon
-    {
-        get => (bool)GetValue(ShowCube2IconProperty);
-        set => SetValue(ShowCube2IconProperty, value);
-    }
-
-    public bool ShowHackableIcon
-    {
-        get => (bool)GetValue(ShowHackableIconProperty);
-        set => SetValue(ShowHackableIconProperty, value);
-    }
-
-    public bool ShowUnitsInInches
-    {
-        get => (bool)GetValue(ShowUnitsInInchesProperty);
-        set => SetValue(ShowUnitsInInchesProperty, value);
-    }
-
-    public int? UnitMoveFirstCm
-    {
-        get => (int?)GetValue(UnitMoveFirstCmProperty);
-        set => SetValue(UnitMoveFirstCmProperty, value);
-    }
-
-    public int? UnitMoveSecondCm
-    {
-        get => (int?)GetValue(UnitMoveSecondCmProperty);
-        set => SetValue(UnitMoveSecondCmProperty, value);
-    }
-
-    public int? PeripheralMoveFirstCm
-    {
-        get => (int?)GetValue(PeripheralMoveFirstCmProperty);
-        set => SetValue(PeripheralMoveFirstCmProperty, value);
-    }
-
-    public int? PeripheralMoveSecondCm
-    {
-        get => (int?)GetValue(PeripheralMoveSecondCmProperty);
-        set => SetValue(PeripheralMoveSecondCmProperty, value);
-    }
-
-    public string UnitNameHeading
-    {
-        get => (string)GetValue(UnitNameHeadingProperty);
-        set => SetValue(UnitNameHeadingProperty, value);
-    }
-
-    public double UnitNameHeadingFontSize
-    {
-        get => (double)GetValue(UnitNameHeadingFontSizeProperty);
-        set => SetValue(UnitNameHeadingFontSizeProperty, value);
-    }
-
-    public Color UnitHeaderPrimaryColor
-    {
-        get => (Color)GetValue(UnitHeaderPrimaryColorProperty);
-        set => SetValue(UnitHeaderPrimaryColorProperty, value);
-    }
-
-    public Color UnitHeaderSecondaryColor
-    {
-        get => (Color)GetValue(UnitHeaderSecondaryColorProperty);
-        set => SetValue(UnitHeaderSecondaryColorProperty, value);
-    }
-
-    public Color UnitHeaderPrimaryTextColor
-    {
-        get => (Color)GetValue(UnitHeaderPrimaryTextColorProperty);
-        set => SetValue(UnitHeaderPrimaryTextColorProperty, value);
-    }
-
-    public Color UnitHeaderSecondaryTextColor
-    {
-        get => (Color)GetValue(UnitHeaderSecondaryTextColorProperty);
-        set => SetValue(UnitHeaderSecondaryTextColorProperty, value);
-    }
-
-    public string PeripheralEquipment
-    {
-        get => (string)GetValue(PeripheralEquipmentProperty);
-        set => SetValue(PeripheralEquipmentProperty, value);
-    }
-
-    public string PeripheralSkills
-    {
-        get => (string)GetValue(PeripheralSkillsProperty);
-        set => SetValue(PeripheralSkillsProperty, value);
-    }
-
-    public string EquipmentSummary
-    {
-        get => (string)GetValue(EquipmentSummaryProperty);
-        set => SetValue(EquipmentSummaryProperty, value);
-    }
-
-    public string SpecialSkillsSummary
-    {
-        get => (string)GetValue(SpecialSkillsSummaryProperty);
-        set => SetValue(SpecialSkillsSummaryProperty, value);
-    }
-
-    public FormattedString EquipmentSummaryFormatted
-    {
-        get => (FormattedString)GetValue(EquipmentSummaryFormattedProperty);
-        set => SetValue(EquipmentSummaryFormattedProperty, value);
-    }
-
-    public FormattedString SpecialSkillsSummaryFormatted
-    {
-        get => (FormattedString)GetValue(SpecialSkillsSummaryFormattedProperty);
-        set => SetValue(SpecialSkillsSummaryFormattedProperty, value);
-    }
-
-    public FormattedString PeripheralEquipmentFormatted
-    {
-        get => (FormattedString)GetValue(PeripheralEquipmentFormattedProperty);
-        set => SetValue(PeripheralEquipmentFormattedProperty, value);
-    }
-
-    public FormattedString PeripheralSkillsFormatted
-    {
-        get => (FormattedString)GetValue(PeripheralSkillsFormattedProperty);
-        set => SetValue(PeripheralSkillsFormattedProperty, value);
-    }
-
+    /// <summary>Whether the "Profiles" list is shown under the header.</summary>
     public bool ShowConfigurationsSection
     {
         get => (bool)GetValue(ShowConfigurationsSectionProperty);
@@ -533,6 +113,7 @@ public partial class UnitDisplayConfigurationsView : ContentView
         set => SetValue(ShowUnitNameProperty, value);
     }
 
+    /// <summary>Whether the shared equipment and skills rows are shown.</summary>
     public bool ShowSummaryRows
     {
         get => (bool)GetValue(ShowSummaryRowsProperty);
@@ -545,18 +126,6 @@ public partial class UnitDisplayConfigurationsView : ContentView
         set => SetValue(ShowAvaProperty, value);
     }
 
-    public double StatFontSize
-    {
-        get => (double)GetValue(StatFontSizeProperty);
-        set => SetValue(StatFontSizeProperty, value);
-    }
-
-    public double StatHeaderFontSize
-    {
-        get => (double)GetValue(StatHeaderFontSizeProperty);
-        set => SetValue(StatHeaderFontSizeProperty, value);
-    }
-
     /// <summary>
     /// When true the per-profile weapons/skills/equipment block is laid out as a 2x2 grid
     /// (equipment + skills on top, ranged + close combat below) for narrow panes.
@@ -564,81 +133,7 @@ public partial class UnitDisplayConfigurationsView : ContentView
     public bool IsCompactProfileLayout
     {
         get => (bool)GetValue(IsCompactProfileLayoutProperty);
-        set => SetValue(IsCompactProfileLayoutProperty, value);
-    }
-
-    /// <summary>Inverse of <see cref="IsCompactProfileLayout"/>; the single-row four-column layout.</summary>
-    public bool IsWideProfileLayout
-    {
-        get => (bool)GetValue(IsWideProfileLayoutProperty);
-        private set => SetValue(IsWideProfileLayoutProperty, value);
-    }
-
-    private static void OnIsCompactProfileLayoutChanged(BindableObject bindable, object oldValue, object newValue)
-    {
-        if (bindable is UnitDisplayConfigurationsView view)
-        {
-            view.IsWideProfileLayout = newValue is not bool compact || !compact;
-        }
-    }
-
-    public bool HasPeripheralEquipment => !string.IsNullOrWhiteSpace(PeripheralEquipment) && PeripheralEquipment != "-";
-    public bool HasPeripheralSkills => !string.IsNullOrWhiteSpace(PeripheralSkills) && PeripheralSkills != "-";
-    public bool HasAnyTopHeaderIcons => ShowRegularOrderIcon || ShowIrregularOrderIcon || ShowLieutenantIcon || LieutenantIconCount > 0 || ShowPeripheralIcon || ShowImpetuousIcon || ShowTacticalAwarenessIcon;
-    public bool HasAnyBottomHeaderIcons => ShowCubeIcon || ShowCube2Icon || ShowHackableIcon;
-    public bool HasAnyHeaderIcons => HasAnyTopHeaderIcons || HasAnyBottomHeaderIcons;
-
-    public static readonly BindableProperty SelectedUnitLogoSourceProperty =
-        BindableProperty.Create(nameof(SelectedUnitLogoSource), typeof(string), typeof(UnitDisplayConfigurationsView), null,
-            propertyChanged: (bindable, _, _) => ((UnitDisplayConfigurationsView)bindable).LoadLogoFromSource());
-
-    // The control's icons and logo. They come from the shared cache, so they are never disposed.
-    private SKPicture? _regularIcon, _irregularIcon, _lieutenantIcon, _peripheralIcon, _impetuousIcon,
-        _tacticalIcon, _cubeIcon, _cube2Icon, _hackableIcon, _logoFromSource;
-
-    public UnitDisplayConfigurationsView()
-    {
-        InitializeComponent();
-        UpdateConfigurationRows();
-        _ = LoadDefaultIconsAsync();
-    }
-
-    /// <summary>The selected unit's logo file.</summary>
-    public string? SelectedUnitLogoSource
-    {
-        get => (string?)GetValue(SelectedUnitLogoSourceProperty);
-        set => SetValue(SelectedUnitLogoSourceProperty, value);
-    }
-
-
-    private async Task LoadDefaultIconsAsync()
-    {
-        _regularIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/regular.svg");
-        _irregularIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/irregular.svg");
-        _lieutenantIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/lieutenant.svg");
-        _peripheralIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/peripheral.svg");
-        _impetuousIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/impetuous.svg");
-        _tacticalIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/tactical.svg");
-        _cubeIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/cube.svg");
-        _cube2Icon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/cube2.svg");
-        _hackableIcon = await SvgPictureCache.GetAsync("SVGCache/CBIcons/hackable.svg");
-
-        InvalidateHeaderIconsCanvas();
-        PeripheralHeaderIconCanvas.InvalidateSurface();
-    }
-
-    private async void LoadLogoFromSource()
-    {
-        var source = SelectedUnitLogoSource;
-        _logoFromSource = null;
-        InvalidateSelectedUnitCanvas();
-
-        var picture = await SvgPictureCache.GetAsync(source);
-        if (source == SelectedUnitLogoSource)
-        {
-            _logoFromSource = picture;
-            InvalidateSelectedUnitCanvas();
-        }
+        private set => SetValue(IsCompactProfileLayoutProperty, value);
     }
 
     protected override void OnSizeAllocated(double width, double height)
@@ -652,23 +147,11 @@ public partial class UnitDisplayConfigurationsView : ContentView
 
         UpdateIconColumnWidth(width);
 
-        double columnWidth;
-        double canvasSize;
-        if (width < LogoHideThreshold)
-        {
-            columnWidth = 0d;
-            canvasSize = 0d;
-        }
-        else if (width < LogoCompactThreshold)
-        {
-            columnWidth = LogoCompactColumnWidth;
-            canvasSize = LogoCompactCanvasSize;
-        }
-        else
-        {
-            columnWidth = LogoFullColumnWidth;
-            canvasSize = LogoFullCanvasSize;
-        }
+        var (columnWidth, canvasSize) = width < LogoHideThreshold
+            ? (0d, 0d)
+            : width < LogoCompactThreshold
+                ? (LogoCompactColumnWidth, LogoCompactCanvasSize)
+                : (LogoFullColumnWidth, LogoFullCanvasSize);
 
         if (Math.Abs(_logoColumnWidth - columnWidth) < 0.5) return;
         _logoColumnWidth = columnWidth;
@@ -680,215 +163,30 @@ public partial class UnitDisplayConfigurationsView : ContentView
         {
             SelectedUnitCanvas.WidthRequest = canvasSize;
             SelectedUnitCanvas.HeightRequest = canvasSize;
-            SelectedUnitCanvas.InvalidateSurface();
         }
     }
 
     // Narrows the trait-icon column (and its canvas) on small panes so the statline keeps the room.
     private void UpdateIconColumnWidth(double width)
     {
-        double columnWidth;
-        double canvasSize;
-        if (width < LogoCompactThreshold)
-        {
-            columnWidth = IconColumnCompactWidth;
-            canvasSize = IconColumnCompactCanvasSize;
-        }
-        else
-        {
-            columnWidth = IconColumnFullWidth;
-            canvasSize = IconColumnFullCanvasSize;
-        }
+        var (columnWidth, canvasSize) = width < LogoCompactThreshold
+            ? (IconColumnCompactWidth, IconColumnCompactCanvasSize)
+            : (IconColumnFullWidth, IconColumnFullCanvasSize);
 
         if (Math.Abs(_iconColumnWidth - columnWidth) < 0.5) return;
         _iconColumnWidth = columnWidth;
 
         ConfigurationsRootGrid.ColumnDefinitions[0].Width = new GridLength(columnWidth);
         HeaderIconsCanvas.WidthRequest = canvasSize;
-        HeaderIconsCanvas.InvalidateSurface();
     }
 
-    private void InvalidateHeaderIconsCanvas()
-    {
-        HeaderIconsCanvas.InvalidateSurface();
-    }
+    private void OnUnitNameHeadingLabelSizeChanged(object? sender, EventArgs e) => FitHeadingFontSize();
 
-    private void InvalidateSelectedUnitCanvas()
-    {
-        SelectedUnitCanvas.InvalidateSurface();
-    }
+    private static double HeadingMaxFontSize() =>
+        Application.Current?.Resources.TryGetValue("FontSizeSubHeadline", out var raw) == true && raw is double size ? size : 24d;
 
     /// <summary>Fits the heading to its width, stepping the font down from the largest size.</summary>
-    public void RefreshUnitHeadingFontSize() =>
-        UpdateUnitHeadingFontSize(ResolveHeadingMaxFontSize(), DefaultUnitHeadingMinFontSize, DefaultUnitHeadingFontStep);
-
-    /// <summary>
-    /// Formats movement values as inches or centimeters for display.
-    /// </summary>
-    public static string FormatMoveValue(int? firstCm, int? secondCm, bool showUnitsInInches) =>
-        Movement.Format(Movement.From(firstCm, secondCm), showUnitsInInches);
-
-    private void OnHeaderIconsCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        var canvas = e.Surface.Canvas;
-        canvas.Clear(SKColors.Transparent);
-
-        DrawIconColumn(canvas, e.Info, BuildHeaderIconPictures());
-    }
-
-    private void OnSelectedUnitCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        SkiaDrawing.DrawSlotPicture(_logoFromSource, e);
-    }
-
-    private void OnPeripheralIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        SkiaDrawing.DrawSlotPicture(_peripheralIcon, e);
-    }
-
-    private void OnProfileTacticalIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        SkiaDrawing.DrawSlotPicture(_tacticalIcon, e);
-    }
-
-    private void OnUnitNameHeadingLabelSizeChanged(object? sender, EventArgs e) => RefreshUnitHeadingFontSize();
-
-    private async void OnProfilesScrollPanUpdated(object? sender, PanUpdatedEventArgs e)
-    {
-        if (sender is not ScrollView scrollView)
-        {
-            return;
-        }
-
-        switch (e.StatusType)
-        {
-            case GestureStatus.Started:
-                _profilesPanLastTotalY = 0d;
-                break;
-            case GestureStatus.Running:
-                var deltaY = e.TotalY - _profilesPanLastTotalY;
-                _profilesPanLastTotalY = e.TotalY;
-                var targetY = Math.Max(0d, scrollView.ScrollY - deltaY);
-                await scrollView.ScrollToAsync(0d, targetY, false);
-                break;
-            case GestureStatus.Completed:
-            case GestureStatus.Canceled:
-                _profilesPanLastTotalY = 0d;
-                break;
-        }
-    }
-
-    private List<HeaderIconRenderItem> BuildHeaderIconPictures() =>
-        BuildHeaderIconPictures(
-            ShowRegularOrderIcon, ShowIrregularOrderIcon, ShowImpetuousIcon,
-            ShowTacticalAwarenessIcon, ShowCubeIcon, ShowCube2Icon, ShowHackableIcon);
-
-    private List<HeaderIconRenderItem> BuildHeaderIconPictures(
-        bool regular, bool irregular, bool impetuous, bool tactical, bool cube, bool cube2, bool hackable)
-    {
-        var pictures = new List<HeaderIconRenderItem>(MaxHeaderIcons);
-
-        void Add(bool show, SKPicture? picture)
-        {
-            if (show && picture is not null)
-            {
-                pictures.Add(new HeaderIconRenderItem(picture));
-            }
-        }
-
-        Add(regular || irregular, irregular ? _irregularIcon : _regularIcon);
-
-        var lieutenantIconCount = Math.Max(ShowLieutenantIcon ? 1 : 0, LieutenantIconCount);
-        for (var i = 0; i < lieutenantIconCount; i++)
-        {
-            Add(true, _lieutenantIcon);
-        }
-
-        Add(ShowPeripheralIcon, _peripheralIcon);
-        Add(impetuous, _impetuousIcon);
-        Add(tactical, _tacticalIcon);
-        Add(cube, _cubeIcon);
-        Add(cube2, _cube2Icon);
-        Add(hackable, _hackableIcon);
-
-        return pictures.Count <= MaxHeaderIcons ? pictures : pictures.Take(MaxHeaderIcons).ToList();
-    }
-
-    private static void DrawIconColumn(SKCanvas canvas, SKImageInfo info, IReadOnlyList<HeaderIconRenderItem> pictures)
-    {
-        if (pictures.Count == 0)
-        {
-            return;
-        }
-
-        var drawCount = pictures.Count;
-        if (drawCount <= 3)
-        {
-            var totalGap = (drawCount - 1) * IconVerticalGap;
-            var maxIconSizeFromHeight = (info.Height - totalGap) / drawCount;
-            var maxIconSizeFromWidth = info.Width;
-            var iconSize = Math.Max(1f, Math.Min(IconSize, Math.Min(maxIconSizeFromHeight, maxIconSizeFromWidth)));
-            var totalHeight = (drawCount * iconSize) + totalGap;
-            var startY = Math.Max(0f, (info.Height - totalHeight) / 2f);
-
-            for (var i = 0; i < drawCount; i++)
-            {
-                var x = (info.Width - iconSize) / 2f;
-                var y = startY + (i * (iconSize + IconVerticalGap));
-                var destination = new SKRect(x, y, x + iconSize, y + iconSize);
-                SkiaDrawing.DrawPictureInRect(canvas, pictures[i].Picture, destination);
-            }
-
-            return;
-        }
-
-        var leftCount = Math.Min(3, drawCount);
-        var rightCount = Math.Max(0, drawCount - leftCount);
-        var rowsInTallerColumn = Math.Max(leftCount, rightCount);
-        var totalVerticalGap = (rowsInTallerColumn - 1) * IconVerticalGap;
-        var maxIconSizeFromTallestColumnHeight = (info.Height - totalVerticalGap) / rowsInTallerColumn;
-        var maxIconSizeFromWidthForTwoColumns = (info.Width - IconHorizontalGap) / 2f;
-        var twoColumnIconSize = Math.Max(
-            1f,
-            Math.Min(IconSize, Math.Min(maxIconSizeFromTallestColumnHeight, maxIconSizeFromWidthForTwoColumns)));
-
-        var totalWidth = (twoColumnIconSize * 2f) + IconHorizontalGap;
-        var leftX = Math.Max(0f, (info.Width - totalWidth) / 2f);
-        var rightX = leftX + twoColumnIconSize + IconHorizontalGap;
-
-        var leftTotalHeight = (leftCount * twoColumnIconSize) + ((leftCount - 1) * IconVerticalGap);
-        var leftStartY = Math.Max(0f, (info.Height - leftTotalHeight) / 2f);
-        for (var i = 0; i < leftCount; i++)
-        {
-            var y = leftStartY + (i * (twoColumnIconSize + IconVerticalGap));
-            var destination = new SKRect(leftX, y, leftX + twoColumnIconSize, y + twoColumnIconSize);
-            SkiaDrawing.DrawPictureInRect(canvas, pictures[i].Picture, destination);
-        }
-
-        if (rightCount == 0)
-        {
-            return;
-        }
-
-        var rightTotalHeight = (rightCount * twoColumnIconSize) + ((rightCount - 1) * IconVerticalGap);
-        var rightStartY = Math.Max(0f, (info.Height - rightTotalHeight) / 2f);
-        for (var i = 0; i < rightCount; i++)
-        {
-            var pictureIndex = leftCount + i;
-            var y = rightStartY + (i * (twoColumnIconSize + IconVerticalGap));
-            var destination = new SKRect(rightX, y, rightX + twoColumnIconSize, y + twoColumnIconSize);
-            SkiaDrawing.DrawPictureInRect(canvas, pictures[pictureIndex].Picture, destination);
-        }
-    }
-
-    private static double ResolveHeadingMaxFontSize()
-    {
-        if (Application.Current?.Resources.TryGetValue("FontSizeSubHeadline", out var raw) == true && raw is double d)
-            return d;
-        return 24d;
-    }
-
-    private void UpdateUnitHeadingFontSize(double maxFontSize, double minFontSize, double fontStep)
+    private void FitHeadingFontSize()
     {
         // Assigning the font below re-measures the label and re-raises its SizeChanged, which calls
         // back here; bail on the re-entrant pass so the fitted value stands and layout can settle.
@@ -900,53 +198,29 @@ public partial class UnitDisplayConfigurationsView : ContentView
         _adjustingHeadingFontSize = true;
         try
         {
+            var maxFontSize = HeadingMaxFontSize();
             var availableWidth = UnitNameHeadingLabel.Width;
             if (availableWidth <= 0)
             {
-                UnitNameHeadingFontSize = maxFontSize;
+                UnitNameHeadingLabel.FontSize = maxFontSize;
                 return;
             }
 
-            for (var size = maxFontSize; size >= minFontSize; size -= fontStep)
+            for (var size = maxFontSize; size >= HeadingMinFontSize; size -= HeadingFontStep)
             {
-                UnitNameHeadingFontSize = size;
-                var measuredWidth = UnitNameHeadingLabel.Measure(double.PositiveInfinity, double.PositiveInfinity).Width;
-                if (measuredWidth <= availableWidth)
+                UnitNameHeadingLabel.FontSize = size;
+                if (UnitNameHeadingLabel.Measure(double.PositiveInfinity, double.PositiveInfinity).Width <= availableWidth)
                 {
                     return;
                 }
             }
 
-            UnitNameHeadingFontSize = minFontSize;
+            UnitNameHeadingLabel.FontSize = HeadingMinFontSize;
         }
         finally
         {
             _adjustingHeadingFontSize = false;
         }
-    }
-
-    private static void OnHeaderIconVisibilityChanged(BindableObject bindable, object oldValue, object newValue)
-    {
-        if (bindable is not UnitDisplayConfigurationsView view)
-        {
-            return;
-        }
-
-        view.OnPropertyChanged(nameof(HasAnyTopHeaderIcons));
-        view.OnPropertyChanged(nameof(HasAnyBottomHeaderIcons));
-        view.OnPropertyChanged(nameof(HasAnyHeaderIcons));
-        view.InvalidateHeaderIconsCanvas();
-    }
-
-    private static void OnShowAvaChanged(BindableObject bindable, object oldValue, object newValue)
-    {
-        if (bindable is not UnitDisplayConfigurationsView view) return;
-        var show = (bool)newValue;
-        var colWidth = show ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
-        view.MainStatHeadersGrid.ColumnDefinitions[9].Width = colWidth;
-        view.MainStatValuesGrid.ColumnDefinitions[9].Width = colWidth;
-        view.PeripheralStatHeadersGrid.ColumnDefinitions[9].Width = colWidth;
-        view.PeripheralStatValuesGrid.ColumnDefinitions[9].Width = colWidth;
     }
 
     private void OnStatHeadersBorderSizeChanged(object? sender, EventArgs e)
@@ -975,8 +249,8 @@ public partial class UnitDisplayConfigurationsView : ContentView
 
         // Already at the target (within a font-pixel): re-applying would re-raise SizeChanged for no
         // visible gain and keep the layout pass spinning. Leave it be.
-        if (Math.Abs(StatHeaderFontSize - newHeaderFontSize) < 0.5
-            && Math.Abs(StatFontSize - newStatFontSize) < 0.5)
+        if (Math.Abs(_statHeaderFontSize - newHeaderFontSize) < 0.5
+            && Math.Abs(_statFontSize - newStatFontSize) < 0.5)
         {
             return;
         }
@@ -984,8 +258,7 @@ public partial class UnitDisplayConfigurationsView : ContentView
         _adjustingStatFontSize = true;
         try
         {
-            StatHeaderFontSize = newHeaderFontSize;
-            StatFontSize = newStatFontSize;
+            ApplyStatFontSizes(newHeaderFontSize, newStatFontSize);
         }
         finally
         {
@@ -993,32 +266,36 @@ public partial class UnitDisplayConfigurationsView : ContentView
         }
     }
 
-    private static void OnShowConfigurationsSectionChanged(BindableObject bindable, object oldValue, object newValue)
+    private void ApplyStatFontSizes(double headerFontSize, double valueFontSize)
     {
-        if (bindable is not UnitDisplayConfigurationsView view)
+        _statHeaderFontSize = headerFontSize;
+        _statFontSize = valueFontSize;
+        foreach (var label in MainStatHeadersGrid.Children.OfType<Label>())
         {
-            return;
+            label.FontSize = headerFontSize;
         }
 
-        view.UpdateConfigurationRows();
+        foreach (var label in MainStatValuesGrid.Children.OfType<Label>())
+        {
+            label.FontSize = valueFontSize;
+        }
     }
 
+    // A hidden AVA column gives its width to the other stats.
+    private void UpdateAvaColumns()
+    {
+        var width = ShowAva ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+        MainStatHeadersGrid.ColumnDefinitions[AvaColumn].Width = width;
+        MainStatValuesGrid.ColumnDefinitions[AvaColumn].Width = width;
+        PeripheralStatHeadersGrid.ColumnDefinitions[AvaColumn].Width = width;
+        PeripheralStatValuesGrid.ColumnDefinitions[AvaColumn].Width = width;
+    }
+
+    // Without the profiles list its title and star row collapse, so the header takes only its own height.
     private void UpdateConfigurationRows()
     {
-        if (ConfigurationsRootGrid.RowDefinitions.Count < 8)
-        {
-            return;
-        }
-
-        if (ShowConfigurationsSection)
-        {
-            ConfigurationsRootGrid.RowDefinitions[6].Height = GridLength.Auto;
-            ConfigurationsRootGrid.RowDefinitions[7].Height = new GridLength(1, GridUnitType.Star);
-            return;
-        }
-
-        var hiddenHeight = new GridLength(0);
-        ConfigurationsRootGrid.RowDefinitions[6].Height = hiddenHeight;
-        ConfigurationsRootGrid.RowDefinitions[7].Height = hiddenHeight;
+        var showProfiles = ShowConfigurationsSection;
+        ConfigurationsRootGrid.RowDefinitions[6].Height = showProfiles ? GridLength.Auto : new GridLength(0);
+        ConfigurationsRootGrid.RowDefinitions[7].Height = showProfiles ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
     }
 }

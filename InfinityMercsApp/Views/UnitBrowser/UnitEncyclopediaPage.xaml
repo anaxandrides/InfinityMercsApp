@@ -222,31 +222,9 @@
                         Command="{Binding BackToUnitsCommand}" />
                 <controls:UnitDisplayConfigurationsView
                     Grid.Row="1"
-                    x:Name="UnitDisplayConfigurationsView"
-                    BindingContext="{Binding Detail}"
-                    SelectedUnitLogoSource="{Binding LogoSource}"
-                    UnitNameHeading="{Binding UnitNameHeading}"
-                    ShowRegularOrderIcon="{Binding ShowRegularOrderIcon}"
-                    ShowIrregularOrderIcon="{Binding ShowIrregularOrderIcon}"
-                    ShowImpetuousIcon="{Binding ShowImpetuousIcon}"
-                    ShowTacticalAwarenessIcon="{Binding ShowTacticalAwarenessIcon}"
-                    ShowCubeIcon="{Binding ShowCubeIcon}"
-                    ShowCube2Icon="{Binding ShowCube2Icon}"
-                    ShowHackableIcon="{Binding ShowHackableIcon}"
-                    UnitMov="{Binding UnitMov}"
-                    UnitCc="{Binding UnitCc}"
-                    UnitBs="{Binding UnitBs}"
-                    UnitPh="{Binding UnitPh}"
-                    UnitWip="{Binding UnitWip}"
-                    UnitArm="{Binding UnitArm}"
-                    UnitBts="{Binding UnitBts}"
-                    UnitVitalityHeader="{Binding UnitVitalityHeader}"
-                    UnitVitality="{Binding UnitVitality}"
-                    UnitS="{Binding UnitS}"
-                    UnitAva="{Binding UnitAva}"
-                    ShowSummaryRows="False"
-                    EquipmentSummaryFormatted="{Binding EquipmentSummaryFormatted}"
-                    SpecialSkillsSummaryFormatted="{Binding SpecialSkillsSummaryFormatted}" />
+                    Unit="{Binding Detail}"
+                    Profiles="{Binding Detail.Profiles}"
+                    ShowSummaryRows="False" />
             </Grid>
         </Border>
 

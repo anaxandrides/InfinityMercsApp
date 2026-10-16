@@ -102,37 +102,9 @@
 
                 <controls:UnitDisplayConfigurationsView
                     Grid.Row="2"
-                    SelectedUnitLogoSource="{Binding Detail.LogoSource}"
-                    UnitNameHeading="{Binding Detail.UnitNameHeading}"
-                    ShowRegularOrderIcon="{Binding Detail.ShowRegularOrderIcon}"
-                    ShowIrregularOrderIcon="{Binding Detail.ShowIrregularOrderIcon}"
-                    ShowImpetuousIcon="{Binding Detail.ShowImpetuousIcon}"
-                    ShowTacticalAwarenessIcon="{Binding Detail.ShowTacticalAwarenessIcon}"
-                    ShowCubeIcon="{Binding Detail.ShowCubeIcon}"
-                    ShowCube2Icon="{Binding Detail.ShowCube2Icon}"
-                    ShowHackableIcon="{Binding Detail.ShowHackableIcon}"
-                    ShowLieutenantIcon="{Binding ShowLieutenantIcon}"
-                    LieutenantIconCount="{Binding LieutenantIconCount}"
-                    ShowPeripheralIcon="{Binding ShowPeripheralIcon}"
-                    UnitHeaderPrimaryColor="{Binding HeaderColors.Primary}"
-                    UnitHeaderSecondaryColor="{Binding HeaderColors.Secondary}"
-                    UnitHeaderPrimaryTextColor="{Binding HeaderColors.PrimaryText}"
-                    UnitHeaderSecondaryTextColor="{Binding HeaderColors.SecondaryText}"
-                    UnitMov="{Binding Detail.UnitMov}"
-                    UnitCc="{Binding Detail.UnitCc}"
-                    UnitBs="{Binding Detail.UnitBs}"
-                    UnitPh="{Binding Detail.UnitPh}"
-                    UnitWip="{Binding Detail.UnitWip}"
-                    UnitArm="{Binding Detail.UnitArm}"
-                    UnitBts="{Binding Detail.UnitBts}"
-                    UnitVitalityHeader="{Binding Detail.UnitVitalityHeader}"
-                    UnitVitality="{Binding Detail.UnitVitality}"
-                    UnitS="{Binding Detail.UnitS}"
-                    UnitAva="{Binding Detail.UnitAva}"
+                    Unit="{Binding Detail}"
                     ShowConfigurationsSection="False"
-                    ShowSummaryRows="False"
-                    EquipmentSummaryFormatted="{Binding Detail.EquipmentSummaryFormatted}"
-                    SpecialSkillsSummaryFormatted="{Binding Detail.SpecialSkillsSummaryFormatted}" />
+                    ShowSummaryRows="False" />
 
                 <ScrollView Grid.Row="3">
                     <VerticalStackLayout Spacing="6">

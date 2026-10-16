@@ -79,7 +79,7 @@ public sealed class StandardCompanySelectionViewModelTests
         Assert.Same(first, viewModel.SelectedUnit);
         Assert.True(first.IsSelected);
         Assert.Equal(first.Name, viewModel.Detail.UnitNameHeading);
-        Assert.NotEqual("-", viewModel.Detail.UnitMov);
+        Assert.NotEqual("-", viewModel.Detail.Stats.Mov);
         Assert.NotEmpty(viewModel.Profiles);
         Assert.EndsWith("configurations loaded.", viewModel.ProfilesStatus);
     }

@@ -75,7 +75,7 @@ public sealed class SeasonTeamViewModelTests
         Assert.Equal("Fusilier", _team.SelectedBaseName);
         Assert.True(_team.HasSelectedBaseName);
         Assert.Equal("LI", _team.SelectedUnitType);
-        Assert.True(_team.ShowLieutenantIcon);
+        Assert.Equal(1, _team.Detail.Icons.Lieutenants);
         Assert.Equal("Lieutenant", _team.Skills.Left[0].Text);
         Assert.Equal(ProfileLine.None, _team.Equipment.Left.Single());
     }
@@ -245,7 +245,7 @@ public sealed class SeasonTeamViewModelTests
 
         Picker(GearSlot.Augments).SelectedOption = Picker(GearSlot.Augments).Options.Single(option => option.ItemName == "WIP=12");
 
-        Assert.Equal("12", _team.Detail.UnitWip);
+        Assert.Equal("12", _team.Detail.Stats.Wip);
         Assert.DoesNotContain(_team.Skills.Left.Concat(_team.Skills.Right), line => line.Text == "WIP=12");
     }
 
@@ -339,7 +339,7 @@ public sealed class SeasonTeamViewModelTests
 
         await LoadAsync();
 
-        Assert.Equal("11", _team.Detail.UnitCc);
+        Assert.Equal("11", _team.Detail.Stats.Cc);
     }
 
     [Fact]

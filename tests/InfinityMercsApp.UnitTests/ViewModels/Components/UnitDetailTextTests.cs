@@ -49,7 +49,6 @@ public sealed class UnitDetailTextTests
 
         Assert.Equal("wiki/mimetism", UnitDetailText.LinkForDisplayName("mimetism (-6)", names, links));
         Assert.Null(UnitDetailText.LinkForDisplayName("Hacker", names, links));
-        Assert.Equal("wiki/mimetism", UnitDetailText.FirstLinkWhere(names, links, n => n.StartsWith('M')));
     }
 
     [Fact]
@@ -60,22 +59,6 @@ public sealed class UnitDetailTextTests
 
     [Fact]
     public void MergingNothingIsADash() => Assert.Equal("-", UnitDetailText.MergeSummaryAndUnique("Equipment: -", "-"));
-
-    [Theory]
-    [InlineData("Killer Hacking Device", null, true)]
-    [InlineData(null, "Hackable", true)]
-    [InlineData(null, "Non-Hackable", false)]
-    [InlineData("Multispectral Visor", "Courage", false)]
-    public void Hackable(string? equipment, string? skills, bool expected) =>
-        Assert.Equal(expected, UnitDetailText.ContainsHackable(equipment, skills));
-
-    [Fact]
-    public void CubeNames()
-    {
-        Assert.True(UnitDetailText.IsCubeName("Cube"));
-        Assert.False(UnitDetailText.IsCubeName("Cube 2.0"));
-        Assert.True(UnitDetailText.IsCube2Name("CUBE 2.0"));
-    }
 
     [Fact]
     public void SubtitleFallsBackToIds() =>

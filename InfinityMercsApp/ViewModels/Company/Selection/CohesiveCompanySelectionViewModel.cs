@@ -328,5 +328,5 @@ public sealed partial class CohesiveCompanySelectionViewModel : CompanySelection
     }
 
     /// <summary>Remembers whether the trooper is normally irregular, for the order badges.</summary>
-    protected override void OnEntryBuilt(MercsCompanyEntry entry) => entry.NormallyIrregular = Detail.ShowIrregularOrderIcon;
+    protected override void OnEntryBuilt(MercsCompanyEntry entry) => entry.NormallyIrregular = Detail.Icons.Irregular;
 }

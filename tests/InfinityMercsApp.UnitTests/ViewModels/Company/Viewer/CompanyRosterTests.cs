@@ -186,10 +186,10 @@ public sealed class CompanyRosterTests
 
         CompanyRoster.ShowOn(detail, item, CompanyRoster.ProfileOf(item), captain);
 
-        Assert.Equal(("19", "10", "2"), (detail.UnitCc, detail.UnitPh, detail.UnitVitality));
+        Assert.Equal(("19", "10", "2"), (detail.Stats.Cc, detail.Stats.Ph, detail.Stats.Vitality));
         Assert.Single(detail.Profiles);
-        Assert.Equal((false, true), (detail.ShowRegularOrderIcon, detail.ShowIrregularOrderIcon));
-        Assert.Equal((true, false, true), (detail.ShowCubeIcon, detail.ShowCube2Icon, detail.ShowHackableIcon));
+        Assert.Equal((false, true), (detail.Icons.Regular, detail.Icons.Irregular));
+        Assert.Equal((true, false, true), (detail.Icons.Cube, detail.Icons.Cube2, detail.Icons.Hackable));
     }
 
     [Fact]

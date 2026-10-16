@@ -1,10 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.Domain.Models.Army.Filters;
-using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
+using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Themes;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
@@ -14,66 +14,37 @@ namespace InfinityMercsApp.ViewModels.Company.Selection;
 /// statline, trait icons, shared equipment and skills, a peripheral's statline, and the faction colours.
 /// It also keeps the unit's profile groups and filters, which adding a profile to the company needs.
 /// </summary>
-public sealed partial class CompanyUnitDetail : ObservableObject
+public sealed partial class CompanyUnitDetail : ObservableObject, IUnitDisplay
 {
     public const string NoUnitHeading = "Select a unit";
 
     private static readonly Color EquipmentColor = Color.FromArgb("#B5C0CE");
     private static readonly Color SkillsColor = Color.FromArgb("#F59E0B");
 
+    // The peripheral's MOV in centimetres, kept to re-format it when the display units change.
+    private int? _peripheralMoveFirstCm;
+    private int? _peripheralMoveSecondCm;
+
     [ObservableProperty] private string _unitNameHeading = NoUnitHeading;
     [ObservableProperty] private string? _logoSource;
 
-    [ObservableProperty] private int? _unitMoveFirstCm;
-    [ObservableProperty] private int? _unitMoveSecondCm;
-    [ObservableProperty] private string _unitMov = "-";
-    [ObservableProperty] private string _unitCc = "-";
-    [ObservableProperty] private string _unitBs = "-";
-    [ObservableProperty] private string _unitPh = "-";
-    [ObservableProperty] private string _unitWip = "-";
-    [ObservableProperty] private string _unitArm = "-";
-    [ObservableProperty] private string _unitBts = "-";
-    [ObservableProperty] private string _unitVitalityHeader = Stat.Vita.Key();
-    [ObservableProperty] private string _unitVitality = "-";
-    [ObservableProperty] private string _unitS = "-";
-    [ObservableProperty] private string _unitAva = "-";
-
-    [ObservableProperty] private bool _hasPeripheralStatBlock;
-    [ObservableProperty] private string _peripheralNameHeading = string.Empty;
-    [ObservableProperty] private int? _peripheralMoveFirstCm;
-    [ObservableProperty] private int? _peripheralMoveSecondCm;
-    [ObservableProperty] private string _peripheralMov = "-";
-    [ObservableProperty] private string _peripheralCc = "-";
-    [ObservableProperty] private string _peripheralBs = "-";
-    [ObservableProperty] private string _peripheralPh = "-";
-    [ObservableProperty] private string _peripheralWip = "-";
-    [ObservableProperty] private string _peripheralArm = "-";
-    [ObservableProperty] private string _peripheralBts = "-";
-    [ObservableProperty] private string _peripheralVitalityHeader = Stat.Vita.Key();
-    [ObservableProperty] private string _peripheralVitality = "-";
-    [ObservableProperty] private string _peripheralS = "-";
-    [ObservableProperty] private string _peripheralAva = "-";
-    [ObservableProperty] private string _peripheralEquipment = "-";
-    [ObservableProperty] private string _peripheralSkills = "-";
-    [ObservableProperty] private FormattedString _peripheralEquipmentFormatted = Named("Equipment", [], EquipmentColor);
-    [ObservableProperty] private FormattedString _peripheralSkillsFormatted = Named("Skills", [], SkillsColor);
+    [ObservableProperty] private UnitStatLine _stats = UnitStatLine.Empty;
+    [ObservableProperty] private UnitHeaderIcons _icons = UnitHeaderIcons.None;
+    [ObservableProperty] private PeripheralStatBlock? _peripheral;
 
     [ObservableProperty] private string _equipmentSummary = "Equipment: -";
     [ObservableProperty] private string _specialSkillsSummary = "Special Skills: -";
     [ObservableProperty] private FormattedString _equipmentSummaryFormatted = new();
     [ObservableProperty] private FormattedString _specialSkillsSummaryFormatted = new();
 
-    [ObservableProperty] private bool _showRegularOrderIcon;
-    [ObservableProperty] private bool _showIrregularOrderIcon;
-    [ObservableProperty] private bool _showImpetuousIcon;
-    [ObservableProperty] private bool _showTacticalAwarenessIcon;
-    [ObservableProperty] private bool _showCubeIcon;
-    [ObservableProperty] private bool _showCube2Icon;
-    [ObservableProperty] private bool _showHackableIcon;
-
     [ObservableProperty] private bool _showUnitsInInches = true;
 
     [ObservableProperty] private CompanyHeaderColors _headerColors = HeaderColorsFor(null);
+
+    /// <summary>The selected unit's MOV in centimetres, kept to re-format it when the display units change.</summary>
+    public int? UnitMoveFirstCm { get; private set; }
+
+    public int? UnitMoveSecondCm { get; private set; }
 
     /// <summary>The selected unit's profile groups; empty when nothing is selected.</summary>
     public UnitProfileGroups ProfileGroups { get; private set; } = UnitProfileGroups.Empty;
@@ -109,8 +80,7 @@ public sealed partial class CompanyUnitDetail : ObservableObject
         EquipmentSummary = "Equipment: -";
         SpecialSkillsSummary = "Special Skills: -";
         SetCommonEquipmentAndSkills([], [], highlightLieutenant: false);
-        ShowRegularOrderIcon = ShowIrregularOrderIcon = ShowImpetuousIcon = ShowTacticalAwarenessIcon = false;
-        ShowCubeIcon = ShowCube2Icon = ShowHackableIcon = false;
+        Icons = UnitHeaderIcons.None;
     }
 
     public void SetProfileData(UnitProfileGroups profileGroups, ArmyFilterCatalog filters)
@@ -128,26 +98,22 @@ public sealed partial class CompanyUnitDetail : ObservableObject
     }
 
     /// <summary>Order icons: irregular wins over regular.</summary>
-    public void SetOrderTraits(bool hasRegular, bool hasIrregular, bool hasImpetuous, bool hasTacticalAwareness)
-    {
-        ShowIrregularOrderIcon = hasIrregular;
-        ShowRegularOrderIcon = !hasIrregular && hasRegular;
-        ShowImpetuousIcon = hasImpetuous;
-        ShowTacticalAwarenessIcon = hasTacticalAwareness;
-    }
+    public void SetOrderTraits(bool hasRegular, bool hasIrregular, bool hasImpetuous, bool hasTacticalAwareness) =>
+        Icons = Icons with
+        {
+            Irregular = hasIrregular,
+            Regular = !hasIrregular && hasRegular,
+            Impetuous = hasImpetuous,
+            TacticalAwareness = hasTacticalAwareness
+        };
 
-    public void SetTechTraits(bool hasCube, bool hasCube2, bool hasHackable)
-    {
-        ShowCubeIcon = hasCube;
-        ShowCube2Icon = hasCube2;
-        ShowHackableIcon = hasHackable;
-    }
+    public void SetTechTraits(bool hasCube, bool hasCube2, bool hasHackable) =>
+        Icons = Icons with { Cube = hasCube, Cube2 = hasCube2, Hackable = hasHackable };
 
     public void ResetStats()
     {
         UnitMoveFirstCm = UnitMoveSecondCm = null;
-        UnitMov = UnitCc = UnitBs = UnitPh = UnitWip = UnitArm = UnitBts = UnitVitality = UnitS = UnitAva = "-";
-        UnitVitalityHeader = Stat.Vita.Key();
+        Stats = UnitStatLine.Empty;
         ResetPeripheral();
     }
 
@@ -157,17 +123,20 @@ public sealed partial class CompanyUnitDetail : ObservableObject
         var projection = CompanyUnitDetailsShared.BuildUnitStatProjection(profile, formatMove);
         UnitMoveFirstCm = projection.MoveFirstCm;
         UnitMoveSecondCm = projection.MoveSecondCm;
-        UnitMov = projection.Mov;
-        UnitCc = projection.Cc;
-        UnitBs = projection.Bs;
-        UnitPh = projection.Ph;
-        UnitWip = projection.Wip;
-        UnitArm = projection.Arm;
-        UnitBts = projection.Bts;
-        UnitS = projection.S;
-        UnitAva = projection.Ava;
-        UnitVitalityHeader = projection.VitalityHeader;
-        UnitVitality = projection.Vitality;
+        Stats = new UnitStatLine
+        {
+            Mov = projection.Mov,
+            Cc = projection.Cc,
+            Bs = projection.Bs,
+            Ph = projection.Ph,
+            Wip = projection.Wip,
+            Arm = projection.Arm,
+            Bts = projection.Bts,
+            S = projection.S,
+            Ava = projection.Ava,
+            VitalityHeader = projection.VitalityHeader,
+            Vitality = projection.Vitality
+        };
     }
 
     /// <summary>Shows the first profile's statline, or none when the unit has no profiles.</summary>
@@ -176,44 +145,47 @@ public sealed partial class CompanyUnitDetail : ObservableObject
 
     public void ResetPeripheral()
     {
-        PeripheralMoveFirstCm = PeripheralMoveSecondCm = null;
-        HasPeripheralStatBlock = false;
-        PeripheralNameHeading = string.Empty;
-        PeripheralMov = PeripheralCc = PeripheralBs = PeripheralPh = PeripheralWip = PeripheralArm = PeripheralBts = "-";
-        PeripheralVitality = PeripheralS = PeripheralAva = PeripheralEquipment = PeripheralSkills = "-";
-        PeripheralVitalityHeader = Stat.Vita.Key();
-        PeripheralEquipmentFormatted = Named("Equipment", [], EquipmentColor);
-        PeripheralSkillsFormatted = Named("Skills", [], SkillsColor);
+        _peripheralMoveFirstCm = _peripheralMoveSecondCm = null;
+        Peripheral = null;
     }
 
     public void ApplyPeripheral(PeripheralMercsCompanyStats stats, Func<int?, int?, string> formatMove)
     {
-        PeripheralMoveFirstCm = stats.MoveFirstCm;
-        PeripheralMoveSecondCm = stats.MoveSecondCm;
-        PeripheralMov = formatMove(stats.MoveFirstCm, stats.MoveSecondCm);
-        PeripheralNameHeading = stats.NameHeading;
-        PeripheralCc = stats.Cc;
-        PeripheralBs = stats.Bs;
-        PeripheralPh = stats.Ph;
-        PeripheralWip = stats.Wip;
-        PeripheralArm = stats.Arm;
-        PeripheralBts = stats.Bts;
-        PeripheralVitalityHeader = stats.VitalityHeader;
-        PeripheralVitality = stats.Vitality;
-        PeripheralS = stats.S;
-        PeripheralAva = stats.Ava;
-        PeripheralEquipment = stats.Equipment;
-        PeripheralSkills = stats.Skills;
-        PeripheralEquipmentFormatted = Named("Equipment", CompanyProfileText.SplitDisplayLine(stats.Equipment), EquipmentColor);
-        PeripheralSkillsFormatted = Named("Skills", CompanyProfileText.SplitDisplayLine(stats.Skills), SkillsColor);
-        HasPeripheralStatBlock = true;
+        _peripheralMoveFirstCm = stats.MoveFirstCm;
+        _peripheralMoveSecondCm = stats.MoveSecondCm;
+        Peripheral = new PeripheralStatBlock(
+            stats.NameHeading,
+            new UnitStatLine
+            {
+                Mov = formatMove(stats.MoveFirstCm, stats.MoveSecondCm),
+                Cc = stats.Cc,
+                Bs = stats.Bs,
+                Ph = stats.Ph,
+                Wip = stats.Wip,
+                Arm = stats.Arm,
+                Bts = stats.Bts,
+                VitalityHeader = stats.VitalityHeader,
+                Vitality = stats.Vitality,
+                S = stats.S,
+                Ava = stats.Ava
+            },
+            stats.Equipment,
+            stats.Skills,
+            Named("Equipment", CompanyProfileText.SplitDisplayLine(stats.Equipment), EquipmentColor),
+            Named("Skills", CompanyProfileText.SplitDisplayLine(stats.Skills), SkillsColor));
     }
 
     /// <summary>Re-formats MOV after the inches/centimetres preference changed.</summary>
     public void RefreshMoves(Func<int?, int?, string> formatMove)
     {
-        UnitMov = formatMove(UnitMoveFirstCm, UnitMoveSecondCm);
-        PeripheralMov = formatMove(PeripheralMoveFirstCm, PeripheralMoveSecondCm);
+        Stats = Stats with { Mov = formatMove(UnitMoveFirstCm, UnitMoveSecondCm) };
+        if (Peripheral is { } peripheral)
+        {
+            Peripheral = peripheral with
+            {
+                Stats = peripheral.Stats with { Mov = formatMove(_peripheralMoveFirstCm, _peripheralMoveSecondCm) }
+            };
+        }
     }
 
     /// <summary>The faction's header colours; the summaries are re-coloured to read on the new background.</summary>

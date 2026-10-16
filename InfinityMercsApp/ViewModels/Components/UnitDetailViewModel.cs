@@ -7,6 +7,7 @@ using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Army.Traits;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.ViewModels.Themes;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.ViewModels.Components;
@@ -17,7 +18,7 @@ namespace InfinityMercsApp.ViewModels.Components;
 /// </summary>
 public partial class UnitDetailViewModel(
     IArmyDataService armyData,
-    IAppSettingsProvider? appSettings = null) : ObservableObject
+    IAppSettingsProvider? appSettings = null) : ObservableObject, IUnitDisplay
 {
     private const string NoUnit = "Select a unit";
 
@@ -33,36 +34,17 @@ public partial class UnitDetailViewModel(
     [ObservableProperty] private string _unitNameHeading = NoUnit;
     [ObservableProperty] private string? _logoSource;
 
-    [ObservableProperty] private string _unitMov = "-";
-    [ObservableProperty] private string _unitCc = "-";
-    [ObservableProperty] private string _unitBs = "-";
-    [ObservableProperty] private string _unitPh = "-";
-    [ObservableProperty] private string _unitWip = "-";
-    [ObservableProperty] private string _unitArm = "-";
-    [ObservableProperty] private string _unitBts = "-";
-    [ObservableProperty] private string _unitVitalityHeader = Stat.Vita.Key();
-    [ObservableProperty] private string _unitVitality = "-";
-    [ObservableProperty] private string _unitS = "-";
-    [ObservableProperty] private string _unitAva = "-";
+    [ObservableProperty] private UnitStatLine _stats = UnitStatLine.Empty;
+    [ObservableProperty] private UnitHeaderIcons _icons = UnitHeaderIcons.None;
+    [ObservableProperty] private CompanyHeaderColors _headerColors = CompanyHeaderColors.Default;
+
+    /// <summary>A unit read from army data shows no separate peripheral statline.</summary>
+    public PeripheralStatBlock? Peripheral => null;
 
     [ObservableProperty] private string _equipmentSummary = "Equipment: -";
     [ObservableProperty] private string _specialSkillsSummary = "Special Skills: -";
     [ObservableProperty] private FormattedString _equipmentSummaryFormatted = new();
     [ObservableProperty] private FormattedString _specialSkillsSummaryFormatted = new();
-
-    [ObservableProperty] private bool _showRegularOrderIcon;
-    [ObservableProperty] private bool _showIrregularOrderIcon;
-    [ObservableProperty] private bool _showImpetuousIcon;
-    [ObservableProperty] private bool _showTacticalAwarenessIcon;
-    [ObservableProperty] private bool _showCubeIcon;
-    [ObservableProperty] private bool _showCube2Icon;
-    [ObservableProperty] private bool _showHackableIcon;
-
-    [ObservableProperty] private string? _impetuousIconUrl;
-    [ObservableProperty] private string? _tacticalAwarenessIconUrl;
-    [ObservableProperty] private string? _cubeIconUrl;
-    [ObservableProperty] private string? _cube2IconUrl;
-    [ObservableProperty] private string? _hackableIconUrl;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowUnitsInCentimeters))]
@@ -74,7 +56,7 @@ public partial class UnitDetailViewModel(
         set => ShowUnitsInInches = !value;
     }
 
-    partial void OnShowUnitsInInchesChanged(bool value) => UnitMov = armyData.FormatMovement(_unitMovement);
+    partial void OnShowUnitsInInchesChanged(bool value) => Stats = Stats with { Mov = armyData.FormatMovement(_unitMovement) };
 
     /// <summary>Picks up the inches/centimetres preference from Settings.</summary>
     public void RefreshDisplayUnits()
@@ -160,103 +142,74 @@ public partial class UnitDetailViewModel(
             "Special Skills", UnitDetailText.SummaryValues(skills), _skillsLookup, _skillsLinks, UnitDetailFormatting.SkillsColor);
     }
 
-    public void SetOrderTypeIconState(bool showRegular, bool showIrregular)
-    {
-        ShowRegularOrderIcon = showRegular;
-        ShowIrregularOrderIcon = showIrregular;
-    }
-
-    public void SetTechTraitIconState(bool showCube, bool showCube2, bool showHackable)
-    {
-        ShowCubeIcon = showCube;
-        ShowCube2Icon = showCube2;
-        ShowHackableIcon = showHackable;
-    }
-
-    public void ApplyTacticalAwarenessOverride(bool hasTacticalAwareness) =>
-        ShowTacticalAwarenessIcon = ShowTacticalAwarenessIcon || hasTacticalAwareness;
-
-    public void ApplyHackableOverrideFromCurrentConfiguration(string? currentEquipment, string? currentSkills) =>
-        ShowHackableIcon = ShowHackableIcon || UnitDetailText.ContainsHackable(currentEquipment, currentSkills);
-
     /// <summary>Shows an augmented stat value (e.g. "PH=14") in place of the profile's.</summary>
     public void ApplyAugmentStatOverride(StatOverride statOverride)
     {
         var value = statOverride.Value.ToString(CultureInfo.InvariantCulture);
-        switch (statOverride.Stat)
+        Stats = statOverride.Stat switch
         {
-            case Stat.Cc: UnitCc = value; break;
-            case Stat.Bs: UnitBs = value; break;
-            case Stat.Ph: UnitPh = value; break;
-            case Stat.Wip: UnitWip = value; break;
-            case Stat.Arm: UnitArm = value; break;
-            case Stat.Bts: UnitBts = value; break;
-            case Stat.S: UnitS = value; break;
-            case Stat.Vita or Stat.Str or Stat.W: UnitVitality = value; break;
-        }
+            Stat.Cc => Stats with { Cc = value },
+            Stat.Bs => Stats with { Bs = value },
+            Stat.Ph => Stats with { Ph = value },
+            Stat.Wip => Stats with { Wip = value },
+            Stat.Arm => Stats with { Arm = value },
+            Stat.Bts => Stats with { Bts = value },
+            Stat.S => Stats with { S = value },
+            Stat.Vita or Stat.Str or Stat.W => Stats with { Vitality = value },
+            _ => Stats
+        };
     }
 
     public void ApplyCaptainStatBonuses(CaptainStatBonuses bonuses)
     {
-        UnitCc = CaptainStatBonuses.Apply(UnitCc, bonuses.Cc);
-        UnitBs = CaptainStatBonuses.Apply(UnitBs, bonuses.Bs);
-        UnitPh = CaptainStatBonuses.Apply(UnitPh, bonuses.Ph);
-        UnitWip = CaptainStatBonuses.Apply(UnitWip, bonuses.Wip);
-        UnitArm = CaptainStatBonuses.Apply(UnitArm, bonuses.Arm);
-        UnitBts = CaptainStatBonuses.Apply(UnitBts, bonuses.Bts);
-        UnitVitality = CaptainStatBonuses.Apply(UnitVitality, bonuses.Vitality);
+        Stats = Stats with
+        {
+            Cc = CaptainStatBonuses.Apply(Stats.Cc, bonuses.Cc),
+            Bs = CaptainStatBonuses.Apply(Stats.Bs, bonuses.Bs),
+            Ph = CaptainStatBonuses.Apply(Stats.Ph, bonuses.Ph),
+            Wip = CaptainStatBonuses.Apply(Stats.Wip, bonuses.Wip),
+            Arm = CaptainStatBonuses.Apply(Stats.Arm, bonuses.Arm),
+            Bts = CaptainStatBonuses.Apply(Stats.Bts, bonuses.Bts),
+            Vitality = CaptainStatBonuses.Apply(Stats.Vitality, bonuses.Vitality)
+        };
     }
 
-    /// <summary>Shows a saved trooper's stat line; a lieutenant shows no regular-order icon.</summary>
-    public void ApplySavedUnitSnapshot(
-        string unitNameHeading,
-        string mov,
-        string cc,
-        string bs,
-        string ph,
-        string wip,
-        string arm,
-        string bts,
-        string vitalityHeader,
-        string vitality,
-        string s,
-        bool isLieutenant)
+    /// <summary>
+    /// Shows a saved trooper's stat line; blank values show as "-" and a MOV the army data can read is
+    /// shown in the current units. The header icons are cleared for the caller to set.
+    /// </summary>
+    public void ApplySavedUnitSnapshot(string unitNameHeading, UnitStatLine stats)
     {
         static string OrDash(string value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
 
         UnitNameHeading = string.IsNullOrWhiteSpace(unitNameHeading) ? "Unit" : unitNameHeading;
-        _unitMovement = Movement.TryParse(mov, out var movement) ? movement : null;
-        UnitMov = _unitMovement is null ? OrDash(mov) : armyData.FormatMovement(_unitMovement);
-
-        UnitCc = OrDash(cc);
-        UnitBs = OrDash(bs);
-        UnitPh = OrDash(ph);
-        UnitWip = OrDash(wip);
-        UnitArm = OrDash(arm);
-        UnitBts = OrDash(bts);
-        UnitVitalityHeader = string.IsNullOrWhiteSpace(vitalityHeader) ? Stat.Vita.Key() : vitalityHeader;
-        UnitVitality = OrDash(vitality);
-        UnitS = OrDash(s);
-        UnitAva = "-";
+        _unitMovement = Movement.TryParse(stats.Mov, out var movement) ? movement : null;
+        Stats = new UnitStatLine
+        {
+            Mov = _unitMovement is null ? OrDash(stats.Mov) : armyData.FormatMovement(_unitMovement),
+            Cc = OrDash(stats.Cc),
+            Bs = OrDash(stats.Bs),
+            Ph = OrDash(stats.Ph),
+            Wip = OrDash(stats.Wip),
+            Arm = OrDash(stats.Arm),
+            Bts = OrDash(stats.Bts),
+            VitalityHeader = string.IsNullOrWhiteSpace(stats.VitalityHeader) ? Stat.Vita.Key() : stats.VitalityHeader,
+            Vitality = OrDash(stats.Vitality),
+            S = OrDash(stats.S)
+        };
 
         EquipmentSummary = "Equipment: -";
         SpecialSkillsSummary = "Special Skills: -";
         EquipmentSummaryFormatted = UnitDetailFormatting.NamedSummary("Equipment", [], null, null, UnitDetailFormatting.EquipmentColor);
         SpecialSkillsSummaryFormatted = UnitDetailFormatting.NamedSummary("Special Skills", [], null, null, UnitDetailFormatting.SkillsColor);
-
-        ShowRegularOrderIcon = !isLieutenant;
-        ShowIrregularOrderIcon = ShowImpetuousIcon = ShowTacticalAwarenessIcon = false;
-        ShowCubeIcon = ShowCube2Icon = ShowHackableIcon = false;
+        Icons = UnitHeaderIcons.None;
     }
 
     private void ResetStats()
     {
         _unitMovement = null;
-        ShowRegularOrderIcon = ShowIrregularOrderIcon = ShowImpetuousIcon = ShowTacticalAwarenessIcon = false;
-        ShowCubeIcon = ShowCube2Icon = ShowHackableIcon = false;
-        ImpetuousIconUrl = TacticalAwarenessIconUrl = CubeIconUrl = Cube2IconUrl = HackableIconUrl = null;
-        UnitMov = UnitCc = UnitBs = UnitPh = UnitWip = UnitArm = UnitBts = UnitVitality = UnitS = UnitAva = "-";
-        UnitVitalityHeader = Stat.Vita.Key();
+        Icons = UnitHeaderIcons.None;
+        Stats = UnitStatLine.Empty;
     }
 
     private void ShowStatsOfFirstProfile(UnitProfileGroups profileGroups)
@@ -270,56 +223,42 @@ public partial class UnitDetailViewModel(
         }
 
         _unitMovement = profile.Movement;
-        UnitMov = armyData.FormatMovement(_unitMovement);
-        UnitCc = UnitProfile.StatText(profile.Cc);
-        UnitBs = UnitProfile.StatText(profile.Bs);
-        UnitPh = UnitProfile.StatText(profile.Ph);
-        UnitWip = UnitProfile.StatText(profile.Wip);
-        UnitArm = UnitProfile.StatText(profile.Arm);
-        UnitBts = UnitProfile.StatText(profile.Bts);
-        UnitS = UnitProfile.StatText(profile.S);
-
-        // The viewer shows AVA as sent (including -1) and labels structure troopers STR.
-        UnitAva = profile.Ava switch
+        Stats = new UnitStatLine
         {
-            null => "-",
-            255 => "T",
-            var ava => ava.Value.ToString()
+            Mov = armyData.FormatMovement(_unitMovement),
+            Cc = UnitProfile.StatText(profile.Cc),
+            Bs = UnitProfile.StatText(profile.Bs),
+            Ph = UnitProfile.StatText(profile.Ph),
+            Wip = UnitProfile.StatText(profile.Wip),
+            Arm = UnitProfile.StatText(profile.Arm),
+            Bts = UnitProfile.StatText(profile.Bts),
+            S = UnitProfile.StatText(profile.S),
+            // The viewer shows AVA as sent (including -1) and labels structure troopers STR.
+            Ava = profile.Ava switch
+            {
+                null => "-",
+                255 => "T",
+                var ava => ava.Value.ToString()
+            },
+            VitalityHeader = (profile.Str ? Stat.Str : Stat.Vita).Key(),
+            Vitality = UnitProfile.StatText(profile.W)
         };
-        UnitVitalityHeader = (profile.Str ? Stat.Str : Stat.Vita).Key();
-        UnitVitality = UnitProfile.StatText(profile.W);
     }
 
     private void ShowTraitIcons(UnitProfileGroups profileGroups, ArmyFilterCatalog filters)
     {
-        var charsLookup = filters.Names(ArmyFilterSection.Chars);
-        var charsLinks = filters.Links(ArmyFilterSection.Chars);
-
-        // A trait's wiki link is looked for among characteristics, then equipment, then skills.
-        string? LinkFor(Func<string, bool> isTrait) =>
-            UnitDetailText.FirstLinkWhere(charsLookup, charsLinks, isTrait)
-            ?? UnitDetailText.FirstLinkWhere(_equipmentLookup, _equipmentLinks, isTrait)
-            ?? UnitDetailText.FirstLinkWhere(_skillsLookup, _skillsLinks, isTrait);
-
         var orderTraits = UnitTraits.ReadOrderTraits(profileGroups);
-        ShowIrregularOrderIcon = orderTraits.HasIrregular;
-        ShowRegularOrderIcon = !orderTraits.HasIrregular && orderTraits.HasRegular;
-        ShowImpetuousIcon = orderTraits.HasImpetuous;
-        ShowTacticalAwarenessIcon = orderTraits.HasTacticalAwareness;
-        ImpetuousIconUrl = orderTraits.HasImpetuous
-            ? UnitDetailText.FirstLinkWhere(_skillsLookup, _skillsLinks, name => name.Contains("impetuous", StringComparison.OrdinalIgnoreCase))
-            : null;
-        TacticalAwarenessIconUrl = orderTraits.HasTacticalAwareness
-            ? UnitDetailText.FirstLinkWhere(_skillsLookup, _skillsLinks, name => name.Contains("tactical", StringComparison.OrdinalIgnoreCase))
-            : null;
-
-        var techTraits = UnitTraits.ReadTechTraits(profileGroups, _equipmentLookup, _skillsLookup, charsLookup);
-        ShowCubeIcon = techTraits.HasCube;
-        ShowCube2Icon = techTraits.HasCube2;
-        ShowHackableIcon = techTraits.HasHackable;
-        CubeIconUrl = techTraits.HasCube ? LinkFor(UnitDetailText.IsCubeName) : null;
-        Cube2IconUrl = techTraits.HasCube2 ? LinkFor(UnitDetailText.IsCube2Name) : null;
-        HackableIconUrl = techTraits.HasHackable ? LinkFor(name => name.Contains("hackable", StringComparison.OrdinalIgnoreCase)) : null;
+        var techTraits = UnitTraits.ReadTechTraits(profileGroups, _equipmentLookup, _skillsLookup, filters.Names(ArmyFilterSection.Chars));
+        Icons = new UnitHeaderIcons
+        {
+            Irregular = orderTraits.HasIrregular,
+            Regular = !orderTraits.HasIrregular && orderTraits.HasRegular,
+            Impetuous = orderTraits.HasImpetuous,
+            TacticalAwareness = orderTraits.HasTacticalAwareness,
+            Cube = techTraits.HasCube,
+            Cube2 = techTraits.HasCube2,
+            Hackable = techTraits.HasHackable
+        };
     }
 
     // Lists each distinct configuration; the equipment and skills every profile has go in the summaries.
@@ -418,7 +357,7 @@ public partial class UnitDetailViewModel(
                     // A mercenary profile costs no SWC, but one may give it ("+1").
                     SwcDisplay = request.MercsOnly && ProfileValues.SwcGrant(swc) == 0 ? string.Empty : $"SWC {swc}",
                     Cost = cost,
-                    ShowProfileTacticalAwarenessIcon = !ShowTacticalAwarenessIcon &&
+                    ShowProfileTacticalAwarenessIcon = !Icons.TacticalAwareness &&
                         skillEntries.Any(x => x.Name.Contains("tactical awareness", StringComparison.OrdinalIgnoreCase))
                 });
             }

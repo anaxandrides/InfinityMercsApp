@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
@@ -9,7 +8,6 @@ using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
-using InfinityMercsApp.ViewModels.Themes;
 
 namespace InfinityMercsApp.ViewModels.Company.Viewer;
 
@@ -69,18 +67,6 @@ public partial class CompanyViewerViewModel(
 
     [ObservableProperty]
     private bool _hasPeripherals;
-
-    [ObservableProperty]
-    private CompanyHeaderColors _headerColors = CompanyHeaderColors.Default;
-
-    [ObservableProperty]
-    private bool _showLieutenantIcon;
-
-    [ObservableProperty]
-    private int _lieutenantIconCount;
-
-    [ObservableProperty]
-    private bool _showPeripheralIcon;
 
     /// <summary>The selected trooper's stat line, icons and summaries.</summary>
     public UnitDetailViewModel Detail { get; } = detail;
@@ -186,11 +172,7 @@ public partial class CompanyViewerViewModel(
         SelectedBaseName = string.Equals(baseName.Trim(), item.Name.Trim(), StringComparison.OrdinalIgnoreCase) ? string.Empty : baseName;
         SelectedUnitType = item.UnitTypeCode;
 
-        HeaderColors = roster.HeaderColorsFor(item.VisualFactionId > 0 ? item.VisualFactionId : item.SourceFactionId);
-        ShowLieutenantIcon = profile.IsLieutenant;
-        LieutenantIconCount = CompanyRoster.LieutenantIconCount(profile);
-        ShowPeripheralIcon = UnitTraitIcons
-            .From(profile.Characteristics, profile.UniqueSkills, profile.UniqueEquipment, item.IsPeripheralUnit).Peripheral;
+        Detail.HeaderColors = roster.HeaderColorsFor(item.VisualFactionId > 0 ? item.VisualFactionId : item.SourceFactionId);
 
         RangedWeaponsFormatted = profile.RangedWeaponsFormatted ?? CompanyRoster.Simple(profile.RangedWeapons, CompanyRoster.RangedColor);
         MeleeWeaponsFormatted = profile.MeleeWeaponsFormatted ?? CompanyRoster.Simple(profile.MeleeWeapons, CompanyRoster.MeleeColor);
