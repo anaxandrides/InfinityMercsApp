@@ -19,6 +19,7 @@ using InfinityMercsApp.ViewModels.Company.Selection;
 using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Marketplaces;
 using InfinityMercsApp.ViewModels.Season;
+using InfinityMercsApp.ViewModels.Season.Bye;
 using InfinityMercsApp.ViewModels.Season.Downtime;
 using InfinityMercsApp.ViewModels.Season.Game;
 using InfinityMercsApp.ViewModels.Season.Overview;
@@ -60,6 +61,7 @@ public static class ServiceRegistryExtensions
                 .AddTransient<RankUpViewModel>()
                 .AddTransient<CompanyViewerViewModel>()
                 .AddTransient<GameModeViewModel>()
+                .AddTransient<ByeRoundViewModel>()
                 .AddTransient<SeasonViewModel>();
 
         return services;
@@ -92,6 +94,7 @@ public static class ServiceRegistryExtensions
                 .AddTransient<ExperiencePage>()
                 .AddTransient<DowntimePage>()
                 .AddTransient<RankUpPage>()
+                .AddTransient<ByeRoundPage>()
                 .AddTransient<MarketplacesPage>();
 
         return services;

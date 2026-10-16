@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Season;
-using InfinityMercsApp.Domain.Season.Experience;
 using InfinityMercsApp.Domain.Season.Game;
 using InfinityMercsApp.Domain.Season.Injuries;
 using InfinityMercsApp.Infrastructure.Providers;
@@ -218,7 +217,7 @@ public partial class GameModeViewModel(
             await seasonFiles.SaveAsync(_seasonFilePath, seasonFile);
         }
 
-        debrief.Units = Units.Select(unit => ResultOf(unit.Unit, missionNumber)).ToList();
+        debrief.Units = Units.Select(unit => unit.Unit.ToResult(missionNumber, IsEliteDeployment)).ToList();
         debrief.PendingInjuries = Units
             .Select(unit => unit.Unit)
             .Where(unit => unit.WoundState == WoundState.Dead)
@@ -244,27 +243,4 @@ public partial class GameModeViewModel(
             var deployed = Units.FirstOrDefault(unit => unit.Unit.EntryIndex == trooper.Key)?.Unit;
             return InjuryRules.Recovers(deployed is not null, deployed?.IsLieutenant ?? false, trooper.Value.Injuries.Count > 0);
         }) ?? false;
-
-    private ExperienceUnitResult ResultOf(DeploymentUnitItem unit, int deploymentXp) => new()
-    {
-        EntryIndex = unit.EntryIndex,
-        Name = unit.Name,
-        CachedLogoPath = unit.CachedLogoPath,
-        PackagedLogoPath = unit.PackagedLogoPath,
-        DeploymentXp = deploymentXp,
-        IsEliteDeployment = IsEliteDeployment,
-        IsConsciousAtEnd = unit.WoundState.IsConscious(),
-        GainedInjury = false,
-        XpData = unit.XpData,
-        IsCaptain = unit.IsLieutenant,
-        IsLieutenant = unit.IsLieutenant,
-        UnitPh = unit.UnitPh,
-        UnitBs = unit.UnitBs,
-        UnitCc = unit.UnitCc,
-        UnitWip = unit.UnitWip,
-        UnitArm = unit.UnitArm,
-        Renown = unit.Renown,
-        Skills = unit.Skills,
-        Equipment = unit.Equipment
-    };
 }

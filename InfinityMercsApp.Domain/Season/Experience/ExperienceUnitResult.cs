@@ -22,7 +22,7 @@ public sealed class ExperienceUnitResult
     public string UnitWip { get; set; } = "-";
     public string UnitArm { get; set; } = "-";
 
-    // Cost paid at purchase (includes the loadout) + accumulated XP.
+    /// <summary>The trooper's cost, the base cost of its season gear, and its XP.</summary>
     public int Renown { get; set; }
 
     // Free-form text — used by downtime to match requirements like "Hacker", "Trinity Program".

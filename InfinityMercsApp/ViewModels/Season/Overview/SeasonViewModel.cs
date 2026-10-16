@@ -152,6 +152,11 @@ public partial class SeasonViewModel : ViewModelBase
     private Task PlayRoundAsync() =>
         NavigationService.PushAsync("PlayModePage", NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath ?? string.Empty));
 
+    /// <summary>Opens the bye round page, for a contract the company cannot play.</summary>
+    [RelayCommand]
+    private Task TakeByeAsync() =>
+        NavigationService.PushAsync("ByeRoundPage", NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath ?? string.Empty));
+
     private async Task LoadAsync()
     {
         try

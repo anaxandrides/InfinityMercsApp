@@ -187,7 +187,7 @@
                 StrokeShape="Rectangle"
                 Padding="10,8"
                 MinimumHeightRequest="92">
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" VerticalOptions="Center">
                 <VerticalStackLayout Spacing="2" VerticalOptions="Center">
                     <Label Text="{Binding CompanyName}"
                            FontSize="{DynamicResource FontSizeSubHeadline}"
@@ -206,7 +206,29 @@
                            TextColor="{StaticResource Signal}"
                            MaxLines="1" />
                 </VerticalStackLayout>
+                <!-- A bye, for a contract the company cannot play -->
                 <Border Grid.Column="1"
+                        BackgroundColor="Transparent"
+                        Stroke="{StaticResource Signal}"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 4"
+                        Padding="6,5"
+                        WidthRequest="64"
+                        HeightRequest="82"
+                        VerticalOptions="Center">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding TakeByeCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label Text="TAKE A BYE"
+                           TextColor="{StaticResource Signal}"
+                           FontAttributes="Bold"
+                           FontSize="{DynamicResource FontSizeCaption}"
+                           HorizontalTextAlignment="Center"
+                           VerticalTextAlignment="Center"
+                           MaxLines="2"
+                           LineBreakMode="WordWrap" />
+                </Border>
+                <Border Grid.Column="2"
                         BackgroundColor="{StaticResource Signal}"
                         Stroke="Transparent"
                         StrokeThickness="0"

@@ -239,6 +239,18 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
+    public async Task TakingAByeOpensTheByeRoundPage()
+    {
+        var viewModel = await _kit.OpenAsync();
+
+        await viewModel.TakeByeCommand.ExecuteAsync(null);
+
+        await _kit.Navigation.Received(1).PushAsync("ByeRoundPage", Arg.Is<IDictionary<string, object>>(parameters =>
+            (string)parameters[NavigationParameters.CompanyFilePath] == SeasonTestKit.CompanyPath &&
+            (string)parameters[NavigationParameters.SeasonFilePath] == SeasonTestKit.SeasonPath));
+    }
+
+    [Fact]
     public async Task NavigatingWithoutACompanyChangesNothing()
     {
         var viewModel = _kit.SeasonViewModel();

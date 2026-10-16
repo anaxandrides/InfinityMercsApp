@@ -115,4 +115,29 @@ public sealed class DeploymentUnitItem : ObservableObject, IViewerListItem
 
     public Color TileStroke => IsSelected ? Color.FromArgb("#34D399") : Color.FromArgb("#3A4554");
     public double TileStrokeThickness => IsSelected ? 2.0 : 1.0;
+
+    /// <summary>The trooper's part in the contract, for the post-game pages.</summary>
+    /// <param name="deploymentXp">The XP for being deployed: the round number, or 0 when it was not deployed.</param>
+    public ExperienceUnitResult ToResult(int deploymentXp, bool isEliteDeployment) => new()
+    {
+        EntryIndex = EntryIndex,
+        Name = Name,
+        CachedLogoPath = CachedLogoPath,
+        PackagedLogoPath = PackagedLogoPath,
+        DeploymentXp = deploymentXp,
+        IsEliteDeployment = isEliteDeployment,
+        IsConsciousAtEnd = WoundState.IsConscious(),
+        GainedInjury = false,
+        XpData = XpData,
+        IsCaptain = IsLieutenant,
+        IsLieutenant = IsLieutenant,
+        UnitPh = UnitPh,
+        UnitBs = UnitBs,
+        UnitCc = UnitCc,
+        UnitWip = UnitWip,
+        UnitArm = UnitArm,
+        Renown = Renown,
+        Skills = Skills,
+        Equipment = Equipment
+    };
 }
