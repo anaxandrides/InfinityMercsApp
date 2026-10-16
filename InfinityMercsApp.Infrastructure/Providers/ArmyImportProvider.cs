@@ -67,10 +67,14 @@ public class ArmyImportProvider(ISQLiteRepository sqliteRepository, IArmyContent
             Category = x.Category
         }).ToList();
 
+        // Since October 2026 the army data sends no spec-ops at all (Corvus Belli's Team-Ops replaced them), so an
+        // army without any keeps the spec-ops already stored for it.
+        var specops = HasSpecops(army.Specops) ? army.Specops : ReadStoredSpecops(factionId);
+
         // JSA armies do not send their own spec-ops choices; they use Yu Jing's.
         var fallback = IsJsaFaction(factionId) ? ReadStoredSpecops(YuJingFactionId) : SpecopsCatalog.Empty;
         var specopsLinks = new SpecopsLinkRows();
-        var specopsSkills = BuildChoices(factionId, army.Specops.Skills ?? fallback.Skills, specopsLinks, (key, order, choice) => new DbSpecopsSkill
+        var specopsSkills = BuildChoices(factionId, specops.Skills ?? fallback.Skills, specopsLinks, (key, order, choice) => new DbSpecopsSkill
         {
             SpecopsSkillKey = key,
             FactionId = factionId,
@@ -78,7 +82,7 @@ public class ArmyImportProvider(ISQLiteRepository sqliteRepository, IArmyContent
             SkillId = choice.Id,
             Exp = choice.Exp
         });
-        var specopsEquips = BuildChoices(factionId, army.Specops.Equip ?? fallback.Equip, specopsLinks, (key, order, choice) => new DbSpecopsEquipment
+        var specopsEquips = BuildChoices(factionId, specops.Equip ?? fallback.Equip, specopsLinks, (key, order, choice) => new DbSpecopsEquipment
         {
             SpecopsEquipmentKey = key,
             FactionId = factionId,
@@ -86,7 +90,7 @@ public class ArmyImportProvider(ISQLiteRepository sqliteRepository, IArmyContent
             EquipmentId = choice.Id,
             Exp = choice.Exp
         });
-        var specopsWeapons = BuildChoices(factionId, army.Specops.Weapons ?? fallback.Weapons, specopsLinks, (key, order, choice) => new DbSpecopsWeapon
+        var specopsWeapons = BuildChoices(factionId, specops.Weapons ?? fallback.Weapons, specopsLinks, (key, order, choice) => new DbSpecopsWeapon
         {
             SpecopsWeaponKey = key,
             FactionId = factionId,
@@ -95,10 +99,10 @@ public class ArmyImportProvider(ISQLiteRepository sqliteRepository, IArmyContent
             Exp = choice.Exp
         });
 
-        var specopsUnits = new List<DbSpecopsUnit>(army.Specops.Units.Count);
-        for (var entryOrder = 0; entryOrder < army.Specops.Units.Count; entryOrder++)
+        var specopsUnits = new List<DbSpecopsUnit>(specops.Units.Count);
+        for (var entryOrder = 0; entryOrder < specops.Units.Count; entryOrder++)
         {
-            var unit = army.Specops.Units[entryOrder];
+            var unit = specops.Units[entryOrder];
             var unitKey = $"{factionId}:{entryOrder}:{unit.Id}";
             specopsUnits.Add(new DbSpecopsUnit
             {
@@ -156,6 +160,9 @@ public class ArmyImportProvider(ISQLiteRepository sqliteRepository, IArmyContent
     private static bool IsJsaFaction(int factionId) =>
         factionId is JsaFactionId or JsaShindenbutaiFactionId or JsaObanFactionId;
 
+    private static bool HasSpecops(SpecopsCatalog specops) =>
+        specops.Skills is { Count: > 0 } || specops.Equip is { Count: > 0 } || specops.Weapons is { Count: > 0 } || specops.Units.Count > 0;
+
     private static UnitContent ContentOf(ArmyUnitDefinition unit) =>
         new(unit.ProfileGroups, unit.Options, unit.Filters, unit.FactionIds);
 
@@ -182,7 +189,7 @@ public class ArmyImportProvider(ISQLiteRepository sqliteRepository, IArmyContent
         return rows;
     }
 
-    /// <summary>An army's stored spec-ops choices as a catalogue; lists are null when nothing is stored.</summary>
+    /// <summary>An army's stored spec-ops choices and units as a catalogue; choice lists are null when nothing is stored.</summary>
     private SpecopsCatalog ReadStoredSpecops(int factionId)
     {
         SpecopsChoice Choice(string key, int id, int exp)
@@ -200,7 +207,29 @@ public class ArmyImportProvider(ISQLiteRepository sqliteRepository, IArmyContent
             Equip = NullIfEmpty(sqliteRepository.GetAll<DbSpecopsEquipment>(x => x.FactionId == factionId, x => x.EntryOrder)
                 .Select(row => Choice(row.SpecopsEquipmentKey, row.EquipmentId, row.Exp)).ToList()),
             Weapons = NullIfEmpty(sqliteRepository.GetAll<DbSpecopsWeapon>(x => x.FactionId == factionId, x => x.EntryOrder)
-                .Select(row => Choice(row.SpecopsWeaponKey, row.WeaponId, row.Exp)).ToList())
+                .Select(row => Choice(row.SpecopsWeaponKey, row.WeaponId, row.Exp)).ToList()),
+            Units = sqliteRepository.GetAll<DbSpecopsUnit>(x => x.FactionId == factionId, x => x.EntryOrder)
+                .Select(row => StoredUnit(factionId, row))
+                .ToList()
+        };
+    }
+
+    private ArmyUnitDefinition StoredUnit(int factionId, DbSpecopsUnit row)
+    {
+        var content = contentStore.GetUnitContent(factionId, row.SpecopsUnitKey);
+        return new ArmyUnitDefinition
+        {
+            Id = row.UnitId,
+            IdArmy = row.IdArmy,
+            Canonical = row.Canonical,
+            Isc = row.Isc,
+            IscAbbr = row.IscAbbr,
+            Name = row.Name,
+            Slug = row.Slug,
+            ProfileGroups = content.ProfileGroups,
+            Options = content.Options,
+            Filters = content.Filters,
+            FactionIds = content.FactionIds
         };
     }
 }

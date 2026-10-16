@@ -195,7 +195,8 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
     private async Task<string> GetAsync(string url, CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.TryAddWithoutValidation("Origin", "https://infinitytheuniverse.com");
+        // The API only answers requests from Corvus Belli's own site, which moved from infinitytheuniverse.com.
+        request.Headers.TryAddWithoutValidation("Origin", "https://infinityuniverse.com");
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 
