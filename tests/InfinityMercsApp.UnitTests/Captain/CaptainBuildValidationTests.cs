@@ -13,7 +13,7 @@ public sealed class CaptainBuildValidationTests
         IReadOnlyList<string>? weapons = null) =>
         new(
             startingExperience,
-            stats ?? [new CaptainStatPick(Stat.Bs, 12, 0)],
+            stats ?? [new CaptainStatPick(Stat.Bs, 12, 0, CaptainStatChart.Mercenaries)],
             [new CaptainChoicePicks("Weapons", Weapons, weapons ?? [CaptainChoiceLabel.None, CaptainChoiceLabel.None, CaptainChoiceLabel.None])]);
 
     private static IReadOnlyList<CaptainBuildProblemKind> Kinds(CaptainBuild build) =>
@@ -25,7 +25,7 @@ public sealed class CaptainBuildValidationTests
     [Fact]
     public void TheCostCountsStatTiersAndFilledSlots()
     {
-        var build = Build(stats: [new CaptainStatPick(Stat.Bs, 12, 2)], weapons: ["(2) - Sniper Rifle", "(1) - Grenades", CaptainChoiceLabel.None]);
+        var build = Build(stats: [new CaptainStatPick(Stat.Bs, 12, 2, CaptainStatChart.Mercenaries)], weapons: ["(2) - Sniper Rifle", "(1) - Grenades", CaptainChoiceLabel.None]);
 
         Assert.Equal(5 + 2 + 1, build.SpentExperience);
         Assert.Equal(2, build.ExperienceRemaining);
@@ -55,9 +55,10 @@ public sealed class CaptainBuildValidationTests
     [InlineData(Stat.Ph, 14, 1)]
     [InlineData(Stat.Vita, 2, 1)]
     [InlineData(Stat.Bs, 12, 4)]
+    [InlineData(Stat.Bts, 6, 2)]
     public void ATierPastTheCapOrTheChartIsAProblem(Stat stat, int baseValue, int tier)
     {
-        var problems = CaptainBuildValidation.Problems(Build(stats: [new CaptainStatPick(stat, baseValue, tier)]));
+        var problems = CaptainBuildValidation.Problems(Build(stats: [new CaptainStatPick(stat, baseValue, tier, CaptainStatChart.Mercenaries)]));
 
         Assert.Equal([new CaptainBuildProblem(CaptainBuildProblemKind.StatTierNotOffered, $"{stat.Key()} can't take upgrade tier {tier}.")], problems);
     }
@@ -66,5 +67,5 @@ public sealed class CaptainBuildValidationTests
     public void EveryProblemIsListed() =>
         Assert.Equal(
             [CaptainBuildProblemKind.Overspent, CaptainBuildProblemKind.StatTierNotOffered, CaptainBuildProblemKind.DuplicateChoice],
-            Kinds(Build(startingExperience: 0, stats: [new CaptainStatPick(Stat.Vita, 2, 1)], weapons: ["(1) - Grenades", "(1) - Grenades", CaptainChoiceLabel.None])));
+            Kinds(Build(startingExperience: 0, stats: [new CaptainStatPick(Stat.Vita, 2, 1, CaptainStatChart.Mercenaries)], weapons: ["(1) - Grenades", "(1) - Grenades", CaptainChoiceLabel.None])));
 }

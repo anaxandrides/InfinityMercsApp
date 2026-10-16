@@ -10,6 +10,7 @@ internal sealed class CompanyCaptainWorkflowRequest
     public required int FallbackSourceFactionId { get; init; }
     public required int? FirstSourceFactionId { get; init; }
     public required string UnitName { get; init; }
+    public bool IsSpecOps { get; init; }
     public required int UnitCost { get; init; }
     public required string UnitStatline { get; init; }
     public required string UnitRangedWeapons { get; init; }

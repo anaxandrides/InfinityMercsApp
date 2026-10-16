@@ -16,8 +16,10 @@ public sealed class ConfigureCaptainViewModelTests
         int? baseExperienceOverride = null,
         string popupTitle = "Captain Configuration",
         string confirmText = "FOUND COMPANY",
-        string defaultName = "Captain") => new()
+        string defaultName = "Captain",
+        CaptainStatChart chart = CaptainStatChart.Mercenaries) => new()
     {
+        StatChart = chart,
         Unit = new CaptainUnitPopupInfo
         {
             Name = "Fusilier",
@@ -344,9 +346,21 @@ public sealed class ConfigureCaptainViewModelTests
         var build = viewModel.Build();
 
         Assert.Equal(8, build.StartingExperience);
-        Assert.Contains(new CaptainStatPick(Stat.Bs, 12, 1), build.Stats);
+        Assert.Contains(new CaptainStatPick(Stat.Bs, 12, 1, CaptainStatChart.Mercenaries), build.Stats);
         Assert.Equal(["(2) - Courage"], build.Choices.Single(group => group.Group == "Skills").Filled);
         Assert.Equal(4, build.SpentExperience);
         Assert.Equal(viewModel.SpentExperience, build.SpentExperience);
     }
+
+    /// <summary>The WIP bonuses offered from the Fusilier's WIP 12, which caps at 15, on each chart.</summary>
+    public static TheoryData<CaptainStatChart, IReadOnlyList<int>> WipBonuses => new()
+    {
+        { CaptainStatChart.Mercenaries, [0, 1, 2, 3] },
+        { CaptainStatChart.SpecOps, [0, 1, 3] }
+    };
+
+    [Theory]
+    [MemberData(nameof(WipBonuses))]
+    public void TheWipPickerFollowsTheCaptainsChart(CaptainStatChart chart, IReadOnlyList<int> bonuses) =>
+        Assert.Equal(bonuses, UpgradeOf(new ConfigureCaptainViewModel(Context(chart: chart)), Stat.Wip).Options.Select(option => option.Bonus));
 }

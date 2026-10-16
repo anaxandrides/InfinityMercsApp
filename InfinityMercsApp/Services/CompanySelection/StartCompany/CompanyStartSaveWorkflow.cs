@@ -97,6 +97,7 @@ internal static class CompanyStartSaveWorkflow
                     FallbackSourceFactionId = captainEntry.SourceFactionId,
                     FirstSourceFactionId = firstSourceFactionId,
                     UnitName = captainEntry.Name,
+                    IsSpecOps = captainEntry.IsSpecOps,
                     UnitCost = captainEntry.CostValue,
                     UnitStatline = captainEntry.Subtitle ?? "-",
                     UnitRangedWeapons = captainEntry.SavedRangedWeapons,

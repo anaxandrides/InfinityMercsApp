@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
 namespace InfinityMercsApp.Services.CompanySelection.Captain;
@@ -50,7 +51,8 @@ internal static class CompanyCaptainWorkflowService
             OptionFactionName = ResolveOptionFactionName(request, sourceFactionId, optionFactionId),
             WeaponOptions = options.Weapons,
             SkillOptions = options.Skills,
-            EquipmentOptions = options.Equipment
+            EquipmentOptions = options.Equipment,
+            StatChart = request.IsSpecOps ? CaptainStatChart.SpecOps : CaptainStatChart.Mercenaries
         };
 
         return await request.CaptainDialog.ShowAsync(context);

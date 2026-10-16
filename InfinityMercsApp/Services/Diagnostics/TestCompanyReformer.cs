@@ -545,6 +545,7 @@ public sealed class TestCompanyReformer(
         public string BaseUnitName { get; init; } = string.Empty;
         public int CostValue { get; init; }
         public bool IsLieutenant { get; init; }
+        public bool IsSpecOps { get; init; }
         public string UnitTypeCode { get; init; } = string.Empty;
         public string ProfileKey { get; init; } = string.Empty;
         public int SourceFactionId { get; init; }

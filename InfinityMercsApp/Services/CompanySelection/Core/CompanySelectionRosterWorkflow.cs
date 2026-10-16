@@ -175,6 +175,7 @@ internal static class CompanySelectionRosterWorkflow
             CostDisplay = $"C {profile.Cost}",
             CostValue = ProfileValues.ParseCost(profile.Cost),
             IsLieutenant = profile.IsLieutenant,
+            IsSpecOps = selectedUnit.IsSpecOps,
             ProfileKey = profile.ProfileKey,
             SourceUnitId = selectedUnit.Id,
             SourceFactionId = selectedUnit.SourceFactionId,

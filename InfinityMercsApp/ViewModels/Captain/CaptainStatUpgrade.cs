@@ -13,10 +13,11 @@ public sealed partial class CaptainStatUpgrade : ObservableObject
     [ObservableProperty]
     private StatPickerOption? _selectedOption;
 
-    private CaptainStatUpgrade(Stat stat, int baseValue, IReadOnlyList<StatPickerOption> options, Action selectionChanged)
+    private CaptainStatUpgrade(Stat stat, int baseValue, CaptainStatChart chart, IReadOnlyList<StatPickerOption> options, Action selectionChanged)
     {
         Stat = stat;
         BaseValue = baseValue;
+        Chart = chart;
         Options = options;
         _selectionChanged = selectionChanged;
         _selectedOption = options.Count > 0 ? options[0] : null;
@@ -26,6 +27,9 @@ public sealed partial class CaptainStatUpgrade : ObservableObject
 
     /// <summary>The stat's value before any upgrade.</summary>
     public int BaseValue { get; }
+
+    /// <summary>The chart the tiers come from.</summary>
+    public CaptainStatChart Chart { get; }
 
     /// <summary>"No upgrade" first, then each tier with its cumulative cost.</summary>
     public IReadOnlyList<StatPickerOption> Options { get; }
@@ -37,11 +41,11 @@ public sealed partial class CaptainStatUpgrade : ObservableObject
     public int Cost => SelectedOption is { } option ? option.Cost : 0;
 
     /// <summary>The picked tier, for checking the build.</summary>
-    public CaptainStatPick Pick => new(Stat, BaseValue, Tier);
+    public CaptainStatPick Pick => new(Stat, BaseValue, Tier, Chart);
 
-    /// <summary>The upgrades of <paramref name="stat"/> for a captain whose base value is <paramref name="baseValue"/>.</summary>
-    public static CaptainStatUpgrade For(Stat stat, int baseValue, Action selectionChanged) =>
-        new(stat, baseValue, CaptainUpgradeRules.StatOptions(stat, baseValue).Select(StatPickerOption.From).ToList(), selectionChanged);
+    /// <summary>The upgrades of <paramref name="stat"/> on <paramref name="chart"/> for a captain whose base value is <paramref name="baseValue"/>.</summary>
+    public static CaptainStatUpgrade For(Stat stat, int baseValue, CaptainStatChart chart, Action selectionChanged) =>
+        new(stat, baseValue, chart, CaptainUpgradeRules.StatOptions(stat, baseValue, chart).Select(StatPickerOption.From).ToList(), selectionChanged);
 
     partial void OnSelectedOptionChanged(StatPickerOption? value) => _selectionChanged();
 }

@@ -91,13 +91,13 @@ public sealed partial class ConfigureCaptainViewModel : ObservableObject
         int BaseOf(params IEnumerable<Stat> stats) =>
             stats.Select(stat => baseStats.TryGetValue(stat, out var value) ? (int?)value : null).FirstOrDefault(value => value.HasValue) ?? 0;
 
-        _cc = CaptainStatUpgrade.For(Stat.Cc, BaseOf(Stat.Cc), Recalculate);
-        _bs = CaptainStatUpgrade.For(Stat.Bs, BaseOf(Stat.Bs), Recalculate);
-        _ph = CaptainStatUpgrade.For(Stat.Ph, BaseOf(Stat.Ph), Recalculate);
-        _wip = CaptainStatUpgrade.For(Stat.Wip, BaseOf(Stat.Wip), Recalculate);
-        _arm = CaptainStatUpgrade.For(Stat.Arm, BaseOf(Stat.Arm), Recalculate);
-        _bts = CaptainStatUpgrade.For(Stat.Bts, BaseOf(Stat.Bts), Recalculate);
-        _vitality = CaptainStatUpgrade.For(Stat.Vita, BaseOf(Stat.Vita, Stat.Str, Stat.W), Recalculate);
+        _cc = CaptainStatUpgrade.For(Stat.Cc, BaseOf(Stat.Cc), context.StatChart, Recalculate);
+        _bs = CaptainStatUpgrade.For(Stat.Bs, BaseOf(Stat.Bs), context.StatChart, Recalculate);
+        _ph = CaptainStatUpgrade.For(Stat.Ph, BaseOf(Stat.Ph), context.StatChart, Recalculate);
+        _wip = CaptainStatUpgrade.For(Stat.Wip, BaseOf(Stat.Wip), context.StatChart, Recalculate);
+        _arm = CaptainStatUpgrade.For(Stat.Arm, BaseOf(Stat.Arm), context.StatChart, Recalculate);
+        _bts = CaptainStatUpgrade.For(Stat.Bts, BaseOf(Stat.Bts), context.StatChart, Recalculate);
+        _vitality = CaptainStatUpgrade.For(Stat.Vita, BaseOf(Stat.Vita, Stat.Str, Stat.W), context.StatChart, Recalculate);
         StatUpgrades = [_cc, _bs, _ph, _wip, _arm, _bts, _vitality];
 
         Weapons = CaptainChoiceGroup.For("Weapons", context.WeaponOptions, Recalculate);

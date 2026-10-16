@@ -12,10 +12,10 @@ public static class CaptainUpgradeRules
     public const int MaxUnitCost = 28;
 
     /// <summary>
-    /// Per stat: the bonus each tier gives over the base value, the experience each tier costs, and an optional
-    /// hard cap the stat can never exceed. Index 0 is "no upgrade".
+    /// The Infinity Spec-Ops chart, per stat: the bonus each tier gives over the base value, the experience each
+    /// tier adds, and an optional hard cap the stat can never exceed. Index 0 is "no upgrade".
     /// </summary>
-    private static readonly IReadOnlyDictionary<Stat, StatDefinition> StatDefinitions =
+    private static readonly IReadOnlyDictionary<Stat, StatDefinition> SpecOpsChart =
         new Dictionary<Stat, StatDefinition>
         {
             [Stat.Cc] = new([0, 2, 5, 10], [0, 2, 3, 5]),
@@ -24,6 +24,23 @@ public static class CaptainUpgradeRules
             [Stat.Wip] = new([0, 1, 3, 6], [0, 2, 3, 5], HardCap: 15),
             [Stat.Arm] = new([0, 1, 3], [0, 5, 5]),
             [Stat.Bts] = new([0, 3, 6, 9], [0, 2, 3, 5]),
+            [Stat.Vita] = new([0, 1], [0, 10], HardCap: 2),
+            [Stat.Str] = new([0, 1], [0, 10], HardCap: 2)
+        };
+
+    /// <summary>
+    /// The Mercenaries chart for captains that are not Spec Ops, laid out as <see cref="SpecOpsChart"/>. Its costs
+    /// are totals in the rules (CC +5 for 5 XP, BS +3 for 10 XP), so each tier adds the difference; BTS is 2 XP a tier.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<Stat, StatDefinition> MercenariesChart =
+        new Dictionary<Stat, StatDefinition>
+        {
+            [Stat.Cc] = new([0, 2, 5, 10], [0, 2, 3, 5]),
+            [Stat.Bs] = new([0, 1, 2, 3], [0, 2, 3, 5], HardCap: 15),
+            [Stat.Ph] = new([0, 1, 2, 3], [0, 2, 3, 5], HardCap: 14),
+            [Stat.Wip] = new([0, 1, 2, 3], [0, 2, 3, 5], HardCap: 15),
+            [Stat.Arm] = new([0, 1, 3], [0, 5, 5]),
+            [Stat.Bts] = new([0, 3, 6, 9], [0, 2, 2, 2], HardCap: 9),
             [Stat.Vita] = new([0, 1], [0, 10], HardCap: 2),
             [Stat.Str] = new([0, 1], [0, 10], HardCap: 2)
         };
@@ -37,10 +54,11 @@ public static class CaptainUpgradeRules
     /// Costs accumulate across tiers. A hard cap clamps the bonus and stops further tiers once reached.
     /// A stat captains cannot improve (MOV, S, AVA, W) offers only "no upgrade".
     /// </summary>
-    public static IReadOnlyList<CaptainStatOption> StatOptions(Stat stat, int baseValue)
+    public static IReadOnlyList<CaptainStatOption> StatOptions(Stat stat, int baseValue, CaptainStatChart chart)
     {
         var options = new List<CaptainStatOption> { new(stat, 0, 0, 0) };
-        if (!StatDefinitions.TryGetValue(stat, out var definition))
+        var definitions = chart == CaptainStatChart.SpecOps ? SpecOpsChart : MercenariesChart;
+        if (!definitions.TryGetValue(stat, out var definition))
         {
             return options;
         }

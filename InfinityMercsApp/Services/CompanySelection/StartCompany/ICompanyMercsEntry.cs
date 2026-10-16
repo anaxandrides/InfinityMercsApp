@@ -6,6 +6,7 @@ public interface ICompanyMercsEntry
     string BaseUnitName { get; }
     int CostValue { get; }
     bool IsLieutenant { get; }
+    bool IsSpecOps { get; }
     string UnitTypeCode { get; }
     string ProfileKey { get; }
     int SourceFactionId { get; }

@@ -15,6 +15,9 @@ public class MercsCompanyEntry : BaseViewModel, IViewerListItem, ICompanyMercsEn
     public int CostValue { get; init; }
     public string ProfileKey { get; init; } = string.Empty;
     public bool IsLieutenant { get; init; }
+
+    /// <summary>Recruited as a Spec Ops profile, whose captain upgrades come from the Spec-Ops chart.</summary>
+    public bool IsSpecOps { get; init; }
     public int SourceUnitId { get; init; }
     public int SourceFactionId { get; init; }
     public int LogoSourceFactionId { get; init; }

@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
@@ -95,7 +96,8 @@ internal static class CompanySpecOpsWorkflowService
             PopupTitle = request.IsLieutenant ? "TAG Lieutenant Spec Ops" : "TAG Spec Ops",
             ConfirmButtonText = "Finalize Tag",
             DefaultUnitCustomName = request.IsLieutenant ? "Lieutenant" : "TAG",
-            BaseExperienceOverride = Math.Max(0, request.BaseExperience)
+            BaseExperienceOverride = Math.Max(0, request.BaseExperience),
+            StatChart = CaptainStatChart.SpecOps
         };
 
         return await request.CaptainDialog.ShowAsync(context);
