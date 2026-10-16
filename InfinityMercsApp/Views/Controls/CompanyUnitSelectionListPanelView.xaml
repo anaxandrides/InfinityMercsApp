@@ -2,6 +2,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
              x:Class="InfinityMercsApp.Views.Controls.CompanyUnitSelectionListPanelView"
              x:Name="UnitSelectionPanelRoot">
 
@@ -59,12 +60,11 @@
         </Grid>
 
         <ScrollView
-            x:Name="UnitSelectionScrollView"
             Grid.Row="1"
             IsVisible="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=ShowUnitsList}">
-            <ScrollView.GestureRecognizers>
-                <PanGestureRecognizer PanUpdated="OnUnitSelectionScrollPanUpdated" />
-            </ScrollView.GestureRecognizers>
+            <ScrollView.Behaviors>
+                <behaviors:DragToScrollBehavior />
+            </ScrollView.Behaviors>
             <VerticalStackLayout BindableLayout.ItemsSource="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=ItemsSource}" Spacing="0">
                 <BindableLayout.ItemTemplate>
                     <DataTemplate>
