@@ -61,8 +61,7 @@
                         <BindableLayout.ItemTemplate>
                             <DataTemplate>
                                 <controls:ViewerListRowView
-                                    ItemTappedCommand="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext.SelectFactionCommand}"
-                                    ItemTappedCommandParameter="{Binding .}" />
+                                    ItemTappedCommand="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext.SelectFactionCommand}" />
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
                     </VerticalStackLayout>
@@ -147,8 +146,7 @@
                         <BindableLayout.ItemTemplate>
                             <DataTemplate>
                                 <controls:ViewerListRowView
-                                    ItemTappedCommand="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext.SelectUnitCommand}"
-                                    ItemTappedCommandParameter="{Binding .}" />
+                                    ItemTappedCommand="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext.SelectUnitCommand}" />
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
                     </VerticalStackLayout>

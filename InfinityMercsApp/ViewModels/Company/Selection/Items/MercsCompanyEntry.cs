@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
+using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection.Items;
@@ -31,6 +32,8 @@ public partial class MercsCompanyEntry : ObservableObject, IViewerListItem, ICom
     public string? CachedLogoPath { get; init; }
 
     public string? PackagedLogoPath { get; init; }
+
+    public IReadOnlyList<string> LogoCandidates => UnitLogo.Candidates(CachedLogoPath, PackagedLogoPath);
 
     /// <summary>The statline, e.g. "MOV 10-5 | CC 13 | …".</summary>
     [ObservableProperty]

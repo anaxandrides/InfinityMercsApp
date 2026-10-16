@@ -168,8 +168,7 @@
                                                         <Label Grid.Column="1" Text="{Binding Max}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
                                                         <controls:UnitSelectionListItemView
                                                             Grid.Column="2"
-                                                            ItemTappedCommand="{Binding SelectTeamAllowedProfileCommand, Source={RelativeSource AncestorType={x:Type selection:CompanySelectionViewModel}}, x:DataType=selection:CompanySelectionViewModel}"
-                                                            ItemTappedCommandParameter="{Binding .}" />
+                                                            ItemTappedCommand="{Binding SelectTeamAllowedProfileCommand, Source={RelativeSource AncestorType={x:Type selection:CompanySelectionViewModel}}, x:DataType=selection:CompanySelectionViewModel}" />
                                                     </Grid>
                                                 </DataTemplate>
                                             </BindableLayout.ItemTemplate>

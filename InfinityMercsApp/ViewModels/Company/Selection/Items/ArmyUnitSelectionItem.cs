@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection.Items;
@@ -19,6 +20,8 @@ public partial class ArmyUnitSelectionItem : ObservableObject, IViewerListItem
     public string? CachedLogoPath { get; init; }
 
     public string? PackagedLogoPath { get; init; }
+
+    public IReadOnlyList<string> LogoCandidates => UnitLogo.Candidates(CachedLogoPath, PackagedLogoPath);
 
     public string? Subtitle { get; init; }
     public bool IsSpecOps { get; init; }

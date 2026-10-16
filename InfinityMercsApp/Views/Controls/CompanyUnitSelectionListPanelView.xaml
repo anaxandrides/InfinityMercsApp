@@ -70,7 +70,6 @@
                     <DataTemplate>
                         <controls:UnitSelectionListItemView
                             ItemTappedCommand="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=ItemTappedCommand}"
-                            ItemTappedCommandParameter="{Binding .}"
                             IsVisible="{Binding IsVisible}" />
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>

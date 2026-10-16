@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using InfinityMercsApp.Services.Logos;
 
 namespace InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
@@ -13,6 +14,8 @@ public partial class ViewerUnitItem : ObservableObject, IViewerListItem
     public string? CachedLogoPath { get; init; }
 
     public string? PackagedLogoPath { get; init; }
+
+    public IReadOnlyList<string> LogoCandidates => UnitLogo.Candidates(CachedLogoPath, PackagedLogoPath);
 
     public string? Subtitle { get; init; }
 

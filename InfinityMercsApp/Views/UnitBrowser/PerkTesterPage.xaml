@@ -56,8 +56,7 @@
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate>
                                     <controls:ViewerListRowView
-                                        ItemTappedCommand="{Binding Source={x:Reference PerkTesterPageRoot}, Path=BindingContext.SelectFactionCommand}"
-                                        ItemTappedCommandParameter="{Binding .}" />
+                                        ItemTappedCommand="{Binding Source={x:Reference PerkTesterPageRoot}, Path=BindingContext.SelectFactionCommand}" />
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
@@ -124,8 +123,7 @@
                                 <BindableLayout.ItemTemplate>
                                     <DataTemplate>
                                         <controls:ViewerListRowView
-                                            ItemTappedCommand="{Binding Source={x:Reference PerkTesterPageRoot}, Path=BindingContext.SelectUnitCommand}"
-                                            ItemTappedCommandParameter="{Binding .}" />
+                                            ItemTappedCommand="{Binding Source={x:Reference PerkTesterPageRoot}, Path=BindingContext.SelectUnitCommand}" />
                                     </DataTemplate>
                                 </BindableLayout.ItemTemplate>
                             </VerticalStackLayout>

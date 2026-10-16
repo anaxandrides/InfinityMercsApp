@@ -8,6 +8,9 @@ public interface IViewerListItem
 
     string? PackagedLogoPath { get; }
 
+    /// <summary>The logos to try in order; a view shows the first that loads.</summary>
+    IReadOnlyList<string> LogoCandidates { get; }
+
     string? Subtitle { get; }
 
     bool HasSubtitle { get; }
