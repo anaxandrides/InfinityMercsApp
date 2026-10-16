@@ -1,9 +1,9 @@
-using InfinityMercsApp.ViewModels;
+using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 
 namespace InfinityMercsApp.Services.CompanySelection.Models.Selection;
 
-public class ArmyUnitSelectionItem : BaseViewModel, IViewerListItem
+public partial class ArmyUnitSelectionItem : ObservableObject, IViewerListItem
 {
     public int Id { get; init; }
     public int SourceFactionId { get; init; }
@@ -22,45 +22,33 @@ public class ArmyUnitSelectionItem : BaseViewModel, IViewerListItem
 
     public string? Subtitle { get; init; }
     public bool IsSpecOps { get; init; }
-    public bool UseBlueHalfOpacityBackground { get; init; }
 
     public bool HasSubtitle => !string.IsNullOrWhiteSpace(Subtitle);
-    public string UnitListBackgroundColor => IsSelected
-        ? "#334155"
-        : UseBlueHalfOpacityBackground
-            ? "#800000FF"
-            : "Transparent";
 
+    /// <summary>The TAG Company's own TAG stands out in the list.</summary>
+    public bool UseBlueHalfOpacityBackground
+    {
+        get => _useBlueHalfOpacityBackground;
+        init
+        {
+            _useBlueHalfOpacityBackground = value;
+            UnitListBackgroundColor = BackgroundFor(IsSelected, value);
+        }
+    }
+
+    private readonly bool _useBlueHalfOpacityBackground;
+
+    [ObservableProperty]
+    private string _unitListBackgroundColor = BackgroundFor(isSelected: false, highlighted: false);
+
+    [ObservableProperty]
     private bool _isVisible = true;
-    public bool IsVisible
-    {
-        get => _isVisible;
-        set
-        {
-            if (_isVisible == value)
-            {
-                return;
-            }
 
-            _isVisible = value;
-            OnPropertyChanged();
-        }
-    }
-
+    [ObservableProperty]
     private bool _isSelected;
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set
-        {
-            if (_isSelected == value)
-            {
-                return;
-            }
 
-            _isSelected = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(UnitListBackgroundColor));
-        }
-    }
+    partial void OnIsSelectedChanged(bool value) => UnitListBackgroundColor = BackgroundFor(value, UseBlueHalfOpacityBackground);
+
+    private static string BackgroundFor(bool isSelected, bool highlighted) =>
+        isSelected ? "#334155" : highlighted ? "#800000FF" : "Transparent";
 }

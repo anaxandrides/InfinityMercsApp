@@ -1,12 +1,12 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
-using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 
 namespace InfinityMercsApp.Services.CompanySelection.Models.Entries;
 
-public class MercsCompanyEntry : BaseViewModel, IViewerListItem, ICompanyMercsEntry
+public partial class MercsCompanyEntry : ObservableObject, IViewerListItem, ICompanyMercsEntry
 {
     public string Name { get; init; } = string.Empty;
     public string BaseUnitName { get; init; } = string.Empty;
@@ -32,22 +32,11 @@ public class MercsCompanyEntry : BaseViewModel, IViewerListItem, ICompanyMercsEn
 
     public string? PackagedLogoPath { get; init; }
 
+    /// <summary>The statline, e.g. "MOV 10-5 | CC 13 | …".</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSubtitle))]
     private string? _subtitle;
-    public string? Subtitle
-    {
-        get => _subtitle;
-        set
-        {
-            if (_subtitle == value)
-            {
-                return;
-            }
 
-            _subtitle = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(HasSubtitle));
-        }
-    }
     public string UnitTypeCode { get; init; } = string.Empty;
     public string SavedEquipment { get; init; } = "-";
     public string SavedSkills { get; init; } = "-";
@@ -63,22 +52,10 @@ public class MercsCompanyEntry : BaseViewModel, IViewerListItem, ICompanyMercsEn
     public string UnitMoveDisplay { get; set; } = "-";
     public bool HasPeripheralStatBlock { get; init; }
     public string PeripheralNameHeading { get; init; } = string.Empty;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PeripheralSubtitle))]
     private string _peripheralMov = "-";
-    public string PeripheralMov
-    {
-        get => _peripheralMov;
-        set
-        {
-            if (_peripheralMov == value)
-            {
-                return;
-            }
 
-            _peripheralMov = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(PeripheralSubtitle));
-        }
-    }
     public string PeripheralCc { get; init; } = "-";
     public string PeripheralBs { get; init; } = "-";
     public string PeripheralPh { get; init; } = "-";
@@ -110,92 +87,37 @@ public class MercsCompanyEntry : BaseViewModel, IViewerListItem, ICompanyMercsEn
     public bool HasPeripheralEquipmentLine { get; init; }
     public FormattedString PeripheralSkillsLineFormatted { get; init; } = new();
     public bool HasPeripheralSkillsLine { get; init; }
+    /// <summary>The trooper's XP; never below 0.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ExperienceRankName))]
     private int _experiencePoints;
-    public int ExperiencePoints
-    {
-        get => _experiencePoints;
-        set
-        {
-            var normalized = Math.Max(0, value);
-            if (_experiencePoints == normalized)
-            {
-                return;
-            }
 
-            _experiencePoints = normalized;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(ExperienceRankName));
+    partial void OnExperiencePointsChanged(int value)
+    {
+        if (value < 0)
+        {
+            ExperiencePoints = 0;
         }
     }
 
     public string ExperienceRankName => CompanyUnitExperienceRanks.GetRankName(ExperiencePoints);
     public List<CompanyTrooperPerkState> Perks { get; init; } = [];
 
+    [ObservableProperty]
     private bool _isSelected;
-    public bool IsSelected
-    {
-        get => _isSelected;
-        set
-        {
-            if (_isSelected == value)
-            {
-                return;
-            }
 
-            _isSelected = value;
-            OnPropertyChanged();
-        }
-    }
+    [ObservableProperty]
+    private bool _isDetailsExpanded;
 
-    private bool _isDetailsExpanded = false;
-    public bool IsDetailsExpanded
-    {
-        get => _isDetailsExpanded;
-        set
-        {
-            if (_isDetailsExpanded == value)
-            {
-                return;
-            }
-
-            _isDetailsExpanded = value;
-            OnPropertyChanged();
-        }
-    }
-
+    /// <summary>Irregular in this company (a Cohesive company's trooper outside its tracked fireteam).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowRegularModifier))]
     private bool _isIrregular;
-    public bool IsIrregular
-    {
-        get => _isIrregular;
-        set
-        {
-            if (_isIrregular == value)
-            {
-                return;
-            }
 
-            _isIrregular = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(ShowRegularModifier));
-        }
-    }
-
+    /// <summary>Irregular by profile, so being regular here is worth a badge.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowRegularModifier))]
     private bool _normallyIrregular;
-    public bool NormallyIrregular
-    {
-        get => _normallyIrregular;
-        set
-        {
-            if (_normallyIrregular == value)
-            {
-                return;
-            }
-
-            _normallyIrregular = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(ShowRegularModifier));
-        }
-    }
 
     public bool ShowRegularModifier => NormallyIrregular && !IsIrregular;
 
