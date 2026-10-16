@@ -1,4 +1,5 @@
 using InfinityMercsApp.Services.Wiki;
+using InfinityMercsApp.Views.Base;
 
 namespace InfinityMercsApp.Views.Controls;
 

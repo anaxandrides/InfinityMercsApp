@@ -12,13 +12,13 @@ public partial class AppShell : Shell
 
         // Season flow — pushed as a stack on top of SeasonPage.
         Routing.RegisterRoute(nameof(Views.Season.PlayModePage), typeof(Views.Season.PlayModePage));
-        Routing.RegisterRoute(nameof(Views.Season.GameModePage), typeof(Views.Season.GameModePage));
+        Routing.RegisterRoute(nameof(Views.Season.Game.GameModePage), typeof(Views.Season.Game.GameModePage));
         Routing.RegisterRoute(nameof(Views.Season.InjuriesPage), typeof(Views.Season.InjuriesPage));
         Routing.RegisterRoute(nameof(Views.Season.MissionOutcomePage), typeof(Views.Season.MissionOutcomePage));
         Routing.RegisterRoute(nameof(Views.Season.ExperiencePage), typeof(Views.Season.ExperiencePage));
-        Routing.RegisterRoute(nameof(Views.Season.DowntimePage), typeof(Views.Season.DowntimePage));
-        Routing.RegisterRoute(nameof(Views.Season.RankUpPage), typeof(Views.Season.RankUpPage));
-        Routing.RegisterRoute(nameof(Views.Season.ByeRoundPage), typeof(Views.Season.ByeRoundPage));
+        Routing.RegisterRoute(nameof(Views.Season.Downtime.DowntimePage), typeof(Views.Season.Downtime.DowntimePage));
+        Routing.RegisterRoute(nameof(Views.Season.RankUp.RankUpPage), typeof(Views.Season.RankUp.RankUpPage));
+        Routing.RegisterRoute(nameof(Views.Season.Bye.ByeRoundPage), typeof(Views.Season.Bye.ByeRoundPage));
 
         // MERCS Season home sub-pages.
         Routing.RegisterRoute(nameof(Views.Season.LoadSeasonPage), typeof(Views.Season.LoadSeasonPage));

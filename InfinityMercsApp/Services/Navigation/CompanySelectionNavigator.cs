@@ -1,6 +1,6 @@
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.ViewModels.Company.Selection;
-using InfinityMercsApp.Views;
+using InfinityMercsApp.Views.Company.Selection;
 
 namespace InfinityMercsApp.Services.Navigation;
 

@@ -7,8 +7,8 @@ using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.Views.Season;
 using InfinityMercsApp.ViewModels.Season.Items;
+using InfinityMercsApp.Views.Season.Game;
 
 namespace InfinityMercsApp.ViewModels.Season;
 

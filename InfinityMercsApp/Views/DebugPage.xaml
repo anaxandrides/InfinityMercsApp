@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
+                       xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
+                       x:Class="InfinityMercsApp.Views.DebugPage"
+                       x:DataType="viewModels:DebugViewModel"
+                       Title="Debug">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="12">
+            <Label
+                Text="Debug"
+                FontSize="{DynamicResource FontSizeHeadline}"
+                FontAttributes="Bold" />
+            <Label
+                Text="Use this page for diagnostics, tooling, and temporary debug controls."
+                LineBreakMode="WordWrap" />
+            <Button
+                Text="Reform Test Companies"
+                Command="{Binding ReformTestCompaniesCommand}" />
+        </VerticalStackLayout>
+    </ScrollView>
+
+</baseViews:ContentPageBase>

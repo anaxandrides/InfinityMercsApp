@@ -4,8 +4,13 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:InfinityMercsApp.Views"
-    xmlns:unitEncyclopediaViews="clr-namespace:InfinityMercsApp.Views.UnitEncyclopedia"
+    xmlns:marketplacesViews="clr-namespace:InfinityMercsApp.Views.Marketplaces"
+    xmlns:companyViewerViews="clr-namespace:InfinityMercsApp.Views.Company.Viewer"
+    xmlns:companyViews="clr-namespace:InfinityMercsApp.Views.Company"
+    xmlns:armoryViews="clr-namespace:InfinityMercsApp.Views.Armory"
+    xmlns:unitBrowserViews="clr-namespace:InfinityMercsApp.Views.UnitBrowser"
     xmlns:seasonViews="clr-namespace:InfinityMercsApp.Views.Season"
+    xmlns:seasonOverviewViews="clr-namespace:InfinityMercsApp.Views.Season.Overview"
     Shell.FlyoutBehavior="Flyout"
     Title="InfinityMercsApp">
 
@@ -17,13 +22,13 @@
     <ShellContent
         Title="Create New Company"
         FlyoutItemIsVisible="False"
-        ContentTemplate="{DataTemplate views:CreateNewCompanyPage}"
+        ContentTemplate="{DataTemplate companyViews:CreateNewCompanyPage}"
         Route="CreateNewCompanyPage" />
 
     <ShellContent
         Title="Standard Company"
         FlyoutItemIsVisible="False"
-        ContentTemplate="{DataTemplate views:StandardCompanySourcePopupPage}"
+        ContentTemplate="{DataTemplate companyViews:StandardCompanySourcePopupPage}"
         Route="StandardCompanySourcePopupPage" />
 
     <ShellContent
@@ -44,15 +49,15 @@
             Route="PerksTablesPage" />
         <ShellContent
             Title="Armory"
-            ContentTemplate="{DataTemplate views:ArmoryPage}"
+            ContentTemplate="{DataTemplate armoryViews:ArmoryPage}"
             Route="ArmoryPage" />
         <ShellContent
             Title="Marketplaces"
-            ContentTemplate="{DataTemplate views:MarketplacesPage}"
+            ContentTemplate="{DataTemplate marketplacesViews:MarketplacesPage}"
             Route="MarketplacesPage" />
         <ShellContent
             Title="Unit Encyclopedia"
-            ContentTemplate="{DataTemplate unitEncyclopediaViews:UnitEncyclopediaPage}"
+            ContentTemplate="{DataTemplate unitBrowserViews:UnitEncyclopediaPage}"
             Route="UnitEncyclopediaPage" />
     </FlyoutItem>
 
@@ -65,15 +70,15 @@
             Route="DebugPage" />
         <ShellContent
             Title="Perk Tester"
-            ContentTemplate="{DataTemplate views:PerkTesterPage}"
+            ContentTemplate="{DataTemplate unitBrowserViews:PerkTesterPage}"
             Route="PerkTesterPage" />
         <ShellContent
             Title="Load Company"
-            ContentTemplate="{DataTemplate views:LoadCompanyPage}"
+            ContentTemplate="{DataTemplate companyViews:LoadCompanyPage}"
             Route="LoadCompanyPage" />
         <ShellContent
             Title="Company Viewer"
-            ContentTemplate="{DataTemplate views:CompanyViewerPage}"
+            ContentTemplate="{DataTemplate companyViewerViews:CompanyViewerPage}"
             Route="CompanyViewerPage" />
     </FlyoutItem>
 
@@ -85,7 +90,7 @@
     <ShellContent
         Title="Season"
         FlyoutItemIsVisible="False"
-        ContentTemplate="{DataTemplate seasonViews:SeasonPage}"
+        ContentTemplate="{DataTemplate seasonOverviewViews:SeasonPage}"
         Route="SeasonPage" />
 
     <!-- <ShellContent

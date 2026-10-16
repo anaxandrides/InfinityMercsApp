@@ -1,0 +1,1014 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="InfinityMercsApp.Views.AboutPage"
+             x:Name="Root"
+             x:DataType="viewModels:AboutPageViewModel"
+             Title="About">
+
+    <ContentPage.Behaviors>
+        <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference Root}, x:DataType=ContentPage}"
+                                        EventName="SizeChanged"
+                                        Command="{Binding FitAttributionColumnsCommand}"
+                                        CommandParameter="{Binding Width, Source={x:Reference Root}, x:DataType=ContentPage}" />
+    </ContentPage.Behaviors>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="12">
+            <Label
+                Text="InfinityMercsApp"
+                FontSize="{DynamicResource FontSizeDisplay}"
+                FontAttributes="Bold" />
+
+            <Label
+                Text="About this app"
+                FontSize="{DynamicResource FontSizeSubHeadline}"
+                FontAttributes="Bold" />
+
+            <Label
+                Text="Current Version: 0.1.0-alpha, 'Pano Was a Mistake'"
+                LineBreakMode="WordWrap" />
+
+            <Label
+                Text="Authors"
+                FontSize="{DynamicResource FontSizeSubHeadline}"
+                FontAttributes="Bold"
+                Margin="0,12,0,0" />
+
+            <Label
+                Text="Jeremiah Patrick"
+                FontAttributes="Bold" />
+
+            <Label
+                Text="Email:" />
+
+            <Label
+                Text="jeremiahpatrick@protonmail.com"
+                TextColor="#2563EB"
+                TextDecorations="Underline">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenEmailCommand}" />
+                </Label.GestureRecognizers>
+            </Label>
+
+            <Label
+                Text="Discord:" />
+
+            <Label
+                Text="edwardfredward_09529"
+                TextColor="#2563EB"
+                TextDecorations="Underline">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding OpenDiscordCommand}" />
+                </Label.GestureRecognizers>
+            </Label>
+
+            <Label
+                Text="Attribution"
+                FontSize="{DynamicResource FontSizeSubHeadline}"
+                FontAttributes="Bold"
+                Margin="0,12,0,0" />
+
+            <Label
+                Text="CBIcons"
+                FontSize="{DynamicResource FontSizeSectionHeader}"
+                FontAttributes="Bold" />
+            <FlexLayout
+                Direction="Row"
+                Wrap="Wrap"
+                AlignItems="Start"
+                JustifyContent="Start">
+                <FlexLayout.Resources>
+                    <!-- Every entry takes the width the ViewModel works out: half the page, or its own width when narrow. -->
+                    <Style TargetType="Grid">
+                        <Setter Property="WidthRequest" Value="{Binding AttributionEntryWidth}" />
+                        <Setter Property="FlexLayout.Grow" Value="0" />
+                        <Setter Property="FlexLayout.Shrink" Value="0" />
+                    </Style>
+                </FlexLayout.Resources>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/CBIcons/cube.svg" />
+                <Label Grid.Column="1" Text="cube.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/CBIcons/cube2.svg" />
+                <Label Grid.Column="1" Text="cube2.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/CBIcons/hackable.svg" />
+                <Label Grid.Column="1" Text="hackable.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/CBIcons/impetuous.svg" />
+                <Label Grid.Column="1" Text="impetuous.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/CBIcons/irregular.svg" />
+                <Label Grid.Column="1" Text="irregular.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/CBIcons/lieutenant.svg" />
+                <Label Grid.Column="1" Text="lieutenant.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/CBIcons/regular.svg" />
+                <Label Grid.Column="1" Text="regular.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/CBIcons/tactical.svg" />
+                <Label Grid.Column="1" Text="tactical.svg - Property of Corvus Belli, all rights reserved" VerticalTextAlignment="Center" />
+            </Grid>
+
+            <!--
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/CBIcons/cube2.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="cubes-svgrepo-com.svg Used under CC Attribution License, " />
+                    <Label
+                        Text="DazzleUI Gumroad"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://dazzleui.gumroad.com/l/dazzleiconsfree?ref=svgrepo.com" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/CBIcons/irregular.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-arrow-963008.svg Arrow by James Smith from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/arrow/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/CBIcons/regular.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-circle-arrow-803872.svg circle arrow by Eric Miller from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/circle-arrow/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/CBIcons/impetuous.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-fire-131591.svg Fire by Bohdan Burmich from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/fire/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/CBIcons/lieutenant.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-upload-2450840.svg Upload by Kawalan Icon from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/upload/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/CBIcons/tactical.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="tactical.svg double arrows by Shocho from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/double-arrows/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/CBIcons/hackable.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-circuit-8241852.svg circuit by Skena Grafis from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/circuit/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+            -->
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-edit-333556.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-edit-333556.svg edit by Doble Página from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/edit/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/MercsIcons/noun-hack-2277937.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-hack-2277937.svg hack by WEBTECHOPS LLP from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/hack/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/Fireteam/noun-team-base.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-team-base.svg team by Eko Purnomo from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/team/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/MercsIcons/noun-leadership-7195245.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-leadership-719245.svg leadership by Aditya D Nugroho from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/leadership/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/MercsIcons/noun-airborne-8005870.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-airborne-8005870.svg airborne by Zulyadin Fahmi from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/airborne/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/MercsIcons/noun-battle-mech-1731140.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-battle-mech-1731140.svg Battle Mech by Anatolii Babii from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/battle-mech/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/MercsIcons/noun-assassin-5981200.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-assassin-5981200.svg assassin by Nicky Spencer from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/assassin/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/MercsIcons/noun-male-player-2851844.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-male-player-2851844.svg male player by Template from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/male-player/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/MercsIcons/noun-duo-2851835.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-duo-2851835.svg duo by Template from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/duo/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-check-3612574.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-check-3612574.svg Check by shuai tawf from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/check/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-x-1890844.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-x-1890844.svg X by Alice Design from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/x/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-open-file-8064123.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-open-file-8064123.svg open file by Mas Dhimas from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/open-file/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-trash-1523235.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-trash-1523235.svg Trash by arif fajar yulianto from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/trash/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-captain-8115950.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-captain-8115950.svg captain by Alfan Zulkarnain from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/captain/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-5-stars-5872927.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-5-stars-5872927.svg 5 stars by Siti Norhayah Rahmatiah from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/5-stars/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-options-6682476.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-options-6682476.svg options by Rusurinusuhu from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/options/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-filter.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-filter.svg filter by Rahmat Hamid from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/filter/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-delta.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-delta.svg Delta by Tom Fricker from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/delta/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-ok-5506550.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-ok-5506550.svg Ok by reniakotonoha from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/ok/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-reject-8230150.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-reject-8230150.svg reject by Ninis from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/reject/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/units/2003-1.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="2003-1.svg cyborg by Vanicon studio from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/cyborg/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-flags.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-flags.svg flags by Ale Estrada from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/flags/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-knocked-out-face.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-knocked-out-face.svg knocked out face by Tim Martin from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/knocked-out-face/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-mad-face.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-mad-face.svg mad face by Tim Martin from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/mad-face/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-sad-face.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-sad-face.svg sad face by Tim Martin from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/sad-face/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-smiley-face.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-smiley-face.svg smiley face by Tim Martin from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/smiley-face/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <controls:SvgIcon
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    VerticalOptions="Start"
+                    Source="SVGCache/NonCBIcons/noun-gravestone.svg" />
+
+                <FlexLayout
+                    Grid.Column="1"
+                    Direction="Row"
+                    Wrap="Wrap"
+                    AlignItems="Start">
+                    <Label Text="noun-gravestone.svg gravestone by Ahmad Faiz Shofiyyulloh from " />
+                    <Label
+                        Text="Noun Project"
+                        TextColor="#2563EB"
+                        TextDecorations="Underline">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://thenounproject.com/browse/icons/term/gravestone/" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                    <Label Text=" (CC BY 3.0)" />
+                </FlexLayout>
+            </Grid>
+            </FlexLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</baseViews:ContentPageBase>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:rankUp="clr-namespace:InfinityMercsApp.ViewModels.Season.RankUp"
+             xmlns:rankUpItems="clr-namespace:InfinityMercsApp.ViewModels.Season.RankUp.Items"
+             xmlns:viewerItems="clr-namespace:InfinityMercsApp.ViewModels.Company.Viewer.Items"
+             xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
+             x:Class="InfinityMercsApp.Views.Season.RankUp.RankUpPage"
+             x:DataType="rankUp:RankUpViewModel"
+             Title="RANK UP"
+             BackgroundColor="{StaticResource Void}">
+
+    <ContentPage.Resources>
+        <Style x:Key="Heading" TargetType="Label">
+            <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="CharacterSpacing" Value="2" />
+        </Style>
+        <Style x:Key="ModeButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="{StaticResource HairlineBright}" />
+            <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="HeightRequest" Value="40" />
+            <Style.Triggers>
+                <Trigger TargetType="Button" Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.4" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- The troopers with points; tap one to spend its points -->
+        <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never" Padding="12,8">
+            <HorizontalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Troopers}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="viewerItems:CompanyViewerUnitListItem">
+                        <controls:CompanyViewerUnitTileView
+                            SelectedStroke="{Binding SelectionAccentColor}"
+                            ItemTappedCommand="{Binding SelectTrooperCommand, Source={RelativeSource AncestorType={x:Type rankUp:RankUpViewModel}}, x:DataType=rankUp:RankUpViewModel}"
+                            ItemTappedCommandParameter="{Binding .}" />
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </HorizontalStackLayout>
+        </ScrollView>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,8" Spacing="12">
+
+                <Label Text="Every perk point has been spent."
+                       IsVisible="{Binding AllSpent}"
+                       TextColor="{StaticResource TextMuted}"
+                       FontSize="{DynamicResource FontSizeBody}"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,40,0,0" />
+
+                <VerticalStackLayout Spacing="12" IsVisible="{Binding HasTrooper}">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="{Binding Trooper.Name}" FontSize="{DynamicResource FontSizeTitleSmall}" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                        <Label Text="{Binding RankText}" FontSize="{DynamicResource FontSizeBody}" TextColor="{StaticResource TextSecondary}" />
+                        <Label Text="{Binding PointsText}" FontSize="{DynamicResource FontSizeBody}" FontAttributes="Bold" TextColor="{StaticResource Signal}" />
+                    </VerticalStackLayout>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Button Text="CHOOSE" Style="{StaticResource ModeButton}" Command="{Binding ChooseCommand}" />
+                        <Button Grid.Column="1" Text="ROLL" Style="{StaticResource ModeButton}" Command="{Binding RollListCommand}" IsEnabled="{Binding CanRoll}" />
+                    </Grid>
+
+                    <!-- Choosing: a list, then any perk in it the trooper may take -->
+                    <VerticalStackLayout Spacing="6" IsVisible="{Binding IsChoosing}">
+                        <Label Text="PERK LIST" Style="{StaticResource Heading}" />
+                        <Picker ItemsSource="{Binding Lists}"
+                                ItemDisplayBinding="{Binding Name, x:DataType=rankUpItems:PerkListChoice}"
+                                SelectedItem="{Binding SelectedList}"
+                                TextColor="{StaticResource TextPrimary}"
+                                BackgroundColor="{StaticResource HairlineBright}" />
+                    </VerticalStackLayout>
+
+                    <!-- Rolling: the rolls, and a choice between overlapping lists -->
+                    <VerticalStackLayout Spacing="6" IsVisible="{Binding IsRolling}">
+                        <Label Text="{Binding RollText}" FontSize="{DynamicResource FontSizeBody}" FontAttributes="Bold" TextColor="{StaticResource Caution}" />
+                        <HorizontalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding RolledLists}" IsVisible="{Binding HasRolledLists}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="rankUpItems:PerkListChoice">
+                                    <Button Text="{Binding Name}"
+                                            Style="{StaticResource ModeButton}"
+                                            Command="{Binding RollTrackCommand, Source={RelativeSource AncestorType={x:Type rankUp:RankUpViewModel}}, x:DataType=rankUp:RankUpViewModel}"
+                                            CommandParameter="{Binding .}" />
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+
+                    <Label Text="TAP A PERK TO TAKE IT" Style="{StaticResource Heading}" IsVisible="{Binding HasOptions}" />
+                    <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Options}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="rankUpItems:PerkOption">
+                                <Border BackgroundColor="{StaticResource Plate}" Stroke="{StaticResource HairlineBright}" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="12,8">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding TakePerkCommand, Source={RelativeSource AncestorType={x:Type rankUp:RankUpViewModel}}, x:DataType=rankUp:RankUpViewModel}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Text="{Binding Name}" FontSize="{DynamicResource FontSizeBody}" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                                        <Label Text="{Binding PlaceText}" FontSize="{DynamicResource FontSizeCaption}" TextColor="{StaticResource TextMuted}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Button Grid.Row="2"
+                Text="BACK TO BASE"
+                BackgroundColor="{StaticResource Signal}"
+                TextColor="{StaticResource Void}"
+                FontAttributes="Bold"
+                HeightRequest="52"
+                CornerRadius="0"
+                IsVisible="{Binding AllSpent}"
+                Command="{Binding BackToBaseCommand}" />
+    </Grid>
+</baseViews:ContentPageBase>

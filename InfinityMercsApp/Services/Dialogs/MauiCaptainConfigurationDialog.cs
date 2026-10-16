@@ -1,6 +1,6 @@
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.Views;
+using InfinityMercsApp.Views.Captain;
 
 namespace InfinityMercsApp.Services.Dialogs;
 

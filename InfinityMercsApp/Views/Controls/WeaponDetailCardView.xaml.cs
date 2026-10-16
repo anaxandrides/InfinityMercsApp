@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Metadata.Wiki;
 using Microsoft.Maui.Controls.Shapes;
+using InfinityMercsApp.Views.Base;
 
 namespace InfinityMercsApp.Views.Controls;
 

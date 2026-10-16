@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+             xmlns:selection="clr-namespace:InfinityMercsApp.ViewModels.Company.Selection"
+             xmlns:selectionItems="clr-namespace:InfinityMercsApp.Services.CompanySelection.Models.Ui"
+             xmlns:teamItems="clr-namespace:InfinityMercsApp.Services.CompanySelection.Models.Teams"
+             xmlns:shell="clr-namespace:Microsoft.Maui.Controls;assembly=Microsoft.Maui.Controls"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:unitFilter="clr-namespace:InfinityMercsApp.Views.Controls.UnitFilter"
+             x:Class="InfinityMercsApp.Views.Company.Selection.CompanySelectionPage"
+             x:Name="CompanySelectionRoot"
+             x:DataType="selection:CompanySelectionViewModel"
+             Title="{Binding PageTitle}">
+
+    <ContentPage.Behaviors>
+        <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference CompanySelectionRoot}, x:DataType=ContentPage}"
+                                        x:DataType="selection:CompanySelectionViewModel"
+                                        EventName="LayoutModeChanged"
+                                        Command="{Binding ApplyLayoutCommand}"
+                                        CommandParameter="{Binding LayoutMode, Source={x:Reference CompanySelectionRoot}, x:DataType=layout:AdaptiveContentPage}" />
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference CompanySelectionRoot}, x:DataType=ContentPage}"
+                                        x:DataType="selection:CompanySelectionViewModel"
+                                        EventName="Disappearing"
+                                        Command="{Binding CloseUnitFilterCommand}" />
+    </ContentPage.Behaviors>
+
+    <ContentPage.Resources>
+        <Style x:Key="CompactTabButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
+        </Style>
+    </ContentPage.Resources>
+
+    <shell:Shell.TitleView>
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+            <!-- On compact screens the faction picker moves into the page, so these two hide. -->
+            <controls:AddFactionButtonView
+                IsVisible="{Binding IsCompact, Converter={StaticResource InvertedBoolConverter}}"
+                IsExpanded="{Binding ShowFactionStrip}"
+                Command="{Binding ToggleFactionStripCommand}" />
+            <controls:FactionSlotSelectorView
+                Grid.Column="1"
+                VerticalOptions="Center"
+                IsVisible="{Binding IsCompact, Converter={StaticResource InvertedBoolConverter}}"
+                ShowRightSelectionBox="{Binding ShowRightSlot}"
+                ActiveSlotIndex="{Binding ActiveSlotIndex}"
+                LeftSlotSource="{Binding LeftSlotLogoSource}"
+                RightSlotSource="{Binding RightSlotLogoSource}"
+                SlotTappedCommand="{Binding SelectSlotCommand}" />
+            <controls:SeasonStartPointsView
+                Grid.Column="2"
+                VerticalOptions="Center"
+                IsVisible="{Binding IsFoundingCompany}"
+                SeasonPointsCapText="{Binding SeasonPointsCapText}"
+                SelectedStartSeasonPoints="{Binding StartPointsChoice}"
+                IsCompanyValid="{Binding IsCompanyValid}" />
+            <!-- Recruiting spends the company's CR, so what is left shows instead of the starting points. -->
+            <Label
+                Grid.Column="2"
+                VerticalOptions="Center"
+                IsVisible="{Binding IsRecruiting}"
+                Text="{Binding CreditsLeftText}"
+                FontAttributes="Bold"
+                TextColor="{StaticResource Signal}" />
+        </Grid>
+    </shell:Shell.TitleView>
+
+    <Grid Padding="2,2,2,0"
+          RowDefinitions="Auto,Auto,*"
+          RowSpacing="10"
+          layout:GridLayout.Columns="{Binding Layout.Columns}"
+          ColumnSpacing="{Binding Layout.ColumnSpacing}">
+
+        <controls:FactionSelectionStripView
+            Grid.ColumnSpan="2"
+            IsVisible="{Binding ShowFactionStrip}"
+            ItemsSource="{Binding Factions}"
+            SelectFactionCommand="{Binding SelectFactionCommand}" />
+
+        <!-- Compact: the chosen faction(s), tapped to reopen the picker. -->
+        <controls:SelectedFactionButtonView
+            Grid.ColumnSpan="2"
+            IsVisible="{Binding IsCompact}"
+            ShowRightSlot="{Binding ShowRightSlot}"
+            LeftSlotSource="{Binding LeftSlotLogoSource}"
+            RightSlotSource="{Binding RightSlotLogoSource}"
+            Command="{Binding OpenFactionStripCommand}" />
+
+        <!-- Compact: switches between the units, the selected unit, and the company. -->
+        <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="*,*,*" ColumnSpacing="8" IsVisible="{Binding IsCompact}">
+            <Button Text="UNITS" Style="{StaticResource CompactTabButton}"
+                    Command="{Binding ShowPaneCommand}" CommandParameter="{x:Static selection:CompanySelectionPane.Units}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsUnitsPaneActive}" Value="True">
+                        <Setter Property="BackgroundColor" Value="{StaticResource Signal}" />
+                        <Setter Property="TextColor" Value="{StaticResource Void}" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+            <Button Grid.Column="1" Text="PROFILE" Style="{StaticResource CompactTabButton}"
+                    Command="{Binding ShowPaneCommand}" CommandParameter="{x:Static selection:CompanySelectionPane.Profile}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsProfilePaneActive}" Value="True">
+                        <Setter Property="BackgroundColor" Value="{StaticResource Signal}" />
+                        <Setter Property="TextColor" Value="{StaticResource Void}" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+            <Button Grid.Column="2" Text="COMPANY" Style="{StaticResource CompactTabButton}"
+                    Command="{Binding ShowPaneCommand}" CommandParameter="{x:Static selection:CompanySelectionPane.Company}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsCompanyPaneActive}" Value="True">
+                        <Setter Property="BackgroundColor" Value="{StaticResource Signal}" />
+                        <Setter Property="TextColor" Value="{StaticResource Void}" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+        </Grid>
+
+        <!-- Units: the unit list, or the fireteams with their allowed troopers. -->
+        <Grid Grid.Row="2" RowDefinitions="Auto,*" RowSpacing="8" IsVisible="{Binding ShowsUnitsPane}">
+            <controls:CompanyUnitSelectionListPanelView
+                VerticalOptions="FillAndExpand"
+                ShowUnitsList="{Binding ShowUnitsList}"
+                IsDense="{Binding IsCompact}"
+                ItemsSource="{Binding Units}"
+                ItemTappedCommand="{Binding SelectUnitFromListCommand}"
+                FilterCommand="{Binding OpenUnitFilterCommand}"
+                IsFilterActive="{Binding IsUnitFilterActive}">
+                <controls:CompanyUnitSelectionListPanelView.Triggers>
+                    <DataTrigger TargetType="controls:CompanyUnitSelectionListPanelView" Binding="{Binding ShowUnitsList}" Value="True">
+                        <Setter Property="Grid.RowSpan" Value="2" />
+                    </DataTrigger>
+                </controls:CompanyUnitSelectionListPanelView.Triggers>
+            </controls:CompanyUnitSelectionListPanelView>
+
+            <ScrollView Grid.Row="1" IsVisible="{Binding ShowTeamsList}">
+                <VerticalStackLayout Spacing="0">
+                    <Label Text="{Binding FireteamRuleText}" FontAttributes="Bold" Margin="8,6,8,8" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding TeamEntries}" Spacing="0">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="selectionItems:ArmyTeamListItem">
+                                <Border StrokeThickness="1" Padding="8,6" MinimumHeightRequest="50" IsVisible="{Binding IsVisible}">
+                                    <VerticalStackLayout Spacing="4">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                            <Label Text="{Binding Name}" VerticalOptions="Center" />
+                                            <!-- Cohesive companies track one fireteam. -->
+                                            <ContentView Grid.Column="1"
+                                                         IsVisible="{Binding ShowsFireteamTracking, Source={RelativeSource AncestorType={x:Type selection:CompanySelectionViewModel}}, x:DataType=selection:CompanySelectionViewModel}">
+                                                <RadioButton VerticalOptions="Center"
+                                                             GroupName="CohesiveCoreFireteamSelection"
+                                                             IsVisible="{Binding ShowTrackingRadioButton}"
+                                                             IsChecked="{Binding IsTrackedTeam, Mode=TwoWay}" />
+                                            </ContentView>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="44,44,*" ColumnSpacing="8">
+                                            <Label Text="MIN" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                                            <Label Grid.Column="1" Text="MAX" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                                            <Label Grid.Column="2" Text="UNIT" FontAttributes="Bold" />
+                                        </Grid>
+                                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding AllowedProfiles}" Spacing="2">
+                                            <BindableLayout.ItemTemplate>
+                                                <DataTemplate x:DataType="teamItems:ArmyTeamUnitLimitItem">
+                                                    <Grid ColumnDefinitions="44,44,*" ColumnSpacing="8" IsVisible="{Binding IsVisible}" MinimumHeightRequest="50">
+                                                        <Label Text="{Binding Min}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                                                        <Label Grid.Column="1" Text="{Binding Max}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                                                        <controls:UnitSelectionListItemView
+                                                            Grid.Column="2"
+                                                            ItemTappedCommand="{Binding SelectTeamAllowedProfileCommand, Source={RelativeSource AncestorType={x:Type selection:CompanySelectionViewModel}}, x:DataType=selection:CompanySelectionViewModel}"
+                                                            ItemTappedCommandParameter="{Binding .}" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </BindableLayout.ItemTemplate>
+                                        </VerticalStackLayout>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+
+        <!-- The selected unit over the company; one at a time on compact screens. -->
+        <Grid layout:GridLayout.Cell="{Binding Layout.RightPaneCell}"
+              layout:GridLayout.Rows="{Binding RightPaneRows}"
+              RowSpacing="0"
+              IsVisible="{Binding ShowsRightPane}">
+            <controls:UnitDisplayConfigurationsView
+                VerticalOptions="FillAndExpand"
+                ShowSummaryRows="False"
+                IsVisible="{Binding ShowsDetailPane}"
+                SelectedUnitLogoSource="{Binding Detail.LogoSource}"
+                UnitNameHeading="{Binding Detail.UnitNameHeading}"
+                UnitHeaderPrimaryColor="{Binding Detail.HeaderColors.Primary}"
+                UnitHeaderSecondaryColor="{Binding Detail.HeaderColors.Secondary}"
+                UnitHeaderPrimaryTextColor="{Binding Detail.HeaderColors.PrimaryText}"
+                UnitHeaderSecondaryTextColor="{Binding Detail.HeaderColors.SecondaryText}"
+                ShowRegularOrderIcon="{Binding Detail.ShowRegularOrderIcon}"
+                ShowIrregularOrderIcon="{Binding Detail.ShowIrregularOrderIcon}"
+                ShowImpetuousIcon="{Binding Detail.ShowImpetuousIcon}"
+                ShowTacticalAwarenessIcon="{Binding Detail.ShowTacticalAwarenessIcon}"
+                ShowCubeIcon="{Binding Detail.ShowCubeIcon}"
+                ShowCube2Icon="{Binding Detail.ShowCube2Icon}"
+                ShowHackableIcon="{Binding Detail.ShowHackableIcon}"
+                ShowUnitsInInches="{Binding Detail.ShowUnitsInInches}"
+                UnitMoveFirstCm="{Binding Detail.UnitMoveFirstCm}"
+                UnitMoveSecondCm="{Binding Detail.UnitMoveSecondCm}"
+                UnitMov="{Binding Detail.UnitMov}"
+                UnitCc="{Binding Detail.UnitCc}"
+                UnitBs="{Binding Detail.UnitBs}"
+                UnitPh="{Binding Detail.UnitPh}"
+                UnitWip="{Binding Detail.UnitWip}"
+                UnitArm="{Binding Detail.UnitArm}"
+                UnitBts="{Binding Detail.UnitBts}"
+                UnitVitalityHeader="{Binding Detail.UnitVitalityHeader}"
+                UnitVitality="{Binding Detail.UnitVitality}"
+                UnitS="{Binding Detail.UnitS}"
+                UnitAva="{Binding Detail.UnitAva}"
+                HasPeripheralStatBlock="{Binding Detail.HasPeripheralStatBlock}"
+                PeripheralNameHeading="{Binding Detail.PeripheralNameHeading}"
+                PeripheralMoveFirstCm="{Binding Detail.PeripheralMoveFirstCm}"
+                PeripheralMoveSecondCm="{Binding Detail.PeripheralMoveSecondCm}"
+                PeripheralMov="{Binding Detail.PeripheralMov}"
+                PeripheralCc="{Binding Detail.PeripheralCc}"
+                PeripheralBs="{Binding Detail.PeripheralBs}"
+                PeripheralPh="{Binding Detail.PeripheralPh}"
+                PeripheralWip="{Binding Detail.PeripheralWip}"
+                PeripheralArm="{Binding Detail.PeripheralArm}"
+                PeripheralBts="{Binding Detail.PeripheralBts}"
+                PeripheralVitalityHeader="{Binding Detail.PeripheralVitalityHeader}"
+                PeripheralVitality="{Binding Detail.PeripheralVitality}"
+                PeripheralS="{Binding Detail.PeripheralS}"
+                PeripheralAva="{Binding Detail.PeripheralAva}"
+                PeripheralEquipment="{Binding Detail.PeripheralEquipment}"
+                PeripheralSkills="{Binding Detail.PeripheralSkills}"
+                PeripheralEquipmentFormatted="{Binding Detail.PeripheralEquipmentFormatted}"
+                PeripheralSkillsFormatted="{Binding Detail.PeripheralSkillsFormatted}"
+                EquipmentSummary="{Binding Detail.EquipmentSummary}"
+                SpecialSkillsSummary="{Binding Detail.SpecialSkillsSummary}"
+                EquipmentSummaryFormatted="{Binding Detail.EquipmentSummaryFormatted}"
+                SpecialSkillsSummaryFormatted="{Binding Detail.SpecialSkillsSummaryFormatted}" />
+
+            <Grid Grid.Row="2" RowDefinitions="Auto,*" RowSpacing="0" IsVisible="{Binding ShowsCompanyPane}">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8" VerticalOptions="Center">
+                    <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="Mercs Company" FontSize="{DynamicResource FontSizeTitleSmall}" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Text="-" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <Label Text="Enter Company Name" TextColor="{StaticResource Danger}" IsVisible="{Binding ShowCompanyNameValidationError}" />
+                    </VerticalStackLayout>
+                    <Border Grid.Column="1"
+                            Stroke="{StaticResource TextMuted}"
+                            StrokeThickness="2"
+                            Padding="2,0"
+                            HorizontalOptions="Fill"
+                            MaximumWidthRequest="320"
+                            VerticalOptions="Center">
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding ShowCompanyNameValidationError}" Value="True">
+                                <Setter Property="Stroke" Value="#EF4444" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <Entry Text="{Binding CompanyName}" IsReadOnly="{Binding IsRecruiting}" Placeholder="Company Name" ClearButtonVisibility="WhileEditing" VerticalOptions="Center" />
+                    </Border>
+                    <!-- Cohesive companies show the tracked fireteam and its level. -->
+                    <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" Spacing="2" IsVisible="{Binding ShowsFireteamTracking}">
+                        <Label Text="{Binding TrackedFireteamNameDisplay}" HorizontalTextAlignment="Center" LineBreakMode="TailTruncation" MaxLines="1" />
+                        <Label Text="{Binding TrackedFireteamLevelBonusText}"
+                               HorizontalTextAlignment="Center"
+                               FontSize="{DynamicResource FontSizeCaption}"
+                               IsVisible="{Binding HasTrackedFireteamLevelBonus}"
+                               LineBreakMode="WordWrap"
+                               MaxLines="2" />
+                    </VerticalStackLayout>
+                    <controls:SvgIcon Grid.Column="3"
+                                      Source="{Binding TrackedFireteamLevelIcon}"
+                                      IsVisible="{Binding ShowsFireteamTracking}"
+                                      WidthRequest="50"
+                                      HeightRequest="50"
+                                      Margin="0,0,4,0"
+                                      VerticalOptions="Center" />
+                </Grid>
+
+                <controls:MercsCompanyEntriesListView
+                    Grid.Row="1"
+                    VerticalOptions="FillAndExpand"
+                    ViewportHeightRatio="0.4"
+                    ItemsSource="{Binding MercsCompanyEntries}"
+                    SelectEntryCommand="{Binding SelectMercsCompanyEntryCommand}"
+                    RemoveEntryCommand="{Binding RemoveMercsCompanyEntryCommand}"
+                    ShowOrderModifierBadges="{Binding ShowsOrderModifierBadges}" />
+                <Button Grid.Row="1"
+                        Text="{Binding ConfirmText}"
+                        HorizontalOptions="End"
+                        VerticalOptions="End"
+                        Margin="0,0,10,10"
+                        ZIndex="1"
+                        Command="{Binding StartCompanyCommand}" />
+            </Grid>
+        </Grid>
+
+        <!-- The unit filter takes 90% of the height; applying or closing it goes straight to the ViewModel. -->
+        <Grid Grid.RowSpan="3"
+              Grid.ColumnSpan="2"
+              RowDefinitions="*,18*,*"
+              IsVisible="{Binding IsUnitFilterOpen}"
+              BackgroundColor="#880E1116"
+              ZIndex="100">
+            <unitFilter:UnitFilterPopupView Grid.Row="1" HorizontalOptions="Center" MaximumWidthRequest="700" Request="{Binding UnitFilterRequest}">
+                <unitFilter:UnitFilterPopupView.Behaviors>
+                    <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference CompanySelectionRoot}, x:DataType=ContentPage}"
+                                                    x:DataType="selection:CompanySelectionViewModel"
+                                                    EventName="FilterArmyApplied"
+                                                    Command="{Binding ApplyUnitFilterCommand}" />
+                    <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference CompanySelectionRoot}, x:DataType=ContentPage}"
+                                                    x:DataType="selection:CompanySelectionViewModel"
+                                                    EventName="CloseRequested"
+                                                    Command="{Binding CloseUnitFilterCommand}" />
+                </unitFilter:UnitFilterPopupView.Behaviors>
+            </unitFilter:UnitFilterPopupView>
+        </Grid>
+
+        <!-- Compact: the full-screen faction selector. -->
+        <controls:FactionSelectorOverlayView
+            Grid.RowSpan="3"
+            Grid.ColumnSpan="2"
+            ZIndex="200"
+            Title="{Binding Heading}"
+            IsOpen="{Binding IsFactionOverlayOpen}"
+            ItemsSource="{Binding Factions}"
+            SelectFactionCommand="{Binding SelectFactionCommand}">
+            <controls:FactionSelectorOverlayView.Behaviors>
+                <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference CompanySelectionRoot}, x:DataType=ContentPage}"
+                                                x:DataType="selection:CompanySelectionViewModel"
+                                                EventName="CloseRequested"
+                                                Command="{Binding CloseFactionStripCommand}" />
+            </controls:FactionSelectorOverlayView.Behaviors>
+        </controls:FactionSelectorOverlayView>
+    </Grid>
+</layout:AdaptiveContentPage>

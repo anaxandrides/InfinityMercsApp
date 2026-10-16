@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.Views;
 
 namespace InfinityMercsApp.ViewModels.Company;
 

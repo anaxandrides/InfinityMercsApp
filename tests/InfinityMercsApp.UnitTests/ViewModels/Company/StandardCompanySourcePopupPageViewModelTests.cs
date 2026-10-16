@@ -1,6 +1,5 @@
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company;
-using InfinityMercsApp.Views;
 using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Company;
