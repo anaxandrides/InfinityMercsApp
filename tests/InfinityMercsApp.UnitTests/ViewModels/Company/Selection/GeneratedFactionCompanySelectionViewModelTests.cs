@@ -1,5 +1,5 @@
-using InfinityMercsApp.Services.CompanySelection.Models.Selection;
-using InfinityMercsApp.UnitTests.Support;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.ViewModels.Company.Selection;
 using AirborneGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.AirborneCompanyFactionGenerator;
 using InspiringGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.InspiringCompanyFactionGenerator;
@@ -101,5 +101,29 @@ public sealed class GeneratedFactionCompanySelectionViewModelTests
         var request = Assert.IsType<InfinityMercsApp.Views.Controls.UnitFilter.UnitFilterRequest>(viewModel.UnitFilterRequest);
         Assert.False(request.TeamsViewEnabled);
         Assert.True(request.LieutenantOnlyUnits);
+    }
+
+    [Fact]
+    public async Task RecruitingAnAirborneCompanyListsTheGeneratedFactionsTroopers()
+    {
+        var company = new SavedCompanyFile
+        {
+            CompanyName = "Sky Team",
+            CompanyType = "Airborne Company",
+            SourceFactions = [new SavedCompanyFaction { FactionId = SelectionTestKit.Sectorial, FactionName = "Military Orders" }],
+            Entries = [new SavedCompanyEntry { EntryIndex = 0, Name = "Captain", IsLieutenant = true, SourceFactionId = SelectionTestKit.Sectorial, SourceUnitId = 1, Cost = 20 }]
+        };
+        var viewModel = new AirborneCompanySelectionViewModel(_kit.Services);
+        viewModel.PrepareRecruitment(new CompanyRecruitment("/records/sky.json", "/records/sky-season.json", company, Credits: 30));
+
+        await SelectionTestKit.OpenAsync(viewModel);
+
+        Assert.Equal(SelectionTestKit.Sectorial, viewModel.LeftSlotFaction?.Id);
+        Assert.Equal(AirborneGen.AirborneCompanyFactionId, viewModel.RightSlotFaction?.Id);
+        Assert.Equal(1, viewModel.ActiveSlotIndex);
+        Assert.False(viewModel.LieutenantOnlyUnits);
+        Assert.NotEmpty(viewModel.Units);
+        Assert.All(viewModel.Units, unit => Assert.Equal(AirborneGen.AirborneCompanyFactionId, unit.SourceFactionId));
+        Assert.Equal("30 CR LEFT", viewModel.CreditsLeftText);
     }
 }

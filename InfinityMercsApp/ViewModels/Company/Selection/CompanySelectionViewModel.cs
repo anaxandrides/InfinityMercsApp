@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Army.Filters;
@@ -9,6 +10,7 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Models.Selection;
 using InfinityMercsApp.Services.CompanySelection.Models.Teams;
 using InfinityMercsApp.Services.CompanySelection.Models.Ui;
+using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.CompanySelection.Units;
@@ -41,6 +43,8 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     private ArmyFactionSelectionItem? _pickedFaction;
     private bool _restrictProfilesToFto;
     private bool _hasAppeared;
+    private CompanyRecruitment? _recruitment;
+    private bool _isPreparingRecruitment;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsFactionOverlayOpen))]
@@ -91,6 +95,14 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     [ObservableProperty]
     private string _selectedStartSeasonPoints = "75";
 
+    /// <summary>The starting points picked in the title bar; they set the points limit while founding a company.</summary>
+    [ObservableProperty]
+    private string _startPointsChoice = "75";
+
+    /// <summary>"40 CR LEFT" while recruiting.</summary>
+    [ObservableProperty]
+    private string _creditsLeftText = string.Empty;
+
     [ObservableProperty]
     private string _seasonPointsCapText = "0";
 
@@ -138,6 +150,18 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
     /// <summary>The company type written to the saved company file.</summary>
     public abstract string CompanyTypeLabel { get; }
+
+    /// <summary>
+    /// True when an existing company is hiring new troopers mid-season, rather than a company being founded.
+    /// Its factions are fixed, its troopers are already on the roster, and its CR is the budget.
+    /// </summary>
+    public bool IsRecruiting => _recruitment is not null;
+
+    public bool IsFoundingCompany => !IsRecruiting;
+
+    public string PageTitle => _recruitment is { } recruitment ? $"Recruit for {recruitment.Company.CompanyName}" : Heading;
+
+    public string ConfirmText => IsRecruiting ? "HIRE RECRUITS" : "START COMPANY";
 
     /// <summary>Whether the company draws units from a second faction slot.</summary>
     public virtual bool ShowRightSlot => false;
@@ -205,7 +229,37 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         nameof(IsFactionOverlayOpen), nameof(ShowsUnitsPane), nameof(ShowsRightPane), nameof(ShowsDetailPane),
         nameof(ShowsCompanyPane), nameof(RightPaneRows));
 
-    /// <summary>Loads the faction list the first time the screen appears.</summary>
+    /// <summary>
+    /// Turns the screen into recruiting for an existing company: its troopers go on the roster (counted for AVA
+    /// and the company's rules, but not removable), and the points limit is what they cost plus the CR it has.
+    /// Call before the screen first appears.
+    /// </summary>
+    public void PrepareRecruitment(CompanyRecruitment recruitment)
+    {
+        _recruitment = recruitment;
+        CompanyName = string.IsNullOrWhiteSpace(recruitment.Company.CompanyName) ? DefaultCompanyName : recruitment.Company.CompanyName;
+        _isPreparingRecruitment = true;
+        try
+        {
+            MercsCompanyEntries.Clear();
+            foreach (var entry in RosterEntries.From(recruitment.Company))
+            {
+                MercsCompanyEntries.Add(entry);
+            }
+
+            var onRoster = MercsCompanyEntries.Sum(entry => entry.CostValue);
+            SelectedStartSeasonPoints = (onRoster + Math.Max(0, recruitment.Credits)).ToString(CultureInfo.InvariantCulture);
+            SeasonPointsCapText = CompanyStartSharedState.ComputeTotalCostText(MercsCompanyEntries);
+        }
+        finally
+        {
+            _isPreparingRecruitment = false;
+        }
+
+        OnPropertiesChanged(nameof(IsRecruiting), nameof(IsFoundingCompany), nameof(PageTitle), nameof(ConfirmText));
+    }
+
+    /// <summary>Loads the faction list the first time the screen appears; while recruiting, the company's own factions.</summary>
     public override async Task InitializeAsync()
     {
         if (_hasAppeared)
@@ -217,6 +271,46 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         Detail.ShowUnitsInInches = Services.Settings?.GetShowUnitsInInches() ?? false;
         OnFirstAppearing();
         await LoadFactionsAsync();
+        if (_recruitment is { } recruitment)
+        {
+            await StartRecruitingAsync(recruitment);
+        }
+    }
+
+    // Puts the company's saved factions in the empty slots (a fixed slot is already filled) and lists their units.
+    private async Task StartRecruitingAsync(CompanyRecruitment recruitment)
+    {
+        foreach (var saved in recruitment.Company.SourceFactions)
+        {
+            var faction = Factions.FirstOrDefault(candidate => candidate.Id == saved.FactionId) ?? new ArmyFactionSelectionItem
+            {
+                Id = saved.FactionId,
+                ParentId = saved.FactionId,
+                Name = saved.FactionName,
+                CachedLogoPath = CachedFactionLogoPath(saved.FactionId),
+                PackagedLogoPath = PackagedFactionLogoPath(saved.FactionId)
+            };
+
+            if (LeftSlotFaction is null)
+            {
+                SetSlotFaction(0, faction);
+            }
+            else if (ShowRightSlot && RightSlotFaction is null)
+            {
+                SetSlotFaction(1, faction);
+            }
+        }
+
+        PrepareRecruitingSlots();
+        ShowFactionStrip = false;
+        TeamsView = ShowsTeamsAfterFactionPick;
+        await LoadUnitsAsync();
+        OnRosterChanged();
+    }
+
+    /// <summary>Where recruiting starts once the slots are filled; by default the slot already picked.</summary>
+    protected virtual void PrepareRecruitingSlots()
+    {
     }
 
     /// <summary>Fills a fixed faction slot before the factions load.</summary>
@@ -259,7 +353,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     [RelayCommand]
     private Task SelectFactionAsync(ArmyFactionSelectionItem? item)
     {
-        if (item is null)
+        if (item is null || IsRecruiting)
         {
             return Task.CompletedTask;
         }
@@ -376,11 +470,12 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     protected virtual void SetActiveSlot(int slot) =>
         ActiveSlotIndex = FixedFactionSlot ?? CompanySelectionFactionSlotsWorkflow.ResolveActiveSlotIndex(slot, ShowRightSlot);
 
+    /// <summary>Opens or closes the faction picker; a recruiting company's factions are fixed, so it stays shut.</summary>
     [RelayCommand]
-    private void ToggleFactionStrip() => ShowFactionStrip = !ShowFactionStrip;
+    private void ToggleFactionStrip() => ShowFactionStrip = !ShowFactionStrip && IsFoundingCompany;
 
     [RelayCommand]
-    private void OpenFactionStrip() => ShowFactionStrip = true;
+    private void OpenFactionStrip() => ShowFactionStrip = IsFoundingCompany;
 
     [RelayCommand]
     private void CloseFactionStrip() => ShowFactionStrip = false;
@@ -971,10 +1066,11 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     protected virtual Task AfterEntryAddedAsync(ArmyUnitSelectionItem unit, ViewerProfileItem profile, MercsCompanyEntry entry) =>
         Task.CompletedTask;
 
+    /// <summary>Takes a trooper out of the company; one already on a recruiting company's roster stays.</summary>
     [RelayCommand]
     private void RemoveMercsCompanyEntry(MercsCompanyEntry? entry)
     {
-        if (entry is not null && MercsCompanyEntries.Remove(entry))
+        if (entry is { IsOnRoster: false } && MercsCompanyEntries.Remove(entry))
         {
             OnRosterChanged();
         }
@@ -1040,10 +1136,14 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         }
     }
 
-    /// <summary>Empties the company, e.g. when a source faction changes.</summary>
+    /// <summary>Empties the company, e.g. when a source faction changes; a recruiting company keeps its roster.</summary>
     protected void ResetCompany()
     {
-        MercsCompanyEntries.Clear();
+        foreach (var entry in MercsCompanyEntries.Where(entry => !entry.IsOnRoster).ToList())
+        {
+            MercsCompanyEntries.Remove(entry);
+        }
+
         SeasonPointsCapText = CompanyStartSharedState.ComputeTotalCostText(MercsCompanyEntries);
         AfterCompanyReset();
     }
@@ -1062,7 +1162,18 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     partial void OnSelectedStartSeasonPointsChanged(string value)
     {
         UpdateSeasonValidation();
-        _ = OnPointsLimitChangedAsync();
+        if (!_isPreparingRecruitment)
+        {
+            _ = OnPointsLimitChangedAsync();
+        }
+    }
+
+    partial void OnStartPointsChoiceChanged(string value)
+    {
+        if (IsFoundingCompany && !string.IsNullOrWhiteSpace(value))
+        {
+            SelectedStartSeasonPoints = value;
+        }
     }
 
     /// <summary>A new points limit: by default re-filters the units and rebuilds the filter's options.</summary>
@@ -1074,9 +1185,16 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         return Task.CompletedTask;
     }
 
-    /// <summary>The company can start once it has a lieutenant and fits the points limit.</summary>
-    protected void UpdateSeasonValidation() =>
-        IsCompanyValid = CompanyStartSharedState.IsSeasonValid(MercsCompanyEntries, SelectedStartSeasonPoints, SeasonPointsCapText);
+    /// <summary>
+    /// The company can start once it has a lieutenant and fits the points limit; a recruiting company also
+    /// needs at least one recruit, and its remaining CR is shown.
+    /// </summary>
+    protected void UpdateSeasonValidation()
+    {
+        IsCompanyValid = CompanyStartSharedState.IsSeasonValid(MercsCompanyEntries, SelectedStartSeasonPoints, SeasonPointsCapText) &&
+                         (IsFoundingCompany || MercsCompanyEntries.Any(entry => !entry.IsOnRoster));
+        CreditsLeftText = IsRecruiting ? $"{PointsRemaining} CR LEFT" : string.Empty;
+    }
 
     partial void OnLieutenantOnlyUnitsChanged(bool value)
     {
@@ -1098,10 +1216,19 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         CompanyNameBorderColor = CompanyStartSharedState.GetCompanyNameBorderColor(showError);
     }
 
-    /// <summary>Configures the captain, saves the company and opens it; a missing name is flagged instead.</summary>
+    /// <summary>
+    /// Configures the captain, saves the company and opens it; a missing name is flagged instead. While
+    /// recruiting, hires the recruits instead.
+    /// </summary>
     [RelayCommand(CanExecute = nameof(IsCompanyValid))]
     private async Task StartCompanyAsync()
     {
+        if (_recruitment is { } recruitment)
+        {
+            await HireRecruitsAsync(recruitment);
+            return;
+        }
+
         if (!CompanyStartSharedState.IsCompanyNameValid(CompanyName))
         {
             SetCompanyNameError(true);
@@ -1141,6 +1268,33 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
     /// <summary>Whether the right slot's faction is saved as a source of the company.</summary>
     protected virtual bool SavesRightSlot => ShowRightSlot;
+
+    // After confirming, adds the recruits to the company, charges their CR in the season and goes back.
+    private async Task HireRecruitsAsync(CompanyRecruitment recruitment)
+    {
+        var recruits = MercsCompanyEntries.Where(entry => !entry.IsOnRoster).ToList();
+        var cost = recruits.Sum(entry => entry.CostValue);
+        var who = recruits.Count == 1 ? recruits[0].Name : $"{recruits.Count} recruits";
+        if (!await Services.Dialogs.ConfirmAsync("Hire Recruits", $"Hire {who} for {cost} CR?"))
+        {
+            return;
+        }
+
+        var outcome = await CompanyRecruitmentWorkflow.HireAsync(
+            recruitment, recruits, Services.ArmyData, Services.CompanyFiles, Services.SeasonFiles);
+        switch (outcome)
+        {
+            case RecruitmentOutcome.Hired:
+                await NavigationService.PopAsync();
+                break;
+            case RecruitmentOutcome.CompanyNotSaved:
+                await Services.Dialogs.ShowAlertAsync("Recruits Not Hired", "The company file could not be saved.");
+                break;
+            case RecruitmentOutcome.SeasonNotSaved:
+                await Services.Dialogs.ShowAlertAsync("Recruits Not Hired", "The season file could not be saved, so nobody was hired.");
+                break;
+        }
+    }
 
     // ── Filter ──────────────────────────────────────────────────────────────
 

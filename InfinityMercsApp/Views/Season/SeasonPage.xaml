@@ -625,6 +625,21 @@
                         <BoxView HeightRequest="1" Color="{StaticResource Hairline}" Margin="0,6,0,0" />
                     </VerticalStackLayout>
                 </Border>
+                <!-- Additional Recruitment: hire new troopers on the company's own selection screen -->
+                <VerticalStackLayout Grid.Row="1" IsVisible="{Binding Marketplace.IsRecruitmentStore}" Padding="16,12" Spacing="10">
+                    <Label Text="ADDITIONAL RECRUITMENT" Style="{StaticResource LabelTitleSmall}" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                    <Label Text="Hire new troopers with the CR the company has left. They follow the same rules as the first recruits, and AVA counts every trooper the company has had."
+                           Style="{StaticResource LabelBody}"
+                           TextColor="{StaticResource TextSecondary}" />
+                    <Button Text="RECRUIT TROOPERS"
+                            BackgroundColor="{StaticResource Signal}"
+                            TextColor="{StaticResource Void}"
+                            FontAttributes="Bold"
+                            CornerRadius="4"
+                            HeightRequest="44"
+                            Command="{Binding RecruitCommand}" />
+                </VerticalStackLayout>
+
                 <!-- Services: for one trooper at a time -->
                 <ScrollView Grid.Row="1" IsVisible="{Binding Marketplace.IsServicesStore}">
                     <VerticalStackLayout Padding="16,12" Spacing="10">

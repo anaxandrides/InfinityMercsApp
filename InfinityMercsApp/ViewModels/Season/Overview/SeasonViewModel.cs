@@ -6,6 +6,7 @@ using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Utilities;
 using InfinityMercsApp.Services;
 using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
@@ -33,6 +34,8 @@ public partial class SeasonViewModel : ViewModelBase
     private readonly ISeasonFileService _seasonFiles;
     private readonly StoreCatalog _stores;
     private readonly IArmyDataService _armyData;
+    private readonly IDialogService _dialogs;
+    private readonly ICompanySelectionNavigator _companySelection;
     private string _companyFilePath = string.Empty;
     private string? _seasonFilePath;
     private bool _needsLoad;
@@ -46,6 +49,7 @@ public partial class SeasonViewModel : ViewModelBase
         StoreCatalog stores,
         IArmyDataService armyData,
         IDialogService dialogs,
+        ICompanySelectionNavigator companySelection,
         IDice dice,
         IAppPackageFiles packageFiles,
         CompanyRoster roster,
@@ -56,6 +60,8 @@ public partial class SeasonViewModel : ViewModelBase
         _seasonFiles = seasonFiles;
         _stores = stores;
         _armyData = armyData;
+        _dialogs = dialogs;
+        _companySelection = companySelection;
         DetailPopup = detailPopup;
         Team = new SeasonTeamViewModel(roster, detail, packageFiles, seasonFiles, detailPopup, dialogs);
         Inventory = new SeasonInventoryViewModel(seasonFiles, dialogs, RefreshSeasonAsync);
@@ -113,7 +119,10 @@ public partial class SeasonViewModel : ViewModelBase
         _needsLoad = true;
     }
 
-    /// <summary>Loads the company the first time, then brings everything up to date with the season file.</summary>
+    /// <summary>
+    /// Loads the company the first time, then brings everything up to date with the season file. Coming back,
+    /// the company is read again, since recruiting adds troopers to it.
+    /// </summary>
     public override async Task InitializeAsync()
     {
         Team.RefreshDisplayUnits();
@@ -122,8 +131,46 @@ public partial class SeasonViewModel : ViewModelBase
             _needsLoad = false;
             await LoadAsync();
         }
+        else if (_company is not null)
+        {
+            await ReloadCompanyAsync();
+        }
 
         await RefreshSeasonAsync();
+    }
+
+    private async Task ReloadCompanyAsync()
+    {
+        try
+        {
+            if (_companyFiles.Exists(_companyFilePath) && await _companyFiles.LoadAsync(_companyFilePath) is { } company)
+            {
+                _company = company;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Reading the season's company again failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Opens the company's selection screen to hire new troopers with the CR the season has left; a company
+    /// type without one says so.
+    /// </summary>
+    [RelayCommand]
+    private async Task RecruitAsync()
+    {
+        if (_company is not { } company || _seasonFilePath is not { } seasonFilePath)
+        {
+            return;
+        }
+
+        var credits = SeasonEconomy.Ledger(await _seasonFiles.LoadAsync(seasonFilePath)).CreditsBalance;
+        if (!await _companySelection.OpenRecruitmentAsync(new CompanyRecruitment(_companyFilePath, seasonFilePath, company, credits)))
+        {
+            await _dialogs.ShowAlertAsync("Can't Recruit", $"There is no recruitment screen for a {company.CompanyType}.");
+        }
     }
 
     /// <summary>Shows a tab; the market tab asks for this round's War Market when none is chosen yet.</summary>

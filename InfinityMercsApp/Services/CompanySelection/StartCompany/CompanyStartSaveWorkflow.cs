@@ -200,16 +200,32 @@ internal static class CompanyStartSaveWorkflow
             }));
     }
 
+    /// <summary>
+    /// New recruits as saved entries, numbered from <paramref name="firstEntryIndex"/>, each followed by its
+    /// peripheral. They are written exactly as a founded company's troopers are.
+    /// </summary>
+    internal static IReadOnlyList<SavedCompanyEntry> RecruitEntries<TEntry>(
+        IList<TEntry> recruits,
+        int firstEntryIndex,
+        IArmyDataService armyDataService)
+        where TEntry : class, ICompanyMercsEntry
+    {
+        var serialized = BuildSerializedEntries(recruits, "Captain", new SavedImprovedCaptainStats(), armyDataService, firstEntryIndex);
+        var json = JsonSerializer.Serialize(serialized);
+        return JsonSerializer.Deserialize<List<SavedCompanyEntry>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+    }
+
     private static List<SerializedCompanyEntry> BuildSerializedEntries<TEntry>(
         IList<TEntry> entries,
         string normalizedCaptainName,
         SavedImprovedCaptainStats improvedCaptainStats,
-        IArmyDataService armyDataService)
+        IArmyDataService armyDataService,
+        int firstEntryIndex = 0)
         where TEntry : class, ICompanyMercsEntry
     {
         var result = new List<SerializedCompanyEntry>(entries.Count * 2);
         var encoder = new SavedCodeEncoder(armyDataService);
-        var entryIndex = 0;
+        var entryIndex = firstEntryIndex;
 
         foreach (var entry in entries)
         {

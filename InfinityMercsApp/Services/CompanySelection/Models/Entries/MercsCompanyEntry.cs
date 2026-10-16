@@ -18,6 +18,11 @@ public class MercsCompanyEntry : BaseViewModel, IViewerListItem, ICompanyMercsEn
 
     /// <summary>Recruited as a Spec Ops profile, whose captain upgrades come from the Spec-Ops chart.</summary>
     public bool IsSpecOps { get; init; }
+
+    /// <summary>Already in the company while it recruits: counted for AVA and the company's rules, but not removed or saved again.</summary>
+    public bool IsOnRoster { get; init; }
+
+    public bool CanRemove => !IsOnRoster;
     public int SourceUnitId { get; init; }
     public int SourceFactionId { get; init; }
     public int LogoSourceFactionId { get; init; }

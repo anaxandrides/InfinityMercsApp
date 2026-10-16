@@ -36,7 +36,7 @@ public partial class SeasonMarketplaceViewModel(
     private IReadOnlyList<StoreChoice> _stores = [];
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsServicesStore), nameof(ShowsStock))]
+    [NotifyPropertyChangedFor(nameof(IsServicesStore), nameof(IsRecruitmentStore), nameof(ShowsStock))]
     private StoreChoice? _selectedStore;
 
     [ObservableProperty]
@@ -73,8 +73,11 @@ public partial class SeasonMarketplaceViewModel(
     /// <summary>Medical Services sells services rather than stock.</summary>
     public bool IsServicesStore => string.Equals(SelectedStore?.StoreName, ServiceStoreNames.MedicalServices, StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>Additional Recruitment hires new troopers rather than selling stock.</summary>
+    public bool IsRecruitmentStore => string.Equals(SelectedStore?.StoreName, ServiceStoreNames.AdditionalRecruitment, StringComparison.OrdinalIgnoreCase);
+
     /// <summary>A store with stock is showing.</summary>
-    public bool ShowsStock => HasStore && !IsServicesStore;
+    public bool ShowsStock => HasStore && !IsServicesStore && !IsRecruitmentStore;
     public bool HasTroopTypes => TroopTypeRows.Count > 0;
     public bool HasAugments => AugmentRows.Count > 0;
     public bool HasCartItems => _cart.Count > 0;

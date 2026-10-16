@@ -6,6 +6,8 @@ using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
+using InfinityMercsApp.Services.Records;
+using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Company.Selection;
@@ -28,6 +30,8 @@ internal sealed class SelectionTestKit
     public ISpecOpsProvider SpecOps { get; } = Substitute.For<ISpecOpsProvider>();
     public IAppPackageFiles PackageFiles { get; } = Substitute.For<IAppPackageFiles>();
     public IAppSettingsProvider Settings { get; } = Substitute.For<IAppSettingsProvider>();
+    public ICompanyFileService CompanyFiles { get; } = Substitute.For<ICompanyFileService>();
+    public ISeasonFileService SeasonFiles { get; } = Substitute.For<ISeasonFileService>();
     public IArmyDataService ArmyData { get; } = Army101Data.Create();
 
     public SelectionTestKit()
@@ -80,7 +84,7 @@ internal sealed class SelectionTestKit
             .ToList()
     };
 
-    public CompanySelectionServices Services => new(Navigation, Dialogs, CaptainDialog, ArmyData, SpecOps, PackageFiles, Settings);
+    public CompanySelectionServices Services => new(Navigation, Dialogs, CaptainDialog, ArmyData, SpecOps, PackageFiles, CompanyFiles, SeasonFiles, Settings);
 
     private static IReadOnlyList<Resume> Resumes(int factionId) =>
         Army101Data.Definition.Resume

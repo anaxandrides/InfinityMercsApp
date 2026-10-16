@@ -50,6 +50,7 @@
                     FontAttributes="Bold"
                     VerticalOptions="Start"
                     HorizontalOptions="End"
+                    IsVisible="{Binding CanRemove}"
                     Clicked="OnRemoveButtonClicked" />
             </HorizontalStackLayout>
 

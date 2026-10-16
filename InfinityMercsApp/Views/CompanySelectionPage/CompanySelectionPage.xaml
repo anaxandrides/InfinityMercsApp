@@ -12,7 +12,7 @@
              x:Class="InfinityMercsApp.Views.CompanySelectionPage"
              x:Name="CompanySelectionRoot"
              x:DataType="selection:CompanySelectionViewModel"
-             Title="{Binding Heading}">
+             Title="{Binding PageTitle}">
 
     <ContentPage.Behaviors>
         <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
@@ -53,9 +53,18 @@
             <controls:SeasonStartPointsView
                 Grid.Column="2"
                 VerticalOptions="Center"
+                IsVisible="{Binding IsFoundingCompany}"
                 SeasonPointsCapText="{Binding SeasonPointsCapText}"
-                SelectedStartSeasonPoints="{Binding SelectedStartSeasonPoints}"
+                SelectedStartSeasonPoints="{Binding StartPointsChoice}"
                 IsCompanyValid="{Binding IsCompanyValid}" />
+            <!-- Recruiting spends the company's CR, so what is left shows instead of the starting points. -->
+            <Label
+                Grid.Column="2"
+                VerticalOptions="Center"
+                IsVisible="{Binding IsRecruiting}"
+                Text="{Binding CreditsLeftText}"
+                FontAttributes="Bold"
+                TextColor="{StaticResource Signal}" />
         </Grid>
     </shell:Shell.TitleView>
 
@@ -251,7 +260,7 @@
                             HorizontalOptions="Fill"
                             MaximumWidthRequest="320"
                             VerticalOptions="Center">
-                        <Entry Text="{Binding CompanyName}" Placeholder="Company Name" ClearButtonVisibility="WhileEditing" VerticalOptions="Center" />
+                        <Entry Text="{Binding CompanyName}" IsReadOnly="{Binding IsRecruiting}" Placeholder="Company Name" ClearButtonVisibility="WhileEditing" VerticalOptions="Center" />
                     </Border>
                     <!-- Cohesive companies show the tracked fireteam and its level. -->
                     <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" Spacing="2" IsVisible="{Binding ShowsFireteamTracking}">
@@ -281,7 +290,7 @@
                     RemoveEntryCommand="{Binding RemoveMercsCompanyEntryCommand}"
                     ShowOrderModifierBadges="{Binding ShowsOrderModifierBadges}" />
                 <Button Grid.Row="1"
-                        Text="START COMPANY"
+                        Text="{Binding ConfirmText}"
                         HorizontalOptions="End"
                         VerticalOptions="End"
                         Margin="0,0,10,10"

@@ -37,6 +37,7 @@ internal sealed class SeasonTestKit
     public IArmyDataService ArmyData { get; } = Substitute.For<IArmyDataService>();
     public IMetadataProvider Metadata { get; } = Substitute.For<IMetadataProvider>();
     public IDialogService Dialogs { get; } = Substitute.For<IDialogService>();
+    public ICompanySelectionNavigator CompanySelection { get; } = Substitute.For<ICompanySelectionNavigator>();
     public IDice Dice { get; } = Substitute.For<IDice>();
     public IAppPackageFiles PackageFiles { get; } = Substitute.For<IAppPackageFiles>();
     public IAppSettingsProvider Settings { get; } = Substitute.For<IAppSettingsProvider>();
@@ -131,7 +132,7 @@ internal sealed class SeasonTestKit
     public MarketplaceDetailViewModel Popup() => new(Metadata, Substitute.For<IWikiDescriptionService>(), Substitute.For<ILauncher>());
 
     public SeasonViewModel SeasonViewModel() => new(
-        Navigation, CompanyFiles, SeasonFiles, Stores, new StoreCatalog(Stores), ArmyData, Dialogs, Dice, PackageFiles,
+        Navigation, CompanyFiles, SeasonFiles, Stores, new StoreCatalog(Stores), ArmyData, Dialogs, CompanySelection, Dice, PackageFiles,
         new CompanyRoster(ArmyData), new UnitDetailViewModel(ArmyData, Settings), Popup());
 
     /// <summary>A season page opened on the company with its season file, as the page would be on appearing.</summary>

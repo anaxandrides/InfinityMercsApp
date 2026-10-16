@@ -5,6 +5,10 @@ using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Season.Overview;
+using InfinityMercsApp.UnitTests.ViewModels.Company.Viewer;
+using InfinityMercsApp.Domain.Models.Stores;
+using InfinityMercsApp.Domain.Season;
+using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
@@ -78,15 +82,19 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task TheCompanyLoadsOnceAndTheSeasonIsReReadOnEachAppearance()
+    public async Task TheCompanyAndSeasonAreReadAgainOnEachAppearance()
     {
         var viewModel = await _kit.OpenAsync();
         _kit.Season.Rounds.Add(new SeasonRound { RoundIndex = 2 });
+        var recruited = SeasonTestKit.Company();
+        recruited.Entries.Add(CompanyRosterTests.Entry(4, "Recruit"));
+        _kit.CompanyFiles.LoadAsync(SeasonTestKit.CompanyPath).Returns(recruited);
 
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
 
-        await _kit.CompanyFiles.Received(1).LoadAsync(SeasonTestKit.CompanyPath);
+        await _kit.CompanyFiles.Received(2).LoadAsync(SeasonTestKit.CompanyPath);
         Assert.Equal("Round 2 Marketplace", viewModel.RoundTitle);
+        Assert.Contains("Recruit", viewModel.Team.Units.Select(unit => unit.Name));
     }
 
     [Fact]
@@ -284,6 +292,46 @@ public sealed class SeasonViewModelTests
         Assert.True(viewModel.Marketplace.IsServicesStore);
         Assert.False(viewModel.Marketplace.ShowsStock);
         Assert.Equal(["Captain", "Bolt", "Traktor Mul"], viewModel.Services.Troopers.Select(trooper => trooper.Name));
+    }
+
+    [Fact]
+    public async Task AdditionalRecruitmentOffersRecruitingInsteadOfStock()
+    {
+        var viewModel = await _kit.OpenAsync();
+
+        viewModel.Marketplace.SelectedStore = viewModel.Marketplace.Stores.Single(store => store.StoreName == ServiceStoreNames.AdditionalRecruitment);
+
+        Assert.True(viewModel.Marketplace.IsRecruitmentStore);
+        Assert.False(viewModel.Marketplace.IsServicesStore);
+        Assert.False(viewModel.Marketplace.ShowsStock);
+    }
+
+    [Fact]
+    public async Task RecruitingOpensTheCompanysScreenWithTheCrLeft()
+    {
+        _kit.CompanySelection.OpenRecruitmentAsync(Arg.Any<CompanyRecruitment>()).Returns(true);
+        var viewModel = await _kit.OpenAsync();
+
+        await viewModel.RecruitCommand.ExecuteAsync(null);
+
+        var credits = SeasonEconomy.Ledger(_kit.Season).CreditsBalance;
+        await _kit.CompanySelection.Received(1).OpenRecruitmentAsync(Arg.Is<CompanyRecruitment>(recruitment =>
+            recruitment.CompanyFilePath == SeasonTestKit.CompanyPath &&
+            recruitment.SeasonFilePath == SeasonTestKit.SeasonPath &&
+            recruitment.Company.CompanyName == "Blue Team" &&
+            recruitment.Credits == credits));
+        await _kit.Dialogs.DidNotReceiveWithAnyArgs().ShowAlertAsync(Arg.Any<string>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task ACompanyTypeWithoutARecruitmentScreenSaysSo()
+    {
+        _kit.CompanySelection.OpenRecruitmentAsync(Arg.Any<CompanyRecruitment>()).Returns(false);
+        var viewModel = await _kit.OpenAsync();
+
+        await viewModel.RecruitCommand.ExecuteAsync(null);
+
+        await _kit.Dialogs.Received(1).ShowAlertAsync("Can't Recruit", "There is no recruitment screen for a Standard Company.");
     }
 
     [Fact]

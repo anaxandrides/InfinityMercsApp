@@ -1,3 +1,4 @@
+using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.ViewModels.Company.Selection;
 using InfinityMercsApp.Views;
 
@@ -11,6 +12,32 @@ internal sealed class CompanySelectionNavigator(CompanySelectionServices service
         var navigation = Shell.Current?.Navigation
             ?? throw new InvalidOperationException("No active Shell is available to open the company selection.");
         return navigation.PushAsync(new CompanySelectionPage(ViewModelFor(kind, mode)));
+    }
+
+    public async Task<bool> OpenRecruitmentAsync(CompanyRecruitment recruitment)
+    {
+        if (RecruitmentViewModelFor(recruitment) is not { } viewModel)
+        {
+            return false;
+        }
+
+        var navigation = Shell.Current?.Navigation
+            ?? throw new InvalidOperationException("No active Shell is available to open recruitment.");
+        await navigation.PushAsync(new CompanySelectionPage(viewModel));
+        return true;
+    }
+
+    /// <summary>The company's kind of selection screen, prepared to recruit; null for a company type with none.</summary>
+    internal CompanySelectionViewModel? RecruitmentViewModelFor(CompanyRecruitment recruitment)
+    {
+        if (RecruitableCompany.For(recruitment.Company.CompanyType) is not { } company)
+        {
+            return null;
+        }
+
+        var viewModel = ViewModelFor(company.Kind, company.Mode);
+        viewModel.PrepareRecruitment(recruitment);
+        return viewModel;
     }
 
     /// <summary>The ViewModel for a kind of company; Inspiring and Airborne companies always use sectorials.</summary>

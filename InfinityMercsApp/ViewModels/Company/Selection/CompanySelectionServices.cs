@@ -4,6 +4,8 @@ using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
+using InfinityMercsApp.Services.Records;
+using InfinityMercsApp.Services.Season;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 
@@ -15,5 +17,7 @@ public sealed record CompanySelectionServices(
     IArmyDataService ArmyData,
     ISpecOpsProvider SpecOps,
     IAppPackageFiles PackageFiles,
+    ICompanyFileService CompanyFiles,
+    ISeasonFileService SeasonFiles,
     IAppSettingsProvider? Settings = null,
     FactionLogoCacheService? Logos = null);

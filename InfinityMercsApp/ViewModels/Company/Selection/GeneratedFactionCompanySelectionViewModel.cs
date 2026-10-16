@@ -93,6 +93,13 @@ public abstract class GeneratedFactionCompanySelectionViewModel : CompanySelecti
         await LoadUnitsAsync();
     }
 
+    /// <summary>A recruiting company already has its captain, so recruits come from the generated faction.</summary>
+    protected override void PrepareRecruitingSlots()
+    {
+        ActiveSlotIndex = 1;
+        ShowLieutenantsOnly(false);
+    }
+
     /// <summary>The left slot lists lieutenants only; switching slots reloads the list.</summary>
     protected override void SetActiveSlot(int slot)
     {
