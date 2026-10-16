@@ -8,14 +8,11 @@ namespace InfinityMercsApp.Views.Controls;
 /// </summary>
 public partial class FactionSlotSelectorView : ContentView
 {
-    private static readonly Color ActiveBorder = Color.FromArgb("#34D399");
-    private static readonly Color InactiveBorder = Color.FromArgb("#3A4554");
-
     public static readonly BindableProperty ShowRightSelectionBoxProperty =
-        BindableProperty.Create(nameof(ShowRightSelectionBox), typeof(bool), typeof(FactionSlotSelectorView), false, propertyChanged: OnSlotStateChanged);
+        BindableProperty.Create(nameof(ShowRightSelectionBox), typeof(bool), typeof(FactionSlotSelectorView), false);
 
     public static readonly BindableProperty ActiveSlotIndexProperty =
-        BindableProperty.Create(nameof(ActiveSlotIndex), typeof(int), typeof(FactionSlotSelectorView), 0, propertyChanged: OnSlotStateChanged);
+        BindableProperty.Create(nameof(ActiveSlotIndex), typeof(int), typeof(FactionSlotSelectorView), 0);
 
     public static readonly BindableProperty LeftSlotSourceProperty =
         BindableProperty.Create(nameof(LeftSlotSource), typeof(string), typeof(FactionSlotSelectorView));
@@ -60,18 +57,5 @@ public partial class FactionSlotSelectorView : ContentView
     {
         get => (ICommand?)GetValue(SlotTappedCommandProperty);
         set => SetValue(SlotTappedCommandProperty, value);
-    }
-
-    public Color LeftSlotBorderColor => IsRightSlotActive ? InactiveBorder : ActiveBorder;
-
-    public Color RightSlotBorderColor => IsRightSlotActive ? ActiveBorder : InactiveBorder;
-
-    private bool IsRightSlotActive => ActiveSlotIndex == 1 && ShowRightSelectionBox;
-
-    private static void OnSlotStateChanged(BindableObject bindable, object oldValue, object newValue)
-    {
-        var view = (FactionSlotSelectorView)bindable;
-        view.OnPropertyChanged(nameof(LeftSlotBorderColor));
-        view.OnPropertyChanged(nameof(RightSlotBorderColor));
     }
 }

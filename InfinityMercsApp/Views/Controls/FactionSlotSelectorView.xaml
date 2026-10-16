@@ -8,11 +8,21 @@
              Margin="30,0,0,0"
              HorizontalOptions="FillAndExpand">
     <Grid ColumnDefinitions="*,*" ColumnSpacing="0" VerticalOptions="Center" HorizontalOptions="FillAndExpand">
+        <!-- The slot the next pick goes to is outlined in green: the left one unless the right one is shown and active. -->
         <Border StrokeThickness="2"
-                Stroke="{Binding LeftSlotBorderColor, Source={x:Reference FactionSlotSelectorRoot}}"
+                Stroke="#34D399"
                 Padding="8,4"
                 Margin="15,0"
                 HorizontalOptions="FillAndExpand">
+            <Border.Triggers>
+                <MultiTrigger TargetType="Border">
+                    <MultiTrigger.Conditions>
+                        <BindingCondition Binding="{Binding ActiveSlotIndex, Source={x:Reference FactionSlotSelectorRoot}}" Value="1" />
+                        <BindingCondition Binding="{Binding ShowRightSelectionBox, Source={x:Reference FactionSlotSelectorRoot}}" Value="True" />
+                    </MultiTrigger.Conditions>
+                    <Setter Property="Stroke" Value="#3A4554" />
+                </MultiTrigger>
+            </Border.Triggers>
             <Border.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding SlotTappedCommand, Source={x:Reference FactionSlotSelectorRoot}}" CommandParameter="{x:Int32 0}" />
             </Border.GestureRecognizers>
@@ -23,12 +33,17 @@
                               VerticalOptions="Center" />
         </Border>
         <Border StrokeThickness="2"
-                Stroke="{Binding RightSlotBorderColor, Source={x:Reference FactionSlotSelectorRoot}}"
+                Stroke="#3A4554"
                 Padding="8,4"
                 Margin="15,0"
                 Grid.Column="1"
                 HorizontalOptions="FillAndExpand"
                 IsVisible="{Binding ShowRightSelectionBox, Source={x:Reference FactionSlotSelectorRoot}}">
+            <Border.Triggers>
+                <DataTrigger TargetType="Border" Binding="{Binding ActiveSlotIndex, Source={x:Reference FactionSlotSelectorRoot}}" Value="1">
+                    <Setter Property="Stroke" Value="#34D399" />
+                </DataTrigger>
+            </Border.Triggers>
             <Border.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding SlotTappedCommand, Source={x:Reference FactionSlotSelectorRoot}}" CommandParameter="{x:Int32 1}" />
             </Border.GestureRecognizers>
