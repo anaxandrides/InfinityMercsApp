@@ -1,10 +1,10 @@
 using System.Windows.Input;
-using InfinityMercsApp.Services.CompanySelection.Models.Selection;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using Svg.Skia;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 namespace InfinityMercsApp.Views.Controls;
 

@@ -1,5 +1,5 @@
 using System.Windows.Input;
-using InfinityMercsApp.Services.CompanySelection.Models.Entries;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 namespace InfinityMercsApp.Views.Controls;
 

@@ -2,13 +2,12 @@ using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Common;
-using InfinityMercsApp.Services.CompanySelection.Models.Entries;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.Services.CompanySelection.Models.Selection;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 namespace InfinityMercsApp.Services.CompanySelection.Core;
 

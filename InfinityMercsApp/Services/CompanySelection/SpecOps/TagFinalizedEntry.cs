@@ -1,6 +1,6 @@
 using InfinityMercsApp.Services.CompanyProfiles;
-using InfinityMercsApp.Services.CompanySelection.Models.Entries;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 namespace InfinityMercsApp.Services.CompanySelection.SpecOps;
 

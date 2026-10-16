@@ -42,7 +42,7 @@ public sealed class TagCompanySelectionViewModelTests
     [Fact]
     public void AFinalizedTagGainsItsSpecOps()
     {
-        var entry = new InfinityMercsApp.Services.CompanySelection.Models.Entries.MercsCompanyEntry
+        var entry = new InfinityMercsApp.ViewModels.Company.Selection.Items.MercsCompanyEntry
         {
             Name = "Squalo",
             Subtitle = "MOV 15-10 | CC 16 | BS 13 | PH 18 | WIP 13 | ARM 7 | BTS 6 | STR 3 | S 7",

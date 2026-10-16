@@ -4,7 +4,7 @@ using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
-namespace InfinityMercsApp.Services.CompanySelection.Models.Entries;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 public partial class MercsCompanyEntry : ObservableObject, IViewerListItem, ICompanyMercsEntry
 {

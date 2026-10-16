@@ -2,12 +2,11 @@ using System.Globalization;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Services.CompanySelection.Common;
 using InfinityMercsApp.Services.CompanySelection.Core;
-using InfinityMercsApp.Services.CompanySelection.Models.Entries;
-using InfinityMercsApp.Services.CompanySelection.Models.Selection;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Navigation;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 

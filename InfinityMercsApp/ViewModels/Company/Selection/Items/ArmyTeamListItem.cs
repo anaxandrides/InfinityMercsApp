@@ -1,8 +1,6 @@
 using System.Collections.ObjectModel;
-using InfinityMercsApp.Services.CompanySelection.Models.Teams;
-using InfinityMercsApp.ViewModels;
 
-namespace InfinityMercsApp.Services.CompanySelection.Models.Ui;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 public class ArmyTeamListItem : BaseViewModel
 {

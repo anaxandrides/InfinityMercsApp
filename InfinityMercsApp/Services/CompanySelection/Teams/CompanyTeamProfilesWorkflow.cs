@@ -1,5 +1,4 @@
-using InfinityMercsApp.Services.CompanySelection.Models.Selection;
-using InfinityMercsApp.Services.CompanySelection.Models.Teams;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 namespace InfinityMercsApp.Services.CompanySelection.Teams;
 

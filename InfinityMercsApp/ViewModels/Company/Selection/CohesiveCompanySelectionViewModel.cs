@@ -2,16 +2,13 @@ using System.ComponentModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.Domain.Models.Army.Filters;
-using InfinityMercsApp.Services.CompanySelection.Models.Entries;
-using InfinityMercsApp.Services.CompanySelection.Models.Selection;
-using InfinityMercsApp.Services.CompanySelection.Models.Teams;
-using InfinityMercsApp.Services.CompanySelection.Models.Ui;
 using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Navigation;
 using CCFactionFireteamValidityRecord = InfinityMercsApp.Domain.Models.Army.CCFactionFireteamValidityRecord;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 

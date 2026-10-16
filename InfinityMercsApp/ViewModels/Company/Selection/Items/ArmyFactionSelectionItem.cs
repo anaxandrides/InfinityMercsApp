@@ -1,8 +1,7 @@
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
-using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
-namespace InfinityMercsApp.Services.CompanySelection.Models.Selection;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 public class ArmyFactionSelectionItem : BaseViewModel, IViewerListItem, ICompanySourceFaction
 {

@@ -5,11 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Core;
-using InfinityMercsApp.Services.CompanySelection.Models.Entries;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.Services.CompanySelection.Models.Selection;
-using InfinityMercsApp.Services.CompanySelection.Models.Teams;
-using InfinityMercsApp.Services.CompanySelection.Models.Ui;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.CompanySelection.Teams;
@@ -25,6 +21,7 @@ using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecOps.Specop
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 

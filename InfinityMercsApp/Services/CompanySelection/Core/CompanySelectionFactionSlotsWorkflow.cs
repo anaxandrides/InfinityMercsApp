@@ -1,4 +1,4 @@
-using InfinityMercsApp.Services.CompanySelection.Models.Selection;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 namespace InfinityMercsApp.Services.CompanySelection.Core;
 

@@ -12,8 +12,9 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.ViewModels.Season.Items;
+using InfinityMercsApp.Services.Season;
 
-namespace InfinityMercsApp.Services.Season;
+namespace InfinityMercsApp.ViewModels.Season;
 
 /// <summary>
 /// Builds the units a company can deploy for a mission: each saved entry's profile resolved from the

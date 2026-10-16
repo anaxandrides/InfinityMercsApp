@@ -10,8 +10,9 @@ using InfinityMercsApp.UnitTests.Season.Inventory;
 using InfinityMercsApp.UnitTests.Support;
 using NSubstitute;
 using InfinityMercsApp.ViewModels.Season.Items;
+using InfinityMercsApp.ViewModels.Season;
 
-namespace InfinityMercsApp.UnitTests.Services.Season;
+namespace InfinityMercsApp.UnitTests.ViewModels.Season;
 
 public sealed class DeploymentRosterTests : IDisposable
 {

@@ -1,7 +1,6 @@
-using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
-namespace InfinityMercsApp.Services.CompanySelection.Models.Teams;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 public class ArmyTeamUnitLimitItem : BaseViewModel, IViewerListItem
 {

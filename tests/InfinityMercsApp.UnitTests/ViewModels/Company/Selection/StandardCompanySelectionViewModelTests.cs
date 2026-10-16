@@ -213,7 +213,7 @@ public sealed class StandardCompanySelectionViewModelTests
         var viewModel = await OpenAsync(ArmySourceSelectionMode.Sectorials);
         await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Factions[0]);
         await viewModel.AddProfileToMercsCompanyCommand.ExecuteAsync(await SelectLieutenantAsync(viewModel));
-        var other = new InfinityMercsApp.Services.CompanySelection.Models.Selection.ArmyFactionSelectionItem
+        var other = new InfinityMercsApp.ViewModels.Company.Selection.Items.ArmyFactionSelectionItem
         {
             Id = Army101Data.PanOceania,
             ParentId = Army101Data.PanOceania,
