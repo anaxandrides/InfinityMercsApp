@@ -3,6 +3,7 @@ using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 namespace InfinityMercsApp.Views.Controls;
 
+/// <summary>A roster entry on the selection screen: tap to select, X to remove, the chevron to show its details.</summary>
 public partial class MercsCompanyEntryCardView : ContentView
 {
     public static readonly BindableProperty SelectEntryCommandProperty =
@@ -47,11 +48,6 @@ public partial class MercsCompanyEntryCardView : ContentView
         set => SetValue(ShowOrderModifierBadgesProperty, value);
     }
 
-    private void OnCardTapped(object? sender, TappedEventArgs e)
-    {
-        ExecuteCommand(SelectEntryCommand);
-    }
-
     protected override void OnBindingContextChanged()
     {
         base.OnBindingContextChanged();
@@ -92,21 +88,4 @@ public partial class MercsCompanyEntryCardView : ContentView
 
         DetailsToggleButton.Rotation = targetRotation;
     }
-
-    private void OnRemoveButtonClicked(object? sender, EventArgs e)
-    {
-        ExecuteCommand(RemoveEntryCommand);
-    }
-
-    private void ExecuteCommand(ICommand? command)
-    {
-        var parameter = BindingContext;
-        if (command?.CanExecute(parameter) == true)
-        {
-            command.Execute(parameter);
-        }
-    }
-
-
-
 }

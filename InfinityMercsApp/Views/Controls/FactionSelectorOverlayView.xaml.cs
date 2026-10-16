@@ -24,21 +24,12 @@ public partial class FactionSelectorOverlayView : ContentView
     public static readonly BindableProperty SelectFactionCommandProperty =
         BindableProperty.Create(nameof(SelectFactionCommand), typeof(ICommand), typeof(FactionSelectorOverlayView));
 
-    /// <summary>Raised when the user dismisses the overlay via the close button.</summary>
-    public event EventHandler? CloseRequested;
+    public static readonly BindableProperty CloseCommandProperty =
+        BindableProperty.Create(nameof(CloseCommand), typeof(ICommand), typeof(FactionSelectorOverlayView));
 
     public FactionSelectorOverlayView()
     {
         InitializeComponent();
-
-        // Run the page's selection command for the tapped faction; the page owns close behaviour.
-        ItemTappedCommand = new Command<object>(parameter =>
-        {
-            if (SelectFactionCommand?.CanExecute(parameter) == true)
-            {
-                SelectFactionCommand.Execute(parameter);
-            }
-        });
     }
 
     public bool IsOpen
@@ -79,11 +70,10 @@ public partial class FactionSelectorOverlayView : ContentView
         set => SetValue(SelectFactionCommandProperty, value);
     }
 
-    /// <summary>Internal wrapper command bound by each card's template.</summary>
-    public ICommand ItemTappedCommand { get; }
-
-    private void OnCloseTapped(object? sender, TappedEventArgs e)
+    /// <summary>Runs when the close button is tapped.</summary>
+    public ICommand? CloseCommand
     {
-        CloseRequested?.Invoke(this, EventArgs.Empty);
+        get => (ICommand?)GetValue(CloseCommandProperty);
+        set => SetValue(CloseCommandProperty, value);
     }
 }

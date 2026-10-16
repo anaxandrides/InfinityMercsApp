@@ -273,13 +273,7 @@
             Title="{Binding Heading}"
             IsOpen="{Binding IsFactionOverlayOpen}"
             ItemsSource="{Binding Factions}"
-            SelectFactionCommand="{Binding SelectFactionCommand}">
-            <controls:FactionSelectorOverlayView.Behaviors>
-                <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference CompanySelectionRoot}, x:DataType=ContentPage}"
-                                                x:DataType="selection:CompanySelectionViewModel"
-                                                EventName="CloseRequested"
-                                                Command="{Binding CloseFactionStripCommand}" />
-            </controls:FactionSelectorOverlayView.Behaviors>
-        </controls:FactionSelectorOverlayView>
+            SelectFactionCommand="{Binding SelectFactionCommand}"
+            CloseCommand="{Binding CloseFactionStripCommand}" />
     </Grid>
 </layout:AdaptiveContentPage>

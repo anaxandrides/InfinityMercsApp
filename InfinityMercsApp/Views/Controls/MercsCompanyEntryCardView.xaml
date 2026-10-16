@@ -7,7 +7,7 @@
 
     <Border StrokeThickness="0" Padding="8" Margin="0,0,0,6">
         <Border.GestureRecognizers>
-            <TapGestureRecognizer Tapped="OnCardTapped" />
+            <TapGestureRecognizer Command="{Binding SelectEntryCommand, Source={x:Reference MercsEntryCardRoot}}" CommandParameter="{Binding .}" />
         </Border.GestureRecognizers>
         <Border.Triggers>
             <DataTrigger TargetType="Border" Binding="{Binding IsLieutenant}" Value="True">
@@ -51,7 +51,8 @@
                     VerticalOptions="Start"
                     HorizontalOptions="End"
                     IsVisible="{Binding CanRemove}"
-                    Clicked="OnRemoveButtonClicked" />
+                    Command="{Binding RemoveEntryCommand, Source={x:Reference MercsEntryCardRoot}}"
+                    CommandParameter="{Binding .}" />
             </HorizontalStackLayout>
 
             <VerticalStackLayout
