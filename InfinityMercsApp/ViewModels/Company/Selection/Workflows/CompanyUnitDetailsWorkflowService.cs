@@ -2,7 +2,7 @@ using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Traits;
 
-namespace InfinityMercsApp.Services.CompanyProfiles;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 internal static class CompanyUnitDetailsWorkflowService
 {

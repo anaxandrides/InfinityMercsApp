@@ -7,13 +7,13 @@ using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanyProfiles;
-using InfinityMercsApp.Services.CompanySelection.Core;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 namespace InfinityMercsApp.Services.Diagnostics;
 

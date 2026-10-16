@@ -4,7 +4,7 @@ using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Navigation;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
-namespace InfinityMercsApp.Services.CompanySelection.Core;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 internal static class CompanySelectionFactionsWorkflow
 {

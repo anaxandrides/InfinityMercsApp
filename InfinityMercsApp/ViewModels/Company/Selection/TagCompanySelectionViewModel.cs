@@ -8,6 +8,7 @@ using InfinityMercsApp.Services.Navigation;
 using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
+using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 

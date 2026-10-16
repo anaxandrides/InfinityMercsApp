@@ -1,6 +1,6 @@
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
-namespace InfinityMercsApp.Services.CompanySelection.Core;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 internal static class CompanySelectionFactionSlotsWorkflow
 {

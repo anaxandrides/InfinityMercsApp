@@ -1,7 +1,8 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using InfinityMercsApp.Services.CompanyProfiles;
 
-namespace InfinityMercsApp.Services.CompanyProfiles;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 internal static class CompanyProfilePopulationWorkflowService
 {

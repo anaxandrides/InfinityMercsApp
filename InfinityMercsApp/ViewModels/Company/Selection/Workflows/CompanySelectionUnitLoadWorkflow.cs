@@ -1,14 +1,13 @@
 using System.Collections.ObjectModel;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Utilities;
-using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using ArmyFactionRecord = InfinityMercsApp.Domain.Models.Army.Faction;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecOps.SpecopsUnit;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
-namespace InfinityMercsApp.Services.CompanySelection.Core;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 internal static class CompanySelectionUnitLoadWorkflow
 {

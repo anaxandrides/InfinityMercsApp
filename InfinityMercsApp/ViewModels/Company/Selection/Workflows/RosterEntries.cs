@@ -2,7 +2,7 @@ using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
-namespace InfinityMercsApp.Services.CompanySelection.Recruitment;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 /// <summary>A saved company's troopers as roster entries, so recruiting counts them against AVA and the company's rules.</summary>
 public static class RosterEntries

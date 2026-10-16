@@ -4,8 +4,9 @@ using InfinityMercsApp.Domain.Models.Army.Traits;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using InfinityMercsApp.Services.CompanyProfiles;
 
-namespace InfinityMercsApp.Services.CompanyProfiles;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 internal sealed class CompanyProfileCoordinator
 {

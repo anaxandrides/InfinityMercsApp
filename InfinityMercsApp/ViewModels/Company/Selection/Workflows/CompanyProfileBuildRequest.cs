@@ -1,6 +1,6 @@
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
-namespace InfinityMercsApp.Services.CompanyProfiles;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 internal sealed class CompanyProfileBuildRequest
 {

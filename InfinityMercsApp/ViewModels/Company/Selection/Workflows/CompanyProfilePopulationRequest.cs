@@ -1,6 +1,6 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
 
-namespace InfinityMercsApp.Services.CompanyProfiles;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 /// <summary>
 /// What a page supplies to build its profile list: the unit, the army filters, and the page-specific rules.

@@ -1,6 +1,6 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
 
-namespace InfinityMercsApp.Services.CompanyProfiles;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 internal sealed class CompanyUnitDetailsWorkflowRequest
 {

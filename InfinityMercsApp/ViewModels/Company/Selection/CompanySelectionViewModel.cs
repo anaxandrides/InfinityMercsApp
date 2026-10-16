@@ -4,11 +4,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Services.CompanyProfiles;
-using InfinityMercsApp.Services.CompanySelection.Core;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
-using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.CompanySelection.Visuals;
 using InfinityMercsApp.Services.Logos;
@@ -22,6 +20,7 @@ using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
+using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 

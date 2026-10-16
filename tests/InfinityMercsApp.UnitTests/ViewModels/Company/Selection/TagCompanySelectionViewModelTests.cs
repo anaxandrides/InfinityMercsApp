@@ -1,10 +1,10 @@
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.Services.CompanySelection.SpecOps;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection;
 using NSubstitute;
 using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
+using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Selection;
 

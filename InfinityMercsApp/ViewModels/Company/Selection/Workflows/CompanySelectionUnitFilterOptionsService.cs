@@ -1,8 +1,9 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Views.Controls.UnitFilter;
 using MercsArmyListEntry = InfinityMercsApp.Domain.Models.Army.MercsArmyListEntry;
+using InfinityMercsApp.Services.CompanySelection.Units;
 
-namespace InfinityMercsApp.Services.CompanySelection.Units;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 internal static class CompanySelectionUnitFilterOptionsService
 {

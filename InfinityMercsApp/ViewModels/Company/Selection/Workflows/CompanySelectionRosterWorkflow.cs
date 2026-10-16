@@ -9,7 +9,7 @@ using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
-namespace InfinityMercsApp.Services.CompanySelection.Core;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 internal static class CompanySelectionRosterWorkflow
 {

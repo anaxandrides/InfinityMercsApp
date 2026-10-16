@@ -1,8 +1,8 @@
 using InfinityMercsApp.Domain.Models.Army.Traits;
-using InfinityMercsApp.Services.CompanySelection.Core;
 using InfinityMercsApp.Services.Navigation;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
+using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 

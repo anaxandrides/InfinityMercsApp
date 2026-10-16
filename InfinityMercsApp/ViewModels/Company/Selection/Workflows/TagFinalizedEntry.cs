@@ -2,7 +2,7 @@ using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
-namespace InfinityMercsApp.Services.CompanySelection.SpecOps;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 /// <summary>A TAG company trooper once its Spec Ops upgrades are chosen.</summary>
 public static class TagFinalizedEntry
