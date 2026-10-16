@@ -5,7 +5,6 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 namespace InfinityMercsApp.Services.CompanySelection.Recruitment;
 
@@ -24,7 +23,7 @@ public static class CompanyRecruitmentWorkflow
     /// </summary>
     public static async Task<RecruitmentOutcome> HireAsync(
         CompanyRecruitment recruitment,
-        IReadOnlyList<MercsCompanyEntry> recruits,
+        IReadOnlyList<ICompanyMercsEntry> recruits,
         IArmyDataService armyData,
         ICompanyFileService companyFiles,
         ISeasonFileService seasonFiles)
