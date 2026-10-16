@@ -100,7 +100,6 @@
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.12" />
-		<PackageReference Include="Markdig" Version="1.4.0" />
 		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.4" />
 		<PackageReference Include="Svg.Skia" Version="3.7.0" />
 	</ItemGroup>
@@ -108,6 +107,7 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\InfinityMercsApp.Infrastructure\InfinityMercsApp.Infrastructure.csproj" />
 	  <ProjectReference Include="..\InfinityMercsApp.Domain\InfinityMercsApp.Domain.csproj" />
+	  <ProjectReference Include="..\InfinityMercsApp.Services\InfinityMercsApp.Services.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="_tempobj\\**\\*.cs" />
+    <Compile Remove="_tempbuild\\**\\*.cs" />
+    <Content Remove="_tempobj\\**\\*" />
+    <Content Remove="_tempbuild\\**\\*" />
+    <EmbeddedResource Remove="_tempobj\\**\\*" />
+    <EmbeddedResource Remove="_tempbuild\\**\\*" />
+    <None Remove="_tempobj\\**\\*" />
+    <None Remove="_tempbuild\\**\\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Markdig" Version="1.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="InfinityMercsApp" />
+    <InternalsVisibleTo Include="InfinityMercsApp.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InfinityMercsApp.Domain\InfinityMercsApp.Domain.csproj" />
+    <ProjectReference Include="..\InfinityMercsApp.Infrastructure\InfinityMercsApp.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfinityMercsApp.UnitTests", "tests\InfinityMercsApp.UnitTests\InfinityMercsApp.UnitTests.csproj", "{260BBA0C-AB45-4A54-A41B-BAD1A0E5E5DB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfinityMercsApp.Services", "InfinityMercsApp.Services\InfinityMercsApp.Services.csproj", "{523FC57B-643E-4FD8-A7F3-98B46AD3695E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,18 @@ Global
 		{260BBA0C-AB45-4A54-A41B-BAD1A0E5E5DB}.Release|x64.Build.0 = Release|Any CPU
 		{260BBA0C-AB45-4A54-A41B-BAD1A0E5E5DB}.Release|x86.ActiveCfg = Release|Any CPU
 		{260BBA0C-AB45-4A54-A41B-BAD1A0E5E5DB}.Release|x86.Build.0 = Release|Any CPU
+		{523FC57B-643E-4FD8-A7F3-98B46AD3695E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{523FC57B-643E-4FD8-A7F3-98B46AD3695E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{523FC57B-643E-4FD8-A7F3-98B46AD3695E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{523FC57B-643E-4FD8-A7F3-98B46AD3695E}.Debug|x64.Build.0 = Debug|Any CPU
+		{523FC57B-643E-4FD8-A7F3-98B46AD3695E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{523FC57B-643E-4FD8-A7F3-98B46AD3695E}.Debug|x86.Build.0 = Debug|Any CPU
+		{523FC57B-643E-4FD8-A7F3-98B46AD3695E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{523FC57B-643E-4FD8-A7F3-98B46AD3695E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{523FC57B-643E-4FD8-A7F3-98B46AD3695E}.Release|x64.ActiveCfg = Release|Any CPU
+		{523FC57B-643E-4FD8-A7F3-98B46AD3695E}.Release|x64.Build.0 = Release|Any CPU
+		{523FC57B-643E-4FD8-A7F3-98B46AD3695E}.Release|x86.ActiveCfg = Release|Any CPU
+		{523FC57B-643E-4FD8-A7F3-98B46AD3695E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
