@@ -26,29 +26,11 @@ public partial class ArmyUnitSelectionItem : ObservableObject, IViewerListItem
     public bool HasSubtitle => !string.IsNullOrWhiteSpace(Subtitle);
 
     /// <summary>The TAG Company's own TAG stands out in the list.</summary>
-    public bool UseBlueHalfOpacityBackground
-    {
-        get => _useBlueHalfOpacityBackground;
-        init
-        {
-            _useBlueHalfOpacityBackground = value;
-            UnitListBackgroundColor = BackgroundFor(IsSelected, value);
-        }
-    }
-
-    private readonly bool _useBlueHalfOpacityBackground;
-
-    [ObservableProperty]
-    private string _unitListBackgroundColor = BackgroundFor(isSelected: false, highlighted: false);
+    public bool UseBlueHalfOpacityBackground { get; init; }
 
     [ObservableProperty]
     private bool _isVisible = true;
 
     [ObservableProperty]
     private bool _isSelected;
-
-    partial void OnIsSelectedChanged(bool value) => UnitListBackgroundColor = BackgroundFor(value, UseBlueHalfOpacityBackground);
-
-    private static string BackgroundFor(bool isSelected, bool highlighted) =>
-        isSelected ? "#334155" : highlighted ? "#800000FF" : "Transparent";
 }

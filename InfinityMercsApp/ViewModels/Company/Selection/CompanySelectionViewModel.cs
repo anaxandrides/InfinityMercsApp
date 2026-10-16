@@ -37,8 +37,6 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 {
     public const string DefaultCompanyName = "Company Name";
 
-    private static readonly Color DefaultCompanyNameBorder = Color.FromArgb("#8A97A8");
-
     private UnitFilterPopupOptions? _preparedFilterOptions;
     private ArmyFactionSelectionItem? _pickedFaction;
     private bool _restrictProfilesToFto;
@@ -114,9 +112,6 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
     [ObservableProperty]
     private bool _showCompanyNameValidationError;
-
-    [ObservableProperty]
-    private Color _companyNameBorderColor = DefaultCompanyNameBorder;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsUnitsPaneActive), nameof(IsProfilePaneActive), nameof(IsCompanyPaneActive))]
@@ -1241,7 +1236,6 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     private void SetCompanyNameError(bool showError)
     {
         ShowCompanyNameValidationError = showError;
-        CompanyNameBorderColor = CompanyStartSharedState.GetCompanyNameBorderColor(showError);
     }
 
     /// <summary>

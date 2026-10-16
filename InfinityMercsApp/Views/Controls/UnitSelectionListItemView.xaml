@@ -4,7 +4,16 @@
              xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              x:Class="InfinityMercsApp.Views.Controls.UnitSelectionListItemView">
 
-    <Border x:Name="ItemBorder" Padding="0" StrokeThickness="0" BackgroundColor="{Binding UnitListBackgroundColor}">
+    <Border x:Name="ItemBorder" Padding="0" StrokeThickness="0" BackgroundColor="Transparent">
+        <Border.Triggers>
+            <!-- The TAG Company's own TAG stands out; the selected unit wins over that (the later trigger applies). -->
+            <DataTrigger TargetType="Border" Binding="{Binding UseBlueHalfOpacityBackground}" Value="True">
+                <Setter Property="BackgroundColor" Value="#800000FF" />
+            </DataTrigger>
+            <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                <Setter Property="BackgroundColor" Value="#334155" />
+            </DataTrigger>
+        </Border.Triggers>
         <Border.GestureRecognizers>
             <TapGestureRecognizer Tapped="OnItemTapped" />
         </Border.GestureRecognizers>

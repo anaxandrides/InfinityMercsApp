@@ -11,7 +11,6 @@ public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewe
     private string _name = string.Empty;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(TileStroke), nameof(TileStrokeThickness))]
     private bool _isSelected;
 
     public int EntryIndex { get; init; }
@@ -37,9 +36,8 @@ public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewe
     public string UnitBts { get; init; } = "-";
     public string UnitVitality { get; init; } = "-";
     public string UnitS { get; init; } = "-";
+    /// <summary>The trooper's faction accent, from the army data; the tile's outline and rail when selected.</summary>
     public Color SelectionAccentColor { get; init; } = Color.FromArgb("#93C5FD");
-    public Color TileStroke => IsSelected ? SelectionAccentColor : Color.FromArgb("#3A4554");
-    public double TileStrokeThickness => IsSelected ? 2d : 1d;
     public int ExperiencePoints { get; init; }
 
     /// <summary>The trooper's season so far: rank, perk points, injuries and perks.</summary>

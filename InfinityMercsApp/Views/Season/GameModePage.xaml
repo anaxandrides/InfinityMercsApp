@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:game="clr-namespace:InfinityMercsApp.ViewModels.Season.Game"
+             xmlns:gameRules="clr-namespace:InfinityMercsApp.Domain.Season.Game;assembly=InfinityMercsApp.Domain"
              xmlns:stats="clr-namespace:InfinityMercsApp.Domain.Models.Army.Stats;assembly=InfinityMercsApp.Domain"
              xmlns:views="clr-namespace:InfinityMercsApp.Views"
              x:Class="InfinityMercsApp.Views.Season.GameModePage"
@@ -127,7 +128,19 @@
                             <TapGestureRecognizer Command="{Binding UseCommand}" />
                         </HorizontalStackLayout.GestureRecognizers>
                         <controls:SvgIcon Source="{Binding IconPath}" WidthRequest="44" HeightRequest="44" VerticalOptions="Center" />
-                        <Label Text="{Binding Available}" TextColor="{Binding CountColor}" Style="{StaticResource OrderCount}" />
+                        <Label Text="{Binding Available}" TextColor="{StaticResource Signal}" Style="{StaticResource OrderCount}">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding Kind}" Value="{x:Static gameRules:OrderKind.Lieutenant}">
+                                    <Setter Property="TextColor" Value="#FBBF24" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label" Binding="{Binding Kind}" Value="{x:Static gameRules:OrderKind.Impetuous}">
+                                    <Setter Property="TextColor" Value="#F97316" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label" Binding="{Binding Kind}" Value="{x:Static gameRules:OrderKind.Irregular}">
+                                    <Setter Property="TextColor" Value="{StaticResource Caution}" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
                     </HorizontalStackLayout>
                 </DataTemplate>
             </BindableLayout.ItemTemplate>
@@ -159,12 +172,18 @@
                                     <TapGestureRecognizer Command="{Binding ToggleUnitCommand, Source={RelativeSource AncestorType={x:Type game:GameModeViewModel}}, x:DataType=game:GameModeViewModel}"
                                                           CommandParameter="{Binding .}" />
                                 </Grid.GestureRecognizers>
-                                <Label Text="{Binding ArrowText}"
+                                <Label Text="▶"
                                        TextColor="#8A97A8"
                                        FontSize="12"
                                        WidthRequest="20"
                                        VerticalTextAlignment="Center"
-                                       HorizontalTextAlignment="Center" />
+                                       HorizontalTextAlignment="Center">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsExpanded}" Value="True">
+                                            <Setter Property="Text" Value="▼" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
                                 <Label Grid.Column="1"
                                        Text="{Binding Name}"
                                        TextColor="#E6EBF2"

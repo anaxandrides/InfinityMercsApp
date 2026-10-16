@@ -91,28 +91,13 @@ public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListIt
     public string RangedWeapons { get; init; } = "-";
     public string MeleeWeapons { get; init; } = "-";
 
-    private static readonly Color SelectedStroke = Color.FromArgb("#34D399");
-    private static readonly Color UnselectedStroke = Color.FromArgb("#3A4554");
-
     /// <summary>Ticked to deploy.</summary>
     [ObservableProperty]
     private bool _isChecked;
 
-    /// <summary>The tile being shown in full; it gets a green outline.</summary>
+    /// <summary>The tile being shown in full; the tile view outlines it.</summary>
     [ObservableProperty]
     private bool _isSelected;
-
-    [ObservableProperty]
-    private Color _tileStroke = UnselectedStroke;
-
-    [ObservableProperty]
-    private double _tileStrokeThickness = 1.0;
-
-    partial void OnIsSelectedChanged(bool value)
-    {
-        TileStroke = value ? SelectedStroke : UnselectedStroke;
-        TileStrokeThickness = value ? 2.0 : 1.0;
-    }
 
     /// <summary>The trooper's part in the contract, for the post-game pages.</summary>
     /// <param name="deploymentXp">The XP for being deployed: the round number, or 0 when it was not deployed.</param>

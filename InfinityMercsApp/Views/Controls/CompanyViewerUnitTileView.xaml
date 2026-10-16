@@ -2,12 +2,13 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
-             x:Class="InfinityMercsApp.Views.Controls.CompanyViewerUnitTileView">
+             x:Class="InfinityMercsApp.Views.Controls.CompanyViewerUnitTileView"
+             x:Name="TileRoot">
 
     <Border x:Name="TileBorder"
             Padding="0"
-            Stroke="{Binding TileStroke}"
-            StrokeThickness="{Binding TileStrokeThickness}"
+            Stroke="{StaticResource HairlineBright}"
+            StrokeThickness="1"
             MinimumWidthRequest="126"
             MinimumHeightRequest="142">
         <Border.GestureRecognizers>
@@ -24,6 +25,11 @@
             </DataTrigger>
             <DataTrigger TargetType="Border" Binding="{Binding IsLieutenant}" Value="True">
                 <Setter Property="BackgroundColor" Value="{StaticResource PlateRaised}" />
+            </DataTrigger>
+            <!-- The selected tile is outlined in SelectedStroke. -->
+            <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                <Setter Property="Stroke" Value="{Binding SelectedStroke, Source={x:Reference TileRoot}}" />
+                <Setter Property="StrokeThickness" Value="2" />
             </DataTrigger>
         </Border.Triggers>
 

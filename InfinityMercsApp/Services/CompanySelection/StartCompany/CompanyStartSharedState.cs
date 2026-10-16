@@ -14,11 +14,6 @@ internal static class CompanyStartSharedState
         return !string.Equals(value.Trim(), "Company Name", StringComparison.OrdinalIgnoreCase);
     }
 
-    internal static Color GetCompanyNameBorderColor(bool showError)
-    {
-        return showError ? Color.FromArgb("#EF4444") : Color.FromArgb("#6B7280");
-    }
-
     internal static string ExtractUnitTypeCode(string? subtitle)
     {
         if (string.IsNullOrWhiteSpace(subtitle))

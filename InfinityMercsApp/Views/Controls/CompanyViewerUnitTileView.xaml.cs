@@ -28,6 +28,14 @@ public partial class CompanyViewerUnitTileView : ContentView
             typeof(object),
             typeof(CompanyViewerUnitTileView));
 
+    /// <summary>The outline of the selected tile; the Signal green unless the page gives a faction accent.</summary>
+    public static readonly BindableProperty SelectedStrokeProperty =
+        BindableProperty.Create(
+            nameof(SelectedStroke),
+            typeof(Color),
+            typeof(CompanyViewerUnitTileView),
+            Color.FromArgb("#34D399"));
+
     public static readonly BindableProperty PanScrollCommandProperty =
         BindableProperty.Create(
             nameof(PanScrollCommand),
@@ -37,6 +45,12 @@ public partial class CompanyViewerUnitTileView : ContentView
     public CompanyViewerUnitTileView()
     {
         InitializeComponent();
+    }
+
+    public Color SelectedStroke
+    {
+        get => (Color)GetValue(SelectedStrokeProperty);
+        set => SetValue(SelectedStrokeProperty, value);
     }
 
     public ICommand? ItemTappedCommand

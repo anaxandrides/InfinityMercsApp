@@ -39,6 +39,7 @@
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="viewer:CompanyViewerUnitListItem">
                         <controls:CompanyViewerUnitTileView
+                            SelectedStroke="{Binding SelectionAccentColor}"
                             ItemTappedCommand="{Binding SelectTrooperCommand, Source={RelativeSource AncestorType={x:Type rankUp:RankUpViewModel}}, x:DataType=rankUp:RankUpViewModel}"
                             ItemTappedCommandParameter="{Binding .}" />
                     </DataTemplate>

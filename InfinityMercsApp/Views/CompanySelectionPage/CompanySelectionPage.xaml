@@ -254,12 +254,17 @@
                         <Label Text="Enter Company Name" TextColor="{StaticResource Danger}" IsVisible="{Binding ShowCompanyNameValidationError}" />
                     </VerticalStackLayout>
                     <Border Grid.Column="1"
-                            Stroke="{Binding CompanyNameBorderColor}"
+                            Stroke="{StaticResource TextMuted}"
                             StrokeThickness="2"
                             Padding="2,0"
                             HorizontalOptions="Fill"
                             MaximumWidthRequest="320"
                             VerticalOptions="Center">
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding ShowCompanyNameValidationError}" Value="True">
+                                <Setter Property="Stroke" Value="#EF4444" />
+                            </DataTrigger>
+                        </Border.Triggers>
                         <Entry Text="{Binding CompanyName}" IsReadOnly="{Binding IsRecruiting}" Placeholder="Company Name" ClearButtonVisibility="WhileEditing" VerticalOptions="Center" />
                     </Border>
                     <!-- Cohesive companies show the tracked fireteam and its level. -->

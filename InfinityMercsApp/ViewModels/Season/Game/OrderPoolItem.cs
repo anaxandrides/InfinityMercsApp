@@ -25,14 +25,6 @@ public sealed partial class OrderPoolItem(OrderKind kind) : ObservableObject
         _ => "SVGCache/CBIcons/regular.svg"
     };
 
-    public Color CountColor => Kind switch
-    {
-        OrderKind.Lieutenant => Color.FromArgb("#FBBF24"),
-        OrderKind.Impetuous => Color.FromArgb("#F97316"),
-        OrderKind.Irregular => Color.FromArgb("#F59E0B"),
-        _ => Color.FromArgb("#34D399")
-    };
-
     /// <summary>A fresh round: <paramref name="count"/> available and none spent.</summary>
     public void Reset(int count)
     {

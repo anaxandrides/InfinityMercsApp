@@ -27,6 +27,7 @@
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="viewer:CompanyViewerUnitListItem">
                         <controls:CompanyViewerUnitTileView
+                            SelectedStroke="{Binding SelectionAccentColor}"
                             ItemTappedCommand="{Binding SelectUnitCommand, Source={RelativeSource AncestorType={x:Type viewer:CompanyViewerViewModel}}, x:DataType=viewer:CompanyViewerViewModel}"
                             ItemTappedCommandParameter="{Binding .}" />
                     </DataTemplate>

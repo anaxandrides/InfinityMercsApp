@@ -235,7 +235,6 @@ public sealed class StandardCompanySelectionViewModelTests
         await viewModel.StartCompanyCommand.ExecuteAsync(null);
 
         Assert.True(viewModel.ShowCompanyNameValidationError);
-        Assert.Equal(Color.FromArgb("#EF4444"), viewModel.CompanyNameBorderColor);
         await _kit.CaptainDialog.DidNotReceive().ShowAsync(Arg.Any<CaptainUpgradePopupContext>());
 
         viewModel.CompanyName = "Blue Lions";

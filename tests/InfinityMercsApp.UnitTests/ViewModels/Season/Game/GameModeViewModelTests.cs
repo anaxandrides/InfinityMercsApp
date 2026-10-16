@@ -92,7 +92,7 @@ public sealed class GameModeViewModelTests : IDisposable
         viewModel.ToggleUnitCommand.Execute(viewModel.Units[1]);
 
         Assert.Equal([false, true, false], viewModel.Units.Select(unit => unit.IsExpanded));
-        Assert.Equal("▼", viewModel.Units[1].ArrowText);
+        Assert.True(viewModel.Units[1].IsExpanded);
 
         viewModel.ToggleUnitCommand.Execute(viewModel.Units[1]);
         Assert.All(viewModel.Units, unit => Assert.False(unit.IsExpanded));

@@ -11,7 +11,6 @@ namespace InfinityMercsApp.ViewModels.Season.Game;
 public sealed partial class GameUnitItem : ObservableObject
 {
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ArrowText))]
     private bool _isExpanded;
 
     [ObservableProperty]
@@ -31,8 +30,6 @@ public sealed partial class GameUnitItem : ObservableObject
     public DeploymentUnitItem Unit { get; }
 
     public string Name => Unit.Name;
-
-    public string ArrowText => IsExpanded ? "▼" : "▶";
 
     public IReadOnlyList<StatValue> Statline => Unit.Statline;
 

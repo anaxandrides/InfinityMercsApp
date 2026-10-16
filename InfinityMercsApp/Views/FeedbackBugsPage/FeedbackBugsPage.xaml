@@ -46,8 +46,14 @@
                                IsRunning="{Binding IsSubmitting}" />
 
             <Label Text="{Binding StatusMessage}"
-                   TextColor="{Binding StatusColor}"
-                   LineBreakMode="WordWrap" />
+                   TextColor="LightGreen"
+                   LineBreakMode="WordWrap">
+                <Label.Triggers>
+                    <DataTrigger TargetType="Label" Binding="{Binding IsStatusError}" Value="True">
+                        <Setter Property="TextColor" Value="OrangeRed" />
+                    </DataTrigger>
+                </Label.Triggers>
+            </Label>
         </VerticalStackLayout>
     </ScrollView>
 
