@@ -4,13 +4,17 @@ using InfinityMercsApp.Infrastructure.Options;
 using InfinityMercsApp.Services.Import;
 using Microsoft.Extensions.Logging;
 using SkiaSharp.Views.Maui.Controls.Hosting;
+using System.Runtime.Versioning;
 
 namespace InfinityMercsApp;
 
 public static class MauiProgram
 {
-	// The plain net10.0 target exists only so the unit tests can reference the app; it never runs MauiProgram.
-#pragma warning disable CA1416
+	// Only the platform apps start; the plain net10.0 build exists so the unit tests can reference the app.
+	[SupportedOSPlatform("android21.0")]
+	[SupportedOSPlatform("ios15.0")]
+	[SupportedOSPlatform("maccatalyst15.0")]
+	[SupportedOSPlatform("windows10.0.17763")]
 	public static MauiApp CreateMauiApp()
 	{
 		var builder = MauiApp.CreateBuilder();
@@ -44,5 +48,4 @@ public static class MauiProgram
 
 		return builder.Build();
 	}
-#pragma warning restore CA1416
 }
