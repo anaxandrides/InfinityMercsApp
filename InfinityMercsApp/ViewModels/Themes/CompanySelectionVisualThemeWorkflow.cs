@@ -4,7 +4,7 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Views.Controls;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
-namespace InfinityMercsApp.Services.CompanySelection.Visuals;
+namespace InfinityMercsApp.ViewModels.Themes;
 
 internal static class CompanySelectionVisualThemeWorkflow
 {
@@ -112,14 +112,14 @@ internal static class CompanySelectionVisualThemeWorkflow
     internal static CompanyHeaderColors GetHeaderColors(string? vanillaFactionName, Color defaultPrimary, Color defaultSecondary)
     {
         var (primary, secondary) = GetFactionTheme(vanillaFactionName, defaultPrimary, defaultSecondary);
-        var primaryText = CompanySelectionSharedUtilities.IsLightColor(primary) ? Colors.Black : Colors.White;
-        var secondaryText = CompanySelectionSharedUtilities.IsLightColor(secondary) ? Colors.Black : Colors.White;
+        var primaryText = IsLightColor(primary) ? Colors.Black : Colors.White;
+        var secondaryText = IsLightColor(secondary) ? Colors.Black : Colors.White;
         return new CompanyHeaderColors(primary, secondary, primaryText, secondaryText);
     }
 
     internal static SummaryAccents GetSummaryAccentColorsForSecondaryBackground(Color secondaryBackground)
     {
-        return CompanySelectionSharedUtilities.IsLightColor(secondaryBackground)
+        return IsLightColor(secondaryBackground)
             ? new SummaryAccents(UnitDisplayConfigurationsView.EquipmentAccentOnLightSecondary, UnitDisplayConfigurationsView.SkillsAccentOnLightSecondary)
             : new SummaryAccents(UnitDisplayConfigurationsView.EquipmentAccentOnDarkSecondary, UnitDisplayConfigurationsView.SkillsAccentOnDarkSecondary);
     }
@@ -169,5 +169,12 @@ internal static class CompanySelectionVisualThemeWorkflow
             11 => "JSA",
             _ => null
         };
+    }
+
+    // Light enough that black text reads better on it than white.
+    private static bool IsLightColor(Color color)
+    {
+        var luminance = (0.299 * color.Red) + (0.587 * color.Green) + (0.114 * color.Blue);
+        return luminance >= 0.6;
     }
 }

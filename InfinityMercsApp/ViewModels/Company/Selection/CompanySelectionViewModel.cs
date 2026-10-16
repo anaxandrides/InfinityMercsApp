@@ -8,7 +8,6 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.CompanySelection.Units;
-using InfinityMercsApp.Services.CompanySelection.Visuals;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
@@ -21,6 +20,7 @@ using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
+using InfinityMercsApp.ViewModels.Themes;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 

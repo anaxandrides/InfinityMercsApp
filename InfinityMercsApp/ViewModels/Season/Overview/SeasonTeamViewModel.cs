@@ -12,7 +12,6 @@ using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.Services.CompanySelection.Visuals;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;
@@ -22,6 +21,7 @@ using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Season.Overview.Items;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
+using InfinityMercsApp.ViewModels.Themes;
 
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 

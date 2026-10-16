@@ -4,9 +4,9 @@ using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Units;
-using InfinityMercsApp.Services.CompanySelection.Visuals;
 using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 using InfinityMercsApp.Views.Controls;
+using InfinityMercsApp.ViewModels.Themes;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 

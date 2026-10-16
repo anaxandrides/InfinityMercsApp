@@ -7,7 +7,6 @@ using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Common;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.Services.CompanySelection.Visuals;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;
@@ -15,6 +14,7 @@ using InfinityMercsApp.Views.Controls;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
+using InfinityMercsApp.ViewModels.Themes;
 
 namespace InfinityMercsApp.ViewModels.Company.Viewer;
 

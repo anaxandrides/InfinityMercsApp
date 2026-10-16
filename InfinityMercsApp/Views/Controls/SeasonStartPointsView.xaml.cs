@@ -1,5 +1,4 @@
 using SkiaSharp;
-using SkiaSharp.Views.Maui.Controls;
 using Svg.Skia;
 
 namespace InfinityMercsApp.Views.Controls;
@@ -145,34 +144,6 @@ public partial class SeasonStartPointsView : ContentView
     private void OnSeasonValidationCanvasPaintSurface(object? sender, SkiaSharp.Views.Maui.SKPaintSurfaceEventArgs e)
     {
         var icon = _showSeasonCheckIcon ? _validMercsListIcon : _invalidMercsListIcon;
-        DrawSlotPicture(icon, e);
-    }
-
-    private static void DrawSlotPicture(SKPicture? picture, SkiaSharp.Views.Maui.SKPaintSurfaceEventArgs e)
-    {
-        var canvas = e.Surface.Canvas;
-        canvas.Clear(SKColors.Transparent);
-
-        if (picture is null)
-        {
-            return;
-        }
-
-        var bounds = picture.CullRect;
-        if (bounds.Width <= 0 || bounds.Height <= 0)
-        {
-            return;
-        }
-
-        var width = e.Info.Width;
-        var height = e.Info.Height;
-        var scale = Math.Min(width / bounds.Width, height / bounds.Height);
-        var x = (width - (bounds.Width * scale)) / 2f;
-        var y = (height - (bounds.Height * scale)) / 2f;
-
-        using var restore = new SKAutoCanvasRestore(canvas, true);
-        canvas.Translate(x, y);
-        canvas.Scale(scale);
-        canvas.DrawPicture(picture);
+        SkiaDrawing.DrawSlotPicture(icon, e);
     }
 }

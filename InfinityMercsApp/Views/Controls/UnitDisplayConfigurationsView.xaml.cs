@@ -743,17 +743,17 @@ public partial class UnitDisplayConfigurationsView : ContentView
 
     private void OnSelectedUnitCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        DrawSlotPicture(_logoFromSource, e);
+        SkiaDrawing.DrawSlotPicture(_logoFromSource, e);
     }
 
     private void OnPeripheralIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        DrawSlotPicture(_peripheralIcon, e);
+        SkiaDrawing.DrawSlotPicture(_peripheralIcon, e);
     }
 
     private void OnProfileTacticalIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        DrawSlotPicture(_tacticalIcon, e);
+        SkiaDrawing.DrawSlotPicture(_tacticalIcon, e);
     }
 
     private void OnUnitNameHeadingLabelSizeChanged(object? sender, EventArgs e) => RefreshUnitHeadingFontSize();
@@ -841,7 +841,7 @@ public partial class UnitDisplayConfigurationsView : ContentView
                 var x = (info.Width - iconSize) / 2f;
                 var y = startY + (i * (iconSize + IconVerticalGap));
                 var destination = new SKRect(x, y, x + iconSize, y + iconSize);
-                DrawPictureInRect(canvas, pictures[i].Picture, destination);
+                SkiaDrawing.DrawPictureInRect(canvas, pictures[i].Picture, destination);
             }
 
             return;
@@ -867,7 +867,7 @@ public partial class UnitDisplayConfigurationsView : ContentView
         {
             var y = leftStartY + (i * (twoColumnIconSize + IconVerticalGap));
             var destination = new SKRect(leftX, y, leftX + twoColumnIconSize, y + twoColumnIconSize);
-            DrawPictureInRect(canvas, pictures[i].Picture, destination);
+            SkiaDrawing.DrawPictureInRect(canvas, pictures[i].Picture, destination);
         }
 
         if (rightCount == 0)
@@ -882,44 +882,8 @@ public partial class UnitDisplayConfigurationsView : ContentView
             var pictureIndex = leftCount + i;
             var y = rightStartY + (i * (twoColumnIconSize + IconVerticalGap));
             var destination = new SKRect(rightX, y, rightX + twoColumnIconSize, y + twoColumnIconSize);
-            DrawPictureInRect(canvas, pictures[pictureIndex].Picture, destination);
+            SkiaDrawing.DrawPictureInRect(canvas, pictures[pictureIndex].Picture, destination);
         }
-    }
-
-    private static void DrawPictureInRect(SKCanvas canvas, SKPicture picture, SKRect destination)
-    {
-        var bounds = picture.CullRect;
-        if (bounds.Width <= 0 || bounds.Height <= 0 || destination.Width <= 0 || destination.Height <= 0)
-        {
-            return;
-        }
-
-        var scale = Math.Min(destination.Width / bounds.Width, destination.Height / bounds.Height);
-        var scaledWidth = bounds.Width * scale;
-        var scaledHeight = bounds.Height * scale;
-        var left = destination.Left + ((destination.Width - scaledWidth) / 2f);
-        var top = destination.Top + ((destination.Height - scaledHeight) / 2f);
-
-        canvas.Save();
-        canvas.Translate(left - (bounds.Left * scale), top - (bounds.Top * scale));
-        canvas.Scale(scale);
-        canvas.DrawPicture(picture);
-        canvas.Restore();
-
-    }
-
-    private static void DrawSlotPicture(SKPicture? picture, SKPaintSurfaceEventArgs e)
-    {
-        var canvas = e.Surface.Canvas;
-        canvas.Clear(SKColors.Transparent);
-
-        if (picture is null)
-        {
-            return;
-        }
-
-        var destination = new SKRect(0, 0, e.Info.Width, e.Info.Height);
-        DrawPictureInRect(canvas, picture, destination);
     }
 
     private static double ResolveHeadingMaxFontSize()

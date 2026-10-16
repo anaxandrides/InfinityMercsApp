@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.Services.CompanySelection.Visuals;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
@@ -11,6 +10,7 @@ using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.Views.Controls;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
+using InfinityMercsApp.ViewModels.Themes;
 
 namespace InfinityMercsApp.ViewModels.Company.Viewer;
 
