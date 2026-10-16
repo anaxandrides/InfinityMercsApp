@@ -18,10 +18,7 @@ public partial class LoadSeasonViewModel(
     public ObservableCollection<SeasonRecord> SeasonRecords { get; } = [];
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowEmptyState))]
     private bool _hasSeasonRecords;
-
-    public bool ShowEmptyState => !HasSeasonRecords;
 
     /// <summary>Reloads on every visit so newly started seasons appear.</summary>
     public override async Task InitializeAsync()

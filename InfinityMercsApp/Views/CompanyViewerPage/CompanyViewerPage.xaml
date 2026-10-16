@@ -54,7 +54,7 @@
                     </HorizontalStackLayout>
 
                     <!-- The trooper's name; tap it or the pencil to rename. -->
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding IsShowingName}">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding IsEditingName, Converter={StaticResource InvertedBoolConverter}}">
                         <Label Text="{Binding SelectedName}" FontSize="{DynamicResource FontSizeDisplay}" FontAttributes="Bold">
                             <Label.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding EditNameCommand}" />
@@ -70,7 +70,7 @@
                     </Grid>
                     <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" IsVisible="{Binding IsEditingName}">
                         <Entry Text="{Binding NameDraft}"
-                               IsReadOnly="{Binding IsShowingName}"
+                               IsReadOnly="{Binding IsEditingName, Converter={StaticResource InvertedBoolConverter}}"
                                FontSize="{DynamicResource FontSizeDisplay}">
                             <Entry.Behaviors>
                                 <behaviors:FocusWhenEditableBehavior />

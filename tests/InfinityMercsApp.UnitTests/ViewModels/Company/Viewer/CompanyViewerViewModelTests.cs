@@ -166,7 +166,7 @@ public sealed class CompanyViewerViewModelTests
 
         viewModel.EditNameCommand.Execute(null);
         Assert.True(viewModel.IsEditingName);
-        Assert.False(viewModel.IsShowingName);
+        Assert.True(viewModel.IsEditingName);
         viewModel.NameDraft = "Major Lunah";
         viewModel.RejectNameCommand.Execute(null);
 

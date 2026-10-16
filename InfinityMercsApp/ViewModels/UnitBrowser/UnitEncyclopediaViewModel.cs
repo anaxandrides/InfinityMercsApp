@@ -67,10 +67,7 @@ public partial class UnitEncyclopediaViewModel(
     }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowFireteamsTab))]
     private bool _showUnitsTab = true;
-
-    public bool ShowFireteamsTab => !ShowUnitsTab;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowAllFactionEntries), nameof(ShowFactionEntriesOnly), nameof(ShowSectorialEntriesOnly))]

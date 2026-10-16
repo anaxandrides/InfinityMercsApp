@@ -107,7 +107,7 @@ public sealed class UnitEncyclopediaViewModelTests
     {
         var viewModel = await OpenAsync();
         viewModel.ShowFireteamsCommand.Execute(null);
-        Assert.True(viewModel.ShowFireteamsTab);
+        Assert.False(viewModel.ShowUnitsTab);
         viewModel.ShowUnitsCommand.Execute(null);
         Assert.True(viewModel.ShowUnitsTab);
     }

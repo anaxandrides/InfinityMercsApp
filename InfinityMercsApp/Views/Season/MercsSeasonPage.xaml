@@ -53,7 +53,7 @@
               MaximumWidthRequest="{Binding Layout.ActionMaximumWidth}">
 
             <!-- Main actions -->
-            <VerticalStackLayout IsVisible="{Binding IsShowingMainActions}" Spacing="{DynamicResource SpacingMedium}">
+            <VerticalStackLayout IsVisible="{Binding IsChoosingNewSeason, Converter={StaticResource InvertedBoolConverter}}" Spacing="{DynamicResource SpacingMedium}">
                 <Button Text="LOAD SEASON"
                         Command="{Binding LoadSeasonCommand}"
                         HorizontalOptions="Fill" />

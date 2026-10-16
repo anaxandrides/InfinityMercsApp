@@ -220,12 +220,12 @@ public sealed class ConfigureCaptainViewModelTests
 
         viewModel.EditNameCommand.Execute(null);
         Assert.True(viewModel.IsEditingName);
-        Assert.False(viewModel.IsNameReadOnly);
+        Assert.True(viewModel.IsEditingName);
         viewModel.CaptainNameDraft = "Major Lunah";
         viewModel.RejectNameCommand.Execute(null);
 
         Assert.False(viewModel.IsEditingName);
-        Assert.True(viewModel.IsNameReadOnly);
+        Assert.False(viewModel.IsEditingName);
         Assert.Equal("Captain", viewModel.CaptainName);
         Assert.Equal("Captain", viewModel.CaptainNameDraft);
     }

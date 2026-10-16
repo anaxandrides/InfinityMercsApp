@@ -20,10 +20,7 @@ public partial class LoadCompanyViewModel(
     public ObservableCollection<CompanyRecord> SavedRecords { get; } = [];
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowEmptyState))]
     private bool _hasSavedRecords;
-
-    public bool ShowEmptyState => !HasSavedRecords;
 
     public override void ApplyQueryAttributes(IDictionary<string, object> query)
     {

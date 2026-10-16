@@ -38,7 +38,6 @@ public sealed partial class ConfigureCaptainViewModel : ObservableObject
     private string _captainNameDraft;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsNameReadOnly))]
     private bool _isEditingName;
 
     [ObservableProperty]
@@ -125,8 +124,6 @@ public sealed partial class ConfigureCaptainViewModel : ObservableObject
     public CaptainChoiceGroup Equipment { get; }
 
     public IReadOnlyList<CaptainChoiceGroup> ChoiceGroups { get; }
-
-    public bool IsNameReadOnly => !IsEditingName;
 
     public bool HasStatline => _statline.Count > 0;
 

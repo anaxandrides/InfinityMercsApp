@@ -110,7 +110,7 @@
                 Text="No saved armies found."
                 HorizontalTextAlignment="Center"
                 VerticalTextAlignment="Center"
-                IsVisible="{Binding ShowEmptyState}" />
+                IsVisible="{Binding HasSavedRecords, Converter={StaticResource InvertedBoolConverter}}" />
         </Grid>
     </Grid>
 

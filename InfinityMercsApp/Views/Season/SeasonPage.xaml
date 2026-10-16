@@ -670,7 +670,7 @@
                                                         CommandParameter="{Binding .}" />
                                             </Grid>
                                             <Label Text="{Binding Description}" Style="{StaticResource LabelCaption}" TextColor="{StaticResource TextSecondary}" LineBreakMode="WordWrap" />
-                                            <Label Text="{Binding UnavailableReason}" IsVisible="{Binding HasUnavailableReason}" Style="{StaticResource LabelCaption}" TextColor="{StaticResource Danger}" />
+                                            <Label Text="{Binding UnavailableReason}" IsVisible="{Binding IsAvailable, Converter={StaticResource InvertedBoolConverter}}" Style="{StaticResource LabelCaption}" TextColor="{StaticResource Danger}" />
 
                                             <!-- Advanced Therapy: which injury goes -->
                                             <Picker Title="Injury to write off…"

@@ -46,7 +46,7 @@
                         <VerticalStackLayout Spacing="8">
                             <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
                                 <Entry Text="{Binding CaptainNameDraft}"
-                                       IsReadOnly="{Binding IsNameReadOnly}"
+                                       IsReadOnly="{Binding IsEditingName, Converter={StaticResource InvertedBoolConverter}}"
                                        IsEnabled="{Binding IsEditingName}"
                                        Style="{StaticResource EntryTitleSmall}">
                                     <Entry.Behaviors>
@@ -56,7 +56,7 @@
                                 <controls:SvgIcon Grid.Column="1"
                                                   Style="{StaticResource NameActionIcon}"
                                                   Source="SVGCache/NonCBIcons/noun-edit-333556.svg"
-                                                  IsVisible="{Binding IsNameReadOnly}">
+                                                  IsVisible="{Binding IsEditingName, Converter={StaticResource InvertedBoolConverter}}">
                                     <controls:SvgIcon.GestureRecognizers>
                                         <TapGestureRecognizer Command="{Binding EditNameCommand}" />
                                     </controls:SvgIcon.GestureRecognizers>

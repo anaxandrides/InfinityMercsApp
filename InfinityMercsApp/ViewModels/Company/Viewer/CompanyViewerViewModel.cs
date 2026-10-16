@@ -56,7 +56,6 @@ public partial class CompanyViewerViewModel(
     private string _nameDraft = string.Empty;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsShowingName))]
     private bool _isEditingName;
 
     [ObservableProperty]
@@ -97,8 +96,6 @@ public partial class CompanyViewerViewModel(
     public bool HasSelectedBaseName => SelectedBaseName.Length > 0;
 
     public bool HasSelectedUnitType => SelectedUnitType.Length > 0;
-
-    public bool IsShowingName => !IsEditingName;
 
     public override void ApplyQueryAttributes(IDictionary<string, object> query) =>
         _companyFilePath = NavigationParameters.GetString(query, NavigationParameters.CompanyFilePath) ?? _companyFilePath;

@@ -33,7 +33,7 @@ public sealed class LoadCompanyViewModelTests : IDisposable
         var viewModel = await OpenAsync();
 
         Assert.False(viewModel.HasSavedRecords);
-        Assert.True(viewModel.ShowEmptyState);
+        Assert.Empty(viewModel.SavedRecords);
     }
 
     [Theory]
@@ -64,7 +64,7 @@ public sealed class LoadCompanyViewModelTests : IDisposable
 
         Assert.False(File.Exists(company));
         Assert.Empty(viewModel.SavedRecords);
-        Assert.True(viewModel.ShowEmptyState);
+        Assert.False(viewModel.HasSavedRecords);
     }
 
     [Fact]

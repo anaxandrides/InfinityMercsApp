@@ -20,10 +20,8 @@ public sealed partial class ServiceOption(SeasonService service) : ObservableObj
 
     /// <summary>Why the trooper can't have this service; empty when it can.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsAvailable), nameof(HasUnavailableReason))]
+    [NotifyPropertyChangedFor(nameof(IsAvailable))]
     private string _unavailableReason = string.Empty;
 
     public bool IsAvailable => UnavailableReason.Length == 0;
-
-    public bool HasUnavailableReason => !IsAvailable;
 }

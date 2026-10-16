@@ -28,7 +28,7 @@ public sealed class LoadSeasonViewModelTests : IDisposable
         var viewModel = await OpenAsync();
 
         Assert.False(viewModel.HasSeasonRecords);
-        Assert.True(viewModel.ShowEmptyState);
+        Assert.Empty(viewModel.SeasonRecords);
     }
 
     [Fact]

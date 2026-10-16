@@ -75,7 +75,7 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <Border IsVisible="{Binding ShowEmptyState}"
+            <Border IsVisible="{Binding HasSeasonRecords, Converter={StaticResource InvertedBoolConverter}}"
                     BackgroundColor="{StaticResource Plate}"
                     Stroke="{StaticResource Hairline}"
                     StrokeThickness="1"
