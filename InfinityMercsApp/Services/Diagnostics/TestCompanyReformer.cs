@@ -13,7 +13,7 @@ using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
-using InfinityMercsApp.ViewModels.UnitBrowser;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.Services.Diagnostics;
 

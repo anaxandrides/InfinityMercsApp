@@ -2,6 +2,7 @@
 <views:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:bye="clr-namespace:InfinityMercsApp.ViewModels.Season.Bye"
+             xmlns:byeItems="clr-namespace:InfinityMercsApp.ViewModels.Season.Bye.Items"
              xmlns:byes="clr-namespace:InfinityMercsApp.Domain.Season.Byes;assembly=InfinityMercsApp.Domain"
              xmlns:views="clr-namespace:InfinityMercsApp.Views"
              x:Class="InfinityMercsApp.Views.Season.ByeRoundPage"
@@ -81,7 +82,7 @@
                 <!-- Troopers: tap to tick -->
                 <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Troopers}">
                     <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="bye:ByeTrooperItem">
+                        <DataTemplate x:DataType="byeItems:ByeTrooperItem">
                             <Border BackgroundColor="{StaticResource Plate}"
                                     Stroke="Transparent"
                                     StrokeShape="RoundRectangle 4"

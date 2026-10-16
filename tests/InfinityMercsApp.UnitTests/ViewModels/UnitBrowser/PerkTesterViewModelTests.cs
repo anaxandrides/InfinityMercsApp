@@ -3,6 +3,7 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 using NSubstitute;
+using InfinityMercsApp.ViewModels.Components;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.UnitBrowser;
 

@@ -17,9 +17,11 @@ using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Company.Viewer;
-using InfinityMercsApp.ViewModels.Marketplaces;
-using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.Controls;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using InfinityMercsApp.ViewModels.Season.Overview.Items;
+using InfinityMercsApp.ViewModels.Components;
+using InfinityMercsApp.ViewModels.Company.Viewer.Items;
 
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 

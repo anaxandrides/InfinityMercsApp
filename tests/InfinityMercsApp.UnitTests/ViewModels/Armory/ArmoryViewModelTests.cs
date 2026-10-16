@@ -2,8 +2,8 @@ using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Armory;
-using InfinityMercsApp.ViewModels.Base;
 using NSubstitute;
+using InfinityMercsApp.ViewModels.Layouts;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Armory;
 

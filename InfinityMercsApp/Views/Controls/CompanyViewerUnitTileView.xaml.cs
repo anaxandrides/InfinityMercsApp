@@ -1,9 +1,9 @@
 using System.Windows.Input;
-using InfinityMercsApp.ViewModels.Company.Viewer;
-using InfinityMercsApp.ViewModels.UnitBrowser;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using Svg.Skia;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using InfinityMercsApp.ViewModels.Company.Viewer.Items;
 
 namespace InfinityMercsApp.Views.Controls;
 

@@ -1,6 +1,6 @@
 using InfinityMercsApp.Services.CompanySelection.Models.Selection;
-using InfinityMercsApp.ViewModels.UnitBrowser;
 using InspiringGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.InspiringCompanyFactionGenerator;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 

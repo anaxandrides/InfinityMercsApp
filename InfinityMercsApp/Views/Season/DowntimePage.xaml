@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
              xmlns:downtime="clr-namespace:InfinityMercsApp.ViewModels.Season.Downtime"
+             xmlns:downtimeItems="clr-namespace:InfinityMercsApp.ViewModels.Season.Downtime.Items"
              xmlns:outcomes="clr-namespace:InfinityMercsApp.Domain.Season.Downtime;assembly=InfinityMercsApp.Domain"
              xmlns:views="clr-namespace:InfinityMercsApp.Views"
              x:Class="InfinityMercsApp.Views.Season.DowntimePage"
@@ -83,7 +84,7 @@
                     <Label Text="SELECT AN EVENT" Style="{StaticResource SectionHeading}" Margin="0,4,0,6" />
                     <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding EventOptions}">
                         <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="downtime:DowntimeEventOption">
+                            <DataTemplate x:DataType="downtimeItems:DowntimeEventOption">
                                 <Border Style="{StaticResource Card}" Padding="12,10">
                                     <Border.Triggers>
                                         <DataTrigger TargetType="Border"
@@ -112,7 +113,7 @@
                 <!-- The event's choices; only the picked one stays. -->
                 <VerticalStackLayout Spacing="12" BindableLayout.ItemsSource="{Binding ChoiceCards}">
                     <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="downtime:DowntimeChoiceCard">
+                        <DataTemplate x:DataType="downtimeItems:DowntimeChoiceCard">
                             <Border Style="{StaticResource Card}" StrokeShape="RoundRectangle 8">
                                 <VerticalStackLayout Spacing="6" Padding="12">
                                     <Label Text="{Binding Header}" Style="{StaticResource SectionHeading}" />
@@ -144,7 +145,7 @@
                            FontSize="13" />
                     <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Participants}">
                         <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="downtime:DowntimeParticipantItem">
+                            <DataTemplate x:DataType="downtimeItems:DowntimeParticipantItem">
                                 <Border BackgroundColor="#3A4554"
                                         Stroke="#3A4554"
                                         StrokeThickness="1"

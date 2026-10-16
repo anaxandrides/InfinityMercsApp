@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Lieutenants;
-using InfinityMercsApp.ViewModels.UnitBrowser;
+using InfinityMercsApp.ViewModels.Components;
 
 namespace InfinityMercsApp.Services.CompanyProfiles;
 

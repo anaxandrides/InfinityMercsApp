@@ -2,10 +2,10 @@
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:armory="clr-namespace:InfinityMercsApp.ViewModels.Armory"
+             xmlns:armoryItems="clr-namespace:InfinityMercsApp.ViewModels.Armory.Items"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
              xmlns:domain="clr-namespace:InfinityMercsApp.Domain.Models.Metadata;assembly=InfinityMercsApp.Domain"
              x:Class="InfinityMercsApp.Views.ArmoryPage"
              x:Name="Root"
@@ -40,7 +40,7 @@
                                 SelectionMode="Single"
                                 SelectedItem="{Binding SelectedWeaponGroup, Mode=TwoWay}">
                     <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="armory:WeaponGroup">
+                        <DataTemplate x:DataType="armoryItems:WeaponGroup">
                             <Grid Padding="6,4">
                                 <Label Text="{Binding Name}"
                                        FontSize="{DynamicResource FontSizeBody}"

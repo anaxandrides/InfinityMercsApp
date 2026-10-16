@@ -1,9 +1,9 @@
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season;
-using InfinityMercsApp.ViewModels.Marketplaces;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
+using InfinityMercsApp.ViewModels.Marketplaces.Items;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Overview;
 

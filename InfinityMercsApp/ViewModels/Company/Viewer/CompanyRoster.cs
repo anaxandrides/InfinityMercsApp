@@ -11,8 +11,10 @@ using InfinityMercsApp.Services.CompanySelection.Visuals;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.Controls;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using InfinityMercsApp.ViewModels.Components;
+using InfinityMercsApp.ViewModels.Company.Viewer.Items;
 
 namespace InfinityMercsApp.ViewModels.Company.Viewer;
 

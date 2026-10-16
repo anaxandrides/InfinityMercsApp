@@ -7,6 +7,8 @@ using InfinityMercsApp.Domain.Models.Perks.Catalog;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using InfinityMercsApp.ViewModels.Components;
 
 namespace InfinityMercsApp.ViewModels.UnitBrowser;
 

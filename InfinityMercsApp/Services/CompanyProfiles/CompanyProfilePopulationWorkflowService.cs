@@ -1,5 +1,5 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
-using InfinityMercsApp.ViewModels.UnitBrowser;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.Services.CompanyProfiles;
 

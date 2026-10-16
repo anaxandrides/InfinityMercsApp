@@ -4,9 +4,9 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.ViewModels.Company.Viewer;
-using InfinityMercsApp.ViewModels.UnitBrowser;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using InfinityMercsApp.ViewModels.Components;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Viewer;
 

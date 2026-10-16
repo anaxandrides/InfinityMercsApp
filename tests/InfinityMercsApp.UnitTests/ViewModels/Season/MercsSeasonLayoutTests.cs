@@ -1,5 +1,5 @@
-using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Season;
+using InfinityMercsApp.ViewModels.Layouts;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Season;
 

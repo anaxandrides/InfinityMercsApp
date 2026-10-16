@@ -7,8 +7,8 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Models.Selection;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.CompanySelection.Units;
-using InfinityMercsApp.ViewModels.UnitBrowser;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.Services.CompanySelection.Core;
 

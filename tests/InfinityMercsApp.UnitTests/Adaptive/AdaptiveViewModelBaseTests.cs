@@ -1,6 +1,7 @@
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 using NSubstitute;
+using InfinityMercsApp.ViewModels.Layouts;
 
 namespace InfinityMercsApp.UnitTests.Adaptive;
 

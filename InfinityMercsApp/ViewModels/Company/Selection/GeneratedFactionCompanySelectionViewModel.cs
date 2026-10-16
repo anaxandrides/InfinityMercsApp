@@ -6,8 +6,8 @@ using InfinityMercsApp.Services.CompanySelection.Models.Entries;
 using InfinityMercsApp.Services.CompanySelection.Models.Selection;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Navigation;
-using InfinityMercsApp.ViewModels.UnitBrowser;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 

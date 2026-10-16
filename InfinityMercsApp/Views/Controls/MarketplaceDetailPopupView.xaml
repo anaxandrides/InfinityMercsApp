@@ -3,10 +3,10 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
-             xmlns:marketplaces="clr-namespace:InfinityMercsApp.ViewModels.Marketplaces"
+             xmlns:components="clr-namespace:InfinityMercsApp.ViewModels.Components"
              xmlns:metadata="clr-namespace:InfinityMercsApp.Domain.Models.Metadata;assembly=InfinityMercsApp.Domain"
              x:Class="InfinityMercsApp.Views.Controls.MarketplaceDetailPopupView"
-             x:DataType="marketplaces:MarketplaceDetailViewModel"
+             x:DataType="components:MarketplaceDetailViewModel"
              IsVisible="{Binding IsOpen}">
     <Grid BackgroundColor="#D00E1116">
         <Border BackgroundColor="{StaticResource Plate}"
@@ -42,7 +42,7 @@
                         <!-- Facts: Cost, Category, ARM, ... -->
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Detail.Rows}" Spacing="6">
                             <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="marketplaces:DetailRow">
+                                <DataTemplate x:DataType="components:DetailRow">
                                     <Grid ColumnDefinitions="90,*" Margin="0,2">
                                         <Label Text="{Binding Label}"
                                                Style="{StaticResource LabelBody}"
@@ -80,7 +80,7 @@
                                             </DataTrigger>
                                         </Label.Triggers>
                                         <Label.GestureRecognizers>
-                                            <TapGestureRecognizer Command="{Binding OpenLinkCommand, Source={RelativeSource AncestorType={x:Type marketplaces:MarketplaceDetailViewModel}}, x:DataType=marketplaces:MarketplaceDetailViewModel}"
+                                            <TapGestureRecognizer Command="{Binding OpenLinkCommand, Source={RelativeSource AncestorType={x:Type components:MarketplaceDetailViewModel}}, x:DataType=components:MarketplaceDetailViewModel}"
                                                                   CommandParameter="{Binding WikiUrl}" />
                                         </Label.GestureRecognizers>
                                     </Label>
@@ -107,7 +107,7 @@
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="metadata:Weapon">
                                     <controls:WeaponDetailCardView Weapon="{Binding}"
-                                                                   ShowUnitsInInches="{Binding ShowUnitsInInches, Source={RelativeSource AncestorType={x:Type marketplaces:MarketplaceDetailViewModel}}, x:DataType=marketplaces:MarketplaceDetailViewModel}"
+                                                                   ShowUnitsInInches="{Binding ShowUnitsInInches, Source={RelativeSource AncestorType={x:Type components:MarketplaceDetailViewModel}}, x:DataType=components:MarketplaceDetailViewModel}"
                                                                    Margin="0,0,0,8" />
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>

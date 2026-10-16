@@ -4,6 +4,7 @@ using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.ViewModels.Season.Overview.Items;
 
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 

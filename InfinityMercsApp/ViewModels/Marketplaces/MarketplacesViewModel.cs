@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
+using InfinityMercsApp.ViewModels.Marketplaces.Items;
+using InfinityMercsApp.ViewModels.Components;
 
 namespace InfinityMercsApp.ViewModels.Marketplaces;
 

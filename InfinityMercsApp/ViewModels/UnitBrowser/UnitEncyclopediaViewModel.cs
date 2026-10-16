@@ -10,6 +10,8 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.Views.Controls.UnitFilter;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using InfinityMercsApp.ViewModels.Components;
 
 namespace InfinityMercsApp.ViewModels.UnitBrowser;
 

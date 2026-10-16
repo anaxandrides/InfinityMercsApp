@@ -1,5 +1,5 @@
-using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.UnitBrowser;
+using InfinityMercsApp.ViewModels.Layouts;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.UnitBrowser;
 

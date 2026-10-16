@@ -1,4 +1,5 @@
-using InfinityMercsApp.ViewModels.Base;
+using InfinityMercsApp.ViewModels.Layouts;
+using InfinityMercsApp.ViewModels.Company.Items;
 
 namespace InfinityMercsApp.ViewModels.Company;
 

@@ -4,10 +4,12 @@ using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Wiki;
-using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Marketplaces;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using InfinityMercsApp.ViewModels.Marketplaces.Items;
+using InfinityMercsApp.ViewModels.Layouts;
+using InfinityMercsApp.ViewModels.Components;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Marketplaces;
 

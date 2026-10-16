@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Season.Game;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
+using InfinityMercsApp.ViewModels.Season.Game.Items;
 
 namespace InfinityMercsApp.ViewModels.Season.Game;
 

@@ -4,7 +4,6 @@ using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Utilities;
-using InfinityMercsApp.Services;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
@@ -16,8 +15,8 @@ using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Company.Viewer;
-using InfinityMercsApp.ViewModels.Marketplaces;
-using InfinityMercsApp.ViewModels.UnitBrowser;
+using InfinityMercsApp.ViewModels.Components;
+using InfinityMercsApp.Services.Rolls;
 
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 

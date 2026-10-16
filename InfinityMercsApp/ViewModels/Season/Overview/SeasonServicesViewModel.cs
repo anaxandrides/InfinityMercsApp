@@ -8,8 +8,9 @@ using InfinityMercsApp.Domain.Season.Services;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.ViewModels.Company.Viewer;
-using InfinityMercsApp.ViewModels.Season.RankUp;
+using InfinityMercsApp.ViewModels.Season.RankUp.Items;
+using InfinityMercsApp.ViewModels.Season.Overview.Items;
+using InfinityMercsApp.ViewModels.Company.Viewer.Items;
 
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 

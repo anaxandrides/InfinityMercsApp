@@ -4,6 +4,7 @@ using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
+using InfinityMercsApp.ViewModels.Season.Overview.Items;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Overview;
 

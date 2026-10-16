@@ -3,8 +3,9 @@ using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.ViewModels.Company.Viewer;
-using InfinityMercsApp.ViewModels.UnitBrowser;
 using NSubstitute;
+using InfinityMercsApp.ViewModels.Components;
+using InfinityMercsApp.ViewModels.Company.Viewer.Items;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Viewer;
 

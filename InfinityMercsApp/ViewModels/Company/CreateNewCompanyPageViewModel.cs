@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
+using InfinityMercsApp.ViewModels.Company.Items;
 
 namespace InfinityMercsApp.ViewModels.Company;
 

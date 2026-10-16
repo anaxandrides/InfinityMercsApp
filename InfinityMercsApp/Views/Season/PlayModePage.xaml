@@ -2,9 +2,9 @@
 <views:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:seasonViewModels="clr-namespace:InfinityMercsApp.ViewModels.Season"
+             xmlns:seasonItems="clr-namespace:InfinityMercsApp.ViewModels.Season.Items"
              xmlns:views="clr-namespace:InfinityMercsApp.Views"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
-             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
              xmlns:season="clr-namespace:InfinityMercsApp.Views.Season"
              x:Class="InfinityMercsApp.Views.Season.PlayModePage"
              x:DataType="seasonViewModels:PlayModeViewModel"
@@ -41,7 +41,7 @@
                     BindableLayout.ItemsSource="{Binding DeploymentUnits}"
                     Spacing="8">
                     <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="seasonViewModels:DeploymentUnitItem">
+                        <DataTemplate x:DataType="seasonItems:DeploymentUnitItem">
                             <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
                                 <controls:CompanyViewerUnitTileView
                                     ItemTappedCommand="{Binding SelectUnitCommand, Source={RelativeSource AncestorType={x:Type seasonViewModels:PlayModeViewModel}}, x:DataType=seasonViewModels:PlayModeViewModel}"

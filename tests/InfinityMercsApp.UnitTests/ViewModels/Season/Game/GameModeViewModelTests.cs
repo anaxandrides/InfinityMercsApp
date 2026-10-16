@@ -12,6 +12,7 @@ using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Season.Game;
 using NSubstitute;
+using InfinityMercsApp.ViewModels.Season.Game.Items;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Game;
 

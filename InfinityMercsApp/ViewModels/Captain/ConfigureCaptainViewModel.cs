@@ -6,6 +6,7 @@ using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
+using InfinityMercsApp.ViewModels.Captain.Items;
 
 namespace InfinityMercsApp.ViewModels.Captain;
 

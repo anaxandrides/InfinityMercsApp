@@ -2,9 +2,9 @@ using InfinityMercsApp.Services.Glossary;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.ViewModels;
-using InfinityMercsApp.ViewModels.Base;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using InfinityMercsApp.ViewModels.Layouts;
 
 namespace InfinityMercsApp.UnitTests.ViewModels;
 

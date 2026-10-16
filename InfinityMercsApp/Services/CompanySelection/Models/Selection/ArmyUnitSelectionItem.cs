@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using InfinityMercsApp.ViewModels.UnitBrowser;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.Services.CompanySelection.Models.Selection;
 

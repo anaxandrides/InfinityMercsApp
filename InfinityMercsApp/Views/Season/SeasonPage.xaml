@@ -3,10 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
-             xmlns:marketplaces="clr-namespace:InfinityMercsApp.ViewModels.Marketplaces"
+             xmlns:marketplacesItems="clr-namespace:InfinityMercsApp.ViewModels.Marketplaces.Items"
              xmlns:overview="clr-namespace:InfinityMercsApp.ViewModels.Season.Overview"
-             xmlns:rankUp="clr-namespace:InfinityMercsApp.ViewModels.Season.RankUp"
-             xmlns:viewer="clr-namespace:InfinityMercsApp.ViewModels.Company.Viewer"
+             xmlns:overviewItems="clr-namespace:InfinityMercsApp.ViewModels.Season.Overview.Items"
+             xmlns:rankUpItems="clr-namespace:InfinityMercsApp.ViewModels.Season.RankUp.Items"
+             xmlns:viewerItems="clr-namespace:InfinityMercsApp.ViewModels.Company.Viewer.Items"
              xmlns:views="clr-namespace:InfinityMercsApp.Views"
              x:Class="InfinityMercsApp.Views.Season.SeasonPage"
              x:Name="Root"
@@ -78,7 +79,7 @@
         </Style>
 
         <!-- Equipment and skills lines; "(none)" is muted. -->
-        <DataTemplate x:Key="EquipmentLine" x:DataType="overview:ProfileLine">
+        <DataTemplate x:Key="EquipmentLine" x:DataType="overviewItems:ProfileLine">
             <Label Text="{Binding Text}" Style="{StaticResource ProfileLineLabel}" TextColor="{StaticResource TextSecondary}">
                 <Label.Triggers>
                     <DataTrigger TargetType="Label" Binding="{Binding IsPlaceholder}" Value="True">
@@ -88,7 +89,7 @@
             </Label>
         </DataTemplate>
         <!-- A skill. -->
-        <DataTemplate x:Key="SkillLine" x:DataType="overview:ProfileLine">
+        <DataTemplate x:Key="SkillLine" x:DataType="overviewItems:ProfileLine">
             <Label Text="{Binding Text}" Style="{StaticResource ProfileLineLabel}" TextColor="{StaticResource Caution}">
                 <Label.Triggers>
                     <DataTrigger TargetType="Label" Binding="{Binding IsPlaceholder}" Value="True">
@@ -98,7 +99,7 @@
             </Label>
         </DataTemplate>
         <!-- Weapons; tapping one shows its profiles. -->
-        <DataTemplate x:Key="RangedLine" x:DataType="overview:ProfileLine">
+        <DataTemplate x:Key="RangedLine" x:DataType="overviewItems:ProfileLine">
             <Label Text="{Binding Text}" Style="{StaticResource ProfileLineLabel}" TextColor="{StaticResource Danger}">
                 <Label.Triggers>
                     <DataTrigger TargetType="Label" Binding="{Binding IsPlaceholder}" Value="True">
@@ -112,7 +113,7 @@
             </Label>
         </DataTemplate>
         <!-- A close-combat weapon. -->
-        <DataTemplate x:Key="MeleeLine" x:DataType="overview:ProfileLine">
+        <DataTemplate x:Key="MeleeLine" x:DataType="overviewItems:ProfileLine">
             <Label Text="{Binding Text}" Style="{StaticResource ProfileLineLabel}" TextColor="{StaticResource Signal}">
                 <Label.Triggers>
                     <DataTrigger TargetType="Label" Binding="{Binding IsPlaceholder}" Value="True">
@@ -127,7 +128,7 @@
         </DataTemplate>
 
         <!-- A market row's + count − buttons; + is off once another would not fit the balance. -->
-        <ControlTemplate x:Key="CartControls" x:DataType="marketplaces:MarketplaceRow">
+        <ControlTemplate x:Key="CartControls" x:DataType="marketplacesItems:MarketplaceRow">
             <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
                 <Button Text="+"
                         Style="{StaticResource QuantityButton}"
@@ -461,11 +462,11 @@
                                    FontSize="{DynamicResource FontSizeCaption}" />
                             <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Team.GearSlots}">
                                 <BindableLayout.ItemTemplate>
-                                    <DataTemplate x:DataType="overview:GearSlotPicker">
+                                    <DataTemplate x:DataType="overviewItems:GearSlotPicker">
                                         <VerticalStackLayout Spacing="6">
                                             <Label Text="{Binding Title}" Style="{StaticResource SlotHeading}" />
                                             <Picker ItemsSource="{Binding Options}"
-                                                    ItemDisplayBinding="{Binding Display, x:DataType=overview:GearOption}"
+                                                    ItemDisplayBinding="{Binding Display, x:DataType=overviewItems:GearOption}"
                                                     SelectedItem="{Binding SelectedOption}"
                                                     TextColor="{StaticResource TextPrimary}"
                                                     BackgroundColor="{StaticResource Plate}"
@@ -501,7 +502,7 @@
                     <ScrollView MaximumHeightRequest="320">
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Team.Units}">
                             <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="viewer:CompanyViewerUnitListItem">
+                                <DataTemplate x:DataType="viewerItems:CompanyViewerUnitListItem">
                                     <VerticalStackLayout>
                                         <Grid ColumnDefinitions="44,*" MinimumHeightRequest="48" Padding="10,6">
                                             <Grid.GestureRecognizers>
@@ -543,12 +544,12 @@
                            Margin="0,40,0,0" />
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding Inventory.Sections}">
                         <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="overview:InventorySection">
+                            <DataTemplate x:DataType="overviewItems:InventorySection">
                                 <VerticalStackLayout>
                                     <Label Text="{Binding Title}" Style="{StaticResource ListHeading}" />
                                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}">
                                         <BindableLayout.ItemTemplate>
-                                            <DataTemplate x:DataType="overview:InventoryItem">
+                                            <DataTemplate x:DataType="overviewItems:InventoryItem">
                                                 <Border BackgroundColor="{StaticResource Plate}"
                                                         Stroke="{StaticResource HairlineBright}"
                                                         StrokeThickness="1"
@@ -610,7 +611,7 @@
                     <VerticalStackLayout>
                         <Picker Title="Select store..."
                                 ItemsSource="{Binding Marketplace.Stores}"
-                                ItemDisplayBinding="{Binding Label, x:DataType=overview:StoreChoice}"
+                                ItemDisplayBinding="{Binding Label, x:DataType=overviewItems:StoreChoice}"
                                 SelectedItem="{Binding Marketplace.SelectedStore}"
                                 Style="{StaticResource OverlayPicker}" />
                         <Button Text="CHOOSE WAR MARKET"
@@ -646,12 +647,12 @@
                         <Label Text="SERVICES" Style="{StaticResource LabelTitleSmall}" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
                         <Picker Title="Pick a trooper…"
                                 ItemsSource="{Binding Services.Troopers}"
-                                ItemDisplayBinding="{Binding Name, x:DataType=viewer:CompanyViewerUnitListItem}"
+                                ItemDisplayBinding="{Binding Name, x:DataType=viewerItems:CompanyViewerUnitListItem}"
                                 SelectedItem="{Binding Services.SelectedTrooper}"
                                 Style="{StaticResource OverlayPicker}" />
                         <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Services.Options}">
                             <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="overview:ServiceOption">
+                                <DataTemplate x:DataType="overviewItems:ServiceOption">
                                     <Border Stroke="{StaticResource HairlineBright}" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="12,8" BackgroundColor="{StaticResource Plate}">
                                         <VerticalStackLayout Spacing="6">
                                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
@@ -683,12 +684,12 @@
                                             <VerticalStackLayout Spacing="6" IsVisible="{Binding ChoosesPerks}">
                                                 <Picker Title="Perk to retrain…"
                                                         ItemsSource="{Binding Services.RetrainablePerks, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
-                                                        ItemDisplayBinding="{Binding Name, x:DataType=rankUp:PerkOption}"
+                                                        ItemDisplayBinding="{Binding Name, x:DataType=rankUpItems:PerkOption}"
                                                         SelectedItem="{Binding Services.SelectedRetrainPerk, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
                                                         Style="{StaticResource OverlayPicker}" />
                                                 <Picker Title="New perk…"
                                                         ItemsSource="{Binding Services.Replacements, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
-                                                        ItemDisplayBinding="{Binding Name, x:DataType=rankUp:PerkOption}"
+                                                        ItemDisplayBinding="{Binding Name, x:DataType=rankUpItems:PerkOption}"
                                                         SelectedItem="{Binding Services.SelectedReplacement, Source={RelativeSource AncestorType={x:Type overview:SeasonViewModel}}, x:DataType=overview:SeasonViewModel}"
                                                         Style="{StaticResource OverlayPicker}" />
                                             </VerticalStackLayout>
@@ -734,12 +735,12 @@
 
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Marketplace.ItemGroups}">
                             <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="marketplaces:StoreItemGroup">
+                                <DataTemplate x:DataType="marketplacesItems:StoreItemGroup">
                                     <VerticalStackLayout>
                                         <Label Text="{Binding Category}" Style="{StaticResource ListHeading}" />
                                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}">
                                             <BindableLayout.ItemTemplate>
-                                                <DataTemplate x:DataType="marketplaces:StoreItemRow">
+                                                <DataTemplate x:DataType="marketplacesItems:StoreItemRow">
                                                     <Border Stroke="{StaticResource HairlineBright}" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="12,6,8,6" Margin="0,0,0,3">
                                                         <Grid ColumnDefinitions="*,Auto" MinimumHeightRequest="52">
                                                             <VerticalStackLayout Spacing="2" VerticalOptions="Center">
@@ -776,7 +777,7 @@
                         <Label Text="ARMOR UPGRADES" Style="{StaticResource ListHeading}" IsVisible="{Binding Marketplace.HasTroopTypes}" />
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Marketplace.TroopTypeRows}">
                             <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="marketplaces:TroopTypeRow">
+                                <DataTemplate x:DataType="marketplacesItems:TroopTypeRow">
                                     <Border Stroke="{StaticResource HairlineBright}" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="12,6,8,6" Margin="0,0,0,3">
                                         <Grid ColumnDefinitions="*,Auto" MinimumHeightRequest="52">
                                             <VerticalStackLayout Spacing="2" VerticalOptions="Center">
@@ -815,7 +816,7 @@
                         <Label Text="AUGMENTS" Style="{StaticResource ListHeading}" IsVisible="{Binding Marketplace.HasAugments}" />
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Marketplace.AugmentRows}">
                             <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="marketplaces:AugmentRow">
+                                <DataTemplate x:DataType="marketplacesItems:AugmentRow">
                                     <Border Stroke="{StaticResource HairlineBright}" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="12,6,8,6" Margin="0,0,0,3">
                                         <Grid ColumnDefinitions="*,Auto" MinimumHeightRequest="52">
                                             <VerticalStackLayout Spacing="2" VerticalOptions="Center">
@@ -923,7 +924,7 @@
                                 <Label Text="OR PICK THE ROLL MADE AT THE TABLE" TextColor="{StaticResource TextMuted}" FontAttributes="Bold" FontSize="{DynamicResource FontSizeCaption}" />
                                 <Picker Title="Select 1-20..."
                                         ItemsSource="{Binding WarMarketChoice.RollOptions}"
-                                        ItemDisplayBinding="{Binding Label, x:DataType=overview:StoreRollOption}"
+                                        ItemDisplayBinding="{Binding Label, x:DataType=overviewItems:StoreRollOption}"
                                         SelectedItem="{Binding WarMarketChoice.SelectedRoll}"
                                         Style="{StaticResource OverlayPicker}" />
                             </VerticalStackLayout>

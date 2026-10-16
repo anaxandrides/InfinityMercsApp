@@ -2,9 +2,10 @@ using InfinityMercsApp.Domain.Models.Filtering;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.UnitTests.Support;
-using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 using NSubstitute;
+using InfinityMercsApp.ViewModels.Layouts;
+using InfinityMercsApp.ViewModels.Components;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.UnitBrowser;
 

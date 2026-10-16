@@ -1,5 +1,5 @@
-using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.Views.Adaptive;
+using InfinityMercsApp.ViewModels.Layouts;
 
 namespace InfinityMercsApp.UnitTests.Adaptive;
 

@@ -2,10 +2,10 @@
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:marketplaces="clr-namespace:InfinityMercsApp.ViewModels.Marketplaces"
+             xmlns:marketplacesItems="clr-namespace:InfinityMercsApp.ViewModels.Marketplaces.Items"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
-             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
              x:Class="InfinityMercsApp.Views.MarketplacesPage"
              x:Name="Root"
              x:DataType="marketplaces:MarketplacesViewModel"
@@ -66,7 +66,7 @@
         </Style>
 
         <!-- The − quantity + controls on every row; shown only when buying is offered. -->
-        <ControlTemplate x:Key="QuantityControls" x:DataType="marketplaces:MarketplaceRow">
+        <ControlTemplate x:Key="QuantityControls" x:DataType="marketplacesItems:MarketplaceRow">
             <HorizontalStackLayout Spacing="6"
                                    VerticalOptions="Center"
                                    IsVisible="{Binding Layout.OffersBuying, Source={RelativeSource AncestorType={x:Type marketplaces:MarketplacesViewModel}}, x:DataType=marketplaces:MarketplacesViewModel}">
@@ -140,7 +140,7 @@
                             <Label Text="Items" FontSize="{DynamicResource FontSizeSubHeadline}" FontAttributes="Bold" />
                             <VerticalStackLayout BindableLayout.ItemsSource="{Binding ItemGroups}" Spacing="12">
                                 <BindableLayout.ItemTemplate>
-                                    <DataTemplate x:DataType="marketplaces:StoreItemGroup">
+                                    <DataTemplate x:DataType="marketplacesItems:StoreItemGroup">
                                         <VerticalStackLayout Spacing="4">
                                             <Label Text="{Binding Category}"
                                                    FontSize="{DynamicResource FontSizeBody}"
@@ -149,7 +149,7 @@
                                                    Padding="2,4,2,0" />
                                             <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}" Spacing="4">
                                                 <BindableLayout.ItemTemplate>
-                                                    <DataTemplate x:DataType="marketplaces:StoreItemRow">
+                                                    <DataTemplate x:DataType="marketplacesItems:StoreItemRow">
                                                         <Border Style="{StaticResource RowCard}">
                                                             <Border.GestureRecognizers>
                                                                 <TapGestureRecognizer Command="{Binding ShowDetailCommand, Source={RelativeSource AncestorType={x:Type marketplaces:MarketplacesViewModel}}, x:DataType=marketplaces:MarketplacesViewModel}"
@@ -179,7 +179,7 @@
                             <Label Text="Troop Types" FontSize="{DynamicResource FontSizeSubHeadline}" FontAttributes="Bold" />
                             <VerticalStackLayout BindableLayout.ItemsSource="{Binding TroopTypeRows}" Spacing="4">
                                 <BindableLayout.ItemTemplate>
-                                    <DataTemplate x:DataType="marketplaces:TroopTypeRow">
+                                    <DataTemplate x:DataType="marketplacesItems:TroopTypeRow">
                                         <Border Style="{StaticResource RowCard}">
                                             <Border.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding ShowDetailCommand, Source={RelativeSource AncestorType={x:Type marketplaces:MarketplacesViewModel}}, x:DataType=marketplaces:MarketplacesViewModel}"
@@ -211,7 +211,7 @@
                             <Label Text="Augments" FontSize="{DynamicResource FontSizeSubHeadline}" FontAttributes="Bold" />
                             <VerticalStackLayout BindableLayout.ItemsSource="{Binding AugmentRows}" Spacing="4">
                                 <BindableLayout.ItemTemplate>
-                                    <DataTemplate x:DataType="marketplaces:AugmentRow">
+                                    <DataTemplate x:DataType="marketplacesItems:AugmentRow">
                                         <Border Style="{StaticResource RowCard}">
                                             <Border.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding ShowDetailCommand, Source={RelativeSource AncestorType={x:Type marketplaces:MarketplacesViewModel}}, x:DataType=marketplaces:MarketplacesViewModel}"
@@ -254,7 +254,7 @@
                     <ScrollView Grid.Row="1" IsVisible="{Binding HasCartLines}">
                         <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding CartLines}">
                             <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="marketplaces:MarketplaceCartLine">
+                                <DataTemplate x:DataType="marketplacesItems:MarketplaceCartLine">
                                     <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                                         <Label Grid.Column="0"
                                                Text="{Binding Name}"

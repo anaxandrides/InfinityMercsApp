@@ -3,6 +3,7 @@ using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.ViewModels.Captain;
+using InfinityMercsApp.ViewModels.Captain.Items;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Captain;
 

@@ -1,6 +1,5 @@
 using InfinityMercsApp.Domain.Season.Experience;
 using InfinityMercsApp.Domain.Season.Injuries;
-using InfinityMercsApp.Services;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Season;
@@ -11,6 +10,7 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.ViewModels.Company.Viewer;
 using NSubstitute;
+using InfinityMercsApp.Services.Rolls;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Season;
 

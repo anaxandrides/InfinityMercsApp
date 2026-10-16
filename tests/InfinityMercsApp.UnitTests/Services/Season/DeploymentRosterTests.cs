@@ -8,8 +8,8 @@ using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.UnitTests.Season.Inventory;
 using InfinityMercsApp.UnitTests.Support;
-using InfinityMercsApp.ViewModels.Season;
 using NSubstitute;
+using InfinityMercsApp.ViewModels.Season.Items;
 
 namespace InfinityMercsApp.UnitTests.Services.Season;
 

@@ -4,6 +4,7 @@
              xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:viewer="clr-namespace:InfinityMercsApp.ViewModels.Company.Viewer"
+             xmlns:viewerItems="clr-namespace:InfinityMercsApp.ViewModels.Company.Viewer.Items"
              xmlns:views="clr-namespace:InfinityMercsApp.Views"
              x:Class="InfinityMercsApp.Views.CompanyViewerPage"
              x:DataType="viewer:CompanyViewerViewModel"
@@ -25,7 +26,7 @@
             </ScrollView.Behaviors>
             <HorizontalStackLayout BindableLayout.ItemsSource="{Binding CompanyUnits}" Spacing="8" Padding="0,0,2,0">
                 <BindableLayout.ItemTemplate>
-                    <DataTemplate x:DataType="viewer:CompanyViewerUnitListItem">
+                    <DataTemplate x:DataType="viewerItems:CompanyViewerUnitListItem">
                         <controls:CompanyViewerUnitTileView
                             SelectedStroke="{Binding SelectionAccentColor}"
                             ItemTappedCommand="{Binding SelectUnitCommand, Source={RelativeSource AncestorType={x:Type viewer:CompanyViewerViewModel}}, x:DataType=viewer:CompanyViewerViewModel}"

@@ -1,5 +1,5 @@
-using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Marketplaces;
+using InfinityMercsApp.ViewModels.Layouts;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Marketplaces;
 

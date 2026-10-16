@@ -10,6 +10,7 @@ using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
+using InfinityMercsApp.ViewModels.Season.Game.Items;
 
 namespace InfinityMercsApp.ViewModels.Season.Game;
 

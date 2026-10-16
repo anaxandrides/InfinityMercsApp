@@ -4,10 +4,11 @@ using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.ViewModels.Company.Viewer;
-using InfinityMercsApp.ViewModels.Marketplaces;
 using InfinityMercsApp.ViewModels.Season.Overview;
-using InfinityMercsApp.ViewModels.UnitBrowser;
 using NSubstitute;
+using InfinityMercsApp.ViewModels.Season.Overview.Items;
+using InfinityMercsApp.ViewModels.Components;
+using InfinityMercsApp.ViewModels.Company.Viewer.Items;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Overview;
 

@@ -1,6 +1,6 @@
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.ViewModels;
-using InfinityMercsApp.ViewModels.UnitBrowser;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.Services.CompanySelection.Models.Selection;
 

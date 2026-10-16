@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
     xmlns:captain="clr-namespace:InfinityMercsApp.ViewModels.Captain"
+             xmlns:captainItems="clr-namespace:InfinityMercsApp.ViewModels.Captain.Items"
     xmlns:captainServices="clr-namespace:InfinityMercsApp.Services.CompanySelection.Captain"
     xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
     xmlns:converters="clr-namespace:InfinityMercsApp.Converters"
@@ -93,7 +94,7 @@
                                         IsVisible="{Binding HasStatline}"
                                         BindableLayout.ItemsSource="{Binding StatCells}">
                                 <BindableLayout.ItemTemplate>
-                                    <DataTemplate x:DataType="captain:CaptainStatCell">
+                                    <DataTemplate x:DataType="captainItems:CaptainStatCell">
                                         <VerticalStackLayout FlexLayout.Grow="1" FlexLayout.Basis="0" Spacing="2" Margin="0,0,10,0">
                                             <Label Text="{Binding Key}"
                                                    Style="{StaticResource LabelSubHeadline}"
@@ -173,7 +174,7 @@
                                 <!-- Two stat pickers per row. -->
                                 <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding StatUpgrades}">
                                     <BindableLayout.ItemTemplate>
-                                        <DataTemplate x:DataType="captain:CaptainStatUpgrade">
+                                        <DataTemplate x:DataType="captainItems:CaptainStatUpgrade">
                                             <Picker FlexLayout.Basis="50%"
                                                     Margin="0,0,8,8"
                                                     HorizontalTextAlignment="Center"
@@ -186,12 +187,12 @@
 
                                 <VerticalStackLayout BindableLayout.ItemsSource="{Binding ChoiceGroups}">
                                     <BindableLayout.ItemTemplate>
-                                        <DataTemplate x:DataType="captain:CaptainChoiceGroup">
+                                        <DataTemplate x:DataType="captainItems:CaptainChoiceGroup">
                                             <VerticalStackLayout Spacing="4" Margin="0,8,0,0">
                                                 <Label Text="{Binding Title}" FontAttributes="Bold" />
                                                 <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Slots}">
                                                     <BindableLayout.ItemTemplate>
-                                                        <DataTemplate x:DataType="captain:CaptainChoiceSlot">
+                                                        <DataTemplate x:DataType="captainItems:CaptainChoiceSlot">
                                                             <Picker WidthRequest="280"
                                                                     HorizontalOptions="Start"
                                                                     HorizontalTextAlignment="Center"

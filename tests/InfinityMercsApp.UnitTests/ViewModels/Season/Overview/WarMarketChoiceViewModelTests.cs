@@ -1,6 +1,7 @@
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
+using InfinityMercsApp.ViewModels.Season.Overview.Items;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Overview;
 

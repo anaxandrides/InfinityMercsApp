@@ -9,10 +9,10 @@ using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.UnitTests.Support;
-using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Company.Selection;
 using NSubstitute;
 using MetadataFaction = InfinityMercsApp.Domain.Models.Metadata.Faction;
+using InfinityMercsApp.ViewModels.Layouts;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Selection;
 

@@ -6,7 +6,9 @@ using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Marketplace;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.ViewModels.Marketplaces;
+using InfinityMercsApp.ViewModels.Season.Overview.Items;
+using InfinityMercsApp.ViewModels.Marketplaces.Items;
+using InfinityMercsApp.ViewModels.Components;
 
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 

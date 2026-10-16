@@ -6,6 +6,7 @@ using InfinityMercsApp.Infrastructure.Providers.Metadata;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Layouts;
+using InfinityMercsApp.ViewModels.Armory.Items;
 
 namespace InfinityMercsApp.ViewModels.Armory;
 
