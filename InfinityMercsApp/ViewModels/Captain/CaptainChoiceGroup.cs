@@ -16,6 +16,12 @@ public sealed record CaptainChoiceGroup(string Title, CaptainChoiceSlot First, C
 
     public int Cost => Slots.Sum(slot => slot.Cost);
 
+    /// <summary>What is on offer and what each slot holds, for checking the build.</summary>
+    public CaptainChoicePicks Picks => new(
+        Title,
+        First.Options.Where(option => option != CaptainChoiceLabel.None).ToList(),
+        Slots.Select(slot => slot.SelectedChoice ?? CaptainChoiceLabel.None).ToList());
+
     /// <summary>Three slots offering "(None)" and then <paramref name="options"/>, trimmed and without blanks or repeats.</summary>
     public static CaptainChoiceGroup For(string title, IEnumerable<string> options, Action selectionChanged)
     {

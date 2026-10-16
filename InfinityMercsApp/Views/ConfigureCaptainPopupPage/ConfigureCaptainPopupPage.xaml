@@ -138,7 +138,7 @@
                     </ScrollView>
 
                     <!-- What can be bought, and what is left to spend. -->
-                    <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*" RowSpacing="6">
+                    <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto,*" RowSpacing="6">
                         <Label Text="{Binding UpgradeOptionsHeader}"
                                FontAttributes="Bold"
                                Style="{StaticResource LabelSubHeadline}"
@@ -155,7 +155,20 @@
                             </Label.Triggers>
                         </Label>
 
-                        <ScrollView Grid.Row="2">
+                        <!-- Why the build can't be confirmed yet. -->
+                        <VerticalStackLayout Grid.Row="2"
+                                             IsVisible="{Binding HasProblems}"
+                                             BindableLayout.ItemsSource="{Binding Problems}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Label Text="{Binding .}"
+                                           Style="{StaticResource LabelBody}"
+                                           TextColor="#F87171" />
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <ScrollView Grid.Row="3">
                             <VerticalStackLayout Spacing="8">
                                 <!-- Two stat pickers per row. -->
                                 <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding StatUpgrades}">

@@ -140,7 +140,8 @@ public sealed class ConfigureCaptainViewModelTests
         Assert.Equal(3, viewModel.ExperienceRemaining);
         Assert.Contains(nameof(ConfigureCaptainViewModel.StatCells), changed);
         Assert.Contains(nameof(ConfigureCaptainViewModel.ExperienceRemaining), changed);
-        Assert.Contains(nameof(ConfigureCaptainViewModel.IsOverspent), changed);
+        // Only values that changed are announced: the budget still holds.
+        Assert.DoesNotContain(nameof(ConfigureCaptainViewModel.IsOverspent), changed);
     }
 
     [Fact]
@@ -299,4 +300,53 @@ public sealed class ConfigureCaptainViewModelTests
     [Fact]
     public void NothingCompletesUntilTheUserDecides() =>
         Assert.False(new ConfigureCaptainViewModel(Context()).Completion.IsCompleted);
+
+    [Fact]
+    public void TheSameWeaponInTwoSlotsCannotBeConfirmed()
+    {
+        var viewModel = new ConfigureCaptainViewModel(Context());
+
+        viewModel.Weapons.First.SelectedChoice = "(1) - Grenades";
+        viewModel.Weapons.Second.SelectedChoice = "(1) - Grenades";
+
+        Assert.False(viewModel.IsValid);
+        Assert.True(viewModel.HasProblems);
+        Assert.Equal(["Grenades is chosen more than once in Weapons."], viewModel.Problems);
+        Assert.False(viewModel.ConfirmCommand.CanExecute(null));
+        Assert.Equal(6, viewModel.ExperienceRemaining);
+
+        viewModel.Weapons.Second.SelectedChoice = CaptainChoiceLabel.None;
+
+        Assert.True(viewModel.IsValid);
+        Assert.Empty(viewModel.Problems);
+        Assert.True(viewModel.ConfirmCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void OverspendingIsListedAsAProblem()
+    {
+        var viewModel = new ConfigureCaptainViewModel(Context(unitCost: 27));
+
+        viewModel.Weapons.First.SelectedChoice = "(2) - Sniper Rifle";
+
+        Assert.True(viewModel.IsOverspent);
+        Assert.Equal(["1 XP over budget."], viewModel.Problems);
+        Assert.False(viewModel.ConfirmCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void TheBuildCarriesEveryPick()
+    {
+        var viewModel = new ConfigureCaptainViewModel(Context());
+        PickTier(viewModel, Stat.Bs, 1);
+        viewModel.Skills.Third.SelectedChoice = "(2) - Courage";
+
+        var build = viewModel.Build();
+
+        Assert.Equal(8, build.StartingExperience);
+        Assert.Contains(new CaptainStatPick(Stat.Bs, 12, 1), build.Stats);
+        Assert.Equal(["(2) - Courage"], build.Choices.Single(group => group.Group == "Skills").Filled);
+        Assert.Equal(4, build.SpentExperience);
+        Assert.Equal(viewModel.SpentExperience, build.SpentExperience);
+    }
 }

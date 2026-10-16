@@ -41,6 +41,45 @@ public sealed partial class ConfigureCaptainViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsNameReadOnly))]
     private bool _isEditingName;
 
+    [ObservableProperty]
+    private CaptainStatBonuses _selectedBonuses = CaptainStatBonuses.None;
+
+    /// <summary>The unit's statline with the chosen bonuses applied.</summary>
+    [ObservableProperty]
+    private IReadOnlyList<CaptainStatCell> _statCells = [];
+
+    [ObservableProperty]
+    private string _rangedText = ProfileText.Empty;
+
+    /// <summary>The skills with chosen ones appended, split so lieutenant mentions can be highlighted.</summary>
+    [ObservableProperty]
+    private IReadOnlyList<TextRun> _skillRuns = [];
+
+    [ObservableProperty]
+    private string _equipmentText = ProfileText.Empty;
+
+    [ObservableProperty]
+    private int _spentExperience;
+
+    [ObservableProperty]
+    private int _experienceRemaining;
+
+    [ObservableProperty]
+    private string _experienceRemainingText = string.Empty;
+
+    [ObservableProperty]
+    private bool _isOverspent;
+
+    /// <summary>What breaks the rules in the build so far, one message per problem.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasProblems))]
+    private IReadOnlyList<string> _problems = [];
+
+    /// <summary>True when the build follows the rules and can be confirmed.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
+    private bool _isValid = true;
+
     public ConfigureCaptainViewModel(CaptainUpgradePopupContext context)
     {
         _context = context;
@@ -52,19 +91,20 @@ public sealed partial class ConfigureCaptainViewModel : ObservableObject
         int BaseOf(params IEnumerable<Stat> stats) =>
             stats.Select(stat => baseStats.TryGetValue(stat, out var value) ? (int?)value : null).FirstOrDefault(value => value.HasValue) ?? 0;
 
-        _cc = CaptainStatUpgrade.For(Stat.Cc, BaseOf(Stat.Cc), Refresh);
-        _bs = CaptainStatUpgrade.For(Stat.Bs, BaseOf(Stat.Bs), Refresh);
-        _ph = CaptainStatUpgrade.For(Stat.Ph, BaseOf(Stat.Ph), Refresh);
-        _wip = CaptainStatUpgrade.For(Stat.Wip, BaseOf(Stat.Wip), Refresh);
-        _arm = CaptainStatUpgrade.For(Stat.Arm, BaseOf(Stat.Arm), Refresh);
-        _bts = CaptainStatUpgrade.For(Stat.Bts, BaseOf(Stat.Bts), Refresh);
-        _vitality = CaptainStatUpgrade.For(Stat.Vita, BaseOf(Stat.Vita, Stat.Str, Stat.W), Refresh);
+        _cc = CaptainStatUpgrade.For(Stat.Cc, BaseOf(Stat.Cc), Recalculate);
+        _bs = CaptainStatUpgrade.For(Stat.Bs, BaseOf(Stat.Bs), Recalculate);
+        _ph = CaptainStatUpgrade.For(Stat.Ph, BaseOf(Stat.Ph), Recalculate);
+        _wip = CaptainStatUpgrade.For(Stat.Wip, BaseOf(Stat.Wip), Recalculate);
+        _arm = CaptainStatUpgrade.For(Stat.Arm, BaseOf(Stat.Arm), Recalculate);
+        _bts = CaptainStatUpgrade.For(Stat.Bts, BaseOf(Stat.Bts), Recalculate);
+        _vitality = CaptainStatUpgrade.For(Stat.Vita, BaseOf(Stat.Vita, Stat.Str, Stat.W), Recalculate);
         StatUpgrades = [_cc, _bs, _ph, _wip, _arm, _bts, _vitality];
 
-        Weapons = CaptainChoiceGroup.For("Weapons", context.WeaponOptions, Refresh);
-        Skills = CaptainChoiceGroup.For("Skills", context.SkillOptions, Refresh);
-        Equipment = CaptainChoiceGroup.For("Equipment", context.EquipmentOptions, Refresh);
+        Weapons = CaptainChoiceGroup.For("Weapons", context.WeaponOptions, Recalculate);
+        Skills = CaptainChoiceGroup.For("Skills", context.SkillOptions, Recalculate);
+        Equipment = CaptainChoiceGroup.For("Equipment", context.EquipmentOptions, Recalculate);
         ChoiceGroups = [Weapons, Skills, Equipment];
+        Recalculate();
     }
 
     public string Title => TextOr(_context.PopupTitle, "Captain Configuration");
@@ -88,36 +128,14 @@ public sealed partial class ConfigureCaptainViewModel : ObservableObject
 
     public bool IsNameReadOnly => !IsEditingName;
 
-    public CaptainStatBonuses SelectedBonuses => new(
-        _cc.Bonus, _bs.Bonus, _ph.Bonus, _wip.Bonus, _arm.Bonus, _bts.Bonus, _vitality.Bonus);
-
-    /// <summary>The unit's statline with the chosen bonuses applied.</summary>
-    public IReadOnlyList<CaptainStatCell> StatCells =>
-        _statline.Select(entry => CaptainStatCell.For(entry, SelectedBonuses)).ToList();
-
     public bool HasStatline => _statline.Count > 0;
 
-    public string RangedText => ProfileText.AppendMarked(_context.Unit.RangedWeapons, Weapons.ChosenNames);
-
     public string CcText => TextOr(_context.Unit.CcWeapons, ProfileText.Empty);
-
-    /// <summary>The skills with chosen ones appended, split so lieutenant mentions can be highlighted.</summary>
-    public IReadOnlyList<TextRun> SkillRuns =>
-        LieutenantRules.HighlightRuns(ProfileText.AppendMarked(_context.Unit.Skills, Skills.ChosenNames));
-
-    public string EquipmentText => ProfileText.AppendMarked(_context.Unit.Equipment, Equipment.ChosenNames);
 
     public int StartingExperience =>
         CaptainUpgradeRules.StartingExperience(_context.Unit.Cost, _context.BaseExperienceOverride);
 
-    public int SpentExperience =>
-        StatUpgrades.Sum(upgrade => upgrade.Cost) + ChoiceGroups.Sum(group => group.Cost);
-
-    public int ExperienceRemaining => StartingExperience - SpentExperience;
-
-    public string ExperienceRemainingText => $"Exp Remaining: {ExperienceRemaining}";
-
-    public bool IsOverspent => ExperienceRemaining < 0;
+    public bool HasProblems => Problems.Count > 0;
 
     /// <summary>Completes once with the chosen upgrades on confirm, or null on back.</summary>
     public Task<SavedImprovedCaptainStats?> Completion => _completion.Task;
@@ -145,7 +163,7 @@ public sealed partial class ConfigureCaptainViewModel : ObservableObject
         IsEditingName = false;
     }
 
-    [RelayCommand(CanExecute = nameof(CanConfirm))]
+    [RelayCommand(CanExecute = nameof(IsValid))]
     private void Confirm()
     {
         if (IsEditingName)
@@ -155,8 +173,6 @@ public sealed partial class ConfigureCaptainViewModel : ObservableObject
 
         _completion.TrySetResult(BuildResult());
     }
-
-    private bool CanConfirm() => !IsOverspent;
 
     [RelayCommand]
     private void Cancel() => _completion.TrySetResult(null);
@@ -193,18 +209,28 @@ public sealed partial class ConfigureCaptainViewModel : ObservableObject
         OptionFactionName = _context.OptionFactionName
     };
 
-    private void Refresh()
+    /// <summary>The captain as the rules see it, for working out its cost and checking it.</summary>
+    public CaptainBuild Build() => new(
+        StartingExperience,
+        StatUpgrades.Select(upgrade => upgrade.Pick).ToList(),
+        ChoiceGroups.Select(group => group.Picks).ToList());
+
+    // Works out everything shown from the stat and choice pickers, and whether the build can be confirmed.
+    private void Recalculate()
     {
-        OnPropertyChanged(nameof(SelectedBonuses));
-        OnPropertyChanged(nameof(StatCells));
-        OnPropertyChanged(nameof(RangedText));
-        OnPropertyChanged(nameof(SkillRuns));
-        OnPropertyChanged(nameof(EquipmentText));
-        OnPropertyChanged(nameof(SpentExperience));
-        OnPropertyChanged(nameof(ExperienceRemaining));
-        OnPropertyChanged(nameof(ExperienceRemainingText));
-        OnPropertyChanged(nameof(IsOverspent));
-        ConfirmCommand.NotifyCanExecuteChanged();
+        SelectedBonuses = new CaptainStatBonuses(_cc.Bonus, _bs.Bonus, _ph.Bonus, _wip.Bonus, _arm.Bonus, _bts.Bonus, _vitality.Bonus);
+        StatCells = _statline.Select(entry => CaptainStatCell.For(entry, SelectedBonuses)).ToList();
+        RangedText = ProfileText.AppendMarked(_context.Unit.RangedWeapons, Weapons.ChosenNames);
+        SkillRuns = LieutenantRules.HighlightRuns(ProfileText.AppendMarked(_context.Unit.Skills, Skills.ChosenNames));
+        EquipmentText = ProfileText.AppendMarked(_context.Unit.Equipment, Equipment.ChosenNames);
+
+        var build = Build();
+        SpentExperience = build.SpentExperience;
+        ExperienceRemaining = build.ExperienceRemaining;
+        ExperienceRemainingText = $"Exp Remaining: {ExperienceRemaining}";
+        IsOverspent = ExperienceRemaining < 0;
+        Problems = CaptainBuildValidation.Problems(build).Select(problem => problem.Message).ToList();
+        IsValid = Problems.Count == 0;
     }
 
     private static string TextOr(string? text, string fallback) =>
