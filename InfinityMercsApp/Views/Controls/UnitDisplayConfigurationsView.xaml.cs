@@ -1,3 +1,4 @@
+using InfinityMercsApp.ViewModels.Themes;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
@@ -35,12 +36,6 @@ public partial class UnitDisplayConfigurationsView : ContentView
     private const double IconColumnFullCanvasSize = 50d;
     private const double IconColumnCompactWidth = 34d;
     private const double IconColumnCompactCanvasSize = 30d;
-    public static readonly Color DefaultHeaderPrimaryColor = Color.FromArgb("#B91C1C");
-    public static readonly Color DefaultHeaderSecondaryColor = Color.FromArgb("#7F1D1D");
-    public static readonly Color EquipmentAccentOnDarkSecondary = Color.FromArgb("#67E8F9");
-    public static readonly Color SkillsAccentOnDarkSecondary = Color.FromArgb("#FDE68A");
-    public static readonly Color EquipmentAccentOnLightSecondary = Color.FromArgb("#0B5563");
-    public static readonly Color SkillsAccentOnLightSecondary = Color.FromArgb("#7C2D12");
     private sealed record HeaderIconRenderItem(SKPicture Picture);
     private double _profilesPanLastTotalY;
     private double _logoColumnWidth = -1d;
@@ -139,9 +134,9 @@ public partial class UnitDisplayConfigurationsView : ContentView
     public static readonly BindableProperty UnitNameHeadingFontSizeProperty =
         BindableProperty.Create(nameof(UnitNameHeadingFontSize), typeof(double), typeof(UnitDisplayConfigurationsView), 24d);
     public static readonly BindableProperty UnitHeaderPrimaryColorProperty =
-        BindableProperty.Create(nameof(UnitHeaderPrimaryColor), typeof(Color), typeof(UnitDisplayConfigurationsView), DefaultHeaderPrimaryColor);
+        BindableProperty.Create(nameof(UnitHeaderPrimaryColor), typeof(Color), typeof(UnitDisplayConfigurationsView), CompanyHeaderColors.DefaultPrimary);
     public static readonly BindableProperty UnitHeaderSecondaryColorProperty =
-        BindableProperty.Create(nameof(UnitHeaderSecondaryColor), typeof(Color), typeof(UnitDisplayConfigurationsView), DefaultHeaderSecondaryColor);
+        BindableProperty.Create(nameof(UnitHeaderSecondaryColor), typeof(Color), typeof(UnitDisplayConfigurationsView), CompanyHeaderColors.DefaultSecondary);
     public static readonly BindableProperty UnitHeaderPrimaryTextColorProperty =
         BindableProperty.Create(nameof(UnitHeaderPrimaryTextColor), typeof(Color), typeof(UnitDisplayConfigurationsView), Colors.White);
     public static readonly BindableProperty UnitHeaderSecondaryTextColorProperty =

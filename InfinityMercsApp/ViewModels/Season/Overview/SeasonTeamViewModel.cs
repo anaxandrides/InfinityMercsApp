@@ -16,7 +16,6 @@ using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Company.Viewer;
-using InfinityMercsApp.Views.Controls;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Season.Overview.Items;
 using InfinityMercsApp.ViewModels.Components;
@@ -91,11 +90,7 @@ public partial class SeasonTeamViewModel : ObservableObject
     private string _selectedUnitType = string.Empty;
 
     [ObservableProperty]
-    private CompanyHeaderColors _headerColors = new(
-        UnitDisplayConfigurationsView.DefaultHeaderPrimaryColor,
-        UnitDisplayConfigurationsView.DefaultHeaderSecondaryColor,
-        Colors.White,
-        Colors.White);
+    private CompanyHeaderColors _headerColors = CompanyHeaderColors.Default;
 
     [ObservableProperty]
     private bool _showLieutenantIcon;

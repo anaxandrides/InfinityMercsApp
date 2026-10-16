@@ -7,7 +7,6 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.Views.Controls;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
 using InfinityMercsApp.ViewModels.Themes;
@@ -72,11 +71,7 @@ public partial class CompanyViewerViewModel(
     private bool _hasPeripherals;
 
     [ObservableProperty]
-    private CompanyHeaderColors _headerColors = new(
-        UnitDisplayConfigurationsView.DefaultHeaderPrimaryColor,
-        UnitDisplayConfigurationsView.DefaultHeaderSecondaryColor,
-        Colors.White,
-        Colors.White);
+    private CompanyHeaderColors _headerColors = CompanyHeaderColors.Default;
 
     [ObservableProperty]
     private bool _showLieutenantIcon;

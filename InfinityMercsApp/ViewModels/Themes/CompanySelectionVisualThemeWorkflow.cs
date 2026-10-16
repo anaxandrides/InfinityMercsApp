@@ -1,7 +1,6 @@
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Common;
 using InfinityMercsApp.Services.Navigation;
-using InfinityMercsApp.Views.Controls;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
 namespace InfinityMercsApp.ViewModels.Themes;
@@ -109,9 +108,10 @@ internal static class CompanySelectionVisualThemeWorkflow
         return current?.Name;
     }
 
-    internal static CompanyHeaderColors GetHeaderColors(string? vanillaFactionName, Color defaultPrimary, Color defaultSecondary)
+    /// <summary>The faction's header colours, or the default red for an unknown faction.</summary>
+    internal static CompanyHeaderColors GetHeaderColors(string? vanillaFactionName)
     {
-        var (primary, secondary) = GetFactionTheme(vanillaFactionName, defaultPrimary, defaultSecondary);
+        var (primary, secondary) = GetFactionTheme(vanillaFactionName, CompanyHeaderColors.DefaultPrimary, CompanyHeaderColors.DefaultSecondary);
         var primaryText = IsLightColor(primary) ? Colors.Black : Colors.White;
         var secondaryText = IsLightColor(secondary) ? Colors.Black : Colors.White;
         return new CompanyHeaderColors(primary, secondary, primaryText, secondaryText);
@@ -119,9 +119,7 @@ internal static class CompanySelectionVisualThemeWorkflow
 
     internal static SummaryAccents GetSummaryAccentColorsForSecondaryBackground(Color secondaryBackground)
     {
-        return IsLightColor(secondaryBackground)
-            ? new SummaryAccents(UnitDisplayConfigurationsView.EquipmentAccentOnLightSecondary, UnitDisplayConfigurationsView.SkillsAccentOnLightSecondary)
-            : new SummaryAccents(UnitDisplayConfigurationsView.EquipmentAccentOnDarkSecondary, UnitDisplayConfigurationsView.SkillsAccentOnDarkSecondary);
+        return IsLightColor(secondaryBackground) ? SummaryAccents.OnLightBackground : SummaryAccents.OnDarkBackground;
     }
 
     // Faction colours by normalized vanilla faction name.

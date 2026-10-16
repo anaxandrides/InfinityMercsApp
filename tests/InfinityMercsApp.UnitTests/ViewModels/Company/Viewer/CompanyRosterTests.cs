@@ -197,7 +197,7 @@ public sealed class CompanyRosterTests
     {
         var colors = Create().HeaderColorsFor(0);
 
-        Assert.Equal(InfinityMercsApp.Views.Controls.UnitDisplayConfigurationsView.DefaultHeaderPrimaryColor, colors.Primary);
+        Assert.Equal(InfinityMercsApp.ViewModels.Themes.CompanyHeaderColors.DefaultPrimary, colors.Primary);
     }
 
     [Fact]

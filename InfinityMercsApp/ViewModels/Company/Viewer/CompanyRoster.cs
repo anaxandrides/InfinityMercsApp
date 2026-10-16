@@ -10,7 +10,6 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.Views.Controls;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
@@ -235,10 +234,7 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
 
     /// <summary>The unit header's colours for a faction, falling back to the display's default red.</summary>
     public CompanyHeaderColors HeaderColorsFor(int factionId) =>
-        CompanySelectionVisualThemeWorkflow.GetHeaderColors(
-            ThemeFactionName(factionId),
-            UnitDisplayConfigurationsView.DefaultHeaderPrimaryColor,
-            UnitDisplayConfigurationsView.DefaultHeaderSecondaryColor);
+        CompanySelectionVisualThemeWorkflow.GetHeaderColors(ThemeFactionName(factionId));
 
     /// <summary>The faction's accent for a selected tile.</summary>
     public Color AccentFor(int factionId) =>

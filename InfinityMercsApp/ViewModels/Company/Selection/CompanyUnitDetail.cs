@@ -5,7 +5,6 @@ using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
-using InfinityMercsApp.Views.Controls;
 using InfinityMercsApp.ViewModels.Themes;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
@@ -233,10 +232,7 @@ public sealed partial class CompanyUnitDetail : ObservableObject
     }
 
     private static CompanyHeaderColors HeaderColorsFor(string? vanillaFactionName) =>
-        CompanySelectionVisualThemeWorkflow.GetHeaderColors(
-            vanillaFactionName,
-            UnitDisplayConfigurationsView.DefaultHeaderPrimaryColor,
-            UnitDisplayConfigurationsView.DefaultHeaderSecondaryColor);
+        CompanySelectionVisualThemeWorkflow.GetHeaderColors(vanillaFactionName);
 
     private static FormattedString Named(string label, IEnumerable<string> values, Color color) =>
         CompanyProfileFormatting.BuildNamedSummaryFormatted(label, values, color);
