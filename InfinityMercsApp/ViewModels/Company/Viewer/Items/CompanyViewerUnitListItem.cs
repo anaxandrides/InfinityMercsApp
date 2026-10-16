@@ -1,11 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Services.Logos;
+using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.ViewModels.Company.Viewer.Items;
 
 /// <summary>A saved trooper as a tile in a company's unit strip, carrying what its detail view shows.</summary>
-public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewerListItem
+public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewerListItem, IUnitTile
 {
     [ObservableProperty]
     private string _name = string.Empty;
@@ -54,6 +56,8 @@ public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewe
 
     /// <summary>A logo to show when neither the cached nor the packaged one exists, e.g. the TAG icon for TAG company units.</summary>
     public string? FallbackLogoPath { get; init; }
+
+    public IReadOnlyList<string> LogoCandidates => UnitLogo.Candidates(CachedLogoPath, PackagedLogoPath, FallbackLogoPath);
 
     /// <summary>The logo to draw, once worked out from the paths above.</summary>
     [ObservableProperty]

@@ -7,11 +7,15 @@ namespace InfinityMercsApp.Views.Controls;
 /// <summary>
 /// Draws an SVG scaled to fit and centred. <see cref="Source"/> is a packaged asset path
 /// (e.g. <c>SVGCache/CBIcons/cube.svg</c>) or an absolute file path; each source is loaded once and shared.
+/// Without a Source, the first of <see cref="Sources"/> that loads is drawn.
 /// </summary>
 public class SvgIcon : SKCanvasView
 {
     public static readonly BindableProperty SourceProperty = BindableProperty.Create(
         nameof(Source), typeof(string), typeof(SvgIcon), propertyChanged: (bindable, _, _) => ((SvgIcon)bindable).Reload());
+
+    public static readonly BindableProperty SourcesProperty = BindableProperty.Create(
+        nameof(Sources), typeof(IReadOnlyList<string>), typeof(SvgIcon), propertyChanged: (bindable, _, _) => ((SvgIcon)bindable).Reload());
 
     /// <summary>Draws the icon in shades of grey, e.g. for a spent token.</summary>
     public static readonly BindableProperty IsGreyscaleProperty = BindableProperty.Create(
@@ -49,19 +53,31 @@ public class SvgIcon : SKCanvasView
         set => SetValue(SourceProperty, value);
     }
 
+    /// <summary>Sources to try in order when <see cref="Source"/> is blank, e.g. a downloaded logo then a packaged one.</summary>
+    public IReadOnlyList<string>? Sources
+    {
+        get => (IReadOnlyList<string>?)GetValue(SourcesProperty);
+        set => SetValue(SourcesProperty, value);
+    }
+
     private async void Reload()
     {
-        var source = Source;
+        var (source, sources) = (Source, Sources);
         _picture = null;
         InvalidateSurface();
 
-        if (string.IsNullOrWhiteSpace(source))
+        IReadOnlyList<string> candidates = !string.IsNullOrWhiteSpace(source) ? [source] : sources ?? [];
+        SKPicture? picture = null;
+        foreach (var candidate in candidates)
         {
-            return;
+            picture = await SvgPictureCache.GetAsync(candidate);
+            if (picture is not null)
+            {
+                break;
+            }
         }
 
-        var picture = await SvgPictureCache.GetAsync(source);
-        if (source == Source)
+        if (source == Source && ReferenceEquals(sources, Sources))
         {
             _picture = picture;
             InvalidateSurface();

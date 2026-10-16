@@ -2,12 +2,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Season.Experience;
 using InfinityMercsApp.Domain.Season.Injuries;
+using InfinityMercsApp.Services.Logos;
+using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.ViewModels.Season.Items;
 
 /// <summary>A unit in the deployment strip and on the game tracker.</summary>
-public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListItem
+public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListItem, IUnitTile
 {
     // IViewerListItem
     public string Name { get; init; } = string.Empty;
@@ -27,6 +29,10 @@ public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListIt
     public bool IsCheckboxEnabled => !IsLieutenant;
     public string CaptainIconPackagedPath { get; init; } = string.Empty;
     public string ExperienceIconPackagedPath { get; init; } = string.Empty;
+    public IReadOnlyList<string> LogoCandidates => UnitLogo.Candidates(CachedLogoPath, PackagedLogoPath);
+
+    /// <summary>The selected tile's rail, matching its outline.</summary>
+    public Color SelectionAccentColor { get; init; } = Color.FromArgb("#34D399");
 
     // Stats
     public string UnitMov { get; init; } = "-";

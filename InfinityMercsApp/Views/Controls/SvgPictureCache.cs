@@ -35,7 +35,10 @@ public static class SvgPictureCache
     {
         if (Path.IsPathRooted(source))
         {
-            return await TryLoadAsync(source, () => Task.FromResult<Stream>(File.OpenRead(source)));
+            // A logo not downloaded yet is expected; the caller tries its next source.
+            return File.Exists(source)
+                ? await TryLoadAsync(source, () => Task.FromResult<Stream>(File.OpenRead(source)))
+                : null;
         }
 
         return await TryLoadAsync(source, () => FileSystem.Current.OpenAppPackageFileAsync(source))

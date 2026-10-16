@@ -45,7 +45,6 @@
                             <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
                                 <controls:CompanyViewerUnitTileView
                                     ItemTappedCommand="{Binding SelectUnitCommand, Source={RelativeSource AncestorType={x:Type seasonViewModels:PlayModeViewModel}}, x:DataType=seasonViewModels:PlayModeViewModel}"
-                                    ItemTappedCommandParameter="{Binding .}"
                                     PanScrollCommand="{Binding TileStripPanCommand, Source={x:Reference PageRoot}, x:DataType=season:PlayModePage}" />
                                 <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"
                                           IsEnabled="{Binding IsCheckboxEnabled}"

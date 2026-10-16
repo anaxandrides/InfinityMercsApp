@@ -41,8 +41,7 @@
                     <DataTemplate x:DataType="viewerItems:CompanyViewerUnitListItem">
                         <controls:CompanyViewerUnitTileView
                             SelectedStroke="{Binding SelectionAccentColor}"
-                            ItemTappedCommand="{Binding SelectTrooperCommand, Source={RelativeSource AncestorType={x:Type rankUp:RankUpViewModel}}, x:DataType=rankUp:RankUpViewModel}"
-                            ItemTappedCommandParameter="{Binding .}" />
+                            ItemTappedCommand="{Binding SelectTrooperCommand, Source={RelativeSource AncestorType={x:Type rankUp:RankUpViewModel}}, x:DataType=rankUp:RankUpViewModel}" />
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
             </HorizontalStackLayout>
