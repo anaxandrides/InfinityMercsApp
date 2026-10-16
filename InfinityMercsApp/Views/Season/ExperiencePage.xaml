@@ -5,7 +5,7 @@
              xmlns:seasonItems="clr-namespace:InfinityMercsApp.ViewModels.Season.Items"
              xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
-             xmlns:season="clr-namespace:InfinityMercsApp.Domain.Season;assembly=InfinityMercsApp.Domain"
+             xmlns:season="clr-namespace:InfinityMercsApp.Domain.Season.Experience;assembly=InfinityMercsApp.Domain"
              x:Class="InfinityMercsApp.Views.Season.ExperiencePage"
              x:DataType="seasonViewModels:ExperienceViewModel"
              Title="Experience"

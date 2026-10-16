@@ -5,6 +5,7 @@
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:components="clr-namespace:InfinityMercsApp.ViewModels.Components"
              xmlns:metadata="clr-namespace:InfinityMercsApp.Domain.Models.Metadata;assembly=InfinityMercsApp.Domain"
+             xmlns:wiki="clr-namespace:InfinityMercsApp.Domain.Models.Metadata.Wiki;assembly=InfinityMercsApp.Domain"
              x:Class="InfinityMercsApp.Views.Controls.MarketplaceDetailPopupView"
              x:DataType="components:MarketplaceDetailViewModel"
              IsVisible="{Binding IsOpen}">
@@ -68,7 +69,7 @@
                                Margin="0,8,0,4" />
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Detail.Abilities}" Spacing="6">
                             <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="metadata:AbilityLink">
+                                <DataTemplate x:DataType="wiki:AbilityLink">
                                     <Label Text="{Binding Text, StringFormat='• {0}'}"
                                            Style="{StaticResource LabelBody}"
                                            TextColor="{StaticResource TextPrimary}"

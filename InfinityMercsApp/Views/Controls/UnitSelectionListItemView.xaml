@@ -10,7 +10,7 @@
     <Border Padding="0" StrokeThickness="0" BackgroundColor="Transparent">
         <Border.Triggers>
             <!-- The TAG Company's own TAG stands out; the selected unit wins over that (the later trigger applies). -->
-            <DataTrigger TargetType="Border" Binding="{Binding UseBlueHalfOpacityBackground, x:DataType={x:Null}}" Value="True">
+            <DataTrigger TargetType="Border" Binding="{Binding IsHighlighted, Source={x:Reference Root}, x:DataType=controls:UnitSelectionListItemView}" Value="True">
                 <Setter Property="BackgroundColor" Value="#800000FF" />
             </DataTrigger>
             <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">

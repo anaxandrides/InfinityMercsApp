@@ -3,12 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:unitFilter="clr-namespace:InfinityMercsApp.Views.Controls.UnitFilter"
              xmlns:unitBrowser="clr-namespace:InfinityMercsApp.ViewModels.UnitBrowser"
+             xmlns:unitBrowserItems="clr-namespace:InfinityMercsApp.ViewModels.UnitBrowser.Items"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="InfinityMercsApp.Views.UnitBrowser.UnitEncyclopediaPage"
              x:Name="UnitEncyclopediaPageRoot"
+             x:DataType="unitBrowser:UnitEncyclopediaViewModel"
              Title="Unit Encyclopedia">
 
     <ContentPage.Behaviors>
@@ -18,7 +20,8 @@
                                         EventName="LayoutModeChanged"
                                         Command="{Binding ApplyLayoutCommand}"
                                         CommandParameter="{Binding LayoutMode, Source={x:Reference UnitEncyclopediaPageRoot}, x:DataType=layout:AdaptiveContentPage}" />
-        <toolkit:EventToCommandBehavior BindingContext="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext}"
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference UnitEncyclopediaPageRoot}, x:DataType=ContentPage}"
+                                        x:DataType="unitBrowser:UnitEncyclopediaViewModel"
                                         EventName="Disappearing"
                                         Command="{Binding CloseUnitFilterCommand}" />
     </ContentPage.Behaviors>
@@ -59,9 +62,9 @@
                     </ScrollView.Behaviors>
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding Factions}" Spacing="0">
                         <BindableLayout.ItemTemplate>
-                            <DataTemplate>
+                            <DataTemplate x:DataType="unitBrowserItems:ViewerFactionItem">
                                 <controls:ViewerListRowView
-                                    ItemTappedCommand="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext.SelectFactionCommand}" />
+                                    ItemTappedCommand="{Binding SelectFactionCommand, Source={RelativeSource AncestorType={x:Type unitBrowser:UnitEncyclopediaViewModel}}, x:DataType=unitBrowser:UnitEncyclopediaViewModel}" />
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
                     </VerticalStackLayout>
@@ -127,7 +130,7 @@
                             VerticalOptions="Center"
                             HorizontalOptions="End">
                             <Border.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext.OpenUnitFilterCommand}" />
+                                <TapGestureRecognizer Command="{Binding OpenUnitFilterCommand}" />
                             </Border.GestureRecognizers>
                             <controls:SvgIcon
                                 Source="SVGCache/NonCBIcons/noun-filter.svg"
@@ -144,9 +147,9 @@
                         </ScrollView.Behaviors>
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Units}" Spacing="0">
                         <BindableLayout.ItemTemplate>
-                            <DataTemplate>
+                            <DataTemplate x:DataType="unitBrowserItems:ViewerUnitItem">
                                 <controls:ViewerListRowView
-                                    ItemTappedCommand="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext.SelectUnitCommand}" />
+                                    ItemTappedCommand="{Binding SelectUnitCommand, Source={RelativeSource AncestorType={x:Type unitBrowser:UnitEncyclopediaViewModel}}, x:DataType=unitBrowser:UnitEncyclopediaViewModel}" />
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
                     </VerticalStackLayout>
@@ -173,7 +176,7 @@
                     <ScrollView Grid.Row="3">
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Fireteams}" Spacing="8">
                             <BindableLayout.ItemTemplate>
-                                <DataTemplate>
+                                <DataTemplate x:DataType="unitBrowserItems:FireteamTeamItem">
                                     <Border StrokeThickness="1" Padding="10">
                                         <VerticalStackLayout Spacing="6">
                                             <Label Text="{Binding Name}" FontAttributes="Bold" />
@@ -185,7 +188,7 @@
                                             </Grid>
                                             <VerticalStackLayout BindableLayout.ItemsSource="{Binding UnitLimits}" Spacing="2">
                                                 <BindableLayout.ItemTemplate>
-                                                    <DataTemplate>
+                                                    <DataTemplate x:DataType="unitBrowserItems:FireteamUnitLimitItem">
                                                         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
                                                             <Label Grid.Column="0" Text="{Binding Name}" />
                                                             <Label Grid.Column="1" Text="{Binding Min}" HorizontalTextAlignment="Center" />
@@ -228,7 +231,7 @@
 
         <Grid
             layout:GridLayout.Cell="{Binding Layout.OverlayCell}"
-            IsVisible="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext.IsUnitFilterOpen}"
+            IsVisible="{Binding IsUnitFilterOpen}"
             RowDefinitions="*,18*,*"
             BackgroundColor="#880E1116"
             InputTransparent="False"
@@ -238,7 +241,7 @@
                 Grid.Row="1"
                 HorizontalOptions="Center"
                 MaximumWidthRequest="700"
-                BindingContext="{Binding Source={x:Reference UnitEncyclopediaPageRoot}, Path=BindingContext.UnitFilter}" />
+                BindingContext="{Binding UnitFilter}" />
         </Grid>
     </Grid>
 

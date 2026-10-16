@@ -5,7 +5,7 @@
     xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
     xmlns:captain="clr-namespace:InfinityMercsApp.ViewModels.Captain"
              xmlns:captainItems="clr-namespace:InfinityMercsApp.ViewModels.Captain.Items"
-    xmlns:captainServices="clr-namespace:InfinityMercsApp.Services.CompanySelection.Captain"
+    xmlns:captainServices="clr-namespace:InfinityMercsApp.Services.CompanySelection.Captain;assembly=InfinityMercsApp.Services"
     xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
     xmlns:converters="clr-namespace:InfinityMercsApp.Converters"
     x:Class="InfinityMercsApp.Views.Captain.ConfigureCaptainPopupPage"

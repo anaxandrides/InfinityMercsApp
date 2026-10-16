@@ -7,7 +7,7 @@
              xmlns:unitBrowserItems="clr-namespace:InfinityMercsApp.ViewModels.UnitBrowser.Items"
              x:Class="InfinityMercsApp.Views.Controls.UnitDisplayConfigurationsView"
              x:Name="UnitDisplayConfigurationsRoot"
-             HorizontalOptions="FillAndExpand">
+             HorizontalOptions="Fill">
     <ContentView.Resources>
         <Style x:Key="StatLabel" TargetType="Label">
             <Setter Property="HorizontalTextAlignment" Value="Center" />
@@ -44,7 +44,7 @@
         </Style>
     </ContentView.Resources>
     <!-- The selected unit's header (icons, logo, name, statline, peripheral, summaries) and its profiles. -->
-    <Border StrokeThickness="0" Padding="0" HorizontalOptions="FillAndExpand">
+    <Border StrokeThickness="0" Padding="0" HorizontalOptions="Fill">
         <Grid x:Name="ConfigurationsRootGrid"
               x:DataType="components:IUnitDisplay"
               BindingContext="{Binding Unit, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}"
@@ -182,7 +182,7 @@
             <ScrollView
                 Grid.Row="7"
                 Grid.ColumnSpan="3"
-                VerticalOptions="FillAndExpand"
+                VerticalOptions="Fill"
                 IsVisible="{Binding ShowConfigurationsSection, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}">
                 <ScrollView.Behaviors>
                     <behaviors:DragToScrollBehavior />

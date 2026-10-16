@@ -6,14 +6,14 @@
              x:Name="FactionSlotSelectorRoot"
              x:DataType="controls:FactionSlotSelectorView"
              Margin="30,0,0,0"
-             HorizontalOptions="FillAndExpand">
-    <Grid ColumnDefinitions="*,*" ColumnSpacing="0" VerticalOptions="Center" HorizontalOptions="FillAndExpand">
+             HorizontalOptions="Fill">
+    <Grid ColumnDefinitions="*,*" ColumnSpacing="0" VerticalOptions="Center" HorizontalOptions="Fill">
         <!-- The slot the next pick goes to is outlined in green: the left one unless the right one is shown and active. -->
         <Border StrokeThickness="2"
                 Stroke="#34D399"
                 Padding="8,4"
                 Margin="15,0"
-                HorizontalOptions="FillAndExpand">
+                HorizontalOptions="Fill">
             <Border.Triggers>
                 <MultiTrigger TargetType="Border">
                     <MultiTrigger.Conditions>
@@ -37,7 +37,7 @@
                 Padding="8,4"
                 Margin="15,0"
                 Grid.Column="1"
-                HorizontalOptions="FillAndExpand"
+                HorizontalOptions="Fill"
                 IsVisible="{Binding ShowRightSelectionBox, Source={x:Reference FactionSlotSelectorRoot}}">
             <Border.Triggers>
                 <DataTrigger TargetType="Border" Binding="{Binding ActiveSlotIndex, Source={x:Reference FactionSlotSelectorRoot}}" Value="1">

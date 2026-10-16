@@ -62,8 +62,17 @@
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
-		<NoWarn>$(NoWarn);XC0022;XC0025</NoWarn>
+		<!-- Field-based [ObservableProperty] isn't AOT-safe for WinRT (MVVMTK0045 on Windows): use partial properties. -->
 		<WarningsAsErrors>$(WarningsAsErrors);MVVMTK0042;MVVMTK0045</WarningsAsErrors>
+		<!-- Every binding is compiled (x:DataType); a binding to a missing property fails the build. -->
+		<WarningsAsErrors>$(WarningsAsErrors);MAUIG2045;XC0045</WarningsAsErrors>
+		<!-- Release compiles XAML with XamlC (MAUI's default there); strict makes an uncompiled binding an error too. -->
+		<MauiStrictXamlCompilation>true</MauiStrictXamlCompilation>
+	</PropertyGroup>
+
+	<!-- Debug compiles XAML with the source generator, which keeps XAML Hot Reload and checks binding paths. -->
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 	</PropertyGroup>
 
 	<ItemGroup>

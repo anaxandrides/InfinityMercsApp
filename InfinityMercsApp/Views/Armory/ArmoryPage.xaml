@@ -35,7 +35,7 @@
                        Placeholder="Search weapons..."
                        Text="{Binding SearchText}" />
                 <CollectionView Grid.Row="2"
-                                VerticalOptions="FillAndExpand"
+                                VerticalOptions="Fill"
                                 ItemsSource="{Binding WeaponGroups}"
                                 SelectionMode="Single"
                                 SelectedItem="{Binding SelectedWeaponGroup, Mode=TwoWay}">

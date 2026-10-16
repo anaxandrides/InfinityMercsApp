@@ -348,7 +348,6 @@
                         <DataTemplate x:DataType="gameItems:GameWeaponMode">
                             <controls:WeaponDetailCardView Weapon="{Binding Weapon}"
                                                            AmmoType="{Binding Ammo}"
-                                                           Compact="False"
                                                            RangeBandHeightRequest="88"
                                                            DamageReduction="{Binding Modifiers.DamageReduction}"
                                                            BurstBonus="{Binding Modifiers.BurstBonus}"

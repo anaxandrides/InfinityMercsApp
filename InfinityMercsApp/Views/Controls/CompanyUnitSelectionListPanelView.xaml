@@ -2,11 +2,12 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:selectionItems="clr-namespace:InfinityMercsApp.ViewModels.Company.Selection.Items"
              xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
              x:Class="InfinityMercsApp.Views.Controls.CompanyUnitSelectionListPanelView"
              x:Name="UnitSelectionPanelRoot">
 
-    <Grid RowDefinitions="Auto,*" RowSpacing="8" VerticalOptions="FillAndExpand">
+    <Grid RowDefinitions="Auto,*" RowSpacing="8" VerticalOptions="Fill">
         <Grid Grid.Row="0" ColumnDefinitions="*" ColumnSpacing="10" VerticalOptions="Center">
             <Border
                 x:Name="UnitSelectionHeaderBorder"
@@ -37,7 +38,7 @@
                         VerticalOptions="Center"
                         HorizontalOptions="End">
                         <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=FilterCommand}" />
+                            <TapGestureRecognizer Command="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=FilterCommand, x:DataType=controls:CompanyUnitSelectionListPanelView}" />
                         </Border.GestureRecognizers>
                         <controls:SvgIcon
                             x:Name="UnitSelectionFilterIcon"
@@ -48,7 +49,7 @@
                             HorizontalOptions="Center">
                             <controls:SvgIcon.Triggers>
                                 <DataTrigger TargetType="controls:SvgIcon"
-                                             Binding="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=IsFilterActive}"
+                                             Binding="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=IsFilterActive, x:DataType=controls:CompanyUnitSelectionListPanelView}"
                                              Value="True">
                                     <Setter Property="TintColor" Value="#B2FFDC00" />
                                 </DataTrigger>
@@ -61,15 +62,16 @@
 
         <ScrollView
             Grid.Row="1"
-            IsVisible="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=ShowUnitsList}">
+            IsVisible="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=ShowUnitsList, x:DataType=controls:CompanyUnitSelectionListPanelView}">
             <ScrollView.Behaviors>
                 <behaviors:DragToScrollBehavior />
             </ScrollView.Behaviors>
-            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=ItemsSource}" Spacing="0">
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=ItemsSource, x:DataType=controls:CompanyUnitSelectionListPanelView}" Spacing="0">
                 <BindableLayout.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="selectionItems:ArmyUnitSelectionItem">
                         <controls:UnitSelectionListItemView
-                            ItemTappedCommand="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=ItemTappedCommand}"
+                            ItemTappedCommand="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=ItemTappedCommand, x:DataType=controls:CompanyUnitSelectionListPanelView}"
+                            IsHighlighted="{Binding UseBlueHalfOpacityBackground}"
                             IsVisible="{Binding IsVisible}" />
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>

@@ -2,12 +2,14 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:selectionItems="clr-namespace:InfinityMercsApp.ViewModels.Company.Selection.Items"
              x:Class="InfinityMercsApp.Views.Controls.MercsCompanyEntryCardView"
-             x:Name="MercsEntryCardRoot">
+             x:Name="MercsEntryCardRoot"
+             x:DataType="selectionItems:MercsCompanyEntry">
 
     <Border StrokeThickness="0" Padding="8" Margin="0,0,0,6">
         <Border.GestureRecognizers>
-            <TapGestureRecognizer Command="{Binding SelectEntryCommand, Source={x:Reference MercsEntryCardRoot}}" CommandParameter="{Binding .}" />
+            <TapGestureRecognizer Command="{Binding SelectEntryCommand, Source={x:Reference MercsEntryCardRoot}, x:DataType=controls:MercsCompanyEntryCardView}" CommandParameter="{Binding .}" />
         </Border.GestureRecognizers>
         <Border.Triggers>
             <DataTrigger TargetType="Border" Binding="{Binding IsLieutenant}" Value="True">
@@ -51,7 +53,7 @@
                     VerticalOptions="Start"
                     HorizontalOptions="End"
                     IsVisible="{Binding CanRemove}"
-                    Command="{Binding RemoveEntryCommand, Source={x:Reference MercsEntryCardRoot}}"
+                    Command="{Binding RemoveEntryCommand, Source={x:Reference MercsEntryCardRoot}, x:DataType=controls:MercsCompanyEntryCardView}"
                     CommandParameter="{Binding .}" />
             </HorizontalStackLayout>
 
@@ -63,16 +65,16 @@
                 IsVisible="{Binding IsDetailsExpanded}">
                 <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="6" RowSpacing="6">
                     <Border Grid.Row="0" Grid.Column="0" BackgroundColor="Transparent" StrokeThickness="0" Padding="6,4">
-                        <Label Text="{Binding SavedEquipmentDisplay}" TextColor="{StaticResource TextSecondary}" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="FillAndExpand" />
+                        <Label Text="{Binding SavedEquipmentDisplay}" TextColor="{StaticResource TextSecondary}" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="Fill" />
                     </Border>
                     <Border Grid.Row="0" Grid.Column="1" BackgroundColor="Transparent" StrokeThickness="0" Padding="6,4">
-                        <Label Text="{Binding SavedSkillsDisplay}" TextColor="#F59E0B" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="FillAndExpand" />
+                        <Label Text="{Binding SavedSkillsDisplay}" TextColor="#F59E0B" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="Fill" />
                     </Border>
                     <Border Grid.Row="1" Grid.Column="0" BackgroundColor="Transparent" StrokeThickness="0" Padding="6,4">
-                        <Label Text="{Binding SavedRangedWeaponsDisplay}" TextColor="{StaticResource Danger}" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="FillAndExpand" />
+                        <Label Text="{Binding SavedRangedWeaponsDisplay}" TextColor="{StaticResource Danger}" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="Fill" />
                     </Border>
                     <Border Grid.Row="1" Grid.Column="1" BackgroundColor="Transparent" StrokeThickness="0" Padding="6,4">
-                        <Label Text="{Binding SavedCcWeaponsDisplay}" TextColor="{StaticResource Signal}" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="FillAndExpand" />
+                        <Label Text="{Binding SavedCcWeaponsDisplay}" TextColor="{StaticResource Signal}" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="Fill" />
                     </Border>
                 </Grid>
 
@@ -93,21 +95,21 @@
                             TextColor="{StaticResource TextPrimary}"
                             FontSize="{DynamicResource FontSizeCaption}"
                             LineBreakMode="WordWrap"
-                            HorizontalOptions="FillAndExpand"
+                            HorizontalOptions="Fill"
                             IsVisible="{Binding HasPeripheralEquipmentLine}" />
                         <Label
                             FormattedText="{Binding PeripheralSkillsLineFormatted}"
                             TextColor="{StaticResource TextPrimary}"
                             FontSize="{DynamicResource FontSizeCaption}"
                             LineBreakMode="WordWrap"
-                            HorizontalOptions="FillAndExpand"
+                            HorizontalOptions="Fill"
                             IsVisible="{Binding HasPeripheralSkillsLine}" />
                     </VerticalStackLayout>
                 </Border>
 
                 <VerticalStackLayout
                     Spacing="2"
-                    IsVisible="{Binding Source={x:Reference MercsEntryCardRoot}, Path=ShowOrderModifierBadges}">
+                    IsVisible="{Binding Source={x:Reference MercsEntryCardRoot}, Path=ShowOrderModifierBadges, x:DataType=controls:MercsCompanyEntryCardView}">
                     <HorizontalStackLayout
                         Spacing="4"
                         IsVisible="{Binding IsIrregular}">

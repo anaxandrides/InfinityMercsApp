@@ -122,7 +122,7 @@
         <!-- Units: the unit list, or the fireteams with their allowed troopers. -->
         <Grid Grid.Row="2" RowDefinitions="Auto,*" RowSpacing="8" IsVisible="{Binding ShowsUnitsPane}">
             <controls:CompanyUnitSelectionListPanelView
-                VerticalOptions="FillAndExpand"
+                VerticalOptions="Fill"
                 ShowUnitsList="{Binding ShowUnitsList}"
                 IsDense="{Binding IsCompact}"
                 ItemsSource="{Binding Units}"
@@ -188,7 +188,7 @@
               RowSpacing="0"
               IsVisible="{Binding ShowsRightPane}">
             <controls:UnitDisplayConfigurationsView
-                VerticalOptions="FillAndExpand"
+                VerticalOptions="Fill"
                 ShowSummaryRows="False"
                 IsVisible="{Binding ShowsDetailPane}"
                 Unit="{Binding Detail}"
@@ -239,7 +239,7 @@
 
                 <controls:MercsCompanyEntriesListView
                     Grid.Row="1"
-                    VerticalOptions="FillAndExpand"
+                    VerticalOptions="Fill"
                     ViewportHeightRatio="0.4"
                     ItemsSource="{Binding MercsCompanyEntries}"
                     SelectEntryCommand="{Binding SelectMercsCompanyEntryCommand}"
