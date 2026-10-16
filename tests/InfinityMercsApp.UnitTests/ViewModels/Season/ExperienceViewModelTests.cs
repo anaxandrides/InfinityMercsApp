@@ -63,7 +63,8 @@ public sealed class ExperienceViewModelTests
         await viewModel.ConfirmCommand.ExecuteAsync(null);
 
         var round = new SeasonRound();
-        _roundUpdate!(round);
+        Assert.NotNull(_roundUpdate);
+        _roundUpdate(round);
         var result = Assert.Single(round.MissionResults.UnitResults);
         Assert.Equal((4, "Hero", 6), (result.EntryIndex, result.UnitName, result.XpGained));
         await _navigation.Received(1).PushAsync("DowntimePage", Arg.Any<IDictionary<string, object>>());

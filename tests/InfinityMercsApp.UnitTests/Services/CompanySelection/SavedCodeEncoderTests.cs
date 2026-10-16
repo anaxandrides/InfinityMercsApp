@@ -27,7 +27,7 @@ public sealed class SavedCodeEncoderTests
         var code = Assert.Single(Encode("Combi Rifle (+1, -3)").Codes);
 
         Assert.Equal(33, code.Id);
-        Assert.Equal([6, 298], code.Extra!);
+        Assert.Equal([6, 298], code.Extra);
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public sealed class SavedCodeEncoderTests
         var coded = Encode("Laser Spoon", "Combi Rifle (+1, Glitter)");
 
         Assert.Equal(["Laser Spoon", "Combi Rifle (+1, Glitter)"], coded.CustomNames);
-        Assert.Equal([298], Assert.Single(coded.Codes).Extra!);
+        Assert.Equal([298], Assert.Single(coded.Codes).Extra);
     }
 
     [Fact]

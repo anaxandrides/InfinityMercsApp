@@ -17,7 +17,8 @@ internal static class Army101Data
     public const int PanOceania = 101;
 
     private static readonly Lazy<ArmyDefinition> Army = new(() =>
-        new ArmyJsonReader().ReadArmyPayload(File.ReadAllText(RepoFiles.Resolve(ReferenceCorpus.Army101Path)))!);
+        new ArmyJsonReader().ReadArmyPayload(File.ReadAllText(RepoFiles.Resolve(ReferenceCorpus.Army101Path)))
+        ?? throw new InvalidOperationException($"{ReferenceCorpus.Army101Path} could not be read."));
 
     public static ArmyDefinition Definition => Army.Value;
 

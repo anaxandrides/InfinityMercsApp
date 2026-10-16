@@ -121,8 +121,10 @@ public sealed class UnitEncyclopediaViewModelTests
         viewModel.OpenUnitFilterCommand.Execute(null);
 
         Assert.True(viewModel.IsUnitFilterOpen);
-        Assert.Same(viewModel.ActiveUnitFilter, viewModel.UnitFilterRequest!.ExistingCriteria);
-        Assert.False(viewModel.UnitFilterRequest.TeamsView);
+        var request = viewModel.UnitFilterRequest;
+        Assert.NotNull(request);
+        Assert.Same(viewModel.ActiveUnitFilter, request.ExistingCriteria);
+        Assert.False(request.TeamsView);
 
         viewModel.CloseUnitFilterCommand.Execute(null);
         Assert.False(viewModel.IsUnitFilterOpen);

@@ -56,8 +56,7 @@ public sealed class CompanyPerkOwnershipResolverTests
 
         var ownedPerks = ownedIds
             .Select(CompanyPerkCatalog.FindById)
-            .Where(x => x is not null)
-            .Select(x => x!)
+            .OfType<CompanyTrooperPerk>()
             .ToList();
 
         Assert.DoesNotContain(
@@ -374,8 +373,9 @@ public sealed class CompanyPerkOwnershipResolverTests
     {
         return ownedIds
             .Select(CompanyPerkCatalog.FindById)
-            .Where(x => x is not null && !string.IsNullOrWhiteSpace(x.Description))
-            .Select(x => x!.Description)
+            .OfType<CompanyTrooperPerk>()
+            .Where(x => !string.IsNullOrWhiteSpace(x.Description))
+            .Select(x => x.Description)
             .ToList();
     }
 }

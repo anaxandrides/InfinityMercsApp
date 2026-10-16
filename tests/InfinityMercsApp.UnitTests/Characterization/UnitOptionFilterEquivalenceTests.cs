@@ -164,9 +164,9 @@ public sealed class UnitOptionFilterEquivalenceTests
                 yield return group.Isc;
             }
 
-            foreach (var profile in group.Profiles.Where(x => !string.IsNullOrWhiteSpace(x.Name)))
+            foreach (var name in group.Profiles.Select(x => x.Name).OfType<string>().Where(name => !string.IsNullOrWhiteSpace(name)))
             {
-                yield return profile.Name!.ToLowerInvariant() + " (2)";
+                yield return name.ToLowerInvariant() + " (2)";
             }
         }
 

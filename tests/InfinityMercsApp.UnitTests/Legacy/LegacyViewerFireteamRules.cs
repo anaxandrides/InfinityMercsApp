@@ -61,8 +61,9 @@ internal static class LegacyViewerFireteamRules
             var types = typeElement.EnumerateArray()
                 .Where(x => x.ValueKind == JsonValueKind.String)
                 .Select(x => x.GetString())
+                .OfType<string>()
                 .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Select(x => x!.Trim());
+                .Select(x => x.Trim());
 
             return string.Join(", ", types);
         }

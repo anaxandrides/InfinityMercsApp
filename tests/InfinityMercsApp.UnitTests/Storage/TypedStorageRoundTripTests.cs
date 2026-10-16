@@ -132,7 +132,8 @@ public sealed class TypedStorageRoundTripTests : IDisposable
                 for (var i = 0; i < (choices?.Count ?? 0); i++)
                 {
                     var key = $"{army.FactionId}:{kind}:{i}";
-                    var links = SpecopsChoiceLinks.From(choices![i]);
+                    Assert.NotNull(choices);
+                    var links = SpecopsChoiceLinks.From(choices[i]);
                     expected[key] = links;
                     rows.Add(army.FactionId, key, links);
                 }

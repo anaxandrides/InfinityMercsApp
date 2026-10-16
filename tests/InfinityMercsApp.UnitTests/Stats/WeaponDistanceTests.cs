@@ -20,6 +20,11 @@ public sealed class WeaponDistanceTests
     }
 
     [Fact]
-    public void ARepeatedBandKeepsItsLastValue() =>
-        Assert.Equal(60, new WeaponDistance { Bands = [Band("short", 40, "+3"), Band("short", 60, "+6")] }.Short!.Max);
+    public void ARepeatedBandKeepsItsLastValue()
+    {
+        var shortBand = new WeaponDistance { Bands = [Band("short", 40, "+3"), Band("short", 60, "+6")] }.Short;
+
+        Assert.NotNull(shortBand);
+        Assert.Equal(60, shortBand.Max);
+    }
 }

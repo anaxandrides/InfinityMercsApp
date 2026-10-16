@@ -49,7 +49,7 @@ public sealed class ByeRoundViewModelTests : IDisposable
             call.Arg<Action<SeasonFile>>()(_season);
             return true;
         });
-        _dialogs.ConfirmAsync(default!, default!).ReturnsForAnyArgs(true);
+        _dialogs.ConfirmAsync(Arg.Any<string>(), Arg.Any<string>()).ReturnsForAnyArgs(true);
     }
 
     public void Dispose() => _records.Dispose();
@@ -147,13 +147,13 @@ public sealed class ByeRoundViewModelTests : IDisposable
     [Fact]
     public async Task DecliningTheConfirmationRecordsNothing()
     {
-        _dialogs.ConfirmAsync(default!, default!).ReturnsForAnyArgs(false);
+        _dialogs.ConfirmAsync(Arg.Any<string>(), Arg.Any<string>()).ReturnsForAnyArgs(false);
         var viewModel = await OpenAsync();
 
         await viewModel.ConfirmCommand.ExecuteAsync(null);
 
-        await _seasonFiles.DidNotReceiveWithAnyArgs().UpdateAsync(default, default!);
-        await _navigation.DidNotReceiveWithAnyArgs().PushAsync(default!, default);
+        await _seasonFiles.DidNotReceiveWithAnyArgs().UpdateAsync(Arg.Any<string?>(), Arg.Any<Action<SeasonFile>>());
+        await _navigation.DidNotReceiveWithAnyArgs().PushAsync(Arg.Any<string>(), Arg.Any<IDictionary<string, object>?>());
     }
 
     [Fact]
@@ -165,6 +165,6 @@ public sealed class ByeRoundViewModelTests : IDisposable
         await viewModel.ConfirmCommand.ExecuteAsync(null);
 
         await _dialogs.Received(1).ShowAlertAsync("Bye Not Recorded", SeasonMessages.NotSaved);
-        await _navigation.DidNotReceiveWithAnyArgs().PushAsync(default!, default);
+        await _navigation.DidNotReceiveWithAnyArgs().PushAsync(Arg.Any<string>(), Arg.Any<IDictionary<string, object>?>());
     }
 }

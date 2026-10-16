@@ -83,8 +83,7 @@ public sealed class UnitTestPerks
                             ? parentTier
                             : (int?)null;
                     })
-                    .Where(value => value.HasValue)
-                    .Select(value => value!.Value)
+                    .OfType<int>()
                     .DefaultIfEmpty()
                     .Min();
 

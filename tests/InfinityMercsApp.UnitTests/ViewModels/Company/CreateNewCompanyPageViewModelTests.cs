@@ -1,7 +1,6 @@
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Company;
-using InfinityMercsApp.Views;
 using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Company;
@@ -39,12 +38,13 @@ public sealed class CreateNewCompanyPageViewModelTests
     public async Task OtherCompaniesOpenTheirSelectionScreens(string command, CompanyKind kind, ArmySourceSelectionMode mode)
     {
         var viewModel = Create();
-        var relayCommand = (CommunityToolkit.Mvvm.Input.IAsyncRelayCommand)typeof(CreateNewCompanyPageViewModel).GetProperty(command)!.GetValue(viewModel)!;
+        var relayCommand = Assert.IsAssignableFrom<CommunityToolkit.Mvvm.Input.IAsyncRelayCommand>(
+            typeof(CreateNewCompanyPageViewModel).GetProperty(command)?.GetValue(viewModel));
 
         await relayCommand.ExecuteAsync(null);
 
         await _companySelection.Received(1).OpenAsync(kind, mode);
-        await _navigation.DidNotReceiveWithAnyArgs().NavigateToAsync(default!, default);
+        await _navigation.DidNotReceiveWithAnyArgs().NavigateToAsync(Arg.Any<string>(), Arg.Any<IDictionary<string, object>?>());
     }
 
     [Fact]

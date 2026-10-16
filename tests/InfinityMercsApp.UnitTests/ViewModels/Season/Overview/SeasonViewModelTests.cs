@@ -28,7 +28,7 @@ public sealed class SeasonViewModelTests
         Assert.Equal("Captain", viewModel.Team.SelectedName);
         Assert.True(viewModel.Marketplace.HasStore);
         Assert.False(viewModel.WarMarketChoice.IsOpen);
-        await _kit.SeasonFiles.DidNotReceiveWithAnyArgs().CreateAsync(default!, default!, default!);
+        await _kit.SeasonFiles.DidNotReceiveWithAnyArgs().CreateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
     }
 
     [Fact]
@@ -258,7 +258,7 @@ public sealed class SeasonViewModelTests
 
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
 
-        await _kit.CompanyFiles.DidNotReceiveWithAnyArgs().LoadAsync(default!);
+        await _kit.CompanyFiles.DidNotReceiveWithAnyArgs().LoadAsync(Arg.Any<string>());
         Assert.Equal(SeasonViewModel.DefaultName, viewModel.CompanyName);
         Assert.Equal("Round 0", viewModel.RoundTitle);
     }

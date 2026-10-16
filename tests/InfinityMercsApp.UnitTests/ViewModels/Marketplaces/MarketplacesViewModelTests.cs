@@ -95,7 +95,8 @@ public sealed class MarketplacesViewModelTests
         var viewModel = CreateViewModel();
 
         viewModel.SelectedStoreName = "Black Market";
-        await viewModel.SelectStoreCommand.ExecutionTask!;
+        Assert.NotNull(viewModel.SelectStoreCommand.ExecutionTask);
+        await viewModel.SelectStoreCommand.ExecutionTask;
 
         Assert.Equal("Black Market", viewModel.StoreName);
     }
@@ -181,8 +182,9 @@ public sealed class MarketplacesViewModelTests
         await viewModel.ShowDetailCommand.ExecuteAsync(viewModel.ItemGroups[0].Items[0]);
 
         Assert.True(viewModel.DetailPopup.IsOpen);
-        Assert.Equal("Pistol", viewModel.DetailPopup.Detail!.Title);
-        Assert.Single(viewModel.DetailPopup.Detail.Weapons);
+        var detail = Assert.IsType<MarketplaceDetail>(viewModel.DetailPopup.Detail);
+        Assert.Equal("Pistol", detail.Title);
+        Assert.Single(detail.Weapons);
         Assert.Equal(WikiStatus.Loaded, viewModel.DetailPopup.WikiStatus);
         Assert.True(viewModel.DetailPopup.HasWiki && viewModel.DetailPopup.HasWikiBlocks);
         Assert.Same(blocks, viewModel.DetailPopup.WikiBlocks);
@@ -211,7 +213,7 @@ public sealed class MarketplacesViewModelTests
 
         Assert.Equal(WikiStatus.None, viewModel.DetailPopup.WikiStatus);
         Assert.False(viewModel.DetailPopup.HasWiki);
-        await _wiki.DidNotReceiveWithAnyArgs().FetchContentAsync(default!);
+        await _wiki.DidNotReceiveWithAnyArgs().FetchContentAsync(Arg.Any<string>());
     }
 
     [Fact]
@@ -240,7 +242,8 @@ public sealed class MarketplacesViewModelTests
 
         await viewModel.ShowDetailCommand.ExecuteAsync(viewModel.TroopTypeRows[0]);
 
-        Assert.Equal<AbilityLink>([new("Mimetism (-3)", "https://wiki/mimetism")], viewModel.DetailPopup.Detail!.Abilities);
+        var detail = Assert.IsType<MarketplaceDetail>(viewModel.DetailPopup.Detail);
+        Assert.Equal<AbilityLink>([new("Mimetism (-3)", "https://wiki/mimetism")], detail.Abilities);
         Assert.Equal(WikiStatus.None, viewModel.DetailPopup.WikiStatus);
     }
 
@@ -250,7 +253,8 @@ public sealed class MarketplacesViewModelTests
         var viewModel = await WithBlackMarketAsync();
 
         await viewModel.ShowDetailCommand.ExecuteAsync(viewModel.AugmentRows[0]);
-        Assert.Equal("Cube", viewModel.DetailPopup.Detail!.Title);
+        var detail = Assert.IsType<MarketplaceDetail>(viewModel.DetailPopup.Detail);
+        Assert.Equal("Cube", detail.Title);
 
         viewModel.DetailPopup.CloseCommand.Execute(null);
         Assert.Null(viewModel.DetailPopup.Detail);

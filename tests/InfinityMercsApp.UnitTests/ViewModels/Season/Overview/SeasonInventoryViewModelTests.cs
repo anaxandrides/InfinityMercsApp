@@ -93,7 +93,7 @@ public sealed class SeasonInventoryViewModelTests
         await _inventory.SellCommand.ExecuteAsync(unpriced);
 
         Assert.False(unpriced.CanSell);
-        await _kit.Dialogs.DidNotReceiveWithAnyArgs().ConfirmAsync(default!, default!);
+        await _kit.Dialogs.DidNotReceiveWithAnyArgs().ConfirmAsync(Arg.Any<string>(), Arg.Any<string>());
     }
 
     [Fact]

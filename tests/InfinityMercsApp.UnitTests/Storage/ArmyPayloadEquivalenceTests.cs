@@ -47,7 +47,8 @@ public sealed class ArmyPayloadEquivalenceTests
     public void PayloadUnits_MatchTheUnitColumns(int factionId)
     {
         var army = TypedStorageRoundTripTests.ReadLegacyArmies().Single(x => x.FactionId == factionId);
-        var payload = _reader.ReadArmyPayload(army.RawJson)!;
+        var payload = _reader.ReadArmyPayload(army.RawJson);
+        Assert.NotNull(payload);
 
         var columns = TypedStorageRoundTripTests.ReadLegacyUnits()
             .Where(unit => unit.FactionId == factionId && unit.Key.Count(c => c == ':') == 3)

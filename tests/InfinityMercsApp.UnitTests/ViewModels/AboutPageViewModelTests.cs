@@ -51,6 +51,6 @@ public sealed class AboutPageViewModelTests
     {
         await Create().OpenLinkCommand.ExecuteAsync(" ");
 
-        await _launcher.DidNotReceiveWithAnyArgs().OpenAsync(default(Uri)!);
+        await _launcher.DidNotReceiveWithAnyArgs().OpenAsync(Arg.Any<Uri>());
     }
 }

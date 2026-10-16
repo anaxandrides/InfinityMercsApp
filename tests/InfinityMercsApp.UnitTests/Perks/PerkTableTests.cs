@@ -46,7 +46,8 @@ public sealed class PerkTableTests
         first.AddChild(Node("x-track-2-tier-2", "Beta, Gamma", 2, "x-track-2-tier-1"));
         var other = Node("x-track-1-tier-1", "Delta", 1);
 
-        var table = PerkTable.Build(List(first, other))!;
+        var table = PerkTable.Build(List(first, other));
+        Assert.NotNull(table);
 
         Assert.Equal(PerkTable.MinimumTierCount, table.TierCount);
         Assert.Equal([1, 2], table.Tracks.Select(t => t.TrackNumber));
@@ -61,7 +62,8 @@ public sealed class PerkTableTests
         parent.AddChild(Node("x-track-1-tier-3", "B", 3, "x-track-1-tier-1"));
         parent.AddChild(Node("x-track-2-tier-2", "Other track", 2, "x-track-1-tier-1"));
 
-        var table = PerkTable.Build(List(parent))!;
+        var table = PerkTable.Build(List(parent));
+        Assert.NotNull(table);
 
         Assert.Equal([new PerkTableLink(1, 1, 3)], table.Links);
     }
@@ -95,7 +97,10 @@ public sealed class PerkTableTests
         Assert.NotNull(viewModel.Table);
 
         viewModel.SelectedPerkTableOption = viewModel.PerkTableOptions[1];
-        Assert.Equal(PerkTable.ForList("Cool")!.Tracks.Count, viewModel.Table!.Tracks.Count);
+        var expected = PerkTable.ForList("Cool");
+        Assert.NotNull(expected);
+        Assert.NotNull(viewModel.Table);
+        Assert.Equal(expected.Tracks.Count, viewModel.Table.Tracks.Count);
 
         viewModel.SelectedPerkTableOption = null;
         Assert.Null(viewModel.Table);

@@ -55,7 +55,7 @@ public sealed class LoadSeasonViewModelTests : IDisposable
 
         await viewModel.OpenSeasonCommand.ExecuteAsync(viewModel.SeasonRecords[0]);
 
-        await _navigation.DidNotReceiveWithAnyArgs().NavigateToAsync(default!, default);
+        await _navigation.DidNotReceiveWithAnyArgs().NavigateToAsync(Arg.Any<string>(), Arg.Any<IDictionary<string, object>?>());
         await _dialogs.Received(1).ShowAlertAsync("Company Not Found", Arg.Is<string>(m => m.Contains("'Gone'")), "OK");
     }
 }

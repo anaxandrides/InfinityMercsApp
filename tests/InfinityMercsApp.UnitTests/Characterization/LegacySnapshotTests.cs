@@ -24,7 +24,11 @@ public sealed class LegacySnapshotTests
 
         if (!File.Exists(approvedPath))
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(approvedPath)!);
+            if (Path.GetDirectoryName(approvedPath) is { Length: > 0 } directory)
+            {
+                Directory.CreateDirectory(directory);
+            }
+
             File.WriteAllText(approvedPath, actual, new UTF8Encoding(false));
             Assert.Fail($"No approved snapshot existed, so one was written to '{approvedPath}'. Review it, commit it, and re-run.");
         }

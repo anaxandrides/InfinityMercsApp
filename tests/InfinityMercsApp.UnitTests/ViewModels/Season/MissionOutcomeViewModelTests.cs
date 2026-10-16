@@ -96,7 +96,8 @@ public sealed class MissionOutcomeViewModelTests
         await viewModel.GoToExperienceCommand.ExecuteAsync(null);
 
         var round = new SeasonRound();
-        _roundUpdate!(round);
+        Assert.NotNull(_roundUpdate);
+        _roundUpdate(round);
         Assert.True(round.MissionResults.Won);
         Assert.Equal(4, round.MissionResults.OpScored);
 

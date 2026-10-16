@@ -461,8 +461,7 @@ internal static class LegacyUnitDetailRules
             var parts = (moveElement.GetString() ?? string.Empty)
                 .Split('-', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
                 .Select(x => int.TryParse(x, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) ? (int?)parsed : null)
-                .Where(x => x.HasValue)
-                .Select(x => x!.Value)
+                .OfType<int>()
                 .ToList();
 
             if (parts.Count >= 2)
@@ -475,8 +474,7 @@ internal static class LegacyUnitDetailRules
         {
             var values = moveElement.EnumerateArray()
                 .Select(TryParseInt)
-                .Where(x => x.HasValue)
-                .Select(x => x!.Value)
+                .OfType<int>()
                 .ToList();
 
             if (values.Count >= 2)

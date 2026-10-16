@@ -156,7 +156,8 @@ public sealed class DeploymentRosterTests : IDisposable
     {
         var entry = JsonSerializer.Deserialize<InfinityMercsApp.Services.CompanySelection.Models.Saved.SavedCompanyEntry>(
             """{"sourceFactionId":101,"baseUnitName":"Turtlemek"}""",
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        Assert.NotNull(entry);
 
         Assert.Equal(DeploymentRoster.TagCompanyFactionId, DeploymentRoster.EffectiveSourceFactionId(entry));
     }
