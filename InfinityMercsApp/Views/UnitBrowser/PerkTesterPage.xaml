@@ -287,16 +287,7 @@
                 Grid.Row="1"
                 HorizontalOptions="Center"
                 MaximumWidthRequest="700"
-                Request="{Binding Source={x:Reference PerkTesterPageRoot}, Path=BindingContext.UnitFilterRequest}">
-                <unitFilter:UnitFilterPopupView.Behaviors>
-                    <toolkit:EventToCommandBehavior BindingContext="{Binding Source={x:Reference PerkTesterPageRoot}, Path=BindingContext}"
-                                                    EventName="FilterArmyApplied"
-                                                    Command="{Binding ApplyUnitFilterCommand}" />
-                    <toolkit:EventToCommandBehavior BindingContext="{Binding Source={x:Reference PerkTesterPageRoot}, Path=BindingContext}"
-                                                    EventName="CloseRequested"
-                                                    Command="{Binding CloseUnitFilterCommand}" />
-                </unitFilter:UnitFilterPopupView.Behaviors>
-            </unitFilter:UnitFilterPopupView>
+                BindingContext="{Binding Source={x:Reference PerkTesterPageRoot}, Path=BindingContext.UnitFilter}" />
         </Grid>
     </Grid>
 

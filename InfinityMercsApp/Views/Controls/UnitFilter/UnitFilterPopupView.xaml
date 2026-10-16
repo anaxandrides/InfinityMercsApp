@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:unitFilter="clr-namespace:InfinityMercsApp.ViewModels.Components.UnitFilter"
              x:Class="InfinityMercsApp.Views.Controls.UnitFilter.UnitFilterPopupView"
+             x:DataType="unitFilter:UnitFilterViewModel"
              SizeChanged="OnPopupSizeChanged">
 
     <Grid Padding="16">
@@ -43,7 +45,7 @@
                                         Wrap="Wrap"
                                         AlignItems="Center">
                                 <BindableLayout.ItemTemplate>
-                                    <DataTemplate>
+                                    <DataTemplate x:DataType="unitFilter:FilterCriterionItem">
                                         <Border StrokeThickness="1"
                                                 Stroke="{StaticResource Hairline}"
                                                 BackgroundColor="{StaticResource Plate}"
@@ -51,7 +53,8 @@
                                                 Padding="12,8"
                                                 Margin="0,0,8,8">
                                             <Border.GestureRecognizers>
-                                                <TapGestureRecognizer Tapped="OnCriterionChipTapped" />
+                                                <TapGestureRecognizer Command="{Binding SelectCriterionCommand, Source={RelativeSource AncestorType={x:Type unitFilter:UnitFilterViewModel}}, x:DataType=unitFilter:UnitFilterViewModel}"
+                                                                      CommandParameter="{Binding .}" />
                                             </Border.GestureRecognizers>
                                             <Border.Triggers>
                                                 <DataTrigger TargetType="Border" Binding="{Binding HasSelections}" Value="True">
@@ -103,7 +106,7 @@
                                         Style="{StaticResource ButtonCaption}"
                                         Padding="10,4"
                                         MinimumHeightRequest="0"
-                                        Clicked="OnClearCriterionClicked" />
+                                        Command="{Binding ClearCriterionCommand}" />
                             </Grid>
 
                             <HorizontalStackLayout Spacing="8">
@@ -122,7 +125,7 @@
                                         Wrap="Wrap"
                                         AlignItems="Center">
                                 <BindableLayout.ItemTemplate>
-                                    <DataTemplate>
+                                    <DataTemplate x:DataType="unitFilter:SelectableFilterOption">
                                         <Border StrokeThickness="1"
                                                 Stroke="{StaticResource Hairline}"
                                                 BackgroundColor="{StaticResource Plate}"
@@ -130,7 +133,8 @@
                                                 Padding="12,8"
                                                 Margin="0,0,8,8">
                                             <Border.GestureRecognizers>
-                                                <TapGestureRecognizer Tapped="OnOptionChipTapped" />
+                                                <TapGestureRecognizer Command="{Binding ToggleOptionCommand, Source={RelativeSource AncestorType={x:Type unitFilter:UnitFilterViewModel}}, x:DataType=unitFilter:UnitFilterViewModel}"
+                                                                      CommandParameter="{Binding .}" />
                                             </Border.GestureRecognizers>
                                             <Border.Triggers>
                                                 <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
@@ -201,14 +205,14 @@
                         StrokeThickness="0"
                         Padding="16,12">
                     <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
-                        <Button Grid.Column="0" Text="Back" Clicked="OnBackClicked" />
-                        <Button Grid.Column="1" Text="Reset" Clicked="OnResetClicked" />
+                        <Button Grid.Column="0" Text="Back" Command="{Binding CloseCommand}" />
+                        <Button Grid.Column="1" Text="Reset" Command="{Binding ResetCommand}" />
                         <Button Grid.Column="2"
                                 Text="Update"
                                 HorizontalOptions="End"
                                 BackgroundColor="{StaticResource Signal}"
                                 TextColor="{StaticResource Void}"
-                                Clicked="OnFilterArmyClicked" />
+                                Command="{Binding ApplyCommand}" />
                     </Grid>
                 </Border>
             </Grid>

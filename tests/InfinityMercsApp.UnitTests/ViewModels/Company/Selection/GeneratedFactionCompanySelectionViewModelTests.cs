@@ -1,6 +1,7 @@
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.ViewModels.Company.Selection;
+using InfinityMercsApp.ViewModels.Components.UnitFilter;
 using AirborneGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.AirborneCompanyFactionGenerator;
 using InspiringGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.InspiringCompanyFactionGenerator;
 
@@ -98,7 +99,7 @@ public sealed class GeneratedFactionCompanySelectionViewModelTests
 
         viewModel.OpenUnitFilterCommand.Execute(null);
 
-        var request = Assert.IsType<InfinityMercsApp.Views.Controls.UnitFilter.UnitFilterRequest>(viewModel.UnitFilterRequest);
+        var request = Assert.IsType<UnitFilterViewModel>(viewModel.UnitFilter).Request;
         Assert.False(request.TeamsViewEnabled);
         Assert.True(request.LieutenantOnlyUnits);
     }

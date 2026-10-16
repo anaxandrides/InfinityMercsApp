@@ -3,7 +3,7 @@ using InfinityMercsApp.Domain.Models.Filtering;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company.Selection;
-using InfinityMercsApp.Views.Controls.UnitFilter;
+using InfinityMercsApp.ViewModels.Components.UnitFilter;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Selection;
 
@@ -48,7 +48,7 @@ public sealed class LoneWolfCompanySelectionViewModelTests
         var viewModel = await OpenWithFactionAsync();
 
         viewModel.OpenUnitFilterCommand.Execute(null);
-        var request = Assert.IsType<UnitFilterRequest>(viewModel.UnitFilterRequest);
+        var request = Assert.IsType<UnitFilterViewModel>(viewModel.UnitFilter).Request;
         Assert.False(request.LieutenantOnlyUnitsEnabled);
         Assert.False(request.TeamsViewEnabled);
 

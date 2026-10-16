@@ -4,9 +4,10 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company.Selection;
-using NSubstitute;
-using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using InfinityMercsApp.ViewModels.Components.UnitFilter;
 using InfinityMercsApp.ViewModels.Layouts;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Selection;
 
@@ -112,13 +113,28 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
+    public async Task ApplyingThePopupFiltersTheUnitsAndClosesIt()
+    {
+        var viewModel = await OpenWithFactionAsync();
+        viewModel.OpenUnitFilterCommand.Execute(null);
+        var popup = Assert.IsType<UnitFilterViewModel>(viewModel.UnitFilter);
+
+        popup.SelectedLieutenantOnlyUnits = true;
+        popup.ApplyCommand.Execute(null);
+
+        Assert.False(viewModel.IsUnitFilterOpen);
+        Assert.True(viewModel.LieutenantOnlyUnits);
+        Assert.True(viewModel.IsUnitFilterActive);
+    }
+
+    [Fact]
     public async Task TheFilterPopupOpensWithTheCurrentCriteria()
     {
         var viewModel = await OpenWithFactionAsync();
 
         viewModel.OpenUnitFilterCommand.Execute(null);
 
-        var request = Assert.IsType<InfinityMercsApp.Views.Controls.UnitFilter.UnitFilterRequest>(viewModel.UnitFilterRequest);
+        var request = Assert.IsType<UnitFilterViewModel>(viewModel.UnitFilter).Request;
         Assert.True(viewModel.IsUnitFilterOpen);
         Assert.True(request.TeamsViewEnabled);
         Assert.True(request.LieutenantOnlyUnitsEnabled);

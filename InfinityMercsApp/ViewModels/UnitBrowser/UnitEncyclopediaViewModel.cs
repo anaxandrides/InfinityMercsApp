@@ -8,10 +8,10 @@ using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.Views.Controls.UnitFilter;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Components;
+using InfinityMercsApp.ViewModels.Components.UnitFilter;
 
 namespace InfinityMercsApp.ViewModels.UnitBrowser;
 
@@ -194,12 +194,12 @@ public partial class UnitEncyclopediaViewModel(
     [RelayCommand]
     private void BackToUnits() => Step = BrowseStep.Units;
 
-    /// <summary>What the unit filter popup was opened with; null while it is closed.</summary>
+    /// <summary>The open unit filter popup; null while it is closed.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsUnitFilterOpen))]
-    private UnitFilterRequest? _unitFilterRequest;
+    private UnitFilterViewModel? _unitFilter;
 
-    public bool IsUnitFilterOpen => UnitFilterRequest is not null;
+    public bool IsUnitFilterOpen => UnitFilter is not null;
 
     /// <summary>Opens the filter popup on the selected faction's choices and the filter already applied.</summary>
     [RelayCommand]
@@ -207,7 +207,10 @@ public partial class UnitEncyclopediaViewModel(
     {
         try
         {
-            UnitFilterRequest = new UnitFilterRequest(BuildUnitFilterPopupOptions(), ActiveUnitFilter, LieutenantOnlyUnits);
+            UnitFilter = new UnitFilterViewModel(
+                new UnitFilterRequest(BuildUnitFilterPopupOptions(), ActiveUnitFilter, LieutenantOnlyUnits),
+                ApplyUnitFilterCommand,
+                CloseUnitFilterCommand);
         }
         catch (Exception ex)
         {
@@ -216,13 +219,13 @@ public partial class UnitEncyclopediaViewModel(
     }
 
     [RelayCommand]
-    private void CloseUnitFilter() => UnitFilterRequest = null;
+    private void CloseUnitFilter() => UnitFilter = null;
 
     /// <summary>Closes the filter popup and shows the units matching its filter.</summary>
     [RelayCommand]
     private Task ApplyUnitFilterAsync(UnitFilterCriteria? criteria)
     {
-        UnitFilterRequest = null;
+        UnitFilter = null;
         ActiveUnitFilter = criteria ?? UnitFilterCriteria.None;
         _applyingFilter = true;
         LieutenantOnlyUnits = ActiveUnitFilter.LieutenantOnlyUnits;

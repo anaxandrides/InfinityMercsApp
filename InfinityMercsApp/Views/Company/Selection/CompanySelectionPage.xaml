@@ -263,18 +263,7 @@
               IsVisible="{Binding IsUnitFilterOpen}"
               BackgroundColor="#880E1116"
               ZIndex="100">
-            <unitFilter:UnitFilterPopupView Grid.Row="1" HorizontalOptions="Center" MaximumWidthRequest="700" Request="{Binding UnitFilterRequest}">
-                <unitFilter:UnitFilterPopupView.Behaviors>
-                    <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference CompanySelectionRoot}, x:DataType=ContentPage}"
-                                                    x:DataType="selection:CompanySelectionViewModel"
-                                                    EventName="FilterArmyApplied"
-                                                    Command="{Binding ApplyUnitFilterCommand}" />
-                    <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference CompanySelectionRoot}, x:DataType=ContentPage}"
-                                                    x:DataType="selection:CompanySelectionViewModel"
-                                                    EventName="CloseRequested"
-                                                    Command="{Binding CloseUnitFilterCommand}" />
-                </unitFilter:UnitFilterPopupView.Behaviors>
-            </unitFilter:UnitFilterPopupView>
+            <unitFilter:UnitFilterPopupView Grid.Row="1" HorizontalOptions="Center" MaximumWidthRequest="700" BindingContext="{Binding UnitFilter}" />
         </Grid>
 
         <!-- Compact: the full-screen faction selector. -->

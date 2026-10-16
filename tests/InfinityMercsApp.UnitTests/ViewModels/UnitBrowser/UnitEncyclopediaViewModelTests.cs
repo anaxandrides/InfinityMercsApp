@@ -122,7 +122,7 @@ public sealed class UnitEncyclopediaViewModelTests
         viewModel.OpenUnitFilterCommand.Execute(null);
 
         Assert.True(viewModel.IsUnitFilterOpen);
-        var request = viewModel.UnitFilterRequest;
+        var request = viewModel.UnitFilter?.Request;
         Assert.NotNull(request);
         Assert.Same(viewModel.ActiveUnitFilter, request.ExistingCriteria);
         Assert.False(request.TeamsView);
@@ -139,7 +139,7 @@ public sealed class UnitEncyclopediaViewModelTests
 
         await viewModel.ApplyUnitFilterCommand.ExecuteAsync(UnitFilterCriteria.None);
 
-        Assert.Null(viewModel.UnitFilterRequest);
+        Assert.Null(viewModel.UnitFilter);
     }
 
     [Fact]

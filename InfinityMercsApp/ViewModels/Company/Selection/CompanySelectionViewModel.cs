@@ -12,7 +12,6 @@ using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Collections;
-using InfinityMercsApp.Views.Controls.UnitFilter;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecOps.SpecopsUnit;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
@@ -21,6 +20,7 @@ using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 using InfinityMercsApp.ViewModels.Themes;
+using InfinityMercsApp.ViewModels.Components.UnitFilter;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 
@@ -83,7 +83,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsUnitFilterOpen))]
-    private UnitFilterRequest? _unitFilterRequest;
+    private UnitFilterViewModel? _unitFilter;
 
     [ObservableProperty]
     private string _selectedStartSeasonPoints = "75";
@@ -203,7 +203,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
     public bool ShowTeamsList => TeamsView && (!WaitsForTeamEntries || AreTeamEntriesReady);
 
-    public bool IsUnitFilterOpen => UnitFilterRequest is not null;
+    public bool IsUnitFilterOpen => UnitFilter is not null;
 
     public bool IsUnitsPaneActive => ActivePane == CompanySelectionPane.Units;
     public bool IsProfilePaneActive => ActivePane == CompanySelectionPane.Profile;
@@ -1321,22 +1321,23 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     private void OpenUnitFilter()
     {
         var options = CompanySelectionUnitFilterOptionsService.GetPreparedPopupOptionsForCurrentPoints(_preparedFilterOptions, FilterMaxPoints);
-        UnitFilterRequest = new UnitFilterRequest(
+        var request = new UnitFilterRequest(
             options,
             ActiveUnitFilter,
             AllowsLieutenantFilter && LieutenantOnlyUnits,
             TeamsView: AllowsTeamsFilter && TeamsView,
             TeamsViewEnabled: AllowsTeamsFilter,
             LieutenantOnlyUnitsEnabled: AllowsLieutenantFilter);
+        UnitFilter = new UnitFilterViewModel(request, ApplyUnitFilterCommand, CloseUnitFilterCommand);
     }
 
     [RelayCommand]
-    private void CloseUnitFilter() => UnitFilterRequest = null;
+    private void CloseUnitFilter() => UnitFilter = null;
 
     [RelayCommand]
     private void ApplyUnitFilter(UnitFilterCriteria? criteria)
     {
-        UnitFilterRequest = null;
+        UnitFilter = null;
         var normalized = NormalizeFilterCriteria(criteria ?? UnitFilterCriteria.None);
         ActiveUnitFilter = CompanySelectionUnitFilterOptionsService.ApplyCriteriaFromPopup(
             normalized,
