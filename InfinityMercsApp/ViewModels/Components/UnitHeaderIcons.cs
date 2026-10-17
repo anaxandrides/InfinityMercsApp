@@ -26,33 +26,39 @@ public sealed record UnitHeaderIcons
     public static UnitHeaderIcons None { get; } = new();
 
     /// <summary>
-    /// The icon files in column order: the order type (irregular over regular), lieutenants, peripheral,
-    /// impetuous, tactical awareness, cube, cube 2.0 and hackable, at most <see cref="MaxShown"/>.
+    /// The icons in column order: the order type (irregular over regular), lieutenants, peripheral, impetuous,
+    /// tactical awareness, cube, cube 2.0 and hackable, at most <see cref="MaxShown"/>.
     /// </summary>
-    public IReadOnlyList<string> Sources
+    public IReadOnlyList<HeaderIcon> Shown
     {
         get
         {
-            var sources = new List<string>();
+            var icons = new List<HeaderIcon>();
             if (Irregular)
             {
-                sources.Add(Folder + "irregular.svg");
+                icons.Add(Icon("irregular.svg", "Irregular: gives an Irregular order, for itself only"));
             }
             else if (Regular)
             {
-                sources.Add(Folder + "regular.svg");
+                icons.Add(Icon("regular.svg", "Regular: adds a Regular order to the order pool"));
             }
 
-            sources.AddRange(Enumerable.Repeat(Folder + "lieutenant.svg", Math.Max(0, Lieutenants)));
-            AddIf(sources, Peripheral, "peripheral.svg");
-            AddIf(sources, Impetuous, "impetuous.svg");
-            AddIf(sources, TacticalAwareness, "tactical.svg");
-            AddIf(sources, Cube, "cube.svg");
-            AddIf(sources, Cube2, "cube2.svg");
-            AddIf(sources, Hackable, "hackable.svg");
-            return sources.Take(MaxShown).ToList();
+            icons.AddRange(Enumerable.Repeat(Icon("lieutenant.svg", "Lieutenant: gives a Lieutenant order"), Math.Max(0, Lieutenants)));
+            AddIf(icons, Peripheral, "peripheral.svg", "Peripheral");
+            AddIf(icons, Impetuous, "impetuous.svg", "Impetuous");
+            AddIf(icons, TacticalAwareness, "tactical.svg", "Tactical Awareness: gives an extra Regular order for itself");
+            AddIf(icons, Cube, "cube.svg", "Cube");
+            AddIf(icons, Cube2, "cube2.svg", "Cube 2.0");
+            AddIf(icons, Hackable, "hackable.svg", "Hackable: can be targeted by hacking programs");
+            return icons.Take(MaxShown).ToList();
         }
     }
+
+    /// <summary>The icon files in column order.</summary>
+    public IReadOnlyList<string> Sources => Shown.Select(icon => icon.Source).ToList();
+
+    /// <summary>What each icon means, one per line in column order, for the column's tooltip.</summary>
+    public string Meanings => string.Join(Environment.NewLine, Shown.Select(icon => icon.Meaning));
 
     public bool HasAny => Sources.Count > 0;
 
@@ -69,11 +75,13 @@ public sealed record UnitHeaderIcons
         Hackable = traits.Hackable
     };
 
-    private static void AddIf(List<string> sources, bool show, string file)
+    private static HeaderIcon Icon(string file, string meaning) => new(Folder + file, meaning);
+
+    private static void AddIf(List<HeaderIcon> icons, bool show, string file, string meaning)
     {
         if (show)
         {
-            sources.Add(Folder + file);
+            icons.Add(Icon(file, meaning));
         }
     }
 }

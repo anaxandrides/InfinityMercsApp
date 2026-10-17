@@ -41,6 +41,8 @@ public partial class UnitDetailViewModel(
     /// <summary>A unit read from army data shows no separate peripheral statline.</summary>
     public PeripheralStatBlock? Peripheral => null;
 
+    public bool HasPeripheral => false;
+
     [ObservableProperty] public partial string EquipmentSummary { get; set; } = "Equipment: -";
     [ObservableProperty] public partial string SpecialSkillsSummary { get; set; } = "Special Skills: -";
     [ObservableProperty] public partial FormattedString EquipmentSummaryFormatted { get; set; } = new();

@@ -30,7 +30,11 @@ public sealed partial class CompanyUnitDetail : ObservableObject, IUnitDisplay
 
     [ObservableProperty] public partial UnitStatLine Stats { get; set; } = UnitStatLine.Empty;
     [ObservableProperty] public partial UnitHeaderIcons Icons { get; set; } = UnitHeaderIcons.None;
-    [ObservableProperty] public partial PeripheralStatBlock? Peripheral { get; set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPeripheral))]
+    public partial PeripheralStatBlock? Peripheral { get; set; }
+
+    public bool HasPeripheral => Peripheral is not null;
 
     [ObservableProperty] public partial string EquipmentSummary { get; set; } = "Equipment: -";
     [ObservableProperty] public partial string SpecialSkillsSummary { get; set; } = "Special Skills: -";

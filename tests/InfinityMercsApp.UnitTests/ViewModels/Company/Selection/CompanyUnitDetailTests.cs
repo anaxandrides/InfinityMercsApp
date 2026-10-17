@@ -1,4 +1,5 @@
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company.Selection;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Themes;
@@ -51,11 +52,18 @@ public sealed class CompanyUnitDetailTests
     {
         var detail = new CompanyUnitDetail();
         detail.ApplyPeripheral(Peripheral(), Move);
+        Assert.True(detail.HasPeripheral);
 
         detail.ResetPeripheral();
 
         Assert.Null(detail.Peripheral);
+        Assert.False(detail.HasPeripheral);
     }
+
+    // The season and viewer detail has no peripheral block, so the display must not show an empty one.
+    [Fact]
+    public void ASavedTroopersDetailHasNoPeripheralBlock() =>
+        Assert.False(new UnitDetailViewModel(Army101Data.Create()).HasPeripheral);
 
     [Fact]
     public void ChangingUnitsReformatsBothMoves()

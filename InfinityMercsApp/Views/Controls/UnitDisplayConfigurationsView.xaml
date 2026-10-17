@@ -60,6 +60,7 @@
                 VerticalOptions="Center"
                 HorizontalOptions="Center"
                 Sources="{Binding Icons.Sources}"
+                ToolTipProperties.Text="{Binding Icons.Meanings}"
                 IsVisible="{Binding Icons.HasAny}" />
             <Border x:Name="LogoColumnBorder" Grid.Column="1" Grid.Row="0" Grid.RowSpan="3" BackgroundColor="Transparent" StrokeThickness="0" Padding="0" VerticalOptions="Center">
                 <controls:SvgIcon
@@ -116,12 +117,9 @@
                     <Label Grid.Column="9" Text="{Binding Stats.Ava}" Style="{StaticResource StatLabel}" IsVisible="{Binding ShowAva, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}" />
                 </Grid>
             </Border>
-            <Border Grid.Row="3" Grid.Column="2" BackgroundColor="#111827" Stroke="#4B5563" StrokeThickness="1" Padding="6,4">
-                <Border.Triggers>
-                    <DataTrigger TargetType="Border" Binding="{Binding Peripheral}" Value="{x:Null}">
-                        <Setter Property="IsVisible" Value="False" />
-                    </DataTrigger>
-                </Border.Triggers>
+            <!-- Shown only with a peripheral: a DataTrigger on a null value doesn't hide it reliably. -->
+            <Border Grid.Row="3" Grid.Column="2" BackgroundColor="#111827" Stroke="#4B5563" StrokeThickness="1" Padding="6,4"
+                    IsVisible="{Binding HasPeripheral}">
                 <VerticalStackLayout Spacing="4">
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
                         <controls:SvgIcon Grid.Column="0" WidthRequest="18" HeightRequest="18" VerticalOptions="Center" Source="SVGCache/CBIcons/peripheral.svg" />

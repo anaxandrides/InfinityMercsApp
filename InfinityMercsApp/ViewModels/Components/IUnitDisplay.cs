@@ -20,6 +20,9 @@ public interface IUnitDisplay : INotifyPropertyChanged
     /// <summary>The peripheral's statline, or null when there is none to show.</summary>
     PeripheralStatBlock? Peripheral { get; }
 
+    /// <summary>Whether there is a peripheral statline to show.</summary>
+    bool HasPeripheral { get; }
+
     FormattedString EquipmentSummaryFormatted { get; }
 
     FormattedString SpecialSkillsSummaryFormatted { get; }

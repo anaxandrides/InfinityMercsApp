@@ -58,4 +58,15 @@ public sealed class UnitHeaderIconsTests
             },
             icons);
     }
+
+    [Fact]
+    public void TheTooltipSaysWhatEachIconMeansInColumnOrder()
+    {
+        var icons = new UnitHeaderIcons { Regular = true, Lieutenants = 1, Hackable = true };
+
+        Assert.Equal(
+            ["Regular: adds a Regular order to the order pool", "Lieutenant: gives a Lieutenant order", "Hackable: can be targeted by hacking programs"],
+            icons.Meanings.Split(Environment.NewLine));
+        Assert.Equal(icons.Shown.Select(icon => icon.Source), icons.Sources);
+    }
 }
