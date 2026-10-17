@@ -1,11 +1,12 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Services.Glossary;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.Presentation.Layouts;
+
 namespace InfinityMercsApp.ViewModels.Reference;
 
 /// <summary>The MERCS rules index; choosing a rule shows its text.</summary>

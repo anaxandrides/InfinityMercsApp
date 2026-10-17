@@ -1,7 +1,7 @@
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Season.Armor;
-using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
+using InfinityMercsApp.Domain.Season.Troopers;
 
 namespace InfinityMercsApp.UnitTests.Season.Armor;
 

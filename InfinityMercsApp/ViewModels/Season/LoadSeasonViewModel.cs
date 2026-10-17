@@ -1,11 +1,12 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.Presentation.Layouts;
+
 namespace InfinityMercsApp.ViewModels.Season;
 
 /// <summary>Lists saved seasons and opens the chosen one.</summary>

@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.Domain.Models.Season.Gear;
-
 using InfinityMercsApp.Presentation.Season.Overview;
+
 namespace InfinityMercsApp.ViewModels.Season.Overview.Items;
 
 /// <summary>

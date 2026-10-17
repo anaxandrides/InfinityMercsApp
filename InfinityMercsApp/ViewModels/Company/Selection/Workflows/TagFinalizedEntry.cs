@@ -1,9 +1,9 @@
 using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Presentation.Company.Selection;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
-using InfinityMercsApp.Presentation.Company.Selection;
 namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 /// <summary>A TAG company trooper once its Spec Ops upgrades are chosen.</summary>

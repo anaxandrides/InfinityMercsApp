@@ -1,6 +1,6 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
-using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.Services.CompanyProfiles;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 

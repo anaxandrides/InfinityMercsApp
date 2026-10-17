@@ -1,8 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
-using DomainFaction = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using DomainArmyImportResume = InfinityMercsApp.Domain.Models.Army.ArmyImportResume;
+using DomainFaction = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using DomainResume = InfinityMercsApp.Domain.Models.Army.Resume;
 
 namespace InfinityMercsApp.Services.Logos;

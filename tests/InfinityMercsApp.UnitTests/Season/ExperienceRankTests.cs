@@ -1,3 +1,5 @@
+using InfinityMercsApp.Domain.Models.Perks;
+
 namespace InfinityMercsApp.UnitTests.Season;
 
 public sealed class ExperienceRankTests

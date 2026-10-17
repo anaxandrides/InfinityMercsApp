@@ -1,9 +1,9 @@
-using InfinityMercsApp.Views.Splash;
-using InfinityMercsApp.Views.Adaptive;
 using System.Collections;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
+using InfinityMercsApp.Views.Adaptive;
+using InfinityMercsApp.Views.Splash;
 
 namespace InfinityMercsApp;
 

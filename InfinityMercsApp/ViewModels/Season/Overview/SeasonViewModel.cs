@@ -1,26 +1,26 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Metadata;
+using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Domain.Utilities;
+using InfinityMercsApp.Presentation.Company.Viewer;
 using InfinityMercsApp.Services.ArmyData;
-using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
+using InfinityMercsApp.Services.Rolls;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Season.Peripherals;
-using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Components;
-using InfinityMercsApp.Services.Rolls;
 
-using InfinityMercsApp.Presentation.Company.Viewer;
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 
 /// <summary>

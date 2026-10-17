@@ -1,11 +1,11 @@
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Presentation.Company.Viewer;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.UnitTests.ViewModels.Season.Overview;
 using InfinityMercsApp.ViewModels.Season.RankUp;
 using NSubstitute;
 
-using InfinityMercsApp.Presentation.Company.Viewer;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.RankUp;
 
 public sealed class RankUpViewModelTests

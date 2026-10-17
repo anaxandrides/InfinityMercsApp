@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Presentation.Season.Overview;
+
 namespace InfinityMercsApp.UnitTests.Presentation.Season.Overview;
 
 public sealed class InventoryItemTests

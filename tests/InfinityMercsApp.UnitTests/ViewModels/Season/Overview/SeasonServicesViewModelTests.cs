@@ -1,11 +1,11 @@
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Services;
 using InfinityMercsApp.Domain.Season.Troopers;
-using InfinityMercsApp.ViewModels.Season.Overview;
-using NSubstitute;
-using InfinityMercsApp.ViewModels.Season.Overview.Items;
-
 using InfinityMercsApp.Presentation.Company.Viewer;
+using InfinityMercsApp.ViewModels.Season.Overview;
+using InfinityMercsApp.ViewModels.Season.Overview.Items;
+using NSubstitute;
+
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Overview;
 
 public sealed class SeasonServicesViewModelTests

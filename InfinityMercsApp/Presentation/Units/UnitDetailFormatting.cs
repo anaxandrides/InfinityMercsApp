@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Lieutenants;
+
 namespace InfinityMercsApp.Presentation.Units;
 
 /// <summary>

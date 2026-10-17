@@ -6,14 +6,14 @@ using InfinityMercsApp.Domain.Season.Game;
 using InfinityMercsApp.Domain.Season.Injuries;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
+using InfinityMercsApp.Presentation.Season;
+using InfinityMercsApp.Presentation.Season.Game;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Season.Game.Items;
 
-using InfinityMercsApp.Presentation.Season;
-using InfinityMercsApp.Presentation.Season.Game;
 namespace InfinityMercsApp.ViewModels.Season.Game;
 
 /// <summary>

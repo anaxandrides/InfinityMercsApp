@@ -1,10 +1,10 @@
 using System.ComponentModel;
 using InfinityMercsApp.Domain.Models.Perks.Tables;
+using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.ViewModels.Reference;
 using InfinityMercsApp.Views.Adaptive;
 using InfinityMercsApp.Views.Base;
 
-using InfinityMercsApp.Presentation.Layouts;
 namespace InfinityMercsApp.Views.Reference;
 
 /// <summary>

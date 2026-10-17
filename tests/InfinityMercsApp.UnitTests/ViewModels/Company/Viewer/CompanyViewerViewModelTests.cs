@@ -1,15 +1,15 @@
+using InfinityMercsApp.Presentation.Company.Viewer;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
+using InfinityMercsApp.UnitTests.Presentation.Company.Viewer;
 using InfinityMercsApp.ViewModels.Company.Viewer;
+using InfinityMercsApp.ViewModels.Components;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using InfinityMercsApp.ViewModels.Components;
 
-using InfinityMercsApp.Presentation.Company.Viewer;
-using InfinityMercsApp.UnitTests.Presentation.Company.Viewer;
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Viewer;
 
 public sealed class CompanyViewerViewModelTests

@@ -1,5 +1,6 @@
 using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Presentation.Season;
+
 namespace InfinityMercsApp.UnitTests.Presentation.Season;
 
 public sealed class MercsSeasonLayoutTests

@@ -3,8 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Season.Injuries;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.Logos;
-using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Rolls;
+using InfinityMercsApp.Services.Season;
 
 namespace InfinityMercsApp.ViewModels.Season.Items;
 

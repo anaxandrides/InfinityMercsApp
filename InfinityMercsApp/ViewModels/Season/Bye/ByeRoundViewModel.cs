@@ -3,15 +3,15 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Season.Byes;
 using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Presentation.Season;
+using InfinityMercsApp.Presentation.Season.Bye;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.ViewModels.Season.Overview;
 using InfinityMercsApp.ViewModels.Season.Bye.Items;
+using InfinityMercsApp.ViewModels.Season.Overview;
 
-using InfinityMercsApp.Presentation.Season;
-using InfinityMercsApp.Presentation.Season.Bye;
 namespace InfinityMercsApp.ViewModels.Season.Bye;
 
 /// <summary>

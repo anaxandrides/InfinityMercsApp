@@ -6,12 +6,12 @@ using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Injuries;
 using InfinityMercsApp.Domain.Season.Services;
 using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Presentation.Season.RankUp;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.ViewModels.Season.Overview.Items;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
+using InfinityMercsApp.ViewModels.Season.Overview.Items;
 
-using InfinityMercsApp.Presentation.Season.RankUp;
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 
 /// <summary>

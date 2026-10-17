@@ -2,10 +2,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Metadata.Wiki;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
+using InfinityMercsApp.Presentation.Marketplaces;
 using InfinityMercsApp.Services.Wiki;
 using InfinityMercsApp.ViewModels.Marketplaces.Items;
 
-using InfinityMercsApp.Presentation.Marketplaces;
 namespace InfinityMercsApp.ViewModels.Components;
 
 /// <summary>

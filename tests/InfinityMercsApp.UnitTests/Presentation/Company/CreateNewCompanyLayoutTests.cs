@@ -1,5 +1,6 @@
 using InfinityMercsApp.Presentation.Company;
 using InfinityMercsApp.Presentation.Layouts;
+
 namespace InfinityMercsApp.UnitTests.Presentation.Company;
 
 public sealed class CreateNewCompanyLayoutTests

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using InfinityMercsApp.Domain.Models.Perks;
 using InfinityMercsApp.Domain.Models.Perks.Catalog;
 using Microsoft.Data.Sqlite;
 

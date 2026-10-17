@@ -5,7 +5,6 @@
 using System.Globalization;
 using System.Text.Json;
 
-
 namespace InfinityMercsApp.UnitTests.Legacy;
 
 internal static class LegacyCompanyUnitFilterService

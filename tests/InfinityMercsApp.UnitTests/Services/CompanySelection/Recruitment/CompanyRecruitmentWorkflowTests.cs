@@ -5,8 +5,8 @@ using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.UnitTests.Support;
-using NSubstitute;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
+using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.Services.CompanySelection.Recruitment;
 

@@ -1,9 +1,10 @@
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
+using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Armory;
 using NSubstitute;
-using InfinityMercsApp.Presentation.Layouts;
+
 namespace InfinityMercsApp.UnitTests.ViewModels.Armory;
 
 public sealed class ArmoryViewModelTests

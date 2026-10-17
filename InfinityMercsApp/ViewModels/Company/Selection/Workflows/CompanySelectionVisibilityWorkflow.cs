@@ -1,11 +1,11 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.CompanySelection.Units;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using ArmyFactionRecord = InfinityMercsApp.Domain.Models.Army.Faction;
 using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecOps.SpecopsUnit;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
-using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
-using InfinityMercsApp.Services.CompanySelection.Teams;
 namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 internal static class CompanySelectionVisibilityWorkflow

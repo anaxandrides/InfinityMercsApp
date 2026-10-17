@@ -10,19 +10,19 @@ using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.Retirement;
 using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Presentation.Company.Viewer;
+using InfinityMercsApp.Presentation.Season.Overview;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Season.Peripherals;
-using InfinityMercsApp.ViewModels.UnitBrowser.Items;
-using InfinityMercsApp.ViewModels.Season.Overview.Items;
-using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
+using InfinityMercsApp.ViewModels.Components;
+using InfinityMercsApp.ViewModels.Season.Overview.Items;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
-using InfinityMercsApp.Presentation.Company.Viewer;
-using InfinityMercsApp.Presentation.Season.Overview;
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 
 /// <summary>

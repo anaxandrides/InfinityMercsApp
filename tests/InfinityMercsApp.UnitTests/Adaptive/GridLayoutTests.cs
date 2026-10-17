@@ -1,5 +1,6 @@
-using InfinityMercsApp.Views.Adaptive;
 using InfinityMercsApp.Presentation.Layouts;
+using InfinityMercsApp.Views.Adaptive;
+
 namespace InfinityMercsApp.UnitTests.Adaptive;
 
 public sealed class GridLayoutTests

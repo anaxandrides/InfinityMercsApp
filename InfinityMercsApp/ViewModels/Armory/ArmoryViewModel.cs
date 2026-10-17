@@ -3,10 +3,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
-using InfinityMercsApp.Services.Navigation;
-using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.Presentation.Armory;
 using InfinityMercsApp.Presentation.Layouts;
+using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.ViewModels.Base;
+
 namespace InfinityMercsApp.ViewModels.Armory;
 
 /// <summary>Searchable list of weapons, each opening its profiles in a detail pane.</summary>

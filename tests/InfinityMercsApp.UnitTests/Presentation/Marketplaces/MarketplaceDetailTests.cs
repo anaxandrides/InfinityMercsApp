@@ -1,8 +1,9 @@
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Metadata.Wiki;
 using InfinityMercsApp.Domain.Models.Stores;
-using InfinityMercsApp.ViewModels.Marketplaces.Items;
 using InfinityMercsApp.Presentation.Marketplaces;
+using InfinityMercsApp.ViewModels.Marketplaces.Items;
+
 namespace InfinityMercsApp.UnitTests.Presentation.Marketplaces;
 
 public sealed class MarketplaceDetailTests

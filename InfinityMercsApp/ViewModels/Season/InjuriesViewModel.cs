@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Injuries;
 using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Presentation.Company.Viewer;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Rolls;
@@ -12,7 +13,6 @@ using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
 using InfinityMercsApp.ViewModels.Season.Items;
 
-using InfinityMercsApp.Presentation.Company.Viewer;
 namespace InfinityMercsApp.ViewModels.Season;
 
 /// <summary>

@@ -3,28 +3,28 @@ using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Presentation.Company.Selection;
+using InfinityMercsApp.Presentation.Themes;
 using InfinityMercsApp.Services.CompanyProfiles;
+using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
+using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Collections;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
+using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
+using InfinityMercsApp.ViewModels.Components.UnitFilter;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecOps.SpecopsUnit;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
-using InfinityMercsApp.ViewModels.UnitBrowser.Items;
-using InfinityMercsApp.ViewModels.Company.Selection.Items;
-using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
-using InfinityMercsApp.ViewModels.Components.UnitFilter;
 
-using InfinityMercsApp.Presentation.Company.Selection;
-using InfinityMercsApp.Presentation.Themes;
-using InfinityMercsApp.Services.CompanySelection.Factions;
-using InfinityMercsApp.Services.CompanySelection.Teams;
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 
 /// <summary>

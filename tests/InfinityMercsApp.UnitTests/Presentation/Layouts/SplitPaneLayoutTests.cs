@@ -1,4 +1,5 @@
 using InfinityMercsApp.Presentation.Layouts;
+
 namespace InfinityMercsApp.UnitTests.Presentation.Layouts;
 
 public sealed class SplitPaneLayoutTests

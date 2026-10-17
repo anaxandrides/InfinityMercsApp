@@ -2,6 +2,7 @@ using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
+using InfinityMercsApp.Presentation.Company.Viewer;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Packaging;
@@ -9,7 +10,6 @@ using InfinityMercsApp.ViewModels.Company.Viewer.Items;
 using InfinityMercsApp.ViewModels.Components;
 using NSubstitute;
 
-using InfinityMercsApp.Presentation.Company.Viewer;
 namespace InfinityMercsApp.UnitTests.Presentation.Company.Viewer;
 
 public sealed class CompanyRosterTests

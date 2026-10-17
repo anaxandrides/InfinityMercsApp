@@ -2,19 +2,19 @@ using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Season.Downtime;
 using InfinityMercsApp.Domain.Season.Experience;
+using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Presentation.Company.Viewer;
+using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
-using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.Records;
-using InfinityMercsApp.Domain.Season.Troopers;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.ViewModels.Season.Downtime;
-using NSubstitute;
-using InfinityMercsApp.ViewModels.Season.Downtime.Items;
 using InfinityMercsApp.Services.Rolls;
+using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.ViewModels.Season.Downtime;
+using InfinityMercsApp.ViewModels.Season.Downtime.Items;
+using NSubstitute;
 
-using InfinityMercsApp.Presentation.Company.Viewer;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Downtime;
 
 public sealed class DowntimeViewModelTests

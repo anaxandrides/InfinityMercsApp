@@ -1,5 +1,6 @@
-using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.Presentation.Layouts;
+using InfinityMercsApp.ViewModels.Base;
+
 namespace InfinityMercsApp.Views.Adaptive;
 
 /// <summary>

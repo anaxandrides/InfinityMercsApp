@@ -2,8 +2,9 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Fireteams;
-using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Presentation.UnitBrowser;
+using InfinityMercsApp.Services.CompanyProfiles;
+
 namespace InfinityMercsApp.Presentation.Units;
 
 /// <summary>

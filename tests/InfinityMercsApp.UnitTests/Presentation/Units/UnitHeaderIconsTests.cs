@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Presentation.Units;
+
 namespace InfinityMercsApp.UnitTests.Presentation.Units;
 
 public sealed class UnitHeaderIconsTests

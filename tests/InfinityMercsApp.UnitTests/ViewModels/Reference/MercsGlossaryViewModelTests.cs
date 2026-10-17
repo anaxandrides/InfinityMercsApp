@@ -1,10 +1,11 @@
+using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Services.Glossary;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.ViewModels.Reference;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using InfinityMercsApp.Presentation.Layouts;
+
 namespace InfinityMercsApp.UnitTests.ViewModels.Reference;
 
 public sealed class MercsGlossaryViewModelTests

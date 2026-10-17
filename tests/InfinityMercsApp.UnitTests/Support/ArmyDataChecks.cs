@@ -1,7 +1,7 @@
 using InfinityMercsApp.Domain.Models.Army;
-using MetadataFaction = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Services.Import;
+using MetadataFaction = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
 namespace InfinityMercsApp.UnitTests.Support;
 

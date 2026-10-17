@@ -6,13 +6,13 @@ using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.Marketplace;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
-using InfinityMercsApp.Services.Dialogs;
-using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.ViewModels.Marketplaces.Items;
-using InfinityMercsApp.ViewModels.Components;
-
 using InfinityMercsApp.Presentation.Season.Overview;
+using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Rolls;
+using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.ViewModels.Components;
+using InfinityMercsApp.ViewModels.Marketplaces.Items;
+
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 
 /// <summary>

@@ -2,9 +2,9 @@ using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Metadata.Ranges;
 using InfinityMercsApp.Domain.Season.Game;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
+using InfinityMercsApp.Presentation.Season.Game;
 using NSubstitute;
 
-using InfinityMercsApp.Presentation.Season.Game;
 namespace InfinityMercsApp.UnitTests.Presentation.Season.Game;
 
 public sealed class GameWeaponCatalogTests

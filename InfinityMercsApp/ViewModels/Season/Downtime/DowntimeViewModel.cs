@@ -7,16 +7,16 @@ using InfinityMercsApp.Domain.Season.Experience;
 using InfinityMercsApp.Domain.Season.Injuries;
 using InfinityMercsApp.Domain.Season.Rolls;
 using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Presentation.Company.Viewer;
+using InfinityMercsApp.Presentation.Season.Downtime;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Records;
+using InfinityMercsApp.Services.Rolls;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Season.Downtime.Items;
-using InfinityMercsApp.Services.Rolls;
 
-using InfinityMercsApp.Presentation.Company.Viewer;
-using InfinityMercsApp.Presentation.Season.Downtime;
 namespace InfinityMercsApp.ViewModels.Season.Downtime;
 
 /// <summary>

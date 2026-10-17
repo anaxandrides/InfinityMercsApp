@@ -5,15 +5,15 @@ using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Presentation.Season;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.UnitTests.Season.Armor;
 using InfinityMercsApp.UnitTests.Season.Inventory;
 using InfinityMercsApp.UnitTests.Support;
-using NSubstitute;
 using InfinityMercsApp.ViewModels.Season.Items;
+using NSubstitute;
 
-using InfinityMercsApp.Presentation.Season;
 namespace InfinityMercsApp.UnitTests.Presentation.Season;
 
 public sealed class DeploymentRosterTests : IDisposable

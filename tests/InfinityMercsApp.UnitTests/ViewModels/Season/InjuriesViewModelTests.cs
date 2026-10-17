@@ -1,17 +1,17 @@
+using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Experience;
 using InfinityMercsApp.Domain.Season.Injuries;
-using InfinityMercsApp.Services.Navigation;
-using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.ViewModels.Season;
-using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Presentation.Company.Viewer;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Records;
-using NSubstitute;
 using InfinityMercsApp.Services.Rolls;
+using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.ViewModels.Season;
+using NSubstitute;
 
-using InfinityMercsApp.Presentation.Company.Viewer;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season;
 
 public sealed class InjuriesViewModelTests

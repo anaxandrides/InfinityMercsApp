@@ -1,4 +1,5 @@
 using InfinityMercsApp.Presentation.Layouts;
+
 namespace InfinityMercsApp.Presentation.Company;
 
 /// <summary>The company cards: one column on phones, two on medium screens and three on wider ones, centred and capped.</summary>

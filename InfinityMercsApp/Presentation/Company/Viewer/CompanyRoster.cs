@@ -6,17 +6,18 @@ using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Presentation.Themes;
+using InfinityMercsApp.Presentation.Units;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Common;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.ViewModels.UnitBrowser.Items;
-using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
-using InfinityMercsApp.Presentation.Themes;
-using InfinityMercsApp.Presentation.Units;
+using InfinityMercsApp.ViewModels.Components;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+
 namespace InfinityMercsApp.Presentation.Company.Viewer;
 
 /// <summary>

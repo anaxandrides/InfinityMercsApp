@@ -1,5 +1,6 @@
 using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Presentation.UnitBrowser;
+
 namespace InfinityMercsApp.UnitTests.Presentation.UnitBrowser;
 
 public sealed class UnitEncyclopediaLayoutTests

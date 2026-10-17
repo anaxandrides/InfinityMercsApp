@@ -3,6 +3,7 @@ using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Presentation.Season;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
@@ -10,7 +11,6 @@ using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Season.Items;
 using InfinityMercsApp.Views.Season.Game;
 
-using InfinityMercsApp.Presentation.Season;
 namespace InfinityMercsApp.ViewModels.Season;
 
 /// <summary>

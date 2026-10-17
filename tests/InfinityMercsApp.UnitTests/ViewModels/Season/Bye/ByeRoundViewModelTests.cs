@@ -2,6 +2,7 @@ using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Byes;
 using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Presentation.Season;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
@@ -11,7 +12,6 @@ using InfinityMercsApp.ViewModels.Season.Bye;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
 
-using InfinityMercsApp.Presentation.Season;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Bye;
 
 public sealed class ByeRoundViewModelTests : IDisposable

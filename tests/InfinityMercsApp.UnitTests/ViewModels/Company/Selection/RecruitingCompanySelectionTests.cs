@@ -6,8 +6,8 @@ using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company.Selection;
-using NSubstitute;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Selection;
 

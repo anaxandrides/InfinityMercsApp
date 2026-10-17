@@ -14,9 +14,9 @@ using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
+using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.ViewModels.Season.Items;
-using InfinityMercsApp.Services.Season;
 
 namespace InfinityMercsApp.Presentation.Season;
 

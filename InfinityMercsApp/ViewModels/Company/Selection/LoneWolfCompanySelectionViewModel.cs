@@ -1,9 +1,10 @@
 using InfinityMercsApp.Domain.Models.Army.Traits;
-using InfinityMercsApp.Services.Navigation;
-using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
-using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Teams;
+using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
+using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
+
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 
 /// <summary>

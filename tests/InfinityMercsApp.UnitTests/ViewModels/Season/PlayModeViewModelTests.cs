@@ -1,6 +1,7 @@
 using System.Text.Json;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Presentation.Season;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
@@ -9,7 +10,6 @@ using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Season;
 using NSubstitute;
 
-using InfinityMercsApp.Presentation.Season;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season;
 
 public sealed class PlayModeViewModelTests : IDisposable

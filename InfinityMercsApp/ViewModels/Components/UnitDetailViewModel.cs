@@ -5,11 +5,11 @@ using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Army.Traits;
 using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Presentation.Themes;
+using InfinityMercsApp.Presentation.Units;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
-using InfinityMercsApp.Presentation.Themes;
-using InfinityMercsApp.Presentation.Units;
 namespace InfinityMercsApp.ViewModels.Components;
 
 /// <summary>

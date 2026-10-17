@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.Input;
+using InfinityMercsApp.Presentation.Company;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 
-using InfinityMercsApp.Presentation.Company;
 namespace InfinityMercsApp.ViewModels.Company;
 
 /// <summary>Chooses where a Standard company's units come from: one vanilla faction or two sectorials.</summary>

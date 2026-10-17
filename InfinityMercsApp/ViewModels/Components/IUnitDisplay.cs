@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using InfinityMercsApp.Presentation.Themes;
 using InfinityMercsApp.Presentation.Units;
+
 namespace InfinityMercsApp.ViewModels.Components;
 
 /// <summary>What the unit display's header shows: the unit's name, logo, icons, statline and summaries.</summary>

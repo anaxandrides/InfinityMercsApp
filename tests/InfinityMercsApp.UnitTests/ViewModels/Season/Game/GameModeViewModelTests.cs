@@ -5,16 +5,17 @@ using InfinityMercsApp.Domain.Season.Game;
 using InfinityMercsApp.Domain.Season.Injuries;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Presentation.Season;
+using InfinityMercsApp.Presentation.Season.Game;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Season.Game;
-using NSubstitute;
 using InfinityMercsApp.ViewModels.Season.Game.Items;
-using InfinityMercsApp.Presentation.Season;
-using InfinityMercsApp.Presentation.Season.Game;
+using NSubstitute;
+
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Game;
 
 public sealed class GameModeViewModelTests : IDisposable

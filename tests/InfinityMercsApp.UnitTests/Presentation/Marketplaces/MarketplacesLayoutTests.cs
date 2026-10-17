@@ -1,5 +1,6 @@
 using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Presentation.Marketplaces;
+
 namespace InfinityMercsApp.UnitTests.Presentation.Marketplaces;
 
 public sealed class MarketplacesLayoutTests

@@ -2,10 +2,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Marketplace;
-using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.Services.Rolls;
-
 using InfinityMercsApp.Presentation.Season.Overview;
+using InfinityMercsApp.Services.Rolls;
+using InfinityMercsApp.Services.Season;
+
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 
 /// <summary>

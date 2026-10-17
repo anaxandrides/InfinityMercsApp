@@ -1,4 +1,5 @@
 using System.Text.Json;
+using InfinityMercsApp.Domain.Models.Perks;
 using Microsoft.Data.Sqlite;
 using Xunit.Abstractions;
 

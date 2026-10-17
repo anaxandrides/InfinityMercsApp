@@ -2,9 +2,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Inventory;
+using InfinityMercsApp.Presentation.Season.Overview;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.Presentation.Season.Overview;
+
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 
 /// <summary>

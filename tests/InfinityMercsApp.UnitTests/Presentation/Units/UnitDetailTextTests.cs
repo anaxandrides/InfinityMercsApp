@@ -1,6 +1,7 @@
 using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Presentation.Units;
 using InfinityMercsApp.Presentation;
+using InfinityMercsApp.Presentation.Units;
+
 namespace InfinityMercsApp.UnitTests.Presentation.Units;
 
 public sealed class UnitDetailTextTests

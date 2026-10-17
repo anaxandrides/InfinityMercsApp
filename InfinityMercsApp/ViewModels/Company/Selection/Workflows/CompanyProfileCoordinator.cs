@@ -1,12 +1,12 @@
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Army.Traits;
+using InfinityMercsApp.Presentation.Company.Selection;
+using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
-using InfinityMercsApp.Services.CompanyProfiles;
 
-using InfinityMercsApp.Presentation.Company.Selection;
 namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 internal sealed class CompanyProfileCoordinator

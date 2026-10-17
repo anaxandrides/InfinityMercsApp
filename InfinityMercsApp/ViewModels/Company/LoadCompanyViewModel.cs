@@ -1,11 +1,12 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.Presentation.Layouts;
+
 namespace InfinityMercsApp.ViewModels.Company;
 
 /// <summary>Lists saved companies, opens one in the viewer (or a new season), and deletes them.</summary>

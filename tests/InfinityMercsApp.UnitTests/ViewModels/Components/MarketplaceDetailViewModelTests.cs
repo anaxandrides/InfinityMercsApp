@@ -1,9 +1,9 @@
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
 using InfinityMercsApp.Services.Wiki;
-using NSubstitute;
-using InfinityMercsApp.ViewModels.Marketplaces.Items;
 using InfinityMercsApp.ViewModels.Components;
+using InfinityMercsApp.ViewModels.Marketplaces.Items;
+using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Components;
 

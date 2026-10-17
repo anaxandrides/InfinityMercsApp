@@ -1,12 +1,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Stores;
+using InfinityMercsApp.Presentation.Marketplaces;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.ViewModels.Marketplaces.Items;
 using InfinityMercsApp.ViewModels.Components;
+using InfinityMercsApp.ViewModels.Marketplaces.Items;
 
-using InfinityMercsApp.Presentation.Marketplaces;
 namespace InfinityMercsApp.ViewModels.Marketplaces;
 
 /// <summary>

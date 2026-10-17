@@ -1,11 +1,11 @@
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Presentation.Captain;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.ViewModels.Captain;
 using InfinityMercsApp.ViewModels.Captain.Items;
 
-using InfinityMercsApp.Presentation.Captain;
 namespace InfinityMercsApp.UnitTests.ViewModels.Captain;
 
 public sealed class ConfigureCaptainViewModelTests

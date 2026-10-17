@@ -2,6 +2,7 @@ using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Domain.Models.Army.Fireteams;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
@@ -12,7 +13,7 @@ using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company.Selection;
 using NSubstitute;
 using MetadataFaction = InfinityMercsApp.Domain.Models.Metadata.Faction;
-using InfinityMercsApp.Presentation.Layouts;
+
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Selection;
 
 /// <summary>

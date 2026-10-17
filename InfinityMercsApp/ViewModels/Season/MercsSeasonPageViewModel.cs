@@ -1,9 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using InfinityMercsApp.Presentation.Season;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 
-using InfinityMercsApp.Presentation.Season;
 namespace InfinityMercsApp.ViewModels.Season;
 
 /// <summary>The MERCS Season home: load a season, or start one from a saved or new company.</summary>

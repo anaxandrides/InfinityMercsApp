@@ -1,4 +1,5 @@
 using InfinityMercsApp.Presentation.Layouts;
+
 namespace InfinityMercsApp.UnitTests.Presentation.Layouts;
 
 /// <summary>Text follows the window's shorter side, whichever way round the window is.</summary>

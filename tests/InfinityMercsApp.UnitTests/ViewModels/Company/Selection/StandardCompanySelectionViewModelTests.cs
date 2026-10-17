@@ -1,4 +1,6 @@
 using InfinityMercsApp.Domain.Models.Filtering;
+using InfinityMercsApp.Presentation.Company.Selection;
+using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Navigation;
@@ -8,8 +10,6 @@ using InfinityMercsApp.ViewModels.Components.UnitFilter;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using NSubstitute;
 
-using InfinityMercsApp.Presentation.Layouts;
-using InfinityMercsApp.Presentation.Company.Selection;
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Selection;
 
 public sealed class StandardCompanySelectionViewModelTests

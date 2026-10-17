@@ -1,6 +1,7 @@
 using System.Windows.Input;
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Presentation.Weapons;
+
 namespace InfinityMercsApp.Views.Controls;
 
 /// <summary>A weapon's stats, special rules (each opening its wiki page) and range bands.</summary>

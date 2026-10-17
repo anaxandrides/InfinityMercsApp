@@ -1,15 +1,15 @@
 using System.Globalization;
 using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Presentation.Company.Selection;
 using InfinityMercsApp.Services.CompanySelection.Common;
+using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Navigation;
-using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
-using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
-using InfinityMercsApp.Presentation.Company.Selection;
-using InfinityMercsApp.Services.CompanySelection.Teams;
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 
 /// <summary>

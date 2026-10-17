@@ -3,12 +3,12 @@ using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Presentation.Captain;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.ViewModels.Captain.Items;
 
-using InfinityMercsApp.Presentation.Captain;
 namespace InfinityMercsApp.ViewModels.Captain;
 
 /// <summary>

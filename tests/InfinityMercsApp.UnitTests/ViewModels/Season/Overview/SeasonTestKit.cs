@@ -2,22 +2,22 @@ using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
+using InfinityMercsApp.Presentation.Company.Viewer;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
+using InfinityMercsApp.Services.Rolls;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.Services.Wiki;
+using InfinityMercsApp.UnitTests.Presentation.Company.Viewer;
+using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
-using InfinityMercsApp.ViewModels.Components;
-using InfinityMercsApp.Services.Rolls;
 
-using InfinityMercsApp.Presentation.Company.Viewer;
-using InfinityMercsApp.UnitTests.Presentation.Company.Viewer;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Overview;
 
 /// <summary>

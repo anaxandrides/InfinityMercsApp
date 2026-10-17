@@ -1,6 +1,7 @@
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Presentation.Captain;
+
 namespace InfinityMercsApp.UnitTests.Presentation.Captain;
 
 public sealed class CaptainStatCellTests

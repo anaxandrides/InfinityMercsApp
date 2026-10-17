@@ -2,16 +2,16 @@ using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Metadata.Wiki;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
-using InfinityMercsApp.Services.Navigation;
-using InfinityMercsApp.Services.Wiki;
-using InfinityMercsApp.ViewModels.Marketplaces;
-using NSubstitute;
-using NSubstitute.ExceptionExtensions;
-using InfinityMercsApp.ViewModels.Components;
-
 using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Presentation.Marketplaces;
+using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.Services.Wiki;
+using InfinityMercsApp.ViewModels.Components;
+using InfinityMercsApp.ViewModels.Marketplaces;
 using InfinityMercsApp.ViewModels.Marketplaces.Items;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
+
 namespace InfinityMercsApp.UnitTests.ViewModels.Marketplaces;
 
 public sealed class MarketplacesViewModelTests

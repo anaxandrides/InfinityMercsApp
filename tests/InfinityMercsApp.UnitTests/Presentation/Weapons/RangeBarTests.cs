@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Models.Metadata.Ranges;
 using InfinityMercsApp.Presentation.Weapons;
+
 namespace InfinityMercsApp.UnitTests.Presentation.Weapons;
 
 public sealed class RangeBarTests

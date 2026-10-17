@@ -2,15 +2,15 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Presentation.Company.Viewer;
+using InfinityMercsApp.Presentation.Season.RankUp;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Records;
+using InfinityMercsApp.Services.Rolls;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
-using InfinityMercsApp.Services.Rolls;
 
-using InfinityMercsApp.Presentation.Company.Viewer;
-using InfinityMercsApp.Presentation.Season.RankUp;
 namespace InfinityMercsApp.ViewModels.Season.RankUp;
 
 /// <summary>

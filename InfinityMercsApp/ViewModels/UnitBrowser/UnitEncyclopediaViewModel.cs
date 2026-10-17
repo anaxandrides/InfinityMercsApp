@@ -4,17 +4,17 @@ using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Fireteams;
 using InfinityMercsApp.Domain.Utilities;
+using InfinityMercsApp.Presentation.UnitBrowser;
+using InfinityMercsApp.Presentation.Units;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
-using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
-using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Components.UnitFilter;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
-using InfinityMercsApp.Presentation.UnitBrowser;
-using InfinityMercsApp.Presentation.Units;
 namespace InfinityMercsApp.ViewModels.UnitBrowser;
 
 /// <summary>
