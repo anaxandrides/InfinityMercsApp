@@ -9,5 +9,8 @@ public enum GearSlot
     Accessories,
     Roles,
     Armor,
-    Augments
+    Augments,
+
+    /// <summary>Belts and Pouches' one more slot, for gear of any kind but armour.</summary>
+    Extra
 }

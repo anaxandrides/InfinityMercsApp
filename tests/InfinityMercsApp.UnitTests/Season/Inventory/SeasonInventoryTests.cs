@@ -120,6 +120,33 @@ public sealed class SeasonInventoryTests
         Assert.Empty(inventory.ItemsFor(GearSlot.Roles));
     }
 
+    // Belts and Pouches' extra slot takes gear of any kind but armour, and nothing that isn't gear.
+    [Fact]
+    public void TheExtraSlotTakesAnyGearButArmour()
+    {
+        var season = new SeasonFile
+        {
+            Rounds = [Round(1, Bought("Number One", "Pistol"), Bought("Number One", "Light Armour (LI)"), Bought("Number One", "WIP=12"), Bought("Number One", "Rations"))]
+        };
+
+        Assert.Equal(["Pistol", "WIP=12"], SeasonInventory.From(season, Catalog).ItemsFor(GearSlot.Extra));
+    }
+
+    [Fact]
+    public void AnExtraItemWorksAsItsOwnKind()
+    {
+        IReadOnlyList<SeasonUnitGear> gear =
+        [
+            new() { Slot = GearSlot.Armor.Key(), ItemName = "Light Armour (LI)" },
+            new() { Slot = GearSlot.Extra.Key(), ItemName = "Pistol" },
+            new() { Slot = GearSlot.Extra.Key(), ItemName = "Mystery Box" }
+        ];
+
+        Assert.Equal(
+            [new EquippedItem(GearSlot.Armor, "Light Armour (LI)"), new EquippedItem(GearSlot.Sidearm, "Pistol")],
+            EquippedItem.In(gear, Catalog));
+    }
+
     [Theory]
     [InlineData(12, 6)]
     [InlineData(5, 3)]

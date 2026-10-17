@@ -1,8 +1,8 @@
 namespace InfinityMercsApp.Domain.Models.Season.Gear;
 
 /// <summary>
-/// The season gear of every trooper in a company, by company entry index. An item can be in one trooper's
-/// slot at a time: assigning it to another moves it.
+/// The season gear of every trooper in a company, by company entry index. An item can be in one slot at a time
+/// (its own kind's or an extra slot): assigning it to another moves it.
 /// </summary>
 public sealed class CompanyLoadouts
 {
@@ -27,9 +27,12 @@ public sealed class CompanyLoadouts
         {
             foreach (var (otherIndex, other) in _loadouts)
             {
-                if (otherIndex != entryIndex && string.Equals(other[slot], itemName, StringComparison.OrdinalIgnoreCase))
+                foreach (var otherSlot in Enum.GetValues<GearSlot>().Where(other => slot.SharesItemsWith(other)))
                 {
-                    other[slot] = null;
+                    if ((otherIndex != entryIndex || otherSlot != slot) && string.Equals(other[otherSlot], itemName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        other[otherSlot] = null;
+                    }
                 }
             }
         }
@@ -37,12 +40,16 @@ public sealed class CompanyLoadouts
         For(entryIndex)[slot] = itemName;
     }
 
-    /// <summary>The other trooper holding <paramref name="itemName"/> in that slot, or null when no one else does.</summary>
+    /// <summary>
+    /// The other trooper holding <paramref name="itemName"/> in that slot or one sharing its items, or null when
+    /// no one else does.
+    /// </summary>
     public int? HolderOf(string itemName, GearSlot slot, int exceptEntryIndex)
     {
         foreach (var (entryIndex, loadout) in _loadouts)
         {
-            if (entryIndex != exceptEntryIndex && string.Equals(loadout[slot], itemName, StringComparison.OrdinalIgnoreCase))
+            if (entryIndex != exceptEntryIndex &&
+                Enum.GetValues<GearSlot>().Any(other => slot.SharesItemsWith(other) && string.Equals(loadout[other], itemName, StringComparison.OrdinalIgnoreCase)))
             {
                 return entryIndex;
             }

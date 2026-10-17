@@ -230,4 +230,18 @@ public sealed class DeploymentRosterTests : IDisposable
         Assert.True(fusilier.HasNwi);
         Assert.Contains("Immunity (Shock)", fusilier.Skills);
     }
+
+    [Fact]
+    public async Task AnExtraSlotsItemWorksAsItsOwnKind()
+    {
+        _stores.GetAllStoreNames().Returns(["Number One"]);
+        _stores.GetStoreByNameAsync("Number One", Arg.Any<CancellationToken>()).Returns(InventoryTestStores.NumberOne);
+        var season = new SeasonFile();
+        season.UnitGear[2] = [new SeasonUnitGear { ItemName = "Spitfire", Slot = GearSlot.Extra.Key() }];
+        _seasonFiles.LoadAsync(SeasonPath).Returns(season);
+
+        var fusilier = (await LoadAsync())[1];
+
+        Assert.Contains("Spitfire", fusilier.RangedWeapons);
+    }
 }

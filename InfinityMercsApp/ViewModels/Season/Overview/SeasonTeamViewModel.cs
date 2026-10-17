@@ -270,10 +270,13 @@ public partial class SeasonTeamViewModel : ObservableObject
 
         var profile = CompanyRoster.ProfileOf(item, Detail.ShowUnitsInInches);
         CompanyRoster.ShowOn(Detail, item, profile);
-        var loadout = _loadouts.For(item.EntryIndex);
-        if (StatOverride.TryParse(loadout[GearSlot.Augments], out var statOverride))
+        var carried = EquippedItem.In(_loadouts.For(item.EntryIndex).ToSeasonGear(), _catalog);
+        foreach (var augment in carried.Where(gear => gear.Slot == GearSlot.Augments))
         {
-            Detail.ApplyAugmentStatOverride(statOverride);
+            if (StatOverride.TryParse(augment.Name, out var statOverride))
+            {
+                Detail.ApplyAugmentStatOverride(statOverride);
+            }
         }
 
         Detail.LogoSource = item.LogoSource;
@@ -288,8 +291,8 @@ public partial class SeasonTeamViewModel : ObservableObject
         Detail.HeaderColors = _roster.HeaderColorsFor(item.VisualFactionId > 0 ? item.VisualFactionId : item.SourceFactionId);
 
         Equipment = ProfileColumns.From(ProfileText.Lines(profile.UniqueEquipment));
-        Skills = ProfileColumns.From(SkillLines(profile, loadout));
-        ShowWeapons(profile, loadout);
+        Skills = ProfileColumns.From(SkillLines(profile, carried));
+        ShowWeapons(profile, carried);
         RefreshGearPickers();
     }
 
@@ -305,34 +308,29 @@ public partial class SeasonTeamViewModel : ObservableObject
         HasPerkPointsToSpend = progress?.HasPerkPointsToSpend == true;
     }
 
-    // The lieutenant order first, then the rest, then an augment that is a skill rather than a stat.
-    private static List<string> SkillLines(ViewerProfileItem profile, UnitLoadout loadout)
+    // The lieutenant order first, then the rest, then any augment that is a skill rather than a stat.
+    private static List<string> SkillLines(ViewerProfileItem profile, IReadOnlyList<EquippedItem> carried)
     {
         var skills = ProfileText.Lines(profile.UniqueSkills);
         LieutenantRules.MoveLieutenantFirst(skills);
-        var augment = loadout[GearSlot.Augments];
-        if (!string.IsNullOrWhiteSpace(augment) &&
-            !StatOverride.TryParse(augment, out _) &&
-            !skills.Contains(augment, StringComparer.OrdinalIgnoreCase))
+        foreach (var augment in carried.Where(gear => gear.Slot == GearSlot.Augments).Select(gear => gear.Name))
         {
-            skills.Add(augment);
+            if (!StatOverride.TryParse(augment, out _) && !skills.Contains(augment, StringComparer.OrdinalIgnoreCase))
+            {
+                skills.Add(augment);
+            }
         }
 
         return skills;
     }
 
-    // The profile's weapons, plus any carried in a weapon slot, each under ranged or melee.
-    private void ShowWeapons(ViewerProfileItem profile, UnitLoadout loadout)
+    // The profile's weapons, plus any carried as a weapon, each under ranged or melee.
+    private void ShowWeapons(ViewerProfileItem profile, IReadOnlyList<EquippedItem> carried)
     {
         var ranged = ProfileText.Lines(profile.RangedWeapons);
         var melee = ProfileText.Lines(profile.MeleeWeapons);
-        foreach (var slot in Enum.GetValues<GearSlot>().Where(slot => slot.HoldsWeapon()))
+        foreach (var weapon in carried.Where(gear => gear.Slot.HoldsWeapon()).Select(gear => gear.Name))
         {
-            if (loadout[slot] is not { } weapon)
-            {
-                continue;
-            }
-
             var list = CompanyProfileText.IsMeleeWeaponName(weapon) ? melee : ranged;
             if (!list.Contains(weapon, StringComparer.OrdinalIgnoreCase))
             {
@@ -356,6 +354,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         var loadout = _loadouts.For(item.EntryIndex);
         foreach (var picker in GearSlots)
         {
+            picker.IsAvailable = picker.Slot != GearSlot.Extra || HasExtraSlot(loadout);
             List<GearOption> options = [GearOption.None];
             var selected = GearOption.None;
             foreach (var itemName in _inventory.ItemsFor(picker.Slot))
@@ -389,8 +388,18 @@ public partial class SeasonTeamViewModel : ObservableObject
         }
 
         _loadouts.Assign(item.EntryIndex, slot, option.ItemName);
+        if (slot == GearSlot.Armor && !HasExtraSlot(_loadouts.For(item.EntryIndex)))
+        {
+            // Taking off Belts and Pouches empties its slot.
+            _loadouts.Assign(item.EntryIndex, GearSlot.Extra, null);
+        }
+
         _ = SaveThenRefreshAsync();
     }
+
+    // Belts and Pouches gives one more slot.
+    private bool HasExtraSlot(UnitLoadout loadout) =>
+        loadout[GearSlot.Armor] is { } armor && _catalog.Find(armor)?.Armor?.Effects.ExtraSlot == true;
 
     // The picker goes back to what the trooper had once the alert is shown.
     private async Task RefuseOverSwcAsync(GearOption option, double equippedSwc)

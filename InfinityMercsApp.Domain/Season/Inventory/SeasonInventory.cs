@@ -21,9 +21,10 @@ public sealed class SeasonInventory
     /// <summary>What is owned, by category (gear slots first, in slot order) and then name.</summary>
     public IReadOnlyList<InventoryEntry> Entries { get; }
 
-    /// <summary>The names of the owned items that go in <paramref name="slot"/>.</summary>
+    /// <summary>The names of the owned items that go in <paramref name="slot"/>; the extra slot takes any but armour.</summary>
     public IReadOnlyList<string> ItemsFor(GearSlot slot) =>
-        Entries.Where(entry => string.Equals(entry.Category, slot.Key(), StringComparison.OrdinalIgnoreCase))
+        Entries.Where(entry => GearSlots.TryParse(entry.Category, out var kind) &&
+                               (kind == slot || (slot == GearSlot.Extra && GearSlots.ExtraSlotTakes.Contains(kind))))
             .Select(entry => entry.Name)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();

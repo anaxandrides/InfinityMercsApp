@@ -14,7 +14,11 @@ public sealed partial class GearSlotPicker(GearSlot slot, Action<GearSlot, GearO
     public GearSlot Slot { get; } = slot;
 
     /// <summary>The slot's heading, e.g. "SIDEARM".</summary>
-    public string Title { get; } = slot.Key().ToUpperInvariant();
+    public string Title { get; } = slot == GearSlot.Extra ? "EXTRA (BELTS AND POUCHES)" : slot.Key().ToUpperInvariant();
+
+    /// <summary>Whether the trooper has this slot: only Belts and Pouches gives the extra one.</summary>
+    [ObservableProperty]
+    public partial bool IsAvailable { get; set; } = true;
 
     [ObservableProperty]
     public partial IReadOnlyList<GearOption> Options { get; set; } = [GearOption.None];

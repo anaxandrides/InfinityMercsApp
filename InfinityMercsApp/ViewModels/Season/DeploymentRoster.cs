@@ -7,6 +7,7 @@ using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Armor;
+using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanyProfiles;
@@ -76,6 +77,7 @@ public sealed partial class DeploymentRoster(
                 captain,
                 seasonGear.GetValueOrDefault(entry.EntryIndex),
                 SeasonTroopers.ArmorOf(entry, season, catalog),
+                catalog,
                 SeasonTroopers.CaptainBonusesOf(entry, company.ImprovedCaptainStats),
                 SeasonTroopers.ProgressOf(entry, season),
                 SeasonRenown.Of(entry, season, catalog).Total,
@@ -88,6 +90,7 @@ public sealed partial class DeploymentRoster(
         CaptainUpgrades captain,
         IReadOnlyList<SeasonUnitGear>? gear,
         StoreTroopType? armor,
+        InventoryCatalog catalog,
         CaptainStatBonuses captainBonuses,
         TrooperProgress progress,
         int renown,
@@ -108,7 +111,7 @@ public sealed partial class DeploymentRoster(
             captain.ApplyTo(profile);
         }
 
-        ApplySeasonGear(profile, gear ?? []);
+        ApplySeasonGear(profile, gear ?? [], catalog);
 
         // Armour changes the underlying line; injuries, perks, rank skills and services then add on top.
         var worn = ArmorFitting.Wear(
@@ -170,43 +173,38 @@ public sealed partial class DeploymentRoster(
 
     /// <summary>
     /// Adds season gear: weapons to the ranged or melee list, roles to skills, and augments either
-    /// as stat overrides ("BS=14") or as skills.
+    /// as stat overrides ("BS=14") or as skills. An extra slot's item works as its own kind.
     /// </summary>
-    internal static void ApplySeasonGear(UnitProfile profile, IEnumerable<SeasonUnitGear> gear)
+    internal static void ApplySeasonGear(UnitProfile profile, IEnumerable<SeasonUnitGear> gear, InventoryCatalog catalog)
     {
-        foreach (var item in gear.Where(g => !string.IsNullOrWhiteSpace(g.ItemName)))
+        foreach (var item in EquippedItem.In(gear, catalog))
         {
-            if (!GearSlots.TryParse(item.Slot, out var slot))
-            {
-                continue;
-            }
-
-            switch (slot)
+            switch (item.Slot)
             {
                 case GearSlot.Primary or GearSlot.Secondary or GearSlot.Sidearm or GearSlot.Accessories:
-                    if (CompanyProfileText.IsMeleeWeaponName(item.ItemName))
+                    if (CompanyProfileText.IsMeleeWeaponName(item.Name))
                     {
-                        profile.MeleeWeapons = AppendKeepingText(profile.MeleeWeapons, [item.ItemName]);
+                        profile.MeleeWeapons = AppendKeepingText(profile.MeleeWeapons, [item.Name]);
                     }
                     else
                     {
-                        profile.RangedWeapons = AppendKeepingText(profile.RangedWeapons, [item.ItemName]);
+                        profile.RangedWeapons = AppendKeepingText(profile.RangedWeapons, [item.Name]);
                     }
 
                     break;
 
                 case GearSlot.Roles:
-                    profile.Skills = AppendKeepingText(profile.Skills, [item.ItemName]);
+                    profile.Skills = AppendKeepingText(profile.Skills, [item.Name]);
                     break;
 
                 case GearSlot.Augments:
-                    if (StatOverride.TryParse(item.ItemName, out var statOverride))
+                    if (StatOverride.TryParse(item.Name, out var statOverride))
                     {
                         profile.SetStat(statOverride);
                     }
                     else
                     {
-                        profile.Skills = AppendKeepingText(profile.Skills, [item.ItemName]);
+                        profile.Skills = AppendKeepingText(profile.Skills, [item.Name]);
                     }
 
                     break;

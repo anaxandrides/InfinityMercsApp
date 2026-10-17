@@ -62,7 +62,11 @@ public sealed class SeasonTeamViewModelTests
     {
         Name = "Armoury",
         AssociatedFactions = ["PanOceania"],
-        TroopTypes = [new StoreTroopType { ArmorName = "Heavy Armour", Type = "HI", CostCr = 20, Arm = 4, Bts = 3, Effects = new ArmorEffects { WoundsSkill = 1 } }]
+        TroopTypes =
+        [
+            new StoreTroopType { ArmorName = "Heavy Armour", Type = "HI", CostCr = 20, Arm = 4, Bts = 3, Effects = new ArmorEffects { WoundsSkill = 1 } },
+            new StoreTroopType { ArmorName = "Belts and Pouches", CostCr = 5, Effects = new ArmorEffects { ExtraSlot = true } }
+        ]
     };
 
     private static InventoryCatalog Catalog { get; } = InventoryCatalog.From([SeasonTestKit.NumberOne, SeasonTestKit.JadeTemu, Armoury]);
@@ -287,6 +291,29 @@ public sealed class SeasonTeamViewModelTests
         Picker(GearSlot.Armor).SelectedOption = GearOption.None;
 
         Assert.Equal(("LI", "-", "1"), (_team.SelectedUnitType, _team.Detail.Stats.Arm, _team.Detail.Stats.Vitality));
+    }
+
+    [Fact]
+    public async Task BeltsAndPouchesGivesAnExtraSlotForAnyGearButArmour()
+    {
+        _alsoBought = [SeasonTestKit.Bought(Armoury.Name, "Belts and Pouches")];
+        await LoadAsync();
+        Assert.False(Picker(GearSlot.Extra).IsAvailable);
+
+        Picker(GearSlot.Armor).SelectedOption = Picker(GearSlot.Armor).Options.Single(option => option.ItemName == "Belts and Pouches");
+
+        var extra = Picker(GearSlot.Extra);
+        Assert.True(extra.IsAvailable);
+        Assert.DoesNotContain(extra.Options, option => option.ItemName == "Light Armour (LI)");
+        extra.SelectedOption = extra.Options.Single(option => option.ItemName == "Courage");
+        Assert.Contains(_team.Skills.Left.Concat(_team.Skills.Right), line => line.Text == "Courage");
+
+        // Taking the belt off empties its slot.
+        Picker(GearSlot.Armor).SelectedOption = GearOption.None;
+
+        Assert.False(Picker(GearSlot.Extra).IsAvailable);
+        Assert.Null(SavedLoadouts().For(2)[GearSlot.Extra]);
+        Assert.DoesNotContain(_team.Skills.Left.Concat(_team.Skills.Right), line => line.Text == "Courage");
     }
 
     [Fact]
