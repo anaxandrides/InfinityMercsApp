@@ -68,17 +68,17 @@
                     <Label Text="{Binding RollHeader}"
                            TextColor="#E6EBF2"
                            FontAttributes="Bold"
-                           FontSize="15"
+                           FontSize="{DynamicResource FontSizeCardTitleCompact}"
                            HorizontalTextAlignment="Center" />
                 </Border>
                 <Label Text="{Binding CurrentEvent.Description, FallbackValue=''}"
                        IsVisible="{Binding HasEvent}"
                        TextColor="#B5C0CE"
-                       FontSize="14" />
+                       FontSize="{DynamicResource FontSizeBody}" />
                 <Label Text="{Binding EventTraitsText}"
                        IsVisible="{Binding HasEventTraits}"
                        TextColor="#F59E0B"
-                       FontSize="13"
+                       FontSize="{DynamicResource FontSizeBody}"
                        FontAttributes="Bold" />
 
                 <!-- A quiet week: any event may be picked instead, or none. -->
@@ -99,7 +99,7 @@
                                         <TapGestureRecognizer Command="{Binding ViewModel.PickEventCommand, Source={x:Reference DowntimePageRoot}, x:DataType=view:DowntimePage}"
                                                               CommandParameter="{Binding .}" />
                                     </Border.GestureRecognizers>
-                                    <Label Text="{Binding Text}" TextColor="#E6EBF2" FontSize="13" LineBreakMode="WordWrap" />
+                                    <Label Text="{Binding Text}" TextColor="#E6EBF2" FontSize="{DynamicResource FontSizeBody}" LineBreakMode="WordWrap" />
                                 </Border>
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
@@ -119,11 +119,11 @@
                             <Border Style="{StaticResource Card}" StrokeShape="RoundRectangle 8">
                                 <VerticalStackLayout Spacing="6" Padding="12">
                                     <Label Text="{Binding Header}" Style="{StaticResource SectionHeading}" />
-                                    <Label Text="{Binding Description}" TextColor="#E6EBF2" FontSize="14" />
+                                    <Label Text="{Binding Description}" TextColor="#E6EBF2" FontSize="{DynamicResource FontSizeBody}" />
                                     <Label Text="{Binding TraitsText}"
                                            IsVisible="{Binding HasTraits}"
                                            TextColor="#F59E0B"
-                                           FontSize="12"
+                                           FontSize="{DynamicResource FontSizeCaption}"
                                            FontAttributes="Bold" />
                                     <Button Text="PICK"
                                             Style="{StaticResource ActionButton}"
@@ -144,7 +144,7 @@
                     <Label Text="No eligible mercs found."
                            IsVisible="{Binding HasNoCandidates}"
                            TextColor="#F87171"
-                           FontSize="13" />
+                           FontSize="{DynamicResource FontSizeBody}" />
                     <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Participants}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="downtimeItems:DowntimeParticipantItem">
@@ -169,7 +169,7 @@
                                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                                         <Label Text="{Binding DisplayName}"
                                                TextColor="#E6EBF2"
-                                               FontSize="14"
+                                               FontSize="{DynamicResource FontSizeBody}"
                                                FontAttributes="Bold"
                                                VerticalTextAlignment="Center"
                                                LineBreakMode="TailTruncation" />
@@ -177,7 +177,7 @@
                                                Text="{Binding MissingText}"
                                                IsVisible="{Binding IsEligible, Converter={StaticResource InvertedBoolConverter}}"
                                                TextColor="#F87171"
-                                               FontSize="13"
+                                               FontSize="{DynamicResource FontSizeBody}"
                                                FontAttributes="Bold"
                                                VerticalTextAlignment="Center"
                                                HorizontalTextAlignment="End" />
@@ -185,7 +185,7 @@
                                                Text="{Binding TargetText}"
                                                IsVisible="{Binding ShowTarget}"
                                                TextColor="#34D399"
-                                               FontSize="13"
+                                               FontSize="{DynamicResource FontSizeBody}"
                                                FontAttributes="Bold"
                                                VerticalTextAlignment="Center"
                                                HorizontalTextAlignment="End" />
@@ -197,14 +197,14 @@
                     <Label Text="{Binding PerformedByText}"
                            IsVisible="{Binding HasParticipant}"
                            TextColor="#34D399"
-                           FontSize="13"
+                           FontSize="{DynamicResource FontSizeBody}"
                            FontAttributes="Bold" />
 
                     <!-- P2P: CR can be spent to raise the target. -->
                     <VerticalStackLayout Spacing="6" IsVisible="{Binding ShowsCrSpend}">
                         <Label Text="P2P — Spend CR to boost target (optional):" Style="{StaticResource Detail}" FontAttributes="Bold" />
                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-                            <Label Text="CR to spend:" TextColor="#8A97A8" FontSize="13" VerticalTextAlignment="Center" />
+                            <Label Text="CR to spend:" TextColor="#8A97A8" FontSize="{DynamicResource FontSizeBody}" VerticalTextAlignment="Center" />
                             <Stepper Grid.Column="1"
                                      Minimum="0"
                                      Maximum="999"
@@ -215,7 +215,7 @@
                             <Label Grid.Column="2"
                                    Text="{Binding CrSpendTargetText}"
                                    TextColor="#34D399"
-                                   FontSize="14"
+                                   FontSize="{DynamicResource FontSizeBody}"
                                    FontAttributes="Bold" />
                         </Grid>
                         <Button Text="CONFIRM SPEND"
@@ -233,11 +233,11 @@
                     <Label Text="{Binding RolledText}"
                            IsVisible="{Binding HasRolledText}"
                            TextColor="#E6EBF2"
-                           FontSize="13"
+                           FontSize="{DynamicResource FontSizeBody}"
                            FontAttributes="Bold" />
 
                     <VerticalStackLayout Spacing="6" IsVisible="{Binding HasOutcome}">
-                        <Label Text="{Binding OutcomeText}" TextColor="#E6EBF2" FontAttributes="Bold" FontSize="14">
+                        <Label Text="{Binding OutcomeText}" TextColor="#E6EBF2" FontAttributes="Bold" FontSize="{DynamicResource FontSizeBody}">
                             <Label.Triggers>
                                 <DataTrigger TargetType="Label" Binding="{Binding Outcome}" Value="{x:Static outcomes:PassFailOutcome.Fail}">
                                     <Setter Property="TextColor" Value="#F87171" />
@@ -253,7 +253,7 @@
                         <Label Text="No mechanical effect."
                                IsVisible="{Binding HasNoConsequences}"
                                TextColor="#8A97A8"
-                               FontSize="13" />
+                               FontSize="{DynamicResource FontSizeBody}" />
                         <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding ConsequenceLines}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="x:String">

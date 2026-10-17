@@ -89,19 +89,25 @@
                                    FontAttributes="Bold"
                                    Style="{StaticResource DetailHeading}" />
 
-                            <!-- Equal-width columns: stat key over its value, green when upgraded. -->
+                            <!-- Equal-width columns: stat key over its value, green when upgraded. The text shrinks
+                                 together when the column is too narrow for it. -->
                             <FlexLayout Direction="Row"
                                         IsVisible="{Binding HasStatline}"
                                         BindableLayout.ItemsSource="{Binding StatCells}">
+                                <FlexLayout.Behaviors>
+                                    <behaviors:FitTextToCellsBehavior FontSizeKey="FontSizeSubHeadline" />
+                                </FlexLayout.Behaviors>
                                 <BindableLayout.ItemTemplate>
                                     <DataTemplate x:DataType="captainItems:CaptainStatCell">
-                                        <VerticalStackLayout FlexLayout.Grow="1" FlexLayout.Basis="0" Spacing="2" Margin="0,0,10,0">
+                                        <VerticalStackLayout FlexLayout.Grow="1" FlexLayout.Basis="0" Spacing="2" Margin="0,0,4,0">
                                             <Label Text="{Binding Key}"
                                                    Style="{StaticResource LabelSubHeadline}"
                                                    FontAttributes="Bold"
+                                                   LineBreakMode="NoWrap"
                                                    HorizontalTextAlignment="Center" />
                                             <Label Text="{Binding Value}"
                                                    Style="{StaticResource LabelSubHeadline}"
+                                                   LineBreakMode="NoWrap"
                                                    HorizontalTextAlignment="Center"
                                                    TextColor="#E6EBF2">
                                                 <Label.Triggers>
@@ -193,8 +199,8 @@
                                                 <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Slots}">
                                                     <BindableLayout.ItemTemplate>
                                                         <DataTemplate x:DataType="captainItems:CaptainChoiceSlot">
-                                                            <Picker WidthRequest="280"
-                                                                    HorizontalOptions="Start"
+                                                            <Picker MaximumWidthRequest="280"
+                                                                    HorizontalOptions="Fill"
                                                                     HorizontalTextAlignment="Center"
                                                                     ItemsSource="{Binding Options}"
                                                                     SelectedItem="{Binding SelectedChoice}" />

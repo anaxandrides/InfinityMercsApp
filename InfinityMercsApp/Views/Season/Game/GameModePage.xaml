@@ -112,7 +112,7 @@
                         BorderColor="Transparent"
                         BorderWidth="0"
                         TextColor="{StaticResource Signal}"
-                        FontSize="22"
+                        FontSize="{DynamicResource FontSizeTitleSmall}"
                         FontAttributes="Bold"
                         HeightRequest="36"
                         WidthRequest="44"
@@ -177,7 +177,7 @@
                                 </Grid.GestureRecognizers>
                                 <Label Text="▶"
                                        TextColor="#8A97A8"
-                                       FontSize="12"
+                                       FontSize="{DynamicResource FontSizeCaption}"
                                        WidthRequest="20"
                                        VerticalTextAlignment="Center"
                                        HorizontalTextAlignment="Center">
@@ -209,7 +209,7 @@
                                     <Label Text="2"
                                            IsVisible="{Binding IsOnSecondBody}"
                                            TextColor="#E6EBF2"
-                                           FontSize="9"
+                                           FontSize="{DynamicResource FontSizeMicro}"
                                            FontAttributes="Bold"
                                            HorizontalTextAlignment="End"
                                            VerticalTextAlignment="End" />
@@ -232,8 +232,8 @@
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="stats:StatValue">
                                             <VerticalStackLayout FlexLayout.Grow="1" FlexLayout.Basis="0" Spacing="2">
-                                                <Label Text="{Binding Key}" FontSize="10" TextColor="#8A97A8" FontAttributes="Bold" HorizontalTextAlignment="Center" />
-                                                <Label Text="{Binding Value}" FontSize="13" TextColor="#E6EBF2" HorizontalTextAlignment="Center" />
+                                                <Label Text="{Binding Key}" FontSize="{DynamicResource FontSizeMicro}" TextColor="#8A97A8" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                                                <Label Text="{Binding Value}" FontSize="{DynamicResource FontSizeBody}" TextColor="#E6EBF2" HorizontalTextAlignment="Center" />
                                             </VerticalStackLayout>
                                         </DataTemplate>
                                     </BindableLayout.ItemTemplate>
@@ -242,14 +242,14 @@
                                 <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding EquipmentItems}">
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="x:String">
-                                            <Label FlexLayout.Basis="50%" Text="{Binding .}" TextColor="#B5C0CE" FontSize="12" LineBreakMode="WordWrap" Margin="0,0,8,2" />
+                                            <Label FlexLayout.Basis="50%" Text="{Binding .}" TextColor="#B5C0CE" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" Margin="0,0,8,2" />
                                         </DataTemplate>
                                     </BindableLayout.ItemTemplate>
                                 </FlexLayout>
                                 <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding SkillItems}">
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="x:String">
-                                            <Label FlexLayout.Basis="50%" Text="{Binding .}" TextColor="#F59E0B" FontSize="12" LineBreakMode="WordWrap" Margin="0,0,8,2" />
+                                            <Label FlexLayout.Basis="50%" Text="{Binding .}" TextColor="#F59E0B" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" Margin="0,0,8,2" />
                                         </DataTemplate>
                                     </BindableLayout.ItemTemplate>
                                 </FlexLayout>
@@ -266,7 +266,7 @@
                                                 <VerticalStackLayout Spacing="0">
                                                     <Label Text="{Binding Title}"
                                                            TextColor="#E6EBF2"
-                                                           FontSize="15"
+                                                           FontSize="{DynamicResource FontSizeCardTitleCompact}"
                                                            FontAttributes="Bold"
                                                            HorizontalTextAlignment="Center"
                                                            Margin="0,0,0,6">
@@ -309,7 +309,7 @@
                                                                             <Border Style="{StaticResource Chip}" Stroke="#F59E0B" Padding="6,1" StrokeShape="RoundRectangle 8" IsVisible="{Binding HasAmmo}">
                                                                                 <Label Text="{Binding Ammo}" Style="{StaticResource LabelCaption}" FontAttributes="Bold" TextColor="#F59E0B" />
                                                                             </Border>
-                                                                            <Label Text="›" TextColor="#8A97A8" FontSize="18" VerticalTextAlignment="Center" />
+                                                                            <Label Text="›" TextColor="#8A97A8" FontSize="{DynamicResource FontSizeSectionHeader}" VerticalTextAlignment="Center" />
                                                                         </HorizontalStackLayout>
                                                                     </Grid>
                                                                 </VerticalStackLayout>
@@ -343,7 +343,7 @@
                 <Label Text="{Binding OpenWeaponCard.Title, FallbackValue=''}"
                        TextColor="#E6EBF2"
                        FontAttributes="Bold"
-                       FontSize="16"
+                       FontSize="{DynamicResource FontSizeSectionHeader}"
                        HorizontalTextAlignment="Center" />
                 <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding OpenWeaponCard.Modes, FallbackValue={x:Null}}">
                     <BindableLayout.ItemTemplate>
@@ -365,8 +365,8 @@
         <!-- The tapped trooper's XP sheet. -->
         <ScrollView Grid.RowSpan="4" BackgroundColor="#161B22" IsVisible="{Binding IsShowingXp}">
             <VerticalStackLayout Padding="12,6" Spacing="0" BindingContext="{Binding OpenXpSheet}" x:DataType="gameItems:XpSheet">
-                <Label Text="{Binding UnitName}" TextColor="#E6EBF2" FontAttributes="Bold" FontSize="15" HorizontalTextAlignment="Center" />
-                <Label Text="{Binding TotalText}" TextColor="#34D399" FontSize="12" FontAttributes="Bold" HorizontalTextAlignment="Center" Margin="0,2,0,0" />
+                <Label Text="{Binding UnitName}" TextColor="#E6EBF2" FontAttributes="Bold" FontSize="{DynamicResource FontSizeCardTitleCompact}" HorizontalTextAlignment="Center" />
+                <Label Text="{Binding TotalText}" TextColor="#34D399" FontSize="{DynamicResource FontSizeCaption}" FontAttributes="Bold" HorizontalTextAlignment="Center" Margin="0,2,0,0" />
 
                 <BoxView Style="{StaticResource Divider}" />
                 <Label Style="{StaticResource XpSection}" Text="Assisting an allied unit&#10;(engineering / doctoring / medikit / gizmokit / casevac)" />

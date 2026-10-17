@@ -2,7 +2,6 @@
 <baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:view="clr-namespace:InfinityMercsApp.Views.Season.Overview"
-             xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:marketplacesItems="clr-namespace:InfinityMercsApp.ViewModels.Marketplaces.Items"
              xmlns:overview="clr-namespace:InfinityMercsApp.ViewModels.Season.Overview"
@@ -15,10 +14,6 @@
              x:DataType="overview:SeasonViewModel"
              Title=""
              BackgroundColor="{StaticResource Void}">
-
-    <ContentPage.Behaviors>
-        <behaviors:ResponsiveFontScaleBehavior />
-    </ContentPage.Behaviors>
 
     <ContentPage.Resources>
         <Style x:Key="SectionHeading" TargetType="Label">
@@ -574,7 +569,7 @@
                                                                     BorderColor="{StaticResource Caution}"
                                                                     BorderWidth="1"
                                                                     CornerRadius="4"
-                                                                    FontSize="11"
+                                                                    FontSize="{DynamicResource FontSizeCaption}"
                                                                     FontAttributes="Bold"
                                                                     Padding="8,4"
                                                                     HeightRequest="36"

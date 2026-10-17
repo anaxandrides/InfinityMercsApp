@@ -55,13 +55,13 @@
                                        Text="{Binding Name}"
                                        TextColor="{StaticResource TextPrimary}"
                                        FontAttributes="Bold"
-                                       FontSize="16"
+                                       FontSize="{DynamicResource FontSizeSectionHeader}"
                                        VerticalTextAlignment="Center"
                                        LineBreakMode="TailTruncation" />
                                 <Label Grid.Column="2"
                                        Text="{Binding AvoidText}"
                                        TextColor="{StaticResource TextMuted}"
-                                       FontSize="14"
+                                       FontSize="{DynamicResource FontSizeBody}"
                                        FontAttributes="Bold"
                                        VerticalTextAlignment="Center"
                                        HorizontalTextAlignment="End">
@@ -95,7 +95,7 @@
                                     <Label Text="{Binding RollResultText}"
                                            IsVisible="{Binding HasRolled}"
                                            TextColor="{StaticResource Danger}"
-                                           FontSize="13"
+                                           FontSize="{DynamicResource FontSizeBody}"
                                            FontAttributes="Bold"
                                            HorizontalTextAlignment="Center">
                                         <Label.Triggers>
@@ -147,7 +147,7 @@
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="seasonItems:InjuryRecoveryItem">
                         <VerticalStackLayout Padding="16" Spacing="8" BackgroundColor="{StaticResource Plate}">
-                            <Label Text="{Binding Name}" TextColor="{StaticResource TextPrimary}" FontAttributes="Bold" FontSize="16" />
+                            <Label Text="{Binding Name}" TextColor="{StaticResource TextPrimary}" FontAttributes="Bold" FontSize="{DynamicResource FontSizeSectionHeader}" />
                             <Label Text="{Binding Reason}" Style="{StaticResource RowCaption}" />
                             <Picker Title="Injury to shed…"
                                     ItemsSource="{Binding Injuries}"
