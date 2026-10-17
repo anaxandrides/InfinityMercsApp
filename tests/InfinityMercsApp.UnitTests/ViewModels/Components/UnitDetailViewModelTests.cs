@@ -90,10 +90,9 @@ public sealed class UnitDetailViewModelTests
         var detail = new UnitDetailViewModel(Army101Data.Create());
 
         detail.ApplySavedUnitSnapshot("Hero", new UnitStatLine { Mov = "4-4", Cc = "15", Bs = "12", Ph = "", Wip = "13", Arm = "1", Bts = "0", Vitality = "1", S = "2" });
-        detail.ApplyCaptainStatBonuses(new CaptainStatBonuses(1, 2, 0, 0, 0, 0, 0));
         detail.ApplyAugmentStatOverride(new StatOverride(Stat.Ph, 14));
 
-        Assert.Equal(("Hero", "10-10", "16", "14", "14"), (detail.UnitNameHeading, detail.Stats.Mov, detail.Stats.Cc, detail.Stats.Bs, detail.Stats.Ph));
+        Assert.Equal(("Hero", "10-10", "15", "12", "14"), (detail.UnitNameHeading, detail.Stats.Mov, detail.Stats.Cc, detail.Stats.Bs, detail.Stats.Ph));
         Assert.Equal(UnitHeaderIcons.None, detail.Icons);
     }
 

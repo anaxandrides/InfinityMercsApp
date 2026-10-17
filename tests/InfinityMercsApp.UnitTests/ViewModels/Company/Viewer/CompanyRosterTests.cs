@@ -179,7 +179,7 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
-    public void ShowOnSetsStatsBonusesAndIcons()
+    public void ShowOnSetsTheSavedStatsAndIcons()
     {
         var detail = new UnitDetailViewModel(_armyData);
         var item = new CompanyViewerUnitListItem
@@ -193,11 +193,11 @@ public sealed class CompanyRosterTests
             SavedCharacteristics = "Irregular, Cube",
             SavedEquipment = "Killer Hacking Device"
         };
-        var captain = new SavedImprovedCaptainStats { IsEnabled = true, CcBonus = 5, VitalityBonus = 1 };
 
-        CompanyRoster.ShowOn(detail, item, CompanyRoster.ProfileOf(item), captain);
+        CompanyRoster.ShowOn(detail, item, CompanyRoster.ProfileOf(item));
 
-        Assert.Equal(("19", "10", "2"), (detail.Stats.Cc, detail.Stats.Ph, detail.Stats.Vitality));
+        // A lieutenant's saved stats already hold the captain's bonuses, so they aren't added again.
+        Assert.Equal(("14", "10", "1"), (detail.Stats.Cc, detail.Stats.Ph, detail.Stats.Vitality));
         Assert.Single(detail.Profiles);
         Assert.Equal((false, true), (detail.Icons.Regular, detail.Icons.Irregular));
         Assert.Equal((true, false, true), (detail.Icons.Cube, detail.Icons.Cube2, detail.Icons.Hackable));

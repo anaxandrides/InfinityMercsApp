@@ -160,20 +160,6 @@ public partial class UnitDetailViewModel(
         };
     }
 
-    public void ApplyCaptainStatBonuses(CaptainStatBonuses bonuses)
-    {
-        Stats = Stats with
-        {
-            Cc = CaptainStatBonuses.Apply(Stats.Cc, bonuses.Cc),
-            Bs = CaptainStatBonuses.Apply(Stats.Bs, bonuses.Bs),
-            Ph = CaptainStatBonuses.Apply(Stats.Ph, bonuses.Ph),
-            Wip = CaptainStatBonuses.Apply(Stats.Wip, bonuses.Wip),
-            Arm = CaptainStatBonuses.Apply(Stats.Arm, bonuses.Arm),
-            Bts = CaptainStatBonuses.Apply(Stats.Bts, bonuses.Bts),
-            Vitality = CaptainStatBonuses.Apply(Stats.Vitality, bonuses.Vitality)
-        };
-    }
-
     /// <summary>
     /// Shows a saved trooper's stat line; blank values show as "-" and a MOV the army data can read is
     /// shown in the current units. The header icons are cleared for the caller to set.

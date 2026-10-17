@@ -40,7 +40,6 @@ public partial class SeasonTeamViewModel : ObservableObject
     private readonly IDialogService _dialogs;
     private readonly Func<Task> _seasonChanged;
     private SavedCompanyFile? _company;
-    private SavedImprovedCaptainStats _captain = new();
     private CompanyLoadouts _loadouts = new();
     private SeasonInventory _inventory = SeasonInventory.Empty;
     private InventoryCatalog _catalog = InventoryCatalog.Empty;
@@ -148,7 +147,6 @@ public partial class SeasonTeamViewModel : ObservableObject
     {
         var shownEntry = SelectedUnit?.EntryIndex;
         _company = company;
-        _captain = company.ImprovedCaptainStats ?? new SavedImprovedCaptainStats();
         _seasonFilePath = seasonFilePath;
         _loadouts = CompanyLoadouts.From(season?.UnitGear ?? []);
         Units.Clear();
@@ -271,7 +269,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         }
 
         var profile = CompanyRoster.ProfileOf(item, Detail.ShowUnitsInInches);
-        CompanyRoster.ShowOn(Detail, item, profile, _captain);
+        CompanyRoster.ShowOn(Detail, item, profile);
         var loadout = _loadouts.For(item.EntryIndex);
         if (StatOverride.TryParse(loadout[GearSlot.Augments], out var statOverride))
         {

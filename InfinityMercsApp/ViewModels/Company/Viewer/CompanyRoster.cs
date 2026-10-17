@@ -182,10 +182,10 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
     }
 
     /// <summary>
-    /// Shows <paramref name="item"/> on <paramref name="detail"/>: its saved stat line (with the captain's bonuses
-    /// on the lieutenant), its loadout as the only configuration, and the trait icons the loadout calls for.
+    /// Shows <paramref name="item"/> on <paramref name="detail"/>: its saved stat line (a lieutenant's already
+    /// holds the captain's bonuses), its loadout as the only configuration, and the trait icons the loadout calls for.
     /// </summary>
-    public static void ShowOn(UnitDetailViewModel detail, CompanyViewerUnitListItem item, ViewerProfileItem profile, SavedImprovedCaptainStats captain)
+    public static void ShowOn(UnitDetailViewModel detail, CompanyViewerUnitListItem item, ViewerProfileItem profile)
     {
         detail.ApplySavedUnitSnapshot(item.Name, new UnitStatLine
         {
@@ -200,11 +200,6 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             Vitality = item.UnitVitality,
             S = item.UnitS
         });
-
-        if (item.IsLieutenant && captain.IsEnabled)
-        {
-            detail.ApplyCaptainStatBonuses(captain.Bonuses);
-        }
 
         detail.Profiles.Clear();
         detail.Profiles.Add(profile);

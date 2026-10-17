@@ -26,7 +26,6 @@ public partial class CompanyViewerViewModel(
 
     private string _companyFilePath = string.Empty;
     private string? _loadedFilePath;
-    private SavedImprovedCaptainStats _captain = new();
 
     [ObservableProperty]
     public partial string Title { get; set; } = DefaultTitle;
@@ -95,7 +94,6 @@ public partial class CompanyViewerViewModel(
     {
         _loadedFilePath = filePath;
         CompanyUnits.Clear();
-        _captain = new SavedImprovedCaptainStats();
         ClearSelection();
 
         if (!companyFiles.Exists(filePath))
@@ -116,8 +114,6 @@ public partial class CompanyViewerViewModel(
                 ? Path.GetFileNameWithoutExtension(filePath)
                 : company.CompanyName.Trim();
             Title = string.IsNullOrWhiteSpace(companyName) ? DefaultTitle : $"{DefaultTitle}: {companyName}";
-            _captain = company.ImprovedCaptainStats ?? new SavedImprovedCaptainStats();
-
             foreach (var unit in roster.UnitsOf(company))
             {
                 CompanyUnits.Add(unit);
@@ -163,7 +159,7 @@ public partial class CompanyViewerViewModel(
 
         SelectedUnit = item;
         var profile = CompanyRoster.ProfileOf(item);
-        CompanyRoster.ShowOn(Detail, item, profile, _captain);
+        CompanyRoster.ShowOn(Detail, item, profile);
 
         SelectedName = item.Name;
         NameDraft = item.Name;
