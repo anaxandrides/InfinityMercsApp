@@ -23,7 +23,7 @@ public sealed class ByeRoundViewModelTests : IDisposable
           "entries": [
             { "entryIndex": 1, "name": "Trooper", "customName": "Kestrel", "isLieutenant": true, "sourceFactionId": 101 },
             { "entryIndex": 2, "name": "Fusilier", "baseUnitName": "Fusilier", "sourceFactionId": 101 },
-            { "entryIndex": 3, "isPeripheralUnit": true, "sourceFactionId": 101 },
+            { "entryIndex": 3, "isPeripheralUnit": true, "sourceFactionId": 101, "Custom Characteristics": [ "Peripheral (Servant)" ] },
             { "entryIndex": 4, "name": "Bolt", "baseUnitName": "Bolt", "sourceFactionId": 101 },
             { "entryIndex": 5, "name": "Alpha", "baseUnitName": "Alpha", "sourceFactionId": 101 },
             { "entryIndex": 6, "name": "Bravo", "baseUnitName": "Bravo", "sourceFactionId": 101 },

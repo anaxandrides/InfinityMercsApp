@@ -22,7 +22,8 @@ namespace InfinityMercsApp.ViewModels.Season;
 
 /// <summary>
 /// Builds the units a company can deploy for a mission: each saved entry's profile resolved from the
-/// army data, with the captain's upgrades and the season's gear applied.
+/// army data, with the captain's upgrades and the season's gear applied. A peripheral that isn't a Servant one
+/// deploys as a trooper of its own, Irregular, and its controller gains FT Master (own peripheral).
 /// </summary>
 public sealed partial class DeploymentRoster(
     IArmyDataService armyData,
@@ -35,7 +36,8 @@ public sealed partial class DeploymentRoster(
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     /// <summary>
-    /// The company's units, lieutenant first then in company order; peripherals and retired troopers are left out.
+    /// The company's units, lieutenant first then in company order; Servant peripherals, uncontrolled peripherals
+    /// and retired troopers are left out.
     /// </summary>
     /// <param name="deployedEntryIndices">When given, only these entries are included.</param>
     /// <returns>No units when the company file is missing or unreadable.</returns>
@@ -68,9 +70,12 @@ public sealed partial class DeploymentRoster(
         var captain = CaptainUpgrades.From(company.ImprovedCaptainStats);
         var catalog = await stores.CatalogAsync();
         var kinds = new GainKinds(armyData.GetWeaponNames(), armyData.GetSkillNames());
+        bool IsServant(SavedCompanyEntry entry) =>
+            SeasonTroopers.IsServantPeripheral(entry, armyData.GetFactionSnapshot(EffectiveSourceFactionId(entry))?.Filters);
+        var controllers = SeasonTroopers.ControllersOf(company, season, IsServant);
 
         return company.Entries
-            .Where(e => !e.IsPeripheralUnit && season?.IsRetired(e.EntryIndex) != true)
+            .Where(e => SeasonTroopers.IsDeployable(e, season, IsServant))
             .Where(e => deployedEntryIndices is null || deployedEntryIndices.Contains(e.EntryIndex))
             .OrderByDescending(e => e.IsLieutenant)
             .ThenBy(e => e.EntryIndex)
@@ -84,6 +89,7 @@ public sealed partial class DeploymentRoster(
                 SeasonTroopers.ProgressOf(entry, season),
                 new RolledResults(SeasonTroopers.RollResultsOf(entry, season), kinds),
                 SeasonRenown.Of(entry, season, catalog).Total,
+                controllers.Contains(entry.EntryIndex),
                 showUnitsInInches))
             .ToList();
     }
@@ -98,6 +104,7 @@ public sealed partial class DeploymentRoster(
         TrooperProgress progress,
         RolledResults rolls,
         int renown,
+        bool controlsPeripheral,
         bool showUnitsInInches)
     {
         var factionId = EffectiveSourceFactionId(entry);
@@ -108,7 +115,13 @@ public sealed partial class DeploymentRoster(
         var weapons = SavedCodeNames.Weapons(filters, entry);
         profile.RangedWeapons = SavedCodeNames.JoinOrDash(weapons.Ranged);
         profile.MeleeWeapons = SavedCodeNames.JoinOrDash(weapons.Melee);
-        var characteristics = SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Chars));
+        var characteristics = SavedCodeNames.JoinOrDash(entry.IsPeripheralUnit
+            ? PeripheralKinds.AsTrooper(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Chars))
+            : SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Chars));
+        if (controlsPeripheral)
+        {
+            profile.Skills = ProfileText.AppendDistinct(profile.Skills, [PeripheralKinds.ControllerSkill]);
+        }
 
         if (entry.IsLieutenant)
         {

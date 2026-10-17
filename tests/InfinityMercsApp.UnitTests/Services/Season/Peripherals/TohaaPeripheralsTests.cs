@@ -28,7 +28,7 @@ public sealed class TohaaPeripheralsTests
         Assert.Equal((9, 2, 4), (entry.EntryIndex, entry.ParentEntryIndex, entry.Cost));
         Assert.True(entry.IsPeripheralUnit && entry.FromControllerAugment);
         Assert.Equal("Chaksa Peripheral B", entry.Name);
-        Assert.Equal(UnitTypeCodes.Peripheral, entry.UnitTypeCode);
+        Assert.Equal(UnitTypeCodes.LightInfantry, entry.UnitTypeCode);
         Assert.Equal(("17", "11", "1", "2"), (entry.CurrentCc, entry.CurrentBs, entry.CurrentVitaOrStr, entry.CurrentS));
         Assert.Equal((15, 10), (entry.CurrentMoveFirstCm, entry.CurrentMoveSecondCm));
         Assert.Equal([TohaaArmyData.CombiRifleId], entry.CurrentWeaponCodes.Select(code => code.Id));

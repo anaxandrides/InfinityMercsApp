@@ -1,4 +1,5 @@
 using System.Text.Json;
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
@@ -37,7 +38,7 @@ public sealed class DeploymentRosterTests : IDisposable
               "Current BS": "12", "Current VITA/STR": "1" },
             { "entryIndex": 1, "name": "Trooper", "customName": " Kestrel ", "isLieutenant": true, "sourceFactionId": 101,
               "CurrentSkillCodes": [ { "id": 86 } ], "CurrentWeaponCodes": [ { "id": 33, "extra": [ 298 ] } ], "Current VITA/STR": "2" },
-            { "entryIndex": 3, "isPeripheralUnit": true, "sourceFactionId": 101 },
+            { "entryIndex": 3, "isPeripheralUnit": true, "sourceFactionId": 101, "Custom Characteristics": [ "Peripheral (Servant)" ] },
             { "entryIndex": 4, "name": "Tag", "unitTypeCode": "TAG", "sourceFactionId": 2003 }
           ]
         }
@@ -245,6 +246,29 @@ public sealed class DeploymentRosterTests : IDisposable
         var fusilier = (await roster.LoadAsync(_records.WriteCompany("c.json", Company), SeasonPath, showUnitsInInches: true))[1];
 
         Assert.Contains("HMG", fusilier.RangedWeapons);
+    }
+
+    // A drummer and its Synchronized drumbot, and a Controller augment peripheral no one controls.
+    private const string Drummers = """
+        {
+          "entries": [
+            { "entryIndex": 1, "name": "Drummer", "isLieutenant": true, "sourceFactionId": 101, "Custom Characteristics": [ "Regular" ] },
+            { "entryIndex": 2, "name": "Drumbot", "isPeripheralUnit": true, "parentEntryIndex": 1, "sourceFactionId": 101,
+              "Custom Skills": [ "Peripheral (Synchronized)" ], "Custom Characteristics": [ "Regular" ] },
+            { "entryIndex": 3, "name": "Chaksa", "isPeripheralUnit": true, "fromControllerAugment": true, "sourceFactionId": 101 }
+          ]
+        }
+        """;
+
+    [Fact]
+    public async Task APeripheralThatIsntAServantDeploysAsATrooperOfItsOwn()
+    {
+        var units = await _roster.LoadAsync(_records.WriteCompany("d.json", Drummers), SeasonPath, showUnitsInInches: true);
+
+        Assert.Equal([1, 2], units.Select(unit => unit.EntryIndex));
+        Assert.True(units[1].IsIrregular);
+        Assert.False(units[0].IsIrregular);
+        Assert.Contains(PeripheralKinds.ControllerSkill, units[0].Skills);
     }
 
     [Fact]

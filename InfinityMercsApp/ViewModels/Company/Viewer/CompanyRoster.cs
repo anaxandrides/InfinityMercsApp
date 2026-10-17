@@ -46,12 +46,14 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         var captain = company.ImprovedCaptainStats ?? new SavedImprovedCaptainStats();
         var captainName = string.IsNullOrWhiteSpace(captain.CaptainName) ? "Captain" : captain.CaptainName.Trim();
         var kinds = new GainKinds(armyData.GetWeaponNames(), armyData.GetSkillNames());
+        var controllers = SeasonTroopers.ControllersOf(company, season, IsServant);
 
         return company.Entries
             .Where(entry => season?.IsRetired(entry.EntryIndex) != true)
             .OrderByDescending(entry => entry.IsLieutenant)
             .ThenBy(entry => entry.EntryIndex)
-            .Select((entry, position) => UnitOf(entry, position, captain, captainName, season, catalog ?? InventoryCatalog.Empty, kinds))
+            .Select((entry, position) => UnitOf(
+                entry, position, captain, captainName, season, catalog ?? InventoryCatalog.Empty, kinds, controllers.Contains(entry.EntryIndex)))
             .ToList();
     }
 
@@ -62,7 +64,8 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         string captainName,
         SeasonFile? season,
         InventoryCatalog catalog,
-        GainKinds kinds)
+        GainKinds kinds,
+        bool controlsPeripheral)
     {
         var sourceFactionId = EffectiveSourceFactionId(entry);
         var baseUnitName = !string.IsNullOrWhiteSpace(entry.BaseUnitName) ? entry.BaseUnitName
@@ -86,11 +89,23 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         var logoUnitId = entry.LogoSourceUnitId > 0 ? entry.LogoSourceUnitId : entry.SourceUnitId;
 
         var progress = SeasonTroopers.ProgressOf(entry, season);
+        var isPeripheralTrooper = entry.IsPeripheralUnit && !SeasonTroopers.IsServantPeripheral(entry, filters);
+        IReadOnlyList<string> characteristics = SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Chars);
+        if (isPeripheralTrooper)
+        {
+            characteristics = PeripheralKinds.AsTrooper(characteristics);
+        }
+
+        if (controlsPeripheral)
+        {
+            skills = ProfileText.AppendDistinct(skills, [PeripheralKinds.ControllerSkill]);
+        }
+
         var saved = new TrooperProfile(
             SavedMove(entry), entry.CurrentCc, entry.CurrentBs, entry.CurrentPh, entry.CurrentWip, entry.CurrentArm, entry.CurrentBts,
             entry.CurrentVitaOrStr, entry.CurrentS,
             ProfileText.Lines(skills),
-            ProfileText.Lines(SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Chars))));
+            characteristics);
 
         // Armour changes the underlying line; injuries, perks and the rest then add on top, and Booty and
         // Metachemistry come last of all. Perk skills show with the perks, beside this line.
@@ -118,6 +133,7 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             SourceUnitId = entry.SourceUnitId,
             ProfileKey = entry.ProfileKey,
             IsPeripheralUnit = entry.IsPeripheralUnit,
+            IsPeripheralTrooper = isPeripheralTrooper,
             IsUncontrolledPeripheral = entry.FromControllerAugment && SeasonTroopers.ControllerOf(entry, season) is null,
             PeripheralSellPrice = entry.FromControllerAugment ? (int)Math.Ceiling(entry.Cost / 2.0) : 0,
             IsLieutenant = entry.IsLieutenant,
@@ -150,6 +166,10 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             FallbackLogoPath = IsTagCompanyUnit(sourceFactionId, logoFactionId, baseUnitName) ? TagCompanyFallbackIconPath : null
         };
     }
+
+    /// <summary>Whether the entry is a Servant or Ancillary peripheral, which stays equipment of its trooper.</summary>
+    public bool IsServant(SavedCompanyEntry entry) =>
+        SeasonTroopers.IsServantPeripheral(entry, armyData.GetFactionSnapshot(EffectiveSourceFactionId(entry))?.Filters);
 
     // The movement in centimetres when the entry has both values, so it reads back unambiguously; otherwise as saved.
     private static string SavedMove(SavedCompanyEntry entry) =>

@@ -31,7 +31,8 @@ namespace InfinityMercsApp.ViewModels.Season.Overview;
 /// requirement met by what the trooper has, its other gear included; a change that would leave an equipped augment
 /// without it takes that augment off, once confirmed. The Peripheral (Controller) augment brings a peripheral with
 /// it, picked when it is equipped, and leaves the peripheral uncontrolled when it comes off. The SWC of the gear equipped across the
-/// company may not go over the company's SWC. Any trooper but the captain can be retired.
+/// company may not go over the company's SWC. Any trooper but the captain can be retired, a peripheral too
+/// unless it is a Servant one.
 /// </summary>
 public partial class SeasonTeamViewModel : ObservableObject
 {
@@ -254,7 +255,7 @@ public partial class SeasonTeamViewModel : ObservableObject
     {
         if (SelectedUnit is not { } item || _company is not { } company ||
             await _seasonFiles.LoadAsync(_seasonFilePath) is not { } season ||
-            SeasonRetirement.For(company, item.EntryIndex, season, _catalog) is not { } trooper)
+            SeasonRetirement.For(company, item.EntryIndex, season, _catalog, _roster.IsServant) is not { } trooper)
         {
             return;
         }
@@ -319,7 +320,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         var baseName = string.IsNullOrWhiteSpace(item.BaseUnitName) ? profile.Name : item.BaseUnitName;
         SelectedBaseName = string.Equals(baseName.Trim(), item.Name.Trim(), StringComparison.OrdinalIgnoreCase) ? string.Empty : baseName;
         SelectedUnitType = item.UnitTypeCode;
-        CanRetireSelected = !item.IsLieutenant && !item.IsPeripheralUnit;
+        CanRetireSelected = !item.IsLieutenant && (!item.IsPeripheralUnit || item.IsPeripheralTrooper);
         CanSellSelected = item.IsUncontrolledPeripheral;
         SellText = item.IsUncontrolledPeripheral ? $"SELL PERIPHERAL · {item.PeripheralSellPrice} CR" : string.Empty;
         ShowProgress(item);

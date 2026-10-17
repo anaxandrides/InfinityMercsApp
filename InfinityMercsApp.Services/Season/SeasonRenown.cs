@@ -16,13 +16,14 @@ public static class SeasonRenown
             SeasonTroopers.ProgressOf(entry, season).TotalXp);
 
     /// <summary>
-    /// The company's renown. Peripherals are left out: their cost and gear count toward the trooper they belong to.
-    /// Retired troopers count with the renown they kept when they left.
+    /// The company's renown. A Servant peripheral is left out, its cost and gear counting toward the trooper it
+    /// belongs to; any other peripheral is a trooper of its own. Retired troopers count with the renown they kept
+    /// when they left.
     /// </summary>
-    public static int OfCompany(SavedCompanyFile company, SeasonFile? season, InventoryCatalog catalog) =>
+    public static int OfCompany(SavedCompanyFile company, SeasonFile? season, InventoryCatalog catalog, Func<SavedCompanyEntry, bool> isServant) =>
         CompanyRenown.Of(
             company.Entries
-                .Where(entry => !entry.IsPeripheralUnit && season?.IsRetired(entry.EntryIndex) != true)
+                .Where(entry => !(entry.IsPeripheralUnit && isServant(entry)) && season?.IsRetired(entry.EntryIndex) != true)
                 .Select(entry => Of(entry, season, catalog)),
             season);
 }

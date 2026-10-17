@@ -27,7 +27,8 @@ internal static class TohaaArmyData
         {
             [ArmyFilterSection.Skills] = [new ArmyFilterItem(PeripheralSkillId, "Peripheral", null, null)],
             [ArmyFilterSection.Extras] = [new ArmyFilterItem(SynchronizedId, "Synchronized", null, null), new ArmyFilterItem(501, "Servant", null, null)],
-            [ArmyFilterSection.Weapons] = [new ArmyFilterItem(CombiRifleId, "Combi Rifle", null, null)]
+            [ArmyFilterSection.Weapons] = [new ArmyFilterItem(CombiRifleId, "Combi Rifle", null, null)],
+            [ArmyFilterSection.Type] = [new ArmyFilterItem(1, "LI", null, null)]
         });
         data.GetFactionSnapshot(TohaaPeripherals.TohaaFactionId, Arg.Any<CancellationToken>())
             .Returns(new Faction { FactionId = TohaaPeripherals.TohaaFactionId, Filters = filters });
@@ -70,6 +71,7 @@ internal static class TohaaArmyData
                     new UnitProfile
                     {
                         Name = "CHAKSA PERIPHERAL",
+                        Type = 1,
                         Move = "15-10",
                         MoveCm = [15, 10],
                         Cc = 17,

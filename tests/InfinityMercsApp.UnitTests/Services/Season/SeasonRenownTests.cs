@@ -17,9 +17,12 @@ public sealed class SeasonRenownTests
         [
             new SavedCompanyEntry { EntryIndex = 1, Name = "Fusilier", Cost = 10, ExperiencePoints = 4 },
             new SavedCompanyEntry { EntryIndex = 2, Name = "Bolt", Cost = 20, IsLieutenant = true },
-            new SavedCompanyEntry { EntryIndex = 3, Name = "Traktor Mul", Cost = 0, IsPeripheralUnit = true, ExperiencePoints = 7 }
+            new SavedCompanyEntry { EntryIndex = 3, Name = "Traktor Mul", Cost = 0, IsPeripheralUnit = true, ExperiencePoints = 7 },
+            new SavedCompanyEntry { EntryIndex = 4, Name = "Drumbot", Cost = 0, IsPeripheralUnit = true, ExperiencePoints = 5 }
         ]
     };
+
+    private static bool IsServant(SavedCompanyEntry entry) => entry.Name == "Traktor Mul";
 
     [Fact]
     public void ATrooperCountsItsSeasonGearAndXp()
@@ -36,10 +39,10 @@ public sealed class SeasonRenownTests
     }
 
     [Fact]
-    public void TheCompanyLeavesOutPeripheralsAndCountsWins()
+    public void TheCompanyLeavesOutServantPeripheralsAndCountsWins()
     {
         var season = new SeasonFile { Rounds = [new SeasonRound { RoundIndex = 1, MissionResults = new SeasonMissionResult { Won = true } }] };
 
-        Assert.Equal(14 + 20 + 10, SeasonRenown.OfCompany(Company(), season, Catalog));
+        Assert.Equal(14 + 20 + 5 + 10, SeasonRenown.OfCompany(Company(), season, Catalog, IsServant));
     }
 }

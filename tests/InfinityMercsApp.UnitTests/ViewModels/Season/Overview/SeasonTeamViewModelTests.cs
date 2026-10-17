@@ -9,6 +9,7 @@ using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Season.Overview;
+using InfinityMercsApp.UnitTests.ViewModels.Company.Viewer;
 using NSubstitute;
 using InfinityMercsApp.ViewModels.Season.Overview.Items;
 using InfinityMercsApp.ViewModels.Components;
@@ -222,6 +223,21 @@ public sealed class SeasonTeamViewModelTests
         await _changes.Received(1).ChangePeripheralsAsync(Arg.Is<PeripheralChange>(change =>
             change.LosingControl.SequenceEqual(new List<int> { 1 }) && change.GainingControl == null));
         Assert.Null(SavedLoadouts().For(1)[GearSlot.Augments]);
+    }
+
+    // The Traktor Mul is a Servant, part of its trooper; a Synchronized peripheral is a trooper of its own.
+    [Fact]
+    public async Task APeripheralTrooperCanRetireButAServantCant()
+    {
+        var company = SeasonTestKit.Company();
+        company.Entries.Add(CompanyRosterTests.Entry(8, "Drumbot", isPeripheral: true, skills: ["Peripheral (Synchronized)"], characteristics: ["Regular"]));
+        await _team.LoadAsync(company, SeasonTestKit.SeasonPath, _kit.Season, Catalog);
+
+        _team.SelectUnitCommand.Execute(Unit("Drumbot"));
+        Assert.True(_team.CanRetireSelected);
+        Assert.Contains("Irregular", Unit("Drumbot").SavedCharacteristics);
+        _team.SelectUnitCommand.Execute(Unit("Traktor Mul"));
+        Assert.False(_team.CanRetireSelected);
     }
 
     [Fact]

@@ -1,4 +1,7 @@
 using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Company;
+using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
@@ -73,6 +76,33 @@ public static class SeasonTroopers
     /// </summary>
     public static int? ControllerOf(SavedCompanyEntry peripheral, SeasonFile? season) =>
         peripheral.ParentEntryIndex is { } controller && season?.IsRetired(controller) != true ? controller : null;
+
+    /// <summary>
+    /// Whether the entry is a Servant or Ancillary peripheral, which stays equipment of its trooper; any other
+    /// peripheral is a trooper of its own.
+    /// </summary>
+    public static bool IsServantPeripheral(SavedCompanyEntry entry, ArmyFilterCatalog? filters) =>
+        entry.IsPeripheralUnit &&
+        PeripheralKinds.IsServant([
+            .. SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Skills),
+            .. SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Chars)
+        ]);
+
+    /// <summary>
+    /// Whether the entry is a trooper that can deploy: not a Servant peripheral, and for a peripheral from the
+    /// Peripheral (Controller) augment, one a trooper controls.
+    /// </summary>
+    public static bool IsDeployable(SavedCompanyEntry entry, SeasonFile? season, Func<SavedCompanyEntry, bool> isServant) =>
+        season?.IsRetired(entry.EntryIndex) != true &&
+        (!entry.IsPeripheralUnit || (!isServant(entry) && (!entry.FromControllerAugment || ControllerOf(entry, season) is not null)));
+
+    /// <summary>The troopers controlling a peripheral that is a trooper of its own, who gain FT Master (own peripheral).</summary>
+    public static IReadOnlySet<int> ControllersOf(SavedCompanyFile company, SeasonFile? season, Func<SavedCompanyEntry, bool> isServant) =>
+        company.Entries
+            .Where(entry => entry.IsPeripheralUnit && IsDeployable(entry, season, isServant))
+            .Select(entry => entry.FromControllerAugment ? ControllerOf(entry, season) : entry.ParentEntryIndex)
+            .OfType<int>()
+            .ToHashSet();
 
     /// <summary>The stat bonuses bought for the captain, which only the lieutenant's saved line holds.</summary>
     public static CaptainStatBonuses CaptainBonusesOf(SavedCompanyEntry entry, SavedImprovedCaptainStats? captain) =>

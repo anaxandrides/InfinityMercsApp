@@ -48,6 +48,7 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
     private readonly ICompanySelectionNavigator _companySelection;
     private readonly RecruitRollPrompt _rolls;
     private readonly TohaaPeripherals _peripherals;
+    private readonly CompanyRoster _roster;
     private readonly HashSet<int> _rollsToAskFor = [];
     private string _companyFilePath = string.Empty;
     private string? _seasonFilePath;
@@ -78,6 +79,7 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
         DetailPopup = detailPopup;
         _rolls = new RecruitRollPrompt(dialogs, dice, armyData);
         _peripherals = new TohaaPeripherals(armyData);
+        _roster = roster;
         Team = new SeasonTeamViewModel(roster, detail, packageFiles, seasonFiles, detailPopup, dialogs, RefreshSeasonAsync, this);
         Inventory = new SeasonInventoryViewModel(seasonFiles, dialogs, RefreshSeasonAsync);
         Marketplace = new SeasonMarketplaceViewModel(storeProvider, seasonFiles, dialogs, detailPopup, _rolls, RefreshSeasonAsync);
@@ -299,7 +301,7 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
         var currentRound = SeasonRounds.Current(seasonFile);
         RoundTitle = currentRound == 0 ? "Round 0" : $"Round {currentRound} Marketplace";
 
-        Renown = _company is { } renowned ? SeasonRenown.OfCompany(renowned, seasonFile, catalog) : 0;
+        Renown = _company is { } renowned ? SeasonRenown.OfCompany(renowned, seasonFile, catalog, _roster.IsServant) : 0;
         var inventory = SeasonInventory.From(seasonFile, catalog);
         Marketplace.RefreshBalance(seasonFile);
         Inventory.Show(_seasonFilePath, seasonFile, inventory);

@@ -65,6 +65,7 @@ public sealed partial class TohaaPeripherals(IArmyDataService armyData)
         }
 
         var profile = group.Profiles[0];
+        var types = armyData.GetFactionSnapshot(TohaaFactionId)?.Filters.Names(ArmyFilterSection.Type);
         List<CompanySavedCodeRef> Codes(ProfileEntryKind kind) =>
             [.. profile.Entries(kind).Concat(unit.ProfileGroups.GetEntriesWithIncludes(option, kind)).Where(entry => entry.Id is not null).Select(Code)];
 
@@ -74,7 +75,9 @@ public sealed partial class TohaaPeripherals(IArmyDataService armyData)
             Name = offer.Name,
             BaseUnitName = offer.Name,
             CustomName = offer.Name,
-            UnitTypeCode = UnitTypeCodes.Peripheral,
+            UnitTypeCode = profile.Type is { } type && types?.GetValueOrDefault(type) is { Length: > 0 } typeName
+                ? typeName.Trim().ToUpperInvariant()
+                : UnitTypeCodes.Peripheral,
             ProfileKey = $"{TohaaFactionId}:{offer.UnitId}:{offer.GroupId}:{offer.OptionId}",
             SourceFactionId = TohaaFactionId,
             SourceUnitId = offer.UnitId,

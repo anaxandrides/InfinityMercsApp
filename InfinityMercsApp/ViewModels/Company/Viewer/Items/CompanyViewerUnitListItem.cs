@@ -23,6 +23,9 @@ public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewe
     public string ProfileKey { get; init; } = string.Empty;
     public bool IsPeripheralUnit { get; init; }
 
+    /// <summary>A peripheral that is a trooper of its own (not a Servant or Ancillary one).</summary>
+    public bool IsPeripheralTrooper { get; init; }
+
     /// <summary>A peripheral from the Peripheral (Controller) augment that no trooper controls now.</summary>
     public bool IsUncontrolledPeripheral { get; init; }
 
