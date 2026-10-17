@@ -8,10 +8,10 @@ using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Records;
-using InfinityMercsApp.ViewModels.Company.Viewer;
 using NSubstitute;
 using InfinityMercsApp.Services.Rolls;
 
+using InfinityMercsApp.Presentation.Company.Viewer;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season;
 
 public sealed class InjuriesViewModelTests

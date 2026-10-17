@@ -1,8 +1,8 @@
 using InfinityMercsApp.Domain.Models.Metadata.Ranges;
-using InfinityMercsApp.ViewModels.Components;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 
+using InfinityMercsApp.Presentation.Weapons;
 namespace InfinityMercsApp.Views.Controls;
 
 public partial class WeaponRangeBandBarView : ContentView

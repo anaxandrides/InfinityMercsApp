@@ -3,11 +3,11 @@ using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Domain.Season.Rolls;
-using InfinityMercsApp.ViewModels.Season;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
 using InfinityMercsApp.ViewModels.Marketplaces.Items;
 
+using InfinityMercsApp.Services.Rolls;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Overview;
 
 public sealed class SeasonMarketplaceViewModelTests

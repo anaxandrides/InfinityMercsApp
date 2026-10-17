@@ -6,6 +6,7 @@ using InfinityMercsApp.Domain.Season.Game;
 using InfinityMercsApp.Domain.Season.Injuries;
 using InfinityMercsApp.ViewModels.Season.Items;
 
+using InfinityMercsApp.Presentation.Season.Game;
 namespace InfinityMercsApp.ViewModels.Season.Game.Items;
 
 /// <summary>A deployed trooper's row on the game tracker: wounds, XP, its Tactical Awareness token and its weapons.</summary>

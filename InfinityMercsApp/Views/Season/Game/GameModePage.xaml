@@ -5,6 +5,7 @@
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:game="clr-namespace:InfinityMercsApp.ViewModels.Season.Game"
              xmlns:gameItems="clr-namespace:InfinityMercsApp.ViewModels.Season.Game.Items"
+             xmlns:gamePresentation="clr-namespace:InfinityMercsApp.Presentation.Season.Game"
              xmlns:gameRules="clr-namespace:InfinityMercsApp.Domain.Season.Game;assembly=InfinityMercsApp.Domain"
              xmlns:stats="clr-namespace:InfinityMercsApp.Domain.Models.Army.Stats;assembly=InfinityMercsApp.Domain"
              xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
@@ -257,7 +258,7 @@
                                 <!-- Weapon cards; tap one for every mode in full. -->
                                 <VerticalStackLayout BindableLayout.ItemsSource="{Binding WeaponCards}">
                                     <BindableLayout.ItemTemplate>
-                                        <DataTemplate x:DataType="gameItems:GameWeaponCard">
+                                        <DataTemplate x:DataType="gamePresentation:GameWeaponCard">
                                             <Border Style="{StaticResource WeaponCard}">
                                                 <Border.GestureRecognizers>
                                                     <TapGestureRecognizer Command="{Binding ViewModel.ShowWeaponCommand, Source={x:Reference GameModePageRoot}, x:DataType=view:GameModePage}"
@@ -280,7 +281,7 @@
                                                     </Label>
                                                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding Modes}">
                                                         <BindableLayout.ItemTemplate>
-                                                            <DataTemplate x:DataType="gameItems:GameWeaponMode">
+                                                            <DataTemplate x:DataType="gamePresentation:GameWeaponMode">
                                                                 <VerticalStackLayout Spacing="0">
                                                                     <BoxView HeightRequest="1"
                                                                              Color="#3A4554"
@@ -347,7 +348,7 @@
                        HorizontalTextAlignment="Center" />
                 <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding OpenWeaponCard.Modes, FallbackValue={x:Null}}">
                     <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="gameItems:GameWeaponMode">
+                        <DataTemplate x:DataType="gamePresentation:GameWeaponMode">
                             <controls:WeaponDetailCardView Weapon="{Binding Weapon}"
                                                            AmmoType="{Binding Ammo}"
                                                            RangeBandHeightRequest="88"

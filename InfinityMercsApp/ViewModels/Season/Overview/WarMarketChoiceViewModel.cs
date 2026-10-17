@@ -3,9 +3,9 @@ using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Marketplace;
 using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.ViewModels.Season.Overview.Items;
 using InfinityMercsApp.Services.Rolls;
 
+using InfinityMercsApp.Presentation.Season.Overview;
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 
 /// <summary>

@@ -5,6 +5,7 @@
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:selection="clr-namespace:InfinityMercsApp.ViewModels.Company.Selection"
+             xmlns:selectionPresentation="clr-namespace:InfinityMercsApp.Presentation.Company.Selection"
              xmlns:teamItemsItems="clr-namespace:InfinityMercsApp.ViewModels.Company.Selection.Items"
              xmlns:shell="clr-namespace:Microsoft.Maui.Controls;assembly=Microsoft.Maui.Controls"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
@@ -89,7 +90,7 @@
         <!-- Compact: switches between the units, the selected unit, and the company. -->
         <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="*,*,*" ColumnSpacing="8" IsVisible="{Binding IsCompact}">
             <Button Text="UNITS" Style="{StaticResource CompactTabButton}"
-                    Command="{Binding ShowPaneCommand}" CommandParameter="{x:Static selection:CompanySelectionPane.Units}">
+                    Command="{Binding ShowPaneCommand}" CommandParameter="{x:Static selectionPresentation:CompanySelectionPane.Units}">
                 <Button.Triggers>
                     <DataTrigger TargetType="Button" Binding="{Binding IsUnitsPaneActive}" Value="True">
                         <Setter Property="BackgroundColor" Value="{StaticResource Signal}" />
@@ -98,7 +99,7 @@
                 </Button.Triggers>
             </Button>
             <Button Grid.Column="1" Text="PROFILE" Style="{StaticResource CompactTabButton}"
-                    Command="{Binding ShowPaneCommand}" CommandParameter="{x:Static selection:CompanySelectionPane.Profile}">
+                    Command="{Binding ShowPaneCommand}" CommandParameter="{x:Static selectionPresentation:CompanySelectionPane.Profile}">
                 <Button.Triggers>
                     <DataTrigger TargetType="Button" Binding="{Binding IsProfilePaneActive}" Value="True">
                         <Setter Property="BackgroundColor" Value="{StaticResource Signal}" />
@@ -107,7 +108,7 @@
                 </Button.Triggers>
             </Button>
             <Button Grid.Column="2" Text="COMPANY" Style="{StaticResource CompactTabButton}"
-                    Command="{Binding ShowPaneCommand}" CommandParameter="{x:Static selection:CompanySelectionPane.Company}">
+                    Command="{Binding ShowPaneCommand}" CommandParameter="{x:Static selectionPresentation:CompanySelectionPane.Company}">
                 <Button.Triggers>
                     <DataTrigger TargetType="Button" Binding="{Binding IsCompanyPaneActive}" Value="True">
                         <Setter Property="BackgroundColor" Value="{StaticResource Signal}" />

@@ -11,14 +11,13 @@ using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.Services.Wiki;
-using InfinityMercsApp.UnitTests.ViewModels.Company.Viewer;
-using InfinityMercsApp.ViewModels.Company.Viewer;
-using InfinityMercsApp.ViewModels.Season;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.Services.Rolls;
 
+using InfinityMercsApp.Presentation.Company.Viewer;
+using InfinityMercsApp.UnitTests.Presentation.Company.Viewer;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Overview;
 
 /// <summary>

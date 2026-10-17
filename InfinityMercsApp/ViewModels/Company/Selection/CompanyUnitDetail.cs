@@ -5,8 +5,8 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 using InfinityMercsApp.ViewModels.Components;
-using InfinityMercsApp.ViewModels.Themes;
-
+using InfinityMercsApp.Presentation.Themes;
+using InfinityMercsApp.Presentation.Units;
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 
 /// <summary>

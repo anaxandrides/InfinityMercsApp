@@ -38,6 +38,8 @@ using InfinityMercsApp.Views.Company.Viewer;
 using InfinityMercsApp.Views.Company;
 using InfinityMercsApp.Views.Armory;
 
+using InfinityMercsApp.Presentation.Company.Viewer;
+using InfinityMercsApp.Presentation.Season;
 namespace InfinityMercsApp;
 
 public static class ServiceRegistryExtensions

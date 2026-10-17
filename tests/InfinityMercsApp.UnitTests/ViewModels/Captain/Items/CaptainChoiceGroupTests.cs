@@ -1,6 +1,5 @@
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.ViewModels.Captain.Items;
-
 namespace InfinityMercsApp.UnitTests.ViewModels.Captain.Items;
 
 public sealed class CaptainChoiceGroupTests

@@ -3,7 +3,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:companyViewModels="clr-namespace:InfinityMercsApp.ViewModels.Company"
-             xmlns:companyItems="clr-namespace:InfinityMercsApp.ViewModels.Company.Items"
+             xmlns:companyPresentation="clr-namespace:InfinityMercsApp.Presentation.Company"
     xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
     xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
@@ -37,7 +37,7 @@
                   HorizontalOptions="{Binding Layout.HorizontalOptions}"
                   MaximumWidthRequest="{Binding Layout.MaximumWidth}">
                 <BindableLayout.ItemTemplate>
-                    <DataTemplate x:DataType="companyItems:CompanyChoice">
+                    <DataTemplate x:DataType="companyPresentation:CompanyChoice">
                         <Grid layout:GridLayout.Cell="{Binding Cell}"
                               MinimumHeightRequest="{Binding Style.MinimumHeight}"
                               VerticalOptions="Fill">

@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Lieutenants;
-using InfinityMercsApp.ViewModels.Components;
-
+using InfinityMercsApp.Presentation.Units;
 namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 /// <summary>Formatted text for profile and roster lines, with lieutenant mentions highlighted.</summary>

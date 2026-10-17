@@ -5,6 +5,7 @@
     xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
     xmlns:captain="clr-namespace:InfinityMercsApp.ViewModels.Captain"
              xmlns:captainItems="clr-namespace:InfinityMercsApp.ViewModels.Captain.Items"
+             xmlns:captainPresentation="clr-namespace:InfinityMercsApp.Presentation.Captain"
     xmlns:captainServices="clr-namespace:InfinityMercsApp.Services.CompanySelection.Captain;assembly=InfinityMercsApp.Services"
     xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
     xmlns:converters="clr-namespace:InfinityMercsApp.Converters"
@@ -98,7 +99,7 @@
                                     <behaviors:FitTextToCellsBehavior FontSizeKey="FontSizeSubHeadline" />
                                 </FlexLayout.Behaviors>
                                 <BindableLayout.ItemTemplate>
-                                    <DataTemplate x:DataType="captainItems:CaptainStatCell">
+                                    <DataTemplate x:DataType="captainPresentation:CaptainStatCell">
                                         <VerticalStackLayout FlexLayout.Grow="1" FlexLayout.Basis="0" Spacing="2" Margin="0,0,4,0">
                                             <Label Text="{Binding Key}"
                                                    Style="{StaticResource LabelSubHeadline}"

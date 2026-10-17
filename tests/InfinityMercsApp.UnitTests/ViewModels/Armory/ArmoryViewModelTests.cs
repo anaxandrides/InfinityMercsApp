@@ -3,8 +3,7 @@ using InfinityMercsApp.Infrastructure.Providers.Metadata;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Armory;
 using NSubstitute;
-using InfinityMercsApp.ViewModels.Layouts;
-
+using InfinityMercsApp.Presentation.Layouts;
 namespace InfinityMercsApp.UnitTests.ViewModels.Armory;
 
 public sealed class ArmoryViewModelTests

@@ -15,14 +15,12 @@ using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Season.Peripherals;
 using InfinityMercsApp.Domain.Models.Season;
-using InfinityMercsApp.Domain.Season;
-using InfinityMercsApp.ViewModels.Season.Overview.Items;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.Services.Rolls;
 
+using InfinityMercsApp.Presentation.Company.Viewer;
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 
 /// <summary>

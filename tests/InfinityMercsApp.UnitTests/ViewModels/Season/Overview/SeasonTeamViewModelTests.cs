@@ -7,14 +7,15 @@ using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Services.Season.Peripherals;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Season.Overview;
-using InfinityMercsApp.UnitTests.ViewModels.Company.Viewer;
 using NSubstitute;
 using InfinityMercsApp.ViewModels.Season.Overview.Items;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
 
+using InfinityMercsApp.Presentation.Company.Viewer;
+using InfinityMercsApp.Presentation.Season.Overview;
+using InfinityMercsApp.UnitTests.Presentation.Company.Viewer;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Overview;
 
 public sealed class SeasonTeamViewModelTests

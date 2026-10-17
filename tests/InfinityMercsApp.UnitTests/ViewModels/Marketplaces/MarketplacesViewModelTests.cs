@@ -7,10 +7,11 @@ using InfinityMercsApp.Services.Wiki;
 using InfinityMercsApp.ViewModels.Marketplaces;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using InfinityMercsApp.ViewModels.Marketplaces.Items;
-using InfinityMercsApp.ViewModels.Layouts;
 using InfinityMercsApp.ViewModels.Components;
 
+using InfinityMercsApp.Presentation.Layouts;
+using InfinityMercsApp.Presentation.Marketplaces;
+using InfinityMercsApp.ViewModels.Marketplaces.Items;
 namespace InfinityMercsApp.UnitTests.ViewModels.Marketplaces;
 
 public sealed class MarketplacesViewModelTests

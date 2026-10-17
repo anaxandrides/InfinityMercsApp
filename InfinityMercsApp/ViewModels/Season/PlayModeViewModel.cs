@@ -10,6 +10,7 @@ using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Season.Items;
 using InfinityMercsApp.Views.Season.Game;
 
+using InfinityMercsApp.Presentation.Season;
 namespace InfinityMercsApp.ViewModels.Season;
 
 /// <summary>

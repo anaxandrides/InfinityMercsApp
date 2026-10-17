@@ -8,6 +8,7 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.ViewModels.Captain.Items;
 
+using InfinityMercsApp.Presentation.Captain;
 namespace InfinityMercsApp.ViewModels.Captain;
 
 /// <summary>

@@ -5,10 +5,11 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company.Selection;
 using InfinityMercsApp.ViewModels.Components.UnitFilter;
-using InfinityMercsApp.ViewModels.Layouts;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using NSubstitute;
 
+using InfinityMercsApp.Presentation.Layouts;
+using InfinityMercsApp.Presentation.Company.Selection;
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Selection;
 
 public sealed class StandardCompanySelectionViewModelTests

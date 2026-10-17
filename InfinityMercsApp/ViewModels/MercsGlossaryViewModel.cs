@@ -5,8 +5,7 @@ using InfinityMercsApp.Services.Glossary;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.ViewModels.Layouts;
-
+using InfinityMercsApp.Presentation.Layouts;
 namespace InfinityMercsApp.ViewModels;
 
 /// <summary>The MERCS rules index; choosing a rule shows its text.</summary>

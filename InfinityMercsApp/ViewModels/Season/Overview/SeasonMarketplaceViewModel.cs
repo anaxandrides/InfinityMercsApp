@@ -8,10 +8,11 @@ using InfinityMercsApp.Domain.Season.Marketplace;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.ViewModels.Season.Overview.Items;
 using InfinityMercsApp.ViewModels.Marketplaces.Items;
 using InfinityMercsApp.ViewModels.Components;
 
+using InfinityMercsApp.Presentation.Season.Overview;
+using InfinityMercsApp.Services.Rolls;
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 
 /// <summary>

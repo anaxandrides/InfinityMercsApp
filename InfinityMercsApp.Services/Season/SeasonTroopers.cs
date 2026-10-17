@@ -1,7 +1,6 @@
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Army.Filters;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;

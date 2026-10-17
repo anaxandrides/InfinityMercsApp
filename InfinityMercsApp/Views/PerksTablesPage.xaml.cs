@@ -2,9 +2,9 @@ using System.ComponentModel;
 using InfinityMercsApp.Domain.Models.Perks.Tables;
 using InfinityMercsApp.ViewModels;
 using InfinityMercsApp.Views.Adaptive;
-using InfinityMercsApp.ViewModels.Layouts;
 using InfinityMercsApp.Views.Base;
 
+using InfinityMercsApp.Presentation.Layouts;
 namespace InfinityMercsApp.Views;
 
 /// <summary>

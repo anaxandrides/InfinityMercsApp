@@ -7,7 +7,6 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.Records;
-using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.ViewModels.Season.Downtime;
@@ -15,6 +14,7 @@ using NSubstitute;
 using InfinityMercsApp.ViewModels.Season.Downtime.Items;
 using InfinityMercsApp.Services.Rolls;
 
+using InfinityMercsApp.Presentation.Company.Viewer;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Downtime;
 
 public sealed class DowntimeViewModelTests

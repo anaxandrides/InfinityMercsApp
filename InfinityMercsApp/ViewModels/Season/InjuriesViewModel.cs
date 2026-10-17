@@ -9,10 +9,10 @@ using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Rolls;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
 using InfinityMercsApp.ViewModels.Season.Items;
 
+using InfinityMercsApp.Presentation.Company.Viewer;
 namespace InfinityMercsApp.ViewModels.Season;
 
 /// <summary>

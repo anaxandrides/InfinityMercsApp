@@ -5,9 +5,8 @@ using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.ViewModels.Layouts;
-using InfinityMercsApp.ViewModels.Armory.Items;
-
+using InfinityMercsApp.Presentation.Armory;
+using InfinityMercsApp.Presentation.Layouts;
 namespace InfinityMercsApp.ViewModels.Armory;
 
 /// <summary>Searchable list of weapons, each opening its profiles in a detail pane.</summary>

@@ -19,9 +19,10 @@ using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
-using InfinityMercsApp.ViewModels.Themes;
 using InfinityMercsApp.ViewModels.Components.UnitFilter;
 
+using InfinityMercsApp.Presentation.Company.Selection;
+using InfinityMercsApp.Presentation.Themes;
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 
 /// <summary>

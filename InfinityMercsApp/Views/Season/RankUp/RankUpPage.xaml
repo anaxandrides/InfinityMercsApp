@@ -4,7 +4,7 @@
              xmlns:view="clr-namespace:InfinityMercsApp.Views.Season.RankUp"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:rankUp="clr-namespace:InfinityMercsApp.ViewModels.Season.RankUp"
-             xmlns:rankUpItems="clr-namespace:InfinityMercsApp.ViewModels.Season.RankUp.Items"
+             xmlns:rankUpPresentation="clr-namespace:InfinityMercsApp.Presentation.Season.RankUp"
              xmlns:viewerItems="clr-namespace:InfinityMercsApp.ViewModels.Company.Viewer.Items"
              xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
              x:Class="InfinityMercsApp.Views.Season.RankUp.RankUpPage"
@@ -75,7 +75,7 @@
                     <VerticalStackLayout Spacing="6" IsVisible="{Binding IsChoosing}">
                         <Label Text="PERK LIST" Style="{StaticResource Heading}" />
                         <Picker ItemsSource="{Binding Lists}"
-                                ItemDisplayBinding="{Binding Name, x:DataType=rankUpItems:PerkListChoice}"
+                                ItemDisplayBinding="{Binding Name, x:DataType=rankUpPresentation:PerkListChoice}"
                                 SelectedItem="{Binding SelectedList}"
                                 TextColor="{StaticResource TextPrimary}"
                                 BackgroundColor="{StaticResource HairlineBright}" />
@@ -86,7 +86,7 @@
                         <Label Text="{Binding RollText}" FontSize="{DynamicResource FontSizeBody}" FontAttributes="Bold" TextColor="{StaticResource Caution}" />
                         <HorizontalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding RolledLists}" IsVisible="{Binding HasRolledLists}">
                             <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="rankUpItems:PerkListChoice">
+                                <DataTemplate x:DataType="rankUpPresentation:PerkListChoice">
                                     <Button Text="{Binding Name}"
                                             Style="{StaticResource ModeButton}"
                                             Command="{Binding ViewModel.RollTrackCommand, Source={x:Reference RankUpPageRoot}, x:DataType=view:RankUpPage}"
@@ -99,7 +99,7 @@
                     <Label Text="TAP A PERK TO TAKE IT" Style="{StaticResource Heading}" IsVisible="{Binding HasOptions}" />
                     <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Options}">
                         <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="rankUpItems:PerkOption">
+                            <DataTemplate x:DataType="rankUpPresentation:PerkOption">
                                 <Border BackgroundColor="{StaticResource Plate}" Stroke="{StaticResource HairlineBright}" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="12,8">
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Command="{Binding ViewModel.TakePerkCommand, Source={x:Reference RankUpPageRoot}, x:DataType=view:RankUpPage}"

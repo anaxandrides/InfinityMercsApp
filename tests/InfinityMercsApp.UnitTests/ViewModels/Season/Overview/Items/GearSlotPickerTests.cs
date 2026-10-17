@@ -1,6 +1,7 @@
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.ViewModels.Season.Overview.Items;
 
+using InfinityMercsApp.Presentation.Season.Overview;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Overview.Items;
 
 public sealed class GearSlotPickerTests

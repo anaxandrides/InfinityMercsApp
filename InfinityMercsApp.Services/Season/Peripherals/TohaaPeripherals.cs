@@ -1,8 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
-using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Domain.Models.Army.Filters;
-using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;

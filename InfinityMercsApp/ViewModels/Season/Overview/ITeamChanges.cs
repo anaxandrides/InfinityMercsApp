@@ -1,5 +1,3 @@
-using InfinityMercsApp.ViewModels.Season.Overview.Items;
-
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 
 /// <summary>The changes the Team tab makes to the company file, which the season page owns.</summary>

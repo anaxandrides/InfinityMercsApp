@@ -1,8 +1,7 @@
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
-using InfinityMercsApp.ViewModels.Season.Overview.Items;
-
+using InfinityMercsApp.Presentation.Season.Overview;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Overview;
 
 public sealed class WarMarketChoiceViewModelTests

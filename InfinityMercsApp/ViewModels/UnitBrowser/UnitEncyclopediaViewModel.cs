@@ -13,6 +13,8 @@ using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Components.UnitFilter;
 
+using InfinityMercsApp.Presentation.UnitBrowser;
+using InfinityMercsApp.Presentation.Units;
 namespace InfinityMercsApp.ViewModels.UnitBrowser;
 
 /// <summary>

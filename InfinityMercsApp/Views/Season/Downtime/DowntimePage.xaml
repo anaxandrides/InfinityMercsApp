@@ -5,6 +5,7 @@
              xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
              xmlns:downtime="clr-namespace:InfinityMercsApp.ViewModels.Season.Downtime"
              xmlns:downtimeItems="clr-namespace:InfinityMercsApp.ViewModels.Season.Downtime.Items"
+             xmlns:downtimePresentation="clr-namespace:InfinityMercsApp.Presentation.Season.Downtime"
              xmlns:outcomes="clr-namespace:InfinityMercsApp.Domain.Season.Downtime;assembly=InfinityMercsApp.Domain"
              xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
              x:Class="InfinityMercsApp.Views.Season.Downtime.DowntimePage"
@@ -86,7 +87,7 @@
                     <Label Text="SELECT AN EVENT" Style="{StaticResource SectionHeading}" Margin="0,4,0,6" />
                     <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding EventOptions}">
                         <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="downtimeItems:DowntimeEventOption">
+                            <DataTemplate x:DataType="downtimePresentation:DowntimeEventOption">
                                 <Border Style="{StaticResource Card}" Padding="12,10">
                                     <Border.Triggers>
                                         <DataTrigger TargetType="Border"
@@ -115,7 +116,7 @@
                 <!-- The event's choices; only the picked one stays. -->
                 <VerticalStackLayout Spacing="12" BindableLayout.ItemsSource="{Binding ChoiceCards}">
                     <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="downtimeItems:DowntimeChoiceCard">
+                        <DataTemplate x:DataType="downtimePresentation:DowntimeChoiceCard">
                             <Border Style="{StaticResource Card}" StrokeShape="RoundRectangle 8">
                                 <VerticalStackLayout Spacing="6" Padding="12">
                                     <Label Text="{Binding Header}" Style="{StaticResource SectionHeading}" />

@@ -2,8 +2,8 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company.Selection;
 using InfinityMercsApp.ViewModels.Components;
-using InfinityMercsApp.ViewModels.Themes;
-
+using InfinityMercsApp.Presentation.Themes;
+using InfinityMercsApp.Presentation.Units;
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Selection;
 
 public sealed class CompanyUnitDetailTests

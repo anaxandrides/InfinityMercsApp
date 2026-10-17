@@ -1,8 +1,7 @@
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company;
 using NSubstitute;
-using InfinityMercsApp.ViewModels.Layouts;
-
+using InfinityMercsApp.Presentation.Layouts;
 namespace InfinityMercsApp.UnitTests.ViewModels.Company;
 
 public sealed class CreateNewCompanyPageViewModelTests

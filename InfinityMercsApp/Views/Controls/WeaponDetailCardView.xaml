@@ -2,11 +2,11 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
-             xmlns:components="clr-namespace:InfinityMercsApp.ViewModels.Components"
+             xmlns:weaponsPresentation="clr-namespace:InfinityMercsApp.Presentation.Weapons"
              x:Class="InfinityMercsApp.Views.Controls.WeaponDetailCardView"
              x:Name="WeaponCardRoot">
     <ContentView.Resources>
-        <DataTemplate x:Key="StatRow" x:DataType="components:WeaponCardStat">
+        <DataTemplate x:Key="StatRow" x:DataType="weaponsPresentation:WeaponCardStat">
             <Grid ColumnDefinitions="Auto,*">
                 <Label Text="{Binding Label}" Style="{StaticResource LabelCaption}" TextColor="#8A97A8" VerticalTextAlignment="Center" Margin="0,0,6,0" />
                 <Label Grid.Column="1" Text="{Binding Value}" Style="{StaticResource LabelCaption}" FontAttributes="Bold" TextColor="#E6EBF2"
@@ -33,7 +33,7 @@
             <RoundRectangle CornerRadius="4" />
         </Border.StrokeShape>
         <VerticalStackLayout Spacing="4"
-                             x:DataType="components:WeaponCard"
+                             x:DataType="weaponsPresentation:WeaponCard"
                              BindingContext="{Binding Card, Source={x:Reference WeaponCardRoot}, x:DataType=controls:WeaponDetailCardView}">
             <!-- Firing mode header, for a weapon with several modes. -->
             <Label Text="{Binding Mode}" IsVisible="{Binding HasMode}" Style="{StaticResource LabelBody}"
@@ -49,7 +49,7 @@
                    FontAttributes="Bold" TextColor="#8A97A8" Margin="0,6,0,2" />
             <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding RuleRows}">
                 <BindableLayout.ItemTemplate>
-                    <DataTemplate x:DataType="components:WeaponCardRuleRow">
+                    <DataTemplate x:DataType="weaponsPresentation:WeaponCardRuleRow">
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                             <Label Text="{Binding Left.Text}" Style="{StaticResource RuleLink}">
                                 <Label.GestureRecognizers>

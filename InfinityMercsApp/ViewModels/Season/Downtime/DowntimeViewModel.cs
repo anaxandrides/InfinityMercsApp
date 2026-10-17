@@ -12,10 +12,11 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Season.Downtime.Items;
 using InfinityMercsApp.Services.Rolls;
 
+using InfinityMercsApp.Presentation.Company.Viewer;
+using InfinityMercsApp.Presentation.Season.Downtime;
 namespace InfinityMercsApp.ViewModels.Season.Downtime;
 
 /// <summary>

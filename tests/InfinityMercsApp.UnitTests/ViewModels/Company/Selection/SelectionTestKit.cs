@@ -12,8 +12,7 @@ using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company.Selection;
 using NSubstitute;
 using MetadataFaction = InfinityMercsApp.Domain.Models.Metadata.Faction;
-using InfinityMercsApp.ViewModels.Layouts;
-
+using InfinityMercsApp.Presentation.Layouts;
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Selection;
 
 /// <summary>

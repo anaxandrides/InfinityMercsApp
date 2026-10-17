@@ -8,6 +8,8 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using InfinityMercsApp.ViewModels.Components;
 
+using InfinityMercsApp.Presentation.Company.Viewer;
+using InfinityMercsApp.UnitTests.Presentation.Company.Viewer;
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Viewer;
 
 public sealed class CompanyViewerViewModelTests

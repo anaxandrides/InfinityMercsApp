@@ -9,6 +9,7 @@ using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Season;
 using NSubstitute;
 
+using InfinityMercsApp.Presentation.Season;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season;
 
 public sealed class PlayModeViewModelTests : IDisposable

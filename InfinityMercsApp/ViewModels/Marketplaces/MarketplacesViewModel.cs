@@ -6,6 +6,7 @@ using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Marketplaces.Items;
 using InfinityMercsApp.ViewModels.Components;
 
+using InfinityMercsApp.Presentation.Marketplaces;
 namespace InfinityMercsApp.ViewModels.Marketplaces;
 
 /// <summary>

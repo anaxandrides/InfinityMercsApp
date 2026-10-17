@@ -10,8 +10,8 @@ using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Season.Bye;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
-using InfinityMercsApp.ViewModels.Season;
 
+using InfinityMercsApp.Presentation.Season;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Bye;
 
 public sealed class ByeRoundViewModelTests : IDisposable

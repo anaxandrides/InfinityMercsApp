@@ -4,6 +4,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:components="clr-namespace:InfinityMercsApp.ViewModels.Components"
+             xmlns:marketplacesPresentation="clr-namespace:InfinityMercsApp.Presentation.Marketplaces"
              xmlns:metadata="clr-namespace:InfinityMercsApp.Domain.Models.Metadata;assembly=InfinityMercsApp.Domain"
              xmlns:wiki="clr-namespace:InfinityMercsApp.Domain.Models.Metadata.Wiki;assembly=InfinityMercsApp.Domain"
              x:Class="InfinityMercsApp.Views.Controls.MarketplaceDetailPopupView"
@@ -44,7 +45,7 @@
                         <!-- Facts: Cost, Category, ARM, ... -->
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Detail.Rows}" Spacing="6">
                             <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="components:DetailRow">
+                                <DataTemplate x:DataType="marketplacesPresentation:DetailRow">
                                     <Grid ColumnDefinitions="90,*" Margin="0,2">
                                         <Label Text="{Binding Label}"
                                                Style="{StaticResource LabelBody}"

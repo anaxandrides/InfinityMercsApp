@@ -4,9 +4,10 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.UnitBrowser;
 using NSubstitute;
-using InfinityMercsApp.ViewModels.Layouts;
 using InfinityMercsApp.ViewModels.Components;
 
+using InfinityMercsApp.Presentation.Layouts;
+using InfinityMercsApp.Presentation.UnitBrowser;
 namespace InfinityMercsApp.UnitTests.ViewModels.UnitBrowser;
 
 public sealed class UnitEncyclopediaViewModelTests

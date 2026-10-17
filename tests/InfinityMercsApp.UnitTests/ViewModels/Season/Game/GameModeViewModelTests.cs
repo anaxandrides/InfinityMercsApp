@@ -13,8 +13,8 @@ using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Season.Game;
 using NSubstitute;
 using InfinityMercsApp.ViewModels.Season.Game.Items;
-using InfinityMercsApp.ViewModels.Season;
-
+using InfinityMercsApp.Presentation.Season;
+using InfinityMercsApp.Presentation.Season.Game;
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Game;
 
 public sealed class GameModeViewModelTests : IDisposable

@@ -5,6 +5,7 @@ using InfinityMercsApp.Infrastructure.Providers.Metadata;
 using InfinityMercsApp.Services.Wiki;
 using InfinityMercsApp.ViewModels.Marketplaces.Items;
 
+using InfinityMercsApp.Presentation.Marketplaces;
 namespace InfinityMercsApp.ViewModels.Components;
 
 /// <summary>

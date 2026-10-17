@@ -1,8 +1,7 @@
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 using NSubstitute;
-using InfinityMercsApp.ViewModels.Layouts;
-
+using InfinityMercsApp.Presentation.Layouts;
 namespace InfinityMercsApp.UnitTests.Adaptive;
 
 public sealed class AdaptiveViewModelBaseTests

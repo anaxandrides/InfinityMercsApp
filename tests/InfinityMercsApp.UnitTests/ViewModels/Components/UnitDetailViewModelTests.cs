@@ -1,9 +1,9 @@
-using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Components;
 
+using InfinityMercsApp.Presentation.Units;
 namespace InfinityMercsApp.UnitTests.ViewModels.Components;
 
 public sealed class UnitDetailViewModelTests

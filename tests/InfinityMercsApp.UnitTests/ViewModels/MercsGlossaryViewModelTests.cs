@@ -4,8 +4,7 @@ using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.ViewModels;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using InfinityMercsApp.ViewModels.Layouts;
-
+using InfinityMercsApp.Presentation.Layouts;
 namespace InfinityMercsApp.UnitTests.ViewModels;
 
 public sealed class MercsGlossaryViewModelTests

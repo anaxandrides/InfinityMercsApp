@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
@@ -9,6 +8,7 @@ using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
 
+using InfinityMercsApp.Presentation.Company.Viewer;
 namespace InfinityMercsApp.ViewModels.Company.Viewer;
 
 /// <summary>
