@@ -106,6 +106,9 @@ public partial class MercsCompanyEntry : ObservableObject, IViewerListItem, ICom
     public string ExperienceRankName => CompanyUnitExperienceRanks.GetRankName(ExperiencePoints);
     public List<CompanyTrooperPerkState> Perks { get; init; } = [];
 
+    /// <inheritdoc/>
+    public IReadOnlyList<string> SpecOpsPurchases { get; init; } = [];
+
     [ObservableProperty]
     public partial bool IsSelected { get; set; }
 

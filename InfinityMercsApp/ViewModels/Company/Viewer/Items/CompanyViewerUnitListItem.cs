@@ -46,6 +46,9 @@ public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewe
     /// <summary>The trooper's season so far: rank, perk points, injuries and perks.</summary>
     public TrooperProgress? Progress { get; init; }
 
+    /// <summary>What a TAG company TAG bought in its Spec Ops popup, e.g. "Spec-Ops: +1 ARM".</summary>
+    public IReadOnlyList<string> SpecOpsPurchases { get; init; } = [];
+
     /// <summary>The trooper's Booty and Metachemistry rolls, e.g. "Booty: DA CC Weapon (rolled 7)".</summary>
     public IReadOnlyList<string> RollLines { get; init; } = [];
 

@@ -135,6 +135,7 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             UnitS = profile.Silhouette,
             ExperiencePoints = progress.TotalXp,
             Progress = progress,
+            SpecOpsPurchases = entry.SpecOpsPurchases,
             RollLines = entry.RecruitRolls.Select(roll => $"{roll.Describe(worn.UnitTypeCode)} (rolled {roll.Roll})").ToList(),
             OwedRolls = RecruitSkills.Owed(saved.Skills, entry.RecruitRolls),
             CaptainIconPackagedPath = entry.IsLieutenant ? SavedUnitText.CaptainIconPath : string.Empty,

@@ -88,6 +88,10 @@ public abstract class CompanySavedCompanyEntryBase
     [JsonPropertyName("Perks")]
     public List<CompanyTrooperPerkState> Perks { get; init; } = [];
 
+    /// <summary>What a TAG company TAG bought in its Spec Ops popup, e.g. "Spec-Ops: +1 ARM".</summary>
+    [JsonPropertyName("SpecOpsPurchases")]
+    public List<string> SpecOpsPurchases { get; set; } = [];
+
     /// <summary>The trooper's Booty and Metachemistry rolls, made once when it was bought and kept for good.</summary>
     [JsonPropertyName("RecruitRolls")]
     public List<RecruitRoll> RecruitRolls { get; set; } = [];

@@ -314,7 +314,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         RefreshGearPickers();
     }
 
-    // The captain's Spec-Ops buys are listed first among the perks, as on an army sheet, then Booty and
+    // The captain's (or a TAG company TAG's) Spec-Ops buys are listed first among the perks, as on an army sheet, then Booty and
     // Metachemistry results.
     private void ShowProgress(CompanyViewerUnitListItem item)
     {
@@ -323,6 +323,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         Perks =
         [
             .. item.IsLieutenant ? _captain.SpecOpsPurchases(StatKeys.VitalityFor(item.UnitTypeCode)) : [],
+            .. item.SpecOpsPurchases,
             .. item.RollLines,
             .. progress?.Perks.Select(perk => CompanyPerkCatalog.FindById(perk)?.Description ?? perk) ?? []
         ];
@@ -379,7 +380,13 @@ public partial class SeasonTeamViewModel : ObservableObject
         var loadout = _loadouts.For(item.EntryIndex);
         foreach (var picker in GearSlots)
         {
-            picker.IsAvailable = picker.Slot != GearSlot.Extra || HasExtraSlot(loadout);
+            picker.IsAvailable = picker.Slot switch
+            {
+                GearSlot.Extra => HasExtraSlot(loadout),
+                // TAGs wear no armour; one already on stays listed so it can come off.
+                GearSlot.Armor => !UnitTypeCodes.IsTag(item.UnitTypeCode) || loadout[GearSlot.Armor] is not null,
+                _ => true
+            };
             List<GearOption> options = [GearOption.None];
             var selected = GearOption.None;
             var held = HeldBy(item, loadout, picker.Slot);

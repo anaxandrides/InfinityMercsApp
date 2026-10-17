@@ -75,6 +75,22 @@ public sealed class CompanyRecruitmentWorkflowTests
     }
 
     [Fact]
+    public async Task ATagsSpecOpsBuysAreSavedWithIt()
+    {
+        var tag = new MercsCompanyEntry
+        {
+            Name = "Squalo",
+            CostValue = 40,
+            SourceFactionId = Army101Data.PanOceania,
+            SpecOpsPurchases = ["Spec-Ops: +1 ARM", "Spec-Ops: Courage"]
+        };
+
+        await HireAsync(tag);
+
+        Assert.Equal(["Spec-Ops: +1 ARM", "Spec-Ops: Courage"], _saved?.Entries[^1].SpecOpsPurchases);
+    }
+
+    [Fact]
     public async Task TheirCostIsChargedThroughAdditionalRecruitment()
     {
         await HireAsync(Recruit("Alpha", 10));

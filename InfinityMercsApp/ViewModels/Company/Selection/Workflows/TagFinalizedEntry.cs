@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
@@ -12,7 +13,7 @@ public static class TagFinalizedEntry
 
     /// <summary>
     /// <paramref name="entry"/> with its chosen Spec Ops: the upgrades merged into its weapons, skills and equipment,
-    /// the bonuses on its statline, its new name, and the Spec Ops experience.
+    /// the bonuses on its statline, its new name, the Spec Ops experience, and a list of what was bought.
     /// </summary>
     public static MercsCompanyEntry From(MercsCompanyEntry entry, SavedImprovedCaptainStats stats)
     {
@@ -77,6 +78,7 @@ public static class TagFinalizedEntry
             PeripheralSkillsLineFormatted = entry.PeripheralSkillsLineFormatted,
             HasPeripheralSkillsLine = entry.HasPeripheralSkillsLine,
             ExperiencePoints = SpecOpsExperience,
+            SpecOpsPurchases = stats.SpecOpsPurchases(StatKeys.VitalityFor(entry.UnitTypeCode)),
             Perks = entry.Perks
                 .Select(x => new CompanyTrooperPerkState { Id = x.Id, Rank = x.Rank })
                 .ToList(),

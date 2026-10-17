@@ -53,6 +53,7 @@ public sealed class TagCompanySelectionViewModelTests
         };
         var stats = new SavedImprovedCaptainStats
         {
+            IsEnabled = true,
             CaptainName = " Brutus ",
             ArmBonus = 1,
             WeaponChoice1 = "Heavy Machine Gun",
@@ -68,6 +69,8 @@ public sealed class TagCompanySelectionViewModelTests
         Assert.Equal("CC Weapon", finalized.SavedCcWeapons);
         Assert.Equal("Courage", finalized.SavedSkills);
         Assert.Contains("ARM 8", finalized.Subtitle);
+        Assert.Contains("Spec-Ops: +1 ARM", finalized.SpecOpsPurchases);
+        Assert.Contains("Spec-Ops: Courage", finalized.SpecOpsPurchases);
     }
 
     [Fact]

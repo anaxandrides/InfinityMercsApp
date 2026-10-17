@@ -429,7 +429,8 @@ internal static class CompanyStartSaveWorkflow
             CustomSkills = customSkills,
             CustomCharacteristics = customCharacteristics,
             CustomEquipment = customEquipment,
-            CustomWeapons = customWeapons
+            CustomWeapons = customWeapons,
+            SpecOpsPurchases = [.. entry.SpecOpsPurchases]
         };
     }
 
@@ -750,6 +751,8 @@ internal static class CompanyStartSaveWorkflow
         public List<CompanySavedCodeRef> CurrentWeaponCodes { get; init; } = [];
         [JsonPropertyName("Custom Weapons")]
         public List<string> CustomWeapons { get; init; } = [];
+        [JsonPropertyName("SpecOpsPurchases")]
+        public List<string> SpecOpsPurchases { get; init; } = [];
         [JsonPropertyName("Custom Skills")]
         public List<string> CustomSkills { get; init; } = [];
         [JsonPropertyName("Custom Characteristics")]

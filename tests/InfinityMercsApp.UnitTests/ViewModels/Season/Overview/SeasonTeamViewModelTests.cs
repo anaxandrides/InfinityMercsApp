@@ -154,6 +154,24 @@ public sealed class SeasonTeamViewModelTests
         Assert.Equal("Armed Turret (MMR)", SavedLoadouts().For(1)[GearSlot.Augments]);
     }
 
+    // A TAG company TAG: its Spec-Ops buys are listed with its perks, and it has no armour slot.
+    [Fact]
+    public async Task ATagListsItsSpecOpsBuysAndWearsNoArmour()
+    {
+        var company = SeasonTestKit.Company();
+        company.Entries[0].UnitTypeCode = "TAG";
+        company.Entries[0].SpecOpsPurchases = ["Spec-Ops: +1 ARM"];
+
+        await _team.LoadAsync(company, SeasonTestKit.SeasonPath, _kit.Season, Catalog);
+        _team.ShowOwnedGear(Owned(), Catalog, _companySwc);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        Assert.Equal(["Spec-Ops: +1 ARM"], _team.Perks);
+        Assert.False(Picker(GearSlot.Armor).IsAvailable);
+        _team.SelectUnitCommand.Execute(Unit("Captain"));
+        Assert.True(Picker(GearSlot.Armor).IsAvailable);
+    }
+
     // Bolt as an Engineer carrying the Armed Turret.
     private async Task LoadTurretEngineerAsync()
     {

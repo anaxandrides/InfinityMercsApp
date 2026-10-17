@@ -38,6 +38,9 @@ public interface ICompanyMercsEntry
     string SavedPeripheralCcWeapons { get; }
     int ExperiencePoints { get; }
     List<CompanyTrooperPerkState> Perks { get; }
+
+    /// <summary>What a TAG company TAG bought in its Spec Ops popup, e.g. "Spec-Ops: +1 ARM".</summary>
+    IReadOnlyList<string> SpecOpsPurchases { get; }
     int? UnitMoveFirstCm { get; }
     int? UnitMoveSecondCm { get; }
     string UnitMoveDisplay { get; set; }
