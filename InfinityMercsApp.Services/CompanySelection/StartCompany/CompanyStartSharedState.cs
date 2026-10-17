@@ -4,15 +4,7 @@ namespace InfinityMercsApp.Services.CompanySelection.StartCompany;
 
 internal static class CompanyStartSharedState
 {
-    internal static bool IsCompanyNameValid(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        return !string.Equals(value.Trim(), "Company Name", StringComparison.OrdinalIgnoreCase);
-    }
+    internal static bool IsCompanyNameValid(string? value) => !string.IsNullOrWhiteSpace(value);
 
     internal static string ExtractUnitTypeCode(string? subtitle)
     {

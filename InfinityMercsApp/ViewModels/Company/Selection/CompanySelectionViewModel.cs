@@ -31,8 +31,6 @@ namespace InfinityMercsApp.ViewModels.Company.Selection;
 /// </summary>
 public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<CompanySelectionLayout>
 {
-    public const string DefaultCompanyName = "Company Name";
-
     private UnitFilterPopupOptions? _preparedFilterOptions;
     private ArmyFactionSelectionItem? _pickedFaction;
     private bool _restrictProfilesToFto;
@@ -112,7 +110,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     public partial bool IsCompanyValid { get; set; }
 
     [ObservableProperty]
-    public partial string CompanyName { get; set; } = DefaultCompanyName;
+    public partial string CompanyName { get; set; } = string.Empty;
 
     [ObservableProperty]
     public partial bool ShowCompanyNameValidationError { get; set; }
@@ -268,7 +266,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         IsRecruiting = true;
         PageTitle = $"Recruit for {recruitment.Company.CompanyName}";
         ConfirmText = "HIRE RECRUITS";
-        CompanyName = string.IsNullOrWhiteSpace(recruitment.Company.CompanyName) ? DefaultCompanyName : recruitment.Company.CompanyName;
+        CompanyName = recruitment.Company.CompanyName;
         _isPreparingRecruitment = true;
         try
         {

@@ -248,6 +248,8 @@ public sealed class StandardCompanySelectionViewModelTests
         var viewModel = await OpenWithFactionAsync();
         await viewModel.AddProfileToMercsCompanyCommand.ExecuteAsync(await SelectLieutenantAsync(viewModel));
 
+        // The name box starts empty and shows its placeholder.
+        Assert.Equal(string.Empty, viewModel.CompanyName);
         await viewModel.StartCompanyCommand.ExecuteAsync(null);
 
         Assert.True(viewModel.ShowCompanyNameValidationError);
