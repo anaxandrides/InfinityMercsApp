@@ -26,8 +26,9 @@ namespace InfinityMercsApp.ViewModels.Season.Overview;
 /// <summary>
 /// The season's Team tab: the company's troopers in a drop-down, and the chosen one's stats, equipment,
 /// skills and weapons, with a picker per gear slot for the season gear the company owns. Gear choices are
-/// saved to the season file; an augment that sets a stat ("WIP=12") changes the stat line. The SWC of the gear
-/// equipped across the company may not go over the company's SWC. Any trooper but the captain can be retired.
+/// saved to the season file; an augment that sets a stat ("WIP=12") changes the stat line. An augment needs its
+/// requirement met by what the trooper has, its other gear included. The SWC of the gear equipped across the
+/// company may not go over the company's SWC. Any trooper but the captain can be retired.
 /// </summary>
 public partial class SeasonTeamViewModel : ObservableObject
 {
@@ -380,9 +381,11 @@ public partial class SeasonTeamViewModel : ObservableObject
             picker.IsAvailable = picker.Slot != GearSlot.Extra || HasExtraSlot(loadout);
             List<GearOption> options = [GearOption.None];
             var selected = GearOption.None;
+            var held = HeldBy(item, picker.Slot);
             foreach (var itemName in _inventory.ItemsFor(picker.Slot))
             {
-                var itemOptions = OptionsFor(itemName, picker.Slot, item.EntryIndex);
+                var unmet = _catalog.Find(itemName)?.Requirement is { } requirement && !requirement.IsMetBy(held) ? requirement.Unmet : null;
+                var itemOptions = OptionsFor(itemName, picker.Slot, item.EntryIndex, unmet);
                 options.AddRange(itemOptions);
                 if (string.Equals(itemName, loadout[picker.Slot], StringComparison.OrdinalIgnoreCase))
                 {
@@ -399,6 +402,13 @@ public partial class SeasonTeamViewModel : ObservableObject
         if (SelectedUnit is not { } item ||
             string.Equals(_loadouts.For(item.EntryIndex)[slot], option.ItemName, StringComparison.OrdinalIgnoreCase))
         {
+            return;
+        }
+
+        if (option.ItemName is { } itemName && _catalog.Find(itemName)?.Requirement is { } requirement &&
+            !requirement.IsMetBy(HeldBy(item, slot)))
+        {
+            _ = RefuseUnmetAsync(item, itemName, requirement);
             return;
         }
 
@@ -421,22 +431,44 @@ public partial class SeasonTeamViewModel : ObservableObject
 
     // A spare copy is offered as itself; with none spare, each copy another slot holds is offered, with whose it is.
     // The trooper's own copy in this slot is always offered first.
-    private List<GearOption> OptionsFor(string itemName, GearSlot slot, int entryIndex)
+    private List<GearOption> OptionsFor(string itemName, GearSlot slot, int entryIndex, string? unmet)
     {
         var swc = EquippedSwc.Of(itemName, _catalog);
         var holdings = _loadouts.Holding(itemName);
         var here = new GearHolding(entryIndex, slot);
         if (holdings.Contains(here) || holdings.Count < _inventory.CountOf(itemName))
         {
-            return [GearOption.For(itemName, swc, null)];
+            return [GearOption.For(itemName, swc, null, unmet: unmet)];
         }
 
         return holdings
             .Where(holding => slot.SharesItemsWith(holding.Slot))
             .Select(holding => holding.EntryIndex)
             .Distinct()
-            .Select(holder => GearOption.For(itemName, swc, Units.FirstOrDefault(unit => unit.EntryIndex == holder)?.Name, takenFrom: holder))
+            .Select(holder => GearOption.For(itemName, swc, Units.FirstOrDefault(unit => unit.EntryIndex == holder)?.Name, holder, unmet))
             .ToList();
+    }
+
+    // What the trooper has besides the slot being filled: its skills, equipment and characteristics, and the gear in
+    // its other slots (a role brings its skill).
+    private List<string> HeldBy(CompanyViewerUnitListItem item, GearSlot slot)
+    {
+        var profile = CompanyRoster.ProfileOf(item);
+        var loadout = _loadouts.For(item.EntryIndex);
+        return
+        [
+            .. ProfileText.Lines(profile.UniqueSkills),
+            .. ProfileText.Lines(profile.UniqueEquipment),
+            .. ProfileText.Lines(profile.Characteristics),
+            .. Enum.GetValues<GearSlot>().Where(other => other != slot).Select(other => loadout[other]).OfType<string>()
+        ];
+    }
+
+    // The picker goes back to what the trooper had once the alert is shown.
+    private async Task RefuseUnmetAsync(CompanyViewerUnitListItem item, string itemName, AugmentRequirement requirement)
+    {
+        await _dialogs.ShowAlertAsync("Can't Equip", $"{item.Name} can't take {itemName}. {requirement.Unmet}.");
+        RefreshGearPickers();
     }
 
     // Belts and Pouches gives one more slot.

@@ -69,7 +69,9 @@ public sealed class SeasonTeamViewModelTests
         [
             new StoreTroopType { ArmorName = "Heavy Armour", Type = "HI", CostCr = 20, Arm = 4, Bts = 3, Effects = new ArmorEffects { WoundsSkill = 1 } },
             new StoreTroopType { ArmorName = "Belts and Pouches", CostCr = 5, Effects = new ArmorEffects { ExtraSlot = true } }
-        ]
+        ],
+        Items = [new StoreItem { Name = "Engineer (+Gizmokit)", Category = "Roles", CostCr = 10 }],
+        Augments = [new StoreAugment { Name = "Armed Turret (MMR)", Requirement = "Engineer", CostCr = 10 }]
     };
 
     private static InventoryCatalog Catalog { get; } = InventoryCatalog.From([SeasonTestKit.NumberOne, SeasonTestKit.JadeTemu, Armoury]);
@@ -128,6 +130,28 @@ public sealed class SeasonTeamViewModelTests
         Assert.Equal("ROLL BOOTY", _team.OwedRollText);
         await _team.RollOwedCommand.ExecuteAsync(null);
         await _rollOwed.Received(1)(1);
+    }
+
+    // The Armed Turret needs an Engineer: Bolt can't take it until the Engineer role is equipped.
+    [Fact]
+    public async Task AnAugmentNeedsItsRequirementMet()
+    {
+        _alsoBought = [SeasonTestKit.Bought("Armoury", "Armed Turret (MMR)"), SeasonTestKit.Bought("Armoury", "Engineer (+Gizmokit)")];
+        await LoadAsync();
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        GearOption Turret() => Picker(GearSlot.Augments).Options.Single(option => option.ItemName == "Armed Turret (MMR)");
+        Assert.Equal("Armed Turret (MMR)  [Needs Engineer]", Turret().Display);
+
+        Picker(GearSlot.Augments).SelectedOption = Turret();
+
+        await _kit.Dialogs.Received(1).ShowAlertAsync("Can't Equip", "Bolt can't take Armed Turret (MMR). Needs Engineer.");
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Augments]);
+
+        Picker(GearSlot.Roles).SelectedOption = Picker(GearSlot.Roles).Options.Single(option => option.ItemName == "Engineer (+Gizmokit)");
+        Assert.Equal("Armed Turret (MMR)", Turret().Display);
+        Picker(GearSlot.Augments).SelectedOption = Turret();
+
+        Assert.Equal("Armed Turret (MMR)", SavedLoadouts().For(1)[GearSlot.Augments]);
     }
 
     [Fact]
