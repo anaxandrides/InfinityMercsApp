@@ -4,6 +4,7 @@ using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
@@ -90,6 +91,24 @@ public sealed class SeasonTeamViewModelTests
     private GearSlotPicker Picker(GearSlot slot) => _team.GearSlots.Single(picker => picker.Slot == slot);
 
     private CompanyViewerUnitListItem Unit(string name) => _team.Units.Single(unit => unit.Name == name);
+
+    // An army sheet lists what the captain's Spec-Ops XP bought among its perks.
+    [Fact]
+    public async Task TheCaptainsSpecOpsBuysAreListedWithItsPerks()
+    {
+        var company = new SavedCompanyFile
+        {
+            Entries = SeasonTestKit.Company().Entries,
+            ImprovedCaptainStats = new SavedImprovedCaptainStats { IsEnabled = true, VitalityBonus = 1, WeaponChoice1 = "(+2) - Pistol", SkillChoice1 = "-" }
+        };
+
+        await _team.LoadAsync(company, SeasonTestKit.SeasonPath, _kit.Season, Catalog);
+
+        Assert.Equal(["Spec-Ops: +1 VITA", "Spec-Ops: Pistol"], _team.Perks);
+        Assert.True(_team.HasPerks);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        Assert.Empty(_team.Perks);
+    }
 
     [Fact]
     public async Task LoadingSelectsTheLieutenantFirst()

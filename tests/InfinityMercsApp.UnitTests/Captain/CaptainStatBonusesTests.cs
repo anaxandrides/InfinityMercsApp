@@ -35,4 +35,14 @@ public sealed class CaptainStatBonusesTests
         Assert.Equal("Captain", Bonuses.ApplyToStatline("Captain"));
         Assert.Equal(string.Empty, Bonuses.ApplyToStatline(null));
     }
+
+    [Fact]
+    public void BoughtBonusesReadAsOnAnArmySheet()
+    {
+        var bonuses = new CaptainStatBonuses(Cc: 2, Bs: 0, Ph: 0, Wip: 1, Arm: 0, Bts: 0, Vitality: 1);
+
+        Assert.Equal(["+2 CC", "+1 WIP", "+1 VITA"], bonuses.Lines(Stat.Vita));
+        Assert.Equal("+1 STR", bonuses.Lines(Stat.Str)[^1]);
+        Assert.Empty(CaptainStatBonuses.None.Lines(Stat.Vita));
+    }
 }

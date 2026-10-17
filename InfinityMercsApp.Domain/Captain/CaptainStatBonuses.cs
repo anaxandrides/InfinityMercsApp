@@ -21,6 +21,28 @@ public sealed record CaptainStatBonuses(int Cc, int Bs, int Ph, int Wip, int Arm
         _ => 0
     };
 
+    /// <summary>Each bought bonus as it reads on an army sheet, e.g. "+1 VITA"; <paramref name="vitality"/> names VITA or STR.</summary>
+    public IReadOnlyList<string> Lines(Stat vitality)
+    {
+        List<string> lines = [];
+        void Add(Stat stat, int bonus)
+        {
+            if (bonus != 0)
+            {
+                lines.Add($"{bonus.ToString("+0;-0", CultureInfo.InvariantCulture)} {stat.Key()}");
+            }
+        }
+
+        Add(Stat.Cc, Cc);
+        Add(Stat.Bs, Bs);
+        Add(Stat.Ph, Ph);
+        Add(Stat.Wip, Wip);
+        Add(Stat.Arm, Arm);
+        Add(Stat.Bts, Bts);
+        Add(vitality, Vitality);
+        return lines;
+    }
+
     /// <summary>A stat value with a bonus added; values that are not whole numbers ("-", "T") are returned unchanged.</summary>
     public static string Apply(string value, int bonus)
     {

@@ -1,3 +1,7 @@
+using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Company;
+using InfinityMercsApp.Domain.Models.Army.Stats;
+
 namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
 /// <summary>
@@ -25,7 +29,7 @@ public sealed class SavedImprovedCaptainStats
 
     /// <summary>The bought stat bonuses as one value.</summary>
     [System.Text.Json.Serialization.JsonIgnore]
-    public InfinityMercsApp.Domain.Captain.CaptainStatBonuses Bonuses =>
+    public CaptainStatBonuses Bonuses =>
         new(CcBonus, BsBonus, PhBonus, WipBonus, ArmBonus, BtsBonus, VitalityBonus);
     public string WeaponChoice1 { get; init; } = string.Empty;
     public string WeaponChoice2 { get; init; } = string.Empty;
@@ -38,4 +42,20 @@ public sealed class SavedImprovedCaptainStats
     public string EquipmentChoice3 { get; init; } = string.Empty;
     public int OptionFactionId { get; init; }
     public string OptionFactionName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// What was bought with the captain's Spec-Ops XP, as an army sheet lists it among the perks: "Spec-Ops: +1 VITA",
+    /// "Spec-Ops: Pistol". <paramref name="vitality"/> names VITA or STR. Nothing when there are no upgrades.
+    /// </summary>
+    public IReadOnlyList<string> SpecOpsPurchases(Stat vitality) =>
+        !IsEnabled
+            ? []
+            : [
+                .. Bonuses.Lines(vitality)
+                    .Concat(SavedUnitText.CaptainChoiceNames(
+                        WeaponChoice1, WeaponChoice2, WeaponChoice3,
+                        SkillChoice1, SkillChoice2, SkillChoice3,
+                        EquipmentChoice1, EquipmentChoice2, EquipmentChoice3))
+                    .Select(purchase => $"Spec-Ops: {purchase}")
+            ];
 }

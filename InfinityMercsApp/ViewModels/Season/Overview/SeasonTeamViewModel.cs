@@ -40,6 +40,7 @@ public partial class SeasonTeamViewModel : ObservableObject
     private readonly IDialogService _dialogs;
     private readonly Func<Task> _seasonChanged;
     private SavedCompanyFile? _company;
+    private SavedImprovedCaptainStats _captain = new();
     private CompanyLoadouts _loadouts = new();
     private SeasonInventory _inventory = SeasonInventory.Empty;
     private InventoryCatalog _catalog = InventoryCatalog.Empty;
@@ -147,6 +148,7 @@ public partial class SeasonTeamViewModel : ObservableObject
     {
         var shownEntry = SelectedUnit?.EntryIndex;
         _company = company;
+        _captain = company.ImprovedCaptainStats ?? new SavedImprovedCaptainStats();
         _seasonFilePath = seasonFilePath;
         _loadouts = CompanyLoadouts.From(season?.UnitGear ?? []);
         Units.Clear();
@@ -286,7 +288,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         SelectedBaseName = string.Equals(baseName.Trim(), item.Name.Trim(), StringComparison.OrdinalIgnoreCase) ? string.Empty : baseName;
         SelectedUnitType = item.UnitTypeCode;
         CanRetireSelected = !item.IsLieutenant && !item.IsPeripheralUnit;
-        ShowProgress(item.Progress);
+        ShowProgress(item);
 
         Detail.HeaderColors = _roster.HeaderColorsFor(item.VisualFactionId > 0 ? item.VisualFactionId : item.SourceFactionId);
 
@@ -296,12 +298,16 @@ public partial class SeasonTeamViewModel : ObservableObject
         RefreshGearPickers();
     }
 
-    private void ShowProgress(TrooperProgress? progress)
+    // The captain's Spec-Ops buys are listed first among the perks, as on an army sheet.
+    private void ShowProgress(CompanyViewerUnitListItem item)
     {
+        var progress = item.Progress;
         RankText = progress is null ? string.Empty : $"{progress.RankName} · {progress.TotalXp} XP";
-        Perks = progress?.Perks
-            .Select(perk => CompanyPerkCatalog.FindById(perk)?.Description ?? perk)
-            .ToList() ?? [];
+        Perks =
+        [
+            .. item.IsLieutenant ? _captain.SpecOpsPurchases(StatKeys.VitalityFor(item.UnitTypeCode)) : [],
+            .. progress?.Perks.Select(perk => CompanyPerkCatalog.FindById(perk)?.Description ?? perk) ?? []
+        ];
         Injuries = [
             .. progress?.Record.Injuries.Select(injury => $"{injury.Label()}: {injury.EffectText()}") ?? []
         ];
