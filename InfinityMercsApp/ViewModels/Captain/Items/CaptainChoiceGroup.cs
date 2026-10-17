@@ -16,6 +16,12 @@ public sealed record CaptainChoiceGroup(string Title, CaptainChoiceSlot First, C
 
     public int Cost => Slots.Sum(slot => slot.Cost);
 
+    /// <summary>Whether the army has anything to offer here beyond "(None)".</summary>
+    public bool HasOptions => First.Options.Any(option => option != CaptainChoiceLabel.None);
+
+    /// <summary>Said in place of the slots when there is nothing to offer, e.g. "No weapons are stored for this army."</summary>
+    public string NoOptionsText => $"No {Title.ToLowerInvariant()} are stored for this army.";
+
     /// <summary>What is on offer and what each slot holds, for checking the build.</summary>
     public CaptainChoicePicks Picks => new(
         Title,

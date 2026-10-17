@@ -36,4 +36,16 @@ public sealed class CaptainChoiceGroupTests
         Assert.All(
             CaptainChoiceGroup.For("Equipment", [], () => { }).Slots,
             slot => Assert.Equal([CaptainChoiceLabel.None], slot.Options));
+
+    // A fresh database has no Spec-Ops lists since the API stopped sending them; the popup says so.
+    [Fact]
+    public void AGroupWithNothingToOfferSaysSo()
+    {
+        var empty = CaptainChoiceGroup.For("Weapons", [], () => { });
+        var offered = CaptainChoiceGroup.For("Skills", ["(+2) - Courage"], () => { });
+
+        Assert.False(empty.HasOptions);
+        Assert.Equal("No weapons are stored for this army.", empty.NoOptionsText);
+        Assert.True(offered.HasOptions);
+    }
 }

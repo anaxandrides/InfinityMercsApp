@@ -196,7 +196,13 @@
                                         <DataTemplate x:DataType="captainItems:CaptainChoiceGroup">
                                             <VerticalStackLayout Spacing="4" Margin="0,8,0,0">
                                                 <Label Text="{Binding Title}" FontAttributes="Bold" />
-                                                <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Slots}">
+                                                <!-- Rather than empty pickers, when the army's Spec-Ops list has none. -->
+                                                <Label Text="{Binding NoOptionsText}"
+                                                       Style="{StaticResource LabelBody}"
+                                                       TextColor="{StaticResource TextMuted}"
+                                                       IsVisible="{Binding HasOptions, Converter={StaticResource InvertedBoolConverter}}" />
+                                                <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Slots}"
+                                                                     IsVisible="{Binding HasOptions}">
                                                     <BindableLayout.ItemTemplate>
                                                         <DataTemplate x:DataType="captainItems:CaptainChoiceSlot">
                                                             <Picker MaximumWidthRequest="280"
