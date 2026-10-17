@@ -17,10 +17,10 @@
     { "name": "Hacker (+EVO Hacking Device)", "costCr": 15, "costSwc": 0.5, "category": "Roles", "wikiUrl": "https://infinitythewiki.com/EVO_Hacking_Device" }
   ],
   "troopTypes": [
-    { "type": "LI", "costCr": 15, "armorName": "Myrmidon Suit", "arm": 2, "bts": null, "abilities": "Frenzy, Mimetism (-6), Stealth" },
-    { "type": "MI", "costCr": 30, "armorName": "Waverider Cybersuit", "arm": 3, "bts": 6, "abilities": "Hacker, Hacking Device (UPGRADE: Oblivion (+1B))" },
-    { "type": "HI", "costCr": 30, "armorName": "Hoplite Armor", "arm": 3, "bts": 6, "abilities": "Immunity (Enhanced), Religious Troop" },
-    { "type": "HI", "costCr": 40, "armorName": "Gamma Armor", "arm": 6, "bts": 6, "abilities": "2W, No Wound Incapacitation, S5" }
+    { "type": "LI", "costCr": 15, "armorName": "Myrmidon Suit", "arm": 2, "bts": null, "abilities": "Frenzy, Mimetism (-6), Stealth", "effects": {"skills": [{"name": "Frenzy"}, {"name": "Mimetism (-6)"}, {"name": "Stealth"}]} },
+    { "type": "MI", "costCr": 30, "armorName": "Waverider Cybersuit", "arm": 3, "bts": 6, "abilities": "Hacker, Hacking Device (UPGRADE: Oblivion (+1B))", "effects": {"skills": [{"name": "Hacker"}], "equipment": ["Hacking Device (UPGRADE: Oblivion (+1B))"]} },
+    { "type": "HI", "costCr": 30, "armorName": "Hoplite Armor", "arm": 3, "bts": 6, "abilities": "Immunity (Enhanced), Religious Troop", "effects": {"skills": [{"name": "Immunity (Enhanced)"}, {"name": "Religious Troop"}]} },
+    { "type": "HI", "costCr": 40, "armorName": "Gamma Armor", "arm": 6, "bts": 6, "abilities": "2W, No Wound Incapacitation, S5", "effects": {"vitality": 2, "silhouette": 5, "move": "4-4", "skills": [{"name": "No Wound Incapacitation"}]} }
   ],
   "augments": [
     { "name": "WIP=12", "requirement": null, "costCr": 10, "costNote": null },

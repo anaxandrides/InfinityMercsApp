@@ -15,10 +15,10 @@
     { "name": "Multispectral Visor Level 3", "costCr": 25, "costSwc": null, "category": "Accessories" }
   ],
   "troopTypes": [
-    { "type": null, "costCr": 10, "armorName": "Unstable Exrah Exoskeleton", "arm": null, "bts": null, "abilities": "Exrah, Explode (PS=4), Super-Jump" },
-    { "type": null, "costCr": 20, "armorName": "EI Comm Implant", "arm": null, "bts": null, "abilities": "Fireteam: Wildcard (Counts as any)" },
-    { "type": "MI", "costCr": 20, "armorName": "Nexus Stim Suit", "arm": 3, "bts": 3, "abilities": "NWI" },
-    { "type": "HI", "costCr": 30, "armorName": "Morat Heavy Armor", "arm": 4, "bts": 6, "abilities": "Immunity (AP), Warhorse, Tinbot: Firewall (-3)" }
+    { "type": null, "costCr": 10, "armorName": "Unstable Exrah Exoskeleton", "arm": null, "bts": null, "abilities": "Exrah, Explode (PS=4), Super-Jump", "effects": {"skills": [{"name": "Exrah"}, {"name": "Explode (PS=4)"}, {"name": "Super-Jump"}]} },
+    { "type": null, "costCr": 20, "armorName": "EI Comm Implant", "arm": null, "bts": null, "abilities": "Fireteam: Wildcard (Counts as any)", "effects": {"skills": [{"name": "Fireteam: Wildcard"}]} },
+    { "type": "MI", "costCr": 20, "armorName": "Nexus Stim Suit", "arm": 3, "bts": 3, "abilities": "NWI", "effects": {"skills": [{"name": "No Wound Incapacitation"}]} },
+    { "type": "HI", "costCr": 30, "armorName": "Morat Heavy Armor", "arm": 4, "bts": 6, "abilities": "Immunity (AP), Warhorse, Tinbot: Firewall (-3)", "effects": {"skills": [{"name": "Immunity (AP)"}, {"name": "Warhorse"}], "equipment": ["TinBot: Firewall (-3)"]} }
   ],
   "augments": [
     { "name": "Hacking UPGRADE: Total Control (Targets: HI/REM/VH, PS=7)", "requirement": "Hacker", "costCr": 15, "costNote": null },

@@ -3,6 +3,7 @@ using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Common;
@@ -37,9 +38,9 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
     /// <summary>
     /// The company's troopers, lieutenant first and then in saved order, with the captain's upgrades on the
     /// lieutenant. With a season, each also carries its experience, injuries, perks and other changes so far, and
-    /// troopers retired this season are left out.
+    /// troopers retired this season are left out. With the catalog too, each wears the armour it has equipped.
     /// </summary>
-    public IReadOnlyList<CompanyViewerUnitListItem> UnitsOf(SavedCompanyFile company, SeasonFile? season = null)
+    public IReadOnlyList<CompanyViewerUnitListItem> UnitsOf(SavedCompanyFile company, SeasonFile? season = null, InventoryCatalog? catalog = null)
     {
         var captain = company.ImprovedCaptainStats ?? new SavedImprovedCaptainStats();
         var captainName = string.IsNullOrWhiteSpace(captain.CaptainName) ? "Captain" : captain.CaptainName.Trim();
@@ -48,11 +49,17 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             .Where(entry => season?.IsRetired(entry.EntryIndex) != true)
             .OrderByDescending(entry => entry.IsLieutenant)
             .ThenBy(entry => entry.EntryIndex)
-            .Select((entry, position) => UnitOf(entry, position, captain, captainName, season))
+            .Select((entry, position) => UnitOf(entry, position, captain, captainName, season, catalog ?? InventoryCatalog.Empty))
             .ToList();
     }
 
-    private CompanyViewerUnitListItem UnitOf(SavedCompanyEntry entry, int position, SavedImprovedCaptainStats captain, string captainName, SeasonFile? season)
+    private CompanyViewerUnitListItem UnitOf(
+        SavedCompanyEntry entry,
+        int position,
+        SavedImprovedCaptainStats captain,
+        string captainName,
+        SeasonFile? season,
+        InventoryCatalog catalog)
     {
         var sourceFactionId = EffectiveSourceFactionId(entry);
         var baseUnitName = !string.IsNullOrWhiteSpace(entry.BaseUnitName) ? entry.BaseUnitName
@@ -76,12 +83,16 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         var logoUnitId = entry.LogoSourceUnitId > 0 ? entry.LogoSourceUnitId : entry.SourceUnitId;
 
         var progress = SeasonTroopers.ProgressOf(entry, season);
-        var profile = new TrooperProfile(
+        var saved = new TrooperProfile(
             SavedMove(entry), entry.CurrentCc, entry.CurrentBs, entry.CurrentPh, entry.CurrentWip, entry.CurrentArm, entry.CurrentBts,
             entry.CurrentVitaOrStr, entry.CurrentS,
             ProfileText.Lines(skills),
-            ProfileText.Lines(SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Chars))))
-            .With(progress.Change);
+            ProfileText.Lines(SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Chars))));
+
+        // Armour changes the underlying line; injuries, perks and the rest then add on top.
+        var worn = SeasonTroopers.InArmor(entry, saved, season, catalog, captain);
+        var profile = worn.Limit(worn.Profile.With(progress.Change));
+        equipment = ProfileText.AppendDistinct(equipment, worn.Equipment, keepTextWhenNothingAdded: true);
 
         return new CompanyViewerUnitListItem
         {
@@ -89,7 +100,7 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             EntryIndex = entry.EntryIndex,
             BaseUnitName = baseUnitName,
             BaseUnitDisplayName = SavedUnitText.BaseDisplayName(baseUnitName),
-            UnitTypeCode = SavedUnitText.UnitTypeCode(entry.UnitTypeCode),
+            UnitTypeCode = SavedUnitText.UnitTypeCode(worn.UnitTypeCode),
             Subtitle = entry.IsPeripheralUnit ? "Peripheral" : entry.IsLieutenant ? "Lieutenant" : string.Empty,
             SourceFactionId = sourceFactionId,
             VisualFactionId = logoFactionId,

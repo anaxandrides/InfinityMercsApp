@@ -1,6 +1,7 @@
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
+using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.ViewModels.Company.Viewer;
@@ -18,16 +19,20 @@ public sealed class SeasonTeamViewModelTests
     private readonly MarketplaceDetailViewModel _popup;
     private readonly SeasonTeamViewModel _team;
     private readonly Func<Task> _seasonChanged = Substitute.For<Func<Task>>();
+    private double _companySwc = 2;
+    private List<SeasonTransaction> _alsoBought = [];
 
     public SeasonTeamViewModelTests()
     {
         _popup = _kit.Popup();
-        _seasonChanged().Returns(Task.CompletedTask);
+
+        // As the season page does: the season is read again, and the tab shown again from it.
+        _seasonChanged().Returns(_ => ShowSeasonAsync());
         _team = new SeasonTeamViewModel(new CompanyRoster(_kit.ArmyData), new UnitDetailViewModel(_kit.ArmyData, _kit.Settings), _kit.PackageFiles, _kit.SeasonFiles, _popup, _kit.Dialogs, _seasonChanged);
     }
 
     // The company's Combi Rifle, two pistols (one bought at each market), Light Armour and a WIP augment.
-    private static SeasonInventory Owned() => SeasonInventory.From(
+    private SeasonInventory Owned() => SeasonInventory.From(
         new SeasonFile
         {
             Rounds =
@@ -44,7 +49,8 @@ public sealed class SeasonTeamViewModelTests
                             SeasonTestKit.Bought("Number One", "Light Armour (LI)"),
                             SeasonTestKit.Bought("Number One", "WIP=12"),
                             SeasonTestKit.Bought("Number One", "Courage"),
-                            SeasonTestKit.Bought("Jade Temu", "Monofilament Blade")
+                            SeasonTestKit.Bought("Jade Temu", "Monofilament Blade"),
+                            .. _alsoBought
                         ]
                     }
                 }
@@ -52,14 +58,27 @@ public sealed class SeasonTeamViewModelTests
         },
         Catalog);
 
-    private static InventoryCatalog Catalog { get; } = InventoryCatalog.From([SeasonTestKit.NumberOne, SeasonTestKit.JadeTemu]);
+    private static Store Armoury { get; } = new()
+    {
+        Name = "Armoury",
+        AssociatedFactions = ["PanOceania"],
+        TroopTypes = [new StoreTroopType { ArmorName = "Heavy Armour", Type = "HI", CostCr = 20, Arm = 4, Bts = 3, Effects = new ArmorEffects { WoundsSkill = 1 } }]
+    };
+
+    private static InventoryCatalog Catalog { get; } = InventoryCatalog.From([SeasonTestKit.NumberOne, SeasonTestKit.JadeTemu, Armoury]);
 
     // The Spitfire takes 1 SWC; the company has 2 unless a test says otherwise.
     private async Task LoadAsync(CompanyLoadouts? loadouts = null, double companySwc = 2)
     {
         _kit.Season.UnitGear = (loadouts ?? new CompanyLoadouts()).ToSeasonGear();
-        await _team.LoadAsync(SeasonTestKit.Company(), SeasonTestKit.SeasonPath, _kit.Season);
-        _team.ShowOwnedGear(Owned(), Catalog, companySwc);
+        _companySwc = companySwc;
+        await ShowSeasonAsync();
+    }
+
+    private async Task ShowSeasonAsync()
+    {
+        await _team.LoadAsync(SeasonTestKit.Company(), SeasonTestKit.SeasonPath, _kit.Season, Catalog);
+        _team.ShowOwnedGear(Owned(), Catalog, _companySwc);
     }
 
     private CompanyLoadouts SavedLoadouts() => CompanyLoadouts.From(_kit.Season.UnitGear);
@@ -249,6 +268,25 @@ public sealed class SeasonTeamViewModelTests
 
         Assert.Equal("12", _team.Detail.Stats.Wip);
         Assert.DoesNotContain(_team.Skills.Left.Concat(_team.Skills.Right), line => line.Text == "WIP=12");
+    }
+
+    [Fact]
+    public async Task ArmourChangesTheTroopersLine()
+    {
+        _alsoBought = [SeasonTestKit.Bought(Armoury.Name, "Heavy Armour (HI)")];
+        await LoadAsync();
+
+        Picker(GearSlot.Armor).SelectedOption = Picker(GearSlot.Armor).Options.Single(option => option.ItemName == "Heavy Armour (HI)");
+
+        Assert.Equal("Heavy Armour (HI)", SavedLoadouts().For(2)[GearSlot.Armor]);
+        Assert.Equal("HI", _team.SelectedUnitType);
+        Assert.Equal(("4", "3", "2"), (_team.Detail.Stats.Arm, _team.Detail.Stats.Bts, _team.Detail.Stats.Vitality));
+        Assert.Contains(_team.Skills.Left.Concat(_team.Skills.Right), line => line.Text == "Immunity (Shock)");
+        Assert.True(_team.Detail.Icons.Hackable);
+
+        Picker(GearSlot.Armor).SelectedOption = GearOption.None;
+
+        Assert.Equal(("LI", "-", "1"), (_team.SelectedUnitType, _team.Detail.Stats.Arm, _team.Detail.Stats.Vitality));
     }
 
     [Fact]

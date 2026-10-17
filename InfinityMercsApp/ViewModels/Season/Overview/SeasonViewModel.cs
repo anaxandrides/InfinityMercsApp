@@ -262,16 +262,16 @@ public partial class SeasonViewModel : ViewModelBase
     private async Task RefreshSeasonAsync()
     {
         var seasonFile = await _seasonFiles.LoadAsync(_seasonFilePath);
+        var stores = await _stores.AllAsync();
+        var catalog = await _stores.CatalogAsync();
         if (_company is { } company)
         {
-            await Team.LoadAsync(company, _seasonFilePath, seasonFile);
+            await Team.LoadAsync(company, _seasonFilePath, seasonFile, catalog);
         }
 
         var currentRound = SeasonRounds.Current(seasonFile);
         RoundTitle = currentRound == 0 ? "Round 0" : $"Round {currentRound} Marketplace";
 
-        var stores = await _stores.AllAsync();
-        var catalog = await _stores.CatalogAsync();
         Renown = _company is { } renowned ? SeasonRenown.OfCompany(renowned, seasonFile, catalog) : 0;
         var inventory = SeasonInventory.From(seasonFile, catalog);
         Marketplace.RefreshBalance(seasonFile);

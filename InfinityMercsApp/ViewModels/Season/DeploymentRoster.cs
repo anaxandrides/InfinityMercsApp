@@ -5,6 +5,8 @@ using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Season.Gear;
+using InfinityMercsApp.Domain.Models.Stores;
+using InfinityMercsApp.Domain.Season.Armor;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanyProfiles;
@@ -73,6 +75,8 @@ public sealed partial class DeploymentRoster(
                 entry,
                 captain,
                 seasonGear.GetValueOrDefault(entry.EntryIndex),
+                SeasonTroopers.ArmorOf(entry, season, catalog),
+                SeasonTroopers.CaptainBonusesOf(entry, company.ImprovedCaptainStats),
                 SeasonTroopers.ProgressOf(entry, season),
                 SeasonRenown.Of(entry, season, catalog).Total,
                 showUnitsInInches))
@@ -83,6 +87,8 @@ public sealed partial class DeploymentRoster(
         SavedCompanyEntry entry,
         CaptainUpgrades captain,
         IReadOnlyList<SeasonUnitGear>? gear,
+        StoreTroopType? armor,
+        CaptainStatBonuses captainBonuses,
         TrooperProgress progress,
         int renown,
         bool showUnitsInInches)
@@ -104,11 +110,16 @@ public sealed partial class DeploymentRoster(
 
         ApplySeasonGear(profile, gear ?? []);
 
-        // Injuries, perks, rank skills and services change the trooper the game sees.
-        var changed = new TrooperProfile(
-            MoveText(entry), profile.Cc, profile.Bs, profile.Ph, profile.Wip, profile.Arm, profile.Bts, profile.Vitality, profile.S,
-            ProfileText.Lines(profile.Skills), ProfileText.Lines(characteristics))
-            .With(progress.Change);
+        // Armour changes the underlying line; injuries, perks, rank skills and services then add on top.
+        var worn = ArmorFitting.Wear(
+            new TrooperProfile(
+                MoveText(entry), profile.Cc, profile.Bs, profile.Ph, profile.Wip, profile.Arm, profile.Bts, profile.Vitality, profile.S,
+                ProfileText.Lines(profile.Skills), ProfileText.Lines(characteristics)),
+            entry.UnitTypeCode,
+            armor,
+            captainBonuses);
+        var changed = worn.Limit(worn.Profile.With(progress.Change));
+        profile.Equipment = ProfileText.AppendDistinct(profile.Equipment, worn.Equipment, keepTextWhenNothingAdded: true);
         (profile.Cc, profile.Bs, profile.Ph, profile.Wip, profile.Arm, profile.Bts, profile.Vitality, profile.S) =
             (changed.Cc, changed.Bs, changed.Ph, changed.Wip, changed.Arm, changed.Bts, changed.Vitality, changed.Silhouette);
         profile.Skills = ProfileText.JoinOrDash(changed.Skills);
@@ -146,8 +157,8 @@ public sealed partial class DeploymentRoster(
             UnitVitality = profile.Vitality,
             UnitS = profile.S,
             Renown = renown,
-            VitalityStat = StatKeys.VitalityFor(entry.UnitTypeCode),
-            StartingVitality = Math.Max(1, int.TryParse(entry.CurrentVitaOrStr, out var vitality) ? vitality : 1),
+            VitalityStat = StatKeys.VitalityFor(worn.UnitTypeCode),
+            StartingVitality = Math.Max(1, int.TryParse(changed.Vitality, out var vitality) ? vitality : 1),
             HasNwi = HasLine(profile.Skills, "No Wound Incapacitation"),
             HasRemotePresence = HasLine(profile.Skills, "Remote Presence"),
             Equipment = TextDistances.Convert(profile.Equipment, showUnitsInInches),

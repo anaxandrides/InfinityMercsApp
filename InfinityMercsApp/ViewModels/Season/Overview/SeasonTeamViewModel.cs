@@ -140,10 +140,10 @@ public partial class SeasonTeamViewModel : ObservableObject
     public bool HasSelectedUnitType => SelectedUnitType.Length > 0;
 
     /// <summary>
-    /// Shows a company's troopers as they stand in the season, with their season gear. The trooper shown before
-    /// stays selected; otherwise the first is.
+    /// Shows a company's troopers as they stand in the season, with their season gear and the armour they wear,
+    /// which <paramref name="catalog"/> describes. The trooper shown before stays selected; otherwise the first is.
     /// </summary>
-    public async Task LoadAsync(SavedCompanyFile company, string? seasonFilePath, SeasonFile? season)
+    public async Task LoadAsync(SavedCompanyFile company, string? seasonFilePath, SeasonFile? season, InventoryCatalog catalog)
     {
         var shownEntry = SelectedUnit?.EntryIndex;
         _company = company;
@@ -151,7 +151,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         _loadouts = CompanyLoadouts.From(season?.UnitGear ?? []);
         Units.Clear();
         SelectedUnit = null;
-        foreach (var unit in _roster.UnitsOf(company, season))
+        foreach (var unit in _roster.UnitsOf(company, season, catalog))
         {
             unit.LogoSource = await CompanyRoster.LogoSourceAsync(unit, _packageFiles);
             Units.Add(unit);
@@ -402,7 +402,8 @@ public partial class SeasonTeamViewModel : ObservableObject
         RefreshGearPickers();
     }
 
-    // The pickers are refilled after the save, once the picker that reported the choice has finished with it.
+    // The season is re-read after the save, once the picker that reported the choice has finished with it: armour
+    // changes the trooper's line, and gear counts toward renown.
     private async Task SaveThenRefreshAsync()
     {
         try
@@ -416,8 +417,10 @@ public partial class SeasonTeamViewModel : ObservableObject
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Saving the season gear failed: {ex.Message}");
+            ShowSelected();
+            return;
         }
 
-        ShowSelected();
+        await _seasonChanged();
     }
 }

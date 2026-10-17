@@ -16,10 +16,10 @@
     { "name": "PT: Eraser (Disposable (2))", "costCr": 13, "costSwc": 0.5, "category": "Accessories" }
   ],
   "troopTypes": [
-    { "type": "LI", "costCr": 8, "armorName": "Nanosuit", "arm": 1, "bts": 3, "abilities": "Nanoscreen, No Cover" },
-    { "type": "MI", "costCr": 20, "armorName": "Taqeul Armor", "arm": 3, "bts": 6, "abilities": "Regeneration, Immunity (Shock)" },
-    { "type": null, "costCr": 20, "armorName": "Symbio - Resonance", "arm": null, "bts": null, "abilities": "Combine Transmutation (X)" },
-    { "type": "HI", "costCr": 20, "armorName": "Ablative Armor", "arm": 3, "bts": 3, "abilities": "Symbiomate (Self Use)" }
+    { "type": "LI", "costCr": 8, "armorName": "Nanosuit", "arm": 1, "bts": 3, "abilities": "Nanoscreen, No Cover", "effects": {"skills": [{"name": "No Cover"}], "equipment": ["Nanoscreen"]} },
+    { "type": "MI", "costCr": 20, "armorName": "Taqeul Armor", "arm": 3, "bts": 6, "abilities": "Regeneration, Immunity (Shock)", "effects": {"skills": [{"name": "Regeneration"}, {"name": "Immunity (Shock)"}]} },
+    { "type": null, "costCr": 20, "armorName": "Symbio - Resonance", "arm": null, "bts": null, "abilities": "Combine Transmutation (X)", "effects": {} },
+    { "type": "HI", "costCr": 20, "armorName": "Ablative Armor", "arm": 3, "bts": 3, "abilities": "Symbiomate (Self Use)", "effects": {"equipment": ["Symbiomate (Self Use)"]} }
   ],
   "augments": [
     { "name": "QAZ Creature (Disposable (1), Perimeter, Deployable)", "requirement": "Doctor", "costCr": 12, "costNote": null },

@@ -6,6 +6,7 @@ using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Stores;
+using InfinityMercsApp.UnitTests.Season.Armor;
 using InfinityMercsApp.UnitTests.Season.Inventory;
 using InfinityMercsApp.UnitTests.Support;
 using NSubstitute;
@@ -209,5 +210,24 @@ public sealed class DeploymentRosterTests : IDisposable
 
         // Cost 10 and 5 XP, then the Spitfire's 20 CR and the armour's 10; gear no market sells adds nothing.
         Assert.Equal(15 + 20 + 10, fusilier.Renown);
+    }
+
+    [Fact]
+    public async Task TroopersDeployInTheirArmour()
+    {
+        var superheavy = PackagedArmor.Named("Superheavy Armor");
+        _stores.GetAllStoreNames().Returns(["Number One"]);
+        _stores.GetStoreByNameAsync("Number One", Arg.Any<CancellationToken>())
+            .Returns(new Store { Name = "Number One", AssociatedFactions = ["PanOceania"], TroopTypes = [superheavy] });
+        var season = new SeasonFile();
+        season.UnitGear[2] = [new SeasonUnitGear { ItemName = "Superheavy Armor (HI)", Slot = GearSlot.Armor.Key() }];
+        _seasonFiles.LoadAsync(SeasonPath).Returns(season);
+
+        var fusilier = (await LoadAsync())[1];
+
+        Assert.Equal(("5", "6", "2", "5"), (fusilier.UnitArm, fusilier.UnitBts, fusilier.UnitVitality, fusilier.UnitS));
+        Assert.Equal(2, fusilier.StartingVitality);
+        Assert.True(fusilier.HasNwi);
+        Assert.Contains("Immunity (Shock)", fusilier.Skills);
     }
 }

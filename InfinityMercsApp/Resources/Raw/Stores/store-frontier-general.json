@@ -18,10 +18,10 @@
     { "name": "Smoke Grenades", "costCr": 8, "costSwc": null, "category": "Accessories" }
   ],
   "troopTypes": [
-    { "type": "LI", "costCr": 15, "armorName": "Irmandihno Wetsuit", "arm": 1, "bts": null, "abilities": "Booty, Engineer" },
-    { "type": "LI", "costCr": 15, "armorName": "Scout Suit", "arm": 1, "bts": null, "abilities": "Camouflage, Infiltrate, Surprise Attack (-3)" },
-    { "type": null, "costCr": 20, "armorName": "Cuckoo Virus Infusion", "arm": 4, "bts": null, "abilities": "MOV 6-4, Super Jump, +2 Wounds Skill, No Primary" },
-    { "type": "HI", "costCr": 20, "armorName": "Teseum Plate Armor", "arm": 5, "bts": 0, "abilities": "Immunity (IMM-B), Lose the Hackable trait" }
+    { "type": "LI", "costCr": 15, "armorName": "Irmandihno Wetsuit", "arm": 1, "bts": null, "abilities": "Booty, Engineer", "effects": {"skills": [{"name": "Engineer"}]} },
+    { "type": "LI", "costCr": 15, "armorName": "Scout Suit", "arm": 1, "bts": null, "abilities": "Camouflage, Infiltrate, Surprise Attack (-3)", "effects": {"skills": [{"name": "Camouflage"}, {"name": "Infiltration"}, {"name": "Surprise Attack (-3)"}]} },
+    { "type": null, "costCr": 20, "armorName": "Cuckoo Virus Infusion", "arm": 4, "bts": null, "abilities": "MOV 6-4, Super Jump, +2 Wounds Skill, No Primary", "effects": {"woundsSkill": 2, "move": "6-4", "skills": [{"name": "Super-Jump"}]} },
+    { "type": "HI", "costCr": 20, "armorName": "Teseum Plate Armor", "arm": 5, "bts": 0, "abilities": "Immunity (IMM-B), Lose the Hackable trait", "effects": {"maxBts": 0, "skills": [{"name": "Immunity (IMM-B)"}], "characteristicsLost": ["Hackable"]} }
   ],
   "augments": [
     { "name": "PH=12", "requirement": null, "costCr": 10, "costNote": null },

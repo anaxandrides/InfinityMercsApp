@@ -14,10 +14,10 @@
     { "name": "Bangbomb (+4)", "costCr": 3, "costSwc": null, "category": "Accessories" }
   ],
   "troopTypes": [
-    { "type": null, "costCr": 10, "armorName": "Harmonic Combat Exosuit", "arm": null, "bts": null, "abilities": "Martial Arts Lvl (+1)" },
-    { "type": "LI", "costCr": 15, "armorName": "Oniwaban Suit", "arm": 1, "bts": null, "abilities": "Infiltration, Camouflage, Hidden Deployment" },
-    { "type": "MI", "costCr": 10, "armorName": "Power Suit", "arm": 2, "bts": 6, "abilities": "PH=15, CC Attack (PS=5 Optional)" },
-    { "type": "HI", "costCr": 30, "armorName": "Shizoku Armor", "arm": 5, "bts": 6, "abilities": "Berserk, Frenzy" }
+    { "type": null, "costCr": 10, "armorName": "Harmonic Combat Exosuit", "arm": null, "bts": null, "abilities": "Martial Arts Lvl (+1)", "effects": {"martialArtsLevels": 1} },
+    { "type": "LI", "costCr": 15, "armorName": "Oniwaban Suit", "arm": 1, "bts": null, "abilities": "Infiltration, Camouflage, Hidden Deployment", "effects": {"skills": [{"name": "Infiltration", "whenHeld": "Infiltration (+3)"}, {"name": "Camouflage"}, {"name": "Hidden Deployment"}]} },
+    { "type": "MI", "costCr": 10, "armorName": "Power Suit", "arm": 2, "bts": 6, "abilities": "PH=15, CC Attack (PS=5 Optional)", "effects": {"ph": 15, "skills": [{"name": "CC Attack (PS=5, Optional)"}]} },
+    { "type": "HI", "costCr": 30, "armorName": "Shizoku Armor", "arm": 5, "bts": 6, "abilities": "Berserk, Frenzy", "effects": {"skills": [{"name": "Berserk"}, {"name": "Frenzy"}]} }
   ],
   "augments": [
     { "name": "CC=21", "requirement": null, "costCr": 10, "costNote": null },

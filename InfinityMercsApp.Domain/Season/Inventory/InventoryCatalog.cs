@@ -27,11 +27,11 @@ public sealed class InventoryCatalog
     public static InventoryCatalog From(IEnumerable<Store> stores)
     {
         var byStoreAndName = new Dictionary<string, CatalogItem>(StringComparer.OrdinalIgnoreCase);
-        void Add(Store store, string name, string category, int costCr, decimal costSwc = 0)
+        void Add(Store store, string name, string category, int costCr, decimal costSwc = 0, StoreTroopType? armor = null)
         {
             if (!string.IsNullOrWhiteSpace(name))
             {
-                byStoreAndName[Key(store.Name, name)] = new CatalogItem(name.Trim(), category, store.Name, costCr, costSwc);
+                byStoreAndName[Key(store.Name, name)] = new CatalogItem(name.Trim(), category, store.Name, costCr, costSwc, armor);
             }
         }
 
@@ -44,7 +44,7 @@ public sealed class InventoryCatalog
 
             foreach (var troop in store.TroopTypes.Where(troop => !string.IsNullOrWhiteSpace(troop.ArmorName)))
             {
-                Add(store, ArmorName(troop), GearSlot.Armor.Key(), troop.CostCr);
+                Add(store, ArmorName(troop), GearSlot.Armor.Key(), troop.CostCr, armor: troop);
             }
 
             foreach (var augment in store.Augments)
