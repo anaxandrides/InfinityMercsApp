@@ -3,7 +3,7 @@ using InfinityMercsApp.Services.CompanySelection.Units;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
 
-namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
+namespace InfinityMercsApp.Services.CompanySelection.Teams;
 
 internal static class CohesiveCompanyTeamEligibilityWorkflow
 {

@@ -8,8 +8,7 @@ using CCFactionFireteamValidityRecord = InfinityMercsApp.Domain.Models.Army.CCFa
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
-using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
-
+using InfinityMercsApp.Services.CompanySelection.Teams;
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 
 /// <summary>

@@ -6,6 +6,7 @@ using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.Services.CompanyProfiles;
 
+using InfinityMercsApp.Presentation.Company.Selection;
 namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 internal sealed class CompanyProfileCoordinator

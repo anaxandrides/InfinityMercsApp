@@ -5,6 +5,7 @@ using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecOps.Specop
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
+using InfinityMercsApp.Services.CompanySelection.Teams;
 namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 internal static class CompanySelectionVisibilityWorkflow

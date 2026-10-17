@@ -23,6 +23,8 @@ using InfinityMercsApp.ViewModels.Components.UnitFilter;
 
 using InfinityMercsApp.Presentation.Company.Selection;
 using InfinityMercsApp.Presentation.Themes;
+using InfinityMercsApp.Services.CompanySelection.Factions;
+using InfinityMercsApp.Services.CompanySelection.Teams;
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 
 /// <summary>

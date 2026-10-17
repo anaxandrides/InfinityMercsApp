@@ -1,5 +1,5 @@
 
-namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
+namespace InfinityMercsApp.Services.CompanySelection.Teams;
 
 internal static class CompanyTeamVisibilityWorkflow
 {

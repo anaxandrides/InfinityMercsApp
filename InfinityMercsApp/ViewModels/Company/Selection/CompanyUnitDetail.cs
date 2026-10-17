@@ -3,10 +3,10 @@ using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Units;
-using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.Presentation.Themes;
 using InfinityMercsApp.Presentation.Units;
+using InfinityMercsApp.Presentation.Company.Selection;
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 
 /// <summary>

@@ -9,6 +9,7 @@ using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 
 using InfinityMercsApp.Presentation.Company.Selection;
+using InfinityMercsApp.Services.CompanySelection.Teams;
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 
 /// <summary>
