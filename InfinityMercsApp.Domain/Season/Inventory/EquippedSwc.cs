@@ -16,10 +16,16 @@ public static class EquippedSwc
         loadouts.AllItems().Sum(item => Of(item, catalog));
 
     /// <summary>
-    /// The company's equipped SWC once <paramref name="itemName"/> is in the trooper's slot. An item taken from
-    /// another trooper's slot only moves, so its SWC is already counted.
+    /// The company's equipped SWC once <paramref name="itemName"/> is in the trooper's slot. A copy taken from a
+    /// trooper's slot (<paramref name="takenFrom"/>) only moves, so its SWC is already counted.
     /// </summary>
-    public static double After(CompanyLoadouts loadouts, int entryIndex, GearSlot slot, string? itemName, InventoryCatalog catalog)
+    public static double After(
+        CompanyLoadouts loadouts,
+        int entryIndex,
+        GearSlot slot,
+        string? itemName,
+        InventoryCatalog catalog,
+        int? takenFrom = null)
     {
         var total = Of(loadouts, catalog);
         if (loadouts.For(entryIndex)[slot] is { } current)
@@ -27,7 +33,7 @@ public static class EquippedSwc
             total -= Of(current, catalog);
         }
 
-        if (string.IsNullOrWhiteSpace(itemName) || loadouts.HolderOf(itemName, slot, entryIndex) is not null)
+        if (string.IsNullOrWhiteSpace(itemName) || takenFrom is not null)
         {
             return total;
         }

@@ -43,19 +43,24 @@ public sealed class GearSlotTests
 
     // A pistol in one trooper's extra slot is the same pistol another would carry as a sidearm.
     [Fact]
-    public void AnItemIsInOneSlotWhetherItsOwnKindsOrAnExtraOne()
+    public void ACopyMovesBetweenItsOwnKindsSlotAndAnExtraOne()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Sidearm, "Pistol");
 
-        Assert.Equal(1, loadouts.HolderOf("Pistol", GearSlot.Extra, exceptEntryIndex: 2));
-
-        loadouts.Assign(2, GearSlot.Extra, "Pistol");
+        loadouts.Assign(2, GearSlot.Extra, "Pistol", takenFrom: 1);
         Assert.Null(loadouts.For(1)[GearSlot.Sidearm]);
 
-        loadouts.Assign(2, GearSlot.Sidearm, "Pistol");
+        loadouts.Assign(2, GearSlot.Sidearm, "Pistol", takenFrom: 2);
         Assert.Equal(("Pistol", null), (loadouts.For(2)[GearSlot.Sidearm], loadouts.For(2)[GearSlot.Extra]));
-        Assert.Null(loadouts.HolderOf("Pistol", GearSlot.Primary, exceptEntryIndex: 1));
+    }
+
+    [Fact]
+    public void OnlyTheExtraSlotSharesItemsWithOtherSlots()
+    {
+        Assert.True(GearSlot.Sidearm.SharesItemsWith(GearSlot.Extra));
+        Assert.True(GearSlot.Sidearm.SharesItemsWith(GearSlot.Sidearm));
+        Assert.False(GearSlot.Sidearm.SharesItemsWith(GearSlot.Primary));
     }
 
     [Theory]

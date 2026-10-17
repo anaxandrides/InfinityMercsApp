@@ -359,12 +359,11 @@ public partial class SeasonTeamViewModel : ObservableObject
             var selected = GearOption.None;
             foreach (var itemName in _inventory.ItemsFor(picker.Slot))
             {
-                var holder = _loadouts.HolderOf(itemName, picker.Slot, item.EntryIndex);
-                var option = GearOption.For(itemName, EquippedSwc.Of(itemName, _catalog), Units.FirstOrDefault(unit => unit.EntryIndex == holder)?.Name);
-                options.Add(option);
+                var itemOptions = OptionsFor(itemName, picker.Slot, item.EntryIndex);
+                options.AddRange(itemOptions);
                 if (string.Equals(itemName, loadout[picker.Slot], StringComparison.OrdinalIgnoreCase))
                 {
-                    selected = option;
+                    selected = itemOptions[0];
                 }
             }
 
@@ -380,14 +379,14 @@ public partial class SeasonTeamViewModel : ObservableObject
             return;
         }
 
-        var equippedSwc = EquippedSwc.After(_loadouts, item.EntryIndex, slot, option.ItemName, _catalog);
+        var equippedSwc = EquippedSwc.After(_loadouts, item.EntryIndex, slot, option.ItemName, _catalog, option.TakenFrom);
         if (equippedSwc > _companySwc && equippedSwc > EquippedSwc.Of(_loadouts, _catalog))
         {
             _ = RefuseOverSwcAsync(option, equippedSwc);
             return;
         }
 
-        _loadouts.Assign(item.EntryIndex, slot, option.ItemName);
+        _loadouts.Assign(item.EntryIndex, slot, option.ItemName, option.TakenFrom);
         if (slot == GearSlot.Armor && !HasExtraSlot(_loadouts.For(item.EntryIndex)))
         {
             // Taking off Belts and Pouches empties its slot.
@@ -395,6 +394,26 @@ public partial class SeasonTeamViewModel : ObservableObject
         }
 
         _ = SaveThenRefreshAsync();
+    }
+
+    // A spare copy is offered as itself; with none spare, each copy another slot holds is offered, with whose it is.
+    // The trooper's own copy in this slot is always offered first.
+    private List<GearOption> OptionsFor(string itemName, GearSlot slot, int entryIndex)
+    {
+        var swc = EquippedSwc.Of(itemName, _catalog);
+        var holdings = _loadouts.Holding(itemName);
+        var here = new GearHolding(entryIndex, slot);
+        if (holdings.Contains(here) || holdings.Count < _inventory.CountOf(itemName))
+        {
+            return [GearOption.For(itemName, swc, null)];
+        }
+
+        return holdings
+            .Where(holding => slot.SharesItemsWith(holding.Slot))
+            .Select(holding => holding.EntryIndex)
+            .Distinct()
+            .Select(holder => GearOption.For(itemName, swc, Units.FirstOrDefault(unit => unit.EntryIndex == holder)?.Name, takenFrom: holder))
+            .ToList();
     }
 
     // Belts and Pouches gives one more slot.

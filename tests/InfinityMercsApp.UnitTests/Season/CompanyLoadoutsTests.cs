@@ -5,15 +5,27 @@ namespace InfinityMercsApp.UnitTests.Season;
 public sealed class CompanyLoadoutsTests
 {
     [Fact]
-    public void AssigningAnItemTakesItFromWhoeverHadIt()
+    public void ACopyTakenFromAnotherTrooperLeavesThem()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Primary, "Spitfire");
 
-        loadouts.Assign(2, GearSlot.Primary, "spitfire");
+        loadouts.Assign(2, GearSlot.Primary, "spitfire", takenFrom: 1);
 
         Assert.Null(loadouts.For(1)[GearSlot.Primary]);
         Assert.Equal("spitfire", loadouts.For(2)[GearSlot.Primary]);
+    }
+
+    // A company with two Hacking Devices can give one to each of two troopers.
+    [Fact]
+    public void ASpareCopyLeavesTheOthersWhereTheyAre()
+    {
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(1, GearSlot.Accessories, "Hacking Device");
+
+        loadouts.Assign(2, GearSlot.Accessories, "Hacking Device");
+
+        Assert.Equal([new GearHolding(1, GearSlot.Accessories), new GearHolding(2, GearSlot.Accessories)], loadouts.Holding("Hacking Device"));
     }
 
     [Fact]
@@ -22,7 +34,7 @@ public sealed class CompanyLoadoutsTests
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Secondary, "Pistol");
 
-        loadouts.Assign(2, GearSlot.Sidearm, "Pistol");
+        loadouts.Assign(2, GearSlot.Sidearm, "Pistol", takenFrom: 1);
 
         Assert.Equal("Pistol", loadouts.For(1)[GearSlot.Secondary]);
     }
@@ -39,14 +51,14 @@ public sealed class CompanyLoadoutsTests
     }
 
     [Fact]
-    public void FindsWhoElseHoldsAnItem()
+    public void FindsEveryCopyCarried()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(4, GearSlot.Roles, "Medic");
+        loadouts.Assign(2, GearSlot.Extra, "medic");
 
-        Assert.Equal(4, loadouts.HolderOf("Medic", GearSlot.Roles, exceptEntryIndex: 1));
-        Assert.Null(loadouts.HolderOf("Medic", GearSlot.Roles, exceptEntryIndex: 4));
-        Assert.Null(loadouts.HolderOf("Medic", GearSlot.Primary, exceptEntryIndex: 1));
+        Assert.Equal([new GearHolding(2, GearSlot.Extra), new GearHolding(4, GearSlot.Roles)], loadouts.Holding("Medic"));
+        Assert.Empty(loadouts.Holding("Doctor"));
     }
 
     [Fact]

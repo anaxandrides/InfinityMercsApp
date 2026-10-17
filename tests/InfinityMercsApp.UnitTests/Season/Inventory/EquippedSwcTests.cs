@@ -44,6 +44,15 @@ public sealed class EquippedSwcTests
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Primary, "Spitfire");
 
-        Assert.Equal(1.5, EquippedSwc.After(loadouts, 2, GearSlot.Primary, "Spitfire", Catalog));
+        Assert.Equal(1.5, EquippedSwc.After(loadouts, 2, GearSlot.Primary, "Spitfire", Catalog, takenFrom: 1));
+    }
+
+    [Fact]
+    public void EquippingASpareCopyAddsItsSwc()
+    {
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(1, GearSlot.Primary, "Spitfire");
+
+        Assert.Equal(3, EquippedSwc.After(loadouts, 2, GearSlot.Primary, "Spitfire", Catalog));
     }
 }

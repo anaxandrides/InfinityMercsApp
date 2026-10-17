@@ -31,7 +31,7 @@ public sealed class SeasonTeamViewModelTests
         _team = new SeasonTeamViewModel(new CompanyRoster(_kit.ArmyData), new UnitDetailViewModel(_kit.ArmyData, _kit.Settings), _kit.PackageFiles, _kit.SeasonFiles, _popup, _kit.Dialogs, _seasonChanged);
     }
 
-    // The company's Combi Rifle, two pistols (one bought at each market), Light Armour and a WIP augment.
+    // The company's pistol, Spitfire, Light Armour, WIP and Courage augments and monofilament blade.
     private SeasonInventory Owned() => SeasonInventory.From(
         new SeasonFile
         {
@@ -186,6 +186,33 @@ public sealed class SeasonTeamViewModelTests
         _team.SelectUnitCommand.Execute(Unit("Bolt"));
         Assert.Equal("Light Armour (LI)  [Attached: Captain]", Picker(GearSlot.Armor).Options[1].Display);
         Assert.Equal(GearOption.None, Picker(GearSlot.Armor).SelectedOption);
+    }
+
+    // With a second pistol bought and one carried by Bolt, the captain can take the other.
+    [Fact]
+    public async Task ASpareCopyCanBeEquippedWithoutTakingAnyonesElse()
+    {
+        _alsoBought = [SeasonTestKit.Bought("Number One", "Pistol")];
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(1, GearSlot.Sidearm, "Pistol");
+        await LoadAsync(loadouts);
+
+        var sidearm = Picker(GearSlot.Sidearm);
+        Assert.Equal(["(none)", "Pistol"], sidearm.Options.Select(option => option.Display));
+        sidearm.SelectedOption = sidearm.Options[1];
+
+        Assert.Equal("Pistol", SavedLoadouts().For(1)[GearSlot.Sidearm]);
+        Assert.Equal("Pistol", SavedLoadouts().For(2)[GearSlot.Sidearm]);
+
+        // With both carried by others, each copy is offered as its carrier's.
+        loadouts = SavedLoadouts();
+        loadouts.Assign(1, GearSlot.Sidearm, null);
+        loadouts.Assign(3, GearSlot.Sidearm, "Pistol");
+        await LoadAsync(loadouts);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        Assert.Equal(
+            ["(none)", "Pistol  [Attached: Captain]", "Pistol  [Attached: Traktor Mul]"],
+            Picker(GearSlot.Sidearm).Options.Select(option => option.Display));
     }
 
     [Fact]
