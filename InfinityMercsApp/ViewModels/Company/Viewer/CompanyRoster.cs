@@ -89,9 +89,10 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             ProfileText.Lines(skills),
             ProfileText.Lines(SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Chars))));
 
-        // Armour changes the underlying line; injuries, perks and the rest then add on top.
+        // Armour changes the underlying line; injuries, perks and the rest then add on top. Perk skills show with
+        // the perks, beside this line.
         var worn = SeasonTroopers.InArmor(entry, saved, season, catalog, captain);
-        var profile = worn.Limit(worn.Profile.With(progress.Change));
+        var profile = worn.Limit(worn.Profile.With(progress.ChangeBesidePerks));
         equipment = ProfileText.AppendDistinct(equipment, worn.Equipment, keepTextWhenNothingAdded: true);
 
         return new CompanyViewerUnitListItem

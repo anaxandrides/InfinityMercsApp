@@ -80,7 +80,10 @@ public sealed class TrooperProgressTests
         var change = Bolt(SeasonWith(30, trooper)).Change;
 
         Assert.Equal(0, change.Bs);
-        Assert.Equal(["Climbing Plus", "Courage", "Fireteam: Mercs", "Natural Born Warrior"], change.SkillsGained);
+        Assert.Equal(["Courage", "Fireteam: Mercs", "Natural Born Warrior"], change.SkillsGained);
+        Assert.Equal(["Climbing Plus"], change.PerkSkills);
+        Assert.True(change.ListsPerkSkills);
+        Assert.False(Bolt(SeasonWith(30, trooper)).ChangeBesidePerks.ListsPerkSkills);
         Assert.Equal(["Irregular"], change.CharacteristicsLost);
     }
 

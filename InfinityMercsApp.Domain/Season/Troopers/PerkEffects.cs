@@ -6,7 +6,7 @@ namespace InfinityMercsApp.Domain.Season.Troopers;
 
 /// <summary>
 /// What a perk does to a trooper, read from its name: "+3 CC" and the like change attributes, "+1 Wounds Skill"
-/// steps up the wounds path, "MOV 6-4" and "S7" replace MOV and silhouette, and anything else is a skill gained.
+/// steps up the wounds path, "MOV 6-4" and "S7" replace MOV and silhouette, and anything else is a perk skill.
 /// </summary>
 public static partial class PerkEffects
 {
@@ -59,7 +59,7 @@ public static partial class PerkEffects
             return new() { Silhouette = int.Parse(silhouette.Groups["value"].Value, CultureInfo.InvariantCulture) };
         }
 
-        return new() { SkillsGained = [part] };
+        return new() { PerkSkills = [part] };
     }
 
     // "+2 PH + CC Attack (SR-2)" and "S7, +1 ARM, SR-1" split into their parts; commas inside brackets stay.

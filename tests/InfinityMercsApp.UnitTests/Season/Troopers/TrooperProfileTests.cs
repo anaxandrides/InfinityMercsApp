@@ -69,4 +69,23 @@ public sealed class TrooperProfileTests
     {
         Assert.Equal("7", Fusilier().With(new TrooperChange { Silhouette = 7 }).Silhouette);
     }
+
+    // Screens with a perk list show a perk's skill there; only one improving a held skill changes the skills.
+    [Fact]
+    public void PerkSkillsJoinTheSkillsOnlyWhereThereIsNoPerkList()
+    {
+        var change = new TrooperChange { PerkSkills = ["Climbing Plus"] };
+
+        Assert.Contains("Climbing Plus", Fusilier().With(change).Skills);
+        Assert.DoesNotContain("Climbing Plus", Fusilier().With(change with { ListsPerkSkills = false }).Skills);
+    }
+
+    [Fact]
+    public void APerkSkillAddsIntoTheSameSkillHeld()
+    {
+        var change = new TrooperChange { PerkSkills = ["Mimetism (-3)"], ListsPerkSkills = false };
+
+        Assert.Equal(["Courage", "Mimetism (-6)"], Fusilier(skills: ["Courage", "Mimetism (-3)"]).With(change).Skills);
+        Assert.Equal(["Dodge (+4)"], Fusilier(skills: ["Dodge (+1)"]).With(change with { PerkSkills = ["Dodge (+3)"] }).Skills);
+    }
 }

@@ -18,7 +18,7 @@ public sealed class PerkEffectsTests
         var change = PerkEffects.FromName("+2 PH + CC Attack (SR-2)");
 
         Assert.Equal(2, change.Ph);
-        Assert.Equal(["CC Attack (SR-2)"], change.SkillsGained);
+        Assert.Equal(["CC Attack (SR-2)"], change.PerkSkills);
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public sealed class PerkEffectsTests
         var change = PerkEffects.FromName("S7, +1 ARM, SR-1");
 
         Assert.Equal((7, 1), (change.Silhouette, change.Arm));
-        Assert.Equal(["SR-1"], change.SkillsGained);
+        Assert.Equal(["SR-1"], change.PerkSkills);
     }
 
     [Fact]
@@ -41,8 +41,8 @@ public sealed class PerkEffectsTests
     [Fact]
     public void CommasInsideBracketsStayTogether()
     {
-        Assert.Equal(["Dodge (+3)", "Dodge (+1\")"], PerkEffects.FromName("Dodge (+3), Dodge (+1\")").SkillsGained);
-        Assert.Equal(["Immunity (DA)", "Immunity (Shock)"], PerkEffects.For("body-track-2-tier-1").SkillsGained);
+        Assert.Equal(["Dodge (+3)", "Dodge (+1\")"], PerkEffects.FromName("Dodge (+3), Dodge (+1\")").PerkSkills);
+        Assert.Equal(["Immunity (DA)", "Immunity (Shock)"], PerkEffects.For("body-track-2-tier-1").PerkSkills);
     }
 
     [Fact]

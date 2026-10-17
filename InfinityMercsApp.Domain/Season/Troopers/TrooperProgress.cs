@@ -37,6 +37,12 @@ public sealed record TrooperProgress(
 
     public IReadOnlyList<string> FreeSkills => CompanyUnitExperienceRanks.FreeSkillsFor(TotalXp);
 
+    /// <summary>
+    /// What changes the trooper's line on a screen that lists its perks too: a perk's skill shows with the perks, and
+    /// only one improving a skill it has changes its skills.
+    /// </summary>
+    public TrooperChange ChangeBesidePerks => Change with { ListsPerkSkills = false };
+
     /// <summary>Everything that changes the trooper's saved profile this season.</summary>
     public TrooperChange Change =>
         TrooperChange.Sum(Record.Injuries.Select(injury => injury.Change()))

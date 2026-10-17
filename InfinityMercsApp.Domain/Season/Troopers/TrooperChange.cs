@@ -33,6 +33,15 @@ public sealed record TrooperChange
 
     public IReadOnlyList<string> SkillsGained { get; init; } = [];
 
+    /// <summary>
+    /// Skills from perks. One that improves a skill the trooper has ("Mimetism (-3)" on Mimetism (-3)) is added into
+    /// it; the rest join the skills only while <see cref="ListsPerkSkills"/>, since screens with a perk list show them there.
+    /// </summary>
+    public IReadOnlyList<string> PerkSkills { get; init; } = [];
+
+    /// <summary>Whether perk skills that improve nothing held are listed with the skills.</summary>
+    public bool ListsPerkSkills { get; init; } = true;
+
     public IReadOnlyList<string> CharacteristicsGained { get; init; } = [];
 
     public IReadOnlyList<string> CharacteristicsLost { get; init; } = [];
@@ -54,6 +63,8 @@ public sealed record TrooperChange
         Silhouette = b.Silhouette ?? a.Silhouette,
         WoundsSkillSteps = a.WoundsSkillSteps + b.WoundsSkillSteps,
         SkillsGained = [.. a.SkillsGained, .. b.SkillsGained],
+        PerkSkills = [.. a.PerkSkills, .. b.PerkSkills],
+        ListsPerkSkills = a.ListsPerkSkills && b.ListsPerkSkills,
         CharacteristicsGained = [.. a.CharacteristicsGained, .. b.CharacteristicsGained],
         CharacteristicsLost = [.. a.CharacteristicsLost, .. b.CharacteristicsLost],
         Notes = [.. a.Notes, .. b.Notes]
