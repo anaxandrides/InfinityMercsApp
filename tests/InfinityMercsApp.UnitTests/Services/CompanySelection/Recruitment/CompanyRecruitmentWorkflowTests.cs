@@ -90,6 +90,25 @@ public sealed class CompanyRecruitmentWorkflowTests
         Assert.Equal(["Spec-Ops: +1 ARM", "Spec-Ops: Courage"], _saved?.Entries[^1].SpecOpsPurchases);
     }
 
+    // A Drummer's Drumbot is a REM in the army data, so it keeps STR rather than being a typeless peripheral.
+    [Fact]
+    public async Task APeripheralIsSavedWithItsOwnTroopType()
+    {
+        var drummer = new MercsCompanyEntry
+        {
+            Name = "Drummer",
+            CostValue = 20,
+            SourceFactionId = Army101Data.PanOceania,
+            SourceUnitId = Army101Data.UnitNamed("DRUMMERS, Mobile Support Section").Id,
+            HasPeripheralStatBlock = true,
+            PeripheralNameHeading = "DRUMBOT"
+        };
+
+        await HireAsync(drummer);
+
+        Assert.Equal("REM", _saved?.Entries.Single(entry => entry.IsPeripheralUnit && entry.Name.Contains("Drumbot", StringComparison.OrdinalIgnoreCase)).UnitTypeCode);
+    }
+
     [Fact]
     public async Task TheirCostIsChargedThroughAdditionalRecruitment()
     {

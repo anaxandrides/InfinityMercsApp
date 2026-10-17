@@ -469,7 +469,7 @@ internal static class CompanyStartSaveWorkflow
             Name = peripheralName,
             BaseUnitName = peripheralName,
             CustomName = peripheralName,
-            UnitTypeCode = UnitTypeCodes.Peripheral,
+            UnitTypeCode = PeripheralTypeCode(peripheralName, entry, armyDataService),
             ProfileKey = $"{entry.ProfileKey}|peripheral",
             SourceFactionId = entry.SourceFactionId,
             SourceUnitId = entry.SourceUnitId,
@@ -617,6 +617,18 @@ internal static class CompanyStartSaveWorkflow
             .Where(x => !string.IsNullOrWhiteSpace(x) && x != "-")
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
+    }
+
+    // The peripheral's own troop type from its profile in the army data ("REM", "LI"), so it shows VITA or STR as
+    // the profile does; PERIPHERAL when the army data doesn't say.
+    private static string PeripheralTypeCode<TEntry>(string peripheralName, TEntry entry, IArmyDataService armyDataService)
+        where TEntry : class, ICompanyMercsEntry
+    {
+        var profile = armyDataService.GetUnit(entry.SourceFactionId, entry.SourceUnitId)?.ProfileGroups.FindPeripheralProfile(peripheralName);
+        var types = CompanyUnitDetailsShared.BuildIdNameLookup(armyDataService.GetFactionSnapshot(entry.SourceFactionId)?.Filters, ArmyFilterSection.Type);
+        return profile?.Type is { } type && types.TryGetValue(type, out var typeName) && !string.IsNullOrWhiteSpace(typeName)
+            ? typeName.Trim().ToUpperInvariant()
+            : UnitTypeCodes.Peripheral;
     }
 
     private static string ResolveUnitTypeCode<TEntry>(TEntry entry, IArmyDataService armyDataService)
