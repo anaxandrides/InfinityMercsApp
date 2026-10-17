@@ -27,7 +27,8 @@ namespace InfinityMercsApp.ViewModels.Season.Overview;
 /// The season's Team tab: the company's troopers in a drop-down, and the chosen one's stats, equipment,
 /// skills and weapons, with a picker per gear slot for the season gear the company owns. Gear choices are
 /// saved to the season file; an augment that sets a stat ("WIP=12") changes the stat line. An augment needs its
-/// requirement met by what the trooper has, its other gear included. The SWC of the gear equipped across the
+/// requirement met by what the trooper has, its other gear included; a change that would leave an equipped augment
+/// without it takes that augment off, once confirmed. The SWC of the gear equipped across the
 /// company may not go over the company's SWC. Any trooper but the captain can be retired.
 /// </summary>
 public partial class SeasonTeamViewModel : ObservableObject
@@ -381,7 +382,7 @@ public partial class SeasonTeamViewModel : ObservableObject
             picker.IsAvailable = picker.Slot != GearSlot.Extra || HasExtraSlot(loadout);
             List<GearOption> options = [GearOption.None];
             var selected = GearOption.None;
-            var held = HeldBy(item, picker.Slot);
+            var held = HeldBy(item, loadout, picker.Slot);
             foreach (var itemName in _inventory.ItemsFor(picker.Slot))
             {
                 var unmet = _catalog.Find(itemName)?.Requirement is { } requirement && !requirement.IsMetBy(held) ? requirement.Unmet : null;
@@ -406,7 +407,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         }
 
         if (option.ItemName is { } itemName && _catalog.Find(itemName)?.Requirement is { } requirement &&
-            !requirement.IsMetBy(HeldBy(item, slot)))
+            !requirement.IsMetBy(HeldBy(item, _loadouts.For(item.EntryIndex), slot)))
         {
             _ = RefuseUnmetAsync(item, itemName, requirement);
             return;
@@ -419,14 +420,68 @@ public partial class SeasonTeamViewModel : ObservableObject
             return;
         }
 
-        _loadouts.Assign(item.EntryIndex, slot, option.ItemName, option.TakenFrom);
-        if (slot == GearSlot.Armor && !HasExtraSlot(_loadouts.For(item.EntryIndex)))
+        var after = CompanyLoadouts.From(_loadouts.ToSeasonGear());
+        after.Assign(item.EntryIndex, slot, option.ItemName, option.TakenFrom);
+        if (slot == GearSlot.Armor && !HasExtraSlot(after.For(item.EntryIndex)))
         {
             // Taking off Belts and Pouches empties its slot.
-            _loadouts.Assign(item.EntryIndex, GearSlot.Extra, null);
+            after.Assign(item.EntryIndex, GearSlot.Extra, null);
         }
 
+        var stranded = StrandedBy(after);
+        if (stranded.Count > 0)
+        {
+            _ = ConfirmStrandedAsync(after, stranded);
+            return;
+        }
+
+        _loadouts = after;
         _ = SaveThenRefreshAsync();
+    }
+
+    // The augments, on any trooper, that meet their requirement now but wouldn't with the gear in <paramref name="after"/>.
+    private List<StrandedAugment> StrandedBy(CompanyLoadouts after)
+    {
+        var stranded = new List<StrandedAugment>();
+        foreach (var unit in Units)
+        {
+            foreach (var slot in new List<GearSlot> { GearSlot.Augments, GearSlot.Extra })
+            {
+                if (after.For(unit.EntryIndex)[slot] is { } itemName &&
+                    _catalog.Find(itemName)?.Requirement is { } requirement &&
+                    !requirement.IsMetBy(HeldBy(unit, after.For(unit.EntryIndex), slot)) &&
+                    requirement.IsMetBy(HeldBy(unit, _loadouts.For(unit.EntryIndex), slot)))
+                {
+                    stranded.Add(new StrandedAugment(unit.EntryIndex, unit.Name, slot, itemName, requirement));
+                }
+            }
+        }
+
+        return stranded;
+    }
+
+    // Once confirmed, the change goes ahead and the stranded augments go back to the inventory; otherwise the
+    // pickers go back to what was equipped.
+    private async Task ConfirmStrandedAsync(CompanyLoadouts after, IReadOnlyList<StrandedAugment> stranded)
+    {
+        var lines = string.Join(Environment.NewLine, stranded.Select(augment => augment.Describe()));
+        if (!await _dialogs.ConfirmAsync(
+                "Augments Come Off",
+                $"This leaves an augment without its requirement, so it goes back to the inventory:{Environment.NewLine}{lines}",
+                "Continue",
+                "Cancel"))
+        {
+            RefreshGearPickers();
+            return;
+        }
+
+        foreach (var augment in stranded)
+        {
+            after.Assign(augment.EntryIndex, augment.Slot, null);
+        }
+
+        _loadouts = after;
+        await SaveThenRefreshAsync();
     }
 
     // A spare copy is offered as itself; with none spare, each copy another slot holds is offered, with whose it is.
@@ -450,11 +505,10 @@ public partial class SeasonTeamViewModel : ObservableObject
     }
 
     // What the trooper has besides the slot being filled: its skills, equipment and characteristics, and the gear in
-    // its other slots (a role brings its skill).
-    private List<string> HeldBy(CompanyViewerUnitListItem item, GearSlot slot)
+    // the loadout's other slots (a role brings its skill).
+    private static List<string> HeldBy(CompanyViewerUnitListItem item, UnitLoadout loadout, GearSlot slot)
     {
         var profile = CompanyRoster.ProfileOf(item);
-        var loadout = _loadouts.For(item.EntryIndex);
         return
         [
             .. ProfileText.Lines(profile.UniqueSkills),

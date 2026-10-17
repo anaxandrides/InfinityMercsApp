@@ -154,6 +154,42 @@ public sealed class SeasonTeamViewModelTests
         Assert.Equal("Armed Turret (MMR)", SavedLoadouts().For(1)[GearSlot.Augments]);
     }
 
+    // Bolt as an Engineer carrying the Armed Turret.
+    private async Task LoadTurretEngineerAsync()
+    {
+        _alsoBought = [SeasonTestKit.Bought("Armoury", "Armed Turret (MMR)"), SeasonTestKit.Bought("Armoury", "Engineer (+Gizmokit)")];
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(1, GearSlot.Roles, "Engineer (+Gizmokit)");
+        loadouts.Assign(1, GearSlot.Augments, "Armed Turret (MMR)");
+        await LoadAsync(loadouts);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+    }
+
+    [Fact]
+    public async Task TakingOffWhatAnAugmentNeedsTakesItOffOnceConfirmed()
+    {
+        await LoadTurretEngineerAsync();
+        _kit.Dialogs.ConfirmAsync("Augments Come Off", Arg.Any<string>(), "Continue", "Cancel").Returns(true);
+
+        Picker(GearSlot.Roles).SelectedOption = GearOption.None;
+
+        await _kit.Dialogs.Received(1).ConfirmAsync("Augments Come Off", Arg.Is<string>(text => text.Contains("Bolt's Armed Turret (MMR) (Needs Engineer)")), "Continue", "Cancel");
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Roles]);
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Augments]);
+    }
+
+    [Fact]
+    public async Task NotConfirmingKeepsTheGear()
+    {
+        await LoadTurretEngineerAsync();
+
+        Picker(GearSlot.Roles).SelectedOption = GearOption.None;
+
+        Assert.Equal("Engineer (+Gizmokit)", SavedLoadouts().For(1)[GearSlot.Roles]);
+        Assert.Equal("Armed Turret (MMR)", SavedLoadouts().For(1)[GearSlot.Augments]);
+        Assert.Equal("Engineer (+Gizmokit)", Picker(GearSlot.Roles).SelectedOption?.ItemName);
+    }
+
     [Fact]
     public async Task LoadingSelectsTheLieutenantFirst()
     {
