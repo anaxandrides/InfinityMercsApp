@@ -31,7 +31,7 @@ public partial class DowntimeViewModel(
     ICompanyFileService companyFiles,
     CompanyRoster roster) : ViewModelBase(navigationService)
 {
-    public const string EventRollPrompt = "Press ROLL for a random event, or pick a value and press REAL.";
+    public const string EventRollPrompt = "Press ROLL for a random event, or REAL to enter a roll made with real dice.";
 
     private string _companyFilePath = string.Empty;
     private string _seasonFilePath = string.Empty;
@@ -47,9 +47,6 @@ public partial class DowntimeViewModel(
 
     [ObservableProperty]
     public partial string RollPrompt { get; set; } = EventRollPrompt;
-
-    [ObservableProperty]
-    public partial int? SelectedRealRoll { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasEvent), nameof(IsShowingEventDetails), nameof(IsChoosingFromEventList), nameof(HasEventTraits), nameof(EventTraitsText))]
@@ -107,7 +104,6 @@ public partial class DowntimeViewModel(
     public partial IReadOnlyList<string> ConsequenceLines { get; set; } = [];
 
     /// <summary>The values the REAL picker offers: 1 to 20.</summary>
-    public IReadOnlyList<int> RealRolls { get; } = Enumerable.Range(1, 20).ToList();
 
     public IReadOnlyList<DowntimeEventOption> EventOptions { get; } =
         DowntimeEventTable.AllEvents.Select(downtimeEvent => new DowntimeEventOption(downtimeEvent)).ToList();
@@ -167,17 +163,14 @@ public partial class DowntimeViewModel(
     [RelayCommand(CanExecute = nameof(CanRollDice))]
     private Task RollAsync() => DispatchRollAsync(dice.RollD20());
 
-    /// <summary>Uses the value picked from the REAL picker, for a roll made with physical dice.</summary>
+    /// <summary>Asks for the value of a roll made with physical dice and uses it; cancelling changes nothing.</summary>
     [RelayCommand(CanExecute = nameof(CanRollDice))]
     private async Task RealAsync()
     {
-        if (SelectedRealRoll is not { } roll)
+        if (await dialogs.AskNumberAsync("Real Roll", "What did the d20 show?", 1, 20) is { } roll)
         {
-            await dialogs.ShowAlertAsync("Pick a number", "Choose a value 1-20 first.");
-            return;
+            await DispatchRollAsync(roll);
         }
-
-        await DispatchRollAsync(roll);
     }
 
     private Task DispatchRollAsync(int roll) => Stage switch

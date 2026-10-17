@@ -7,4 +7,8 @@ public interface IDialogService
 
     /// <returns>True when the user chose <paramref name="accept"/>.</returns>
     Task<bool> ConfirmAsync(string title, string message, string accept = "Yes", string cancel = "No");
+
+    /// <summary>Asks for a whole number from <paramref name="minimum"/> to <paramref name="maximum"/>.</summary>
+    /// <returns>The number, or null when the user cancels or enters something outside the range.</returns>
+    Task<int?> AskNumberAsync(string title, string message, int minimum, int maximum);
 }

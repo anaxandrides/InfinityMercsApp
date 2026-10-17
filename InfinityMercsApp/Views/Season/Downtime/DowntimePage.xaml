@@ -56,7 +56,7 @@
                 <behaviors:ScrollToEndBehavior />
             </ScrollView.Behaviors>
             <VerticalStackLayout Spacing="12">
-                <Label Text="Press Roll for a random event, or pick a number and press Real."
+                <Label Text="Press Roll for a random event, or Real to enter a roll made with real dice."
                        IsVisible="{Binding HasEvent, Converter={StaticResource InvertedBoolConverter}}"
                        TextColor="{StaticResource TextMuted}"
                        FontSize="{DynamicResource FontSizeBody}"
@@ -273,7 +273,7 @@
                    TextColor="{StaticResource TextMuted}"
                    FontSize="{DynamicResource FontSizeCaption}"
                    HorizontalTextAlignment="Center" />
-            <Grid ColumnDefinitions="*,Auto,*"
+            <Grid ColumnDefinitions="*,*"
                   ColumnSpacing="8"
                   IsVisible="{Binding CanGoBackToBase, Converter={StaticResource InvertedBoolConverter}}">
                 <Grid.Triggers>
@@ -286,15 +286,8 @@
                         TextColor="{StaticResource Void}"
                         FontAttributes="Bold"
                         Command="{Binding RollCommand}" />
-                <Picker Grid.Column="1"
-                        Title="1-20"
-                        WidthRequest="90"
-                        TextColor="{StaticResource TextPrimary}"
-                        BackgroundColor="{StaticResource HairlineBright}"
-                        ItemsSource="{Binding RealRolls}"
-                        SelectedItem="{Binding SelectedRealRoll}"
-                        IsEnabled="{Binding CanRollDice}" />
-                <Button Grid.Column="2"
+                <!-- REAL asks for the value rolled with real dice. -->
+                <Button Grid.Column="1"
                         Text="REAL"
                         BackgroundColor="Transparent"
                         BorderColor="{StaticResource Signal}"

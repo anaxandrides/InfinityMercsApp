@@ -66,9 +66,9 @@ public sealed class DowntimeViewModelTests
         return viewModel;
     }
 
-    private static async Task EnterRollAsync(DowntimeViewModel viewModel, int roll)
+    private async Task EnterRollAsync(DowntimeViewModel viewModel, int roll)
     {
-        viewModel.SelectedRealRoll = roll;
+        _dialogs.AskNumberAsync("Real Roll", Arg.Any<string>(), 1, 20).Returns(roll);
         await viewModel.RealCommand.ExecuteAsync(null);
     }
 
@@ -90,20 +90,22 @@ public sealed class DowntimeViewModelTests
         Assert.False(viewModel.HasEvent);
         Assert.False(viewModel.IsResolved);
         Assert.False(viewModel.CanGoBackToBase);
-        Assert.Equal(Enumerable.Range(1, 20), viewModel.RealRolls);
         Assert.Equal(9, viewModel.EventOptions.Count);
         Assert.False(viewModel.NoEventCommand.CanExecute(null));
     }
 
     [Fact]
-    public async Task RealWithoutAPickedValueAsksForOne()
+    public async Task CancellingARealRollChangesNothing()
     {
         var viewModel = Create();
+        _dialogs.AskNumberAsync("Real Roll", Arg.Any<string>(), 1, 20).Returns((int?)null);
 
         await viewModel.RealCommand.ExecuteAsync(null);
 
-        await _dialogs.Received(1).ShowAlertAsync("Pick a number", "Choose a value 1-20 first.");
+        // The roll is still to make, by either button.
         Assert.False(viewModel.HasEvent);
+        Assert.Equal(DowntimeStage.AwaitingEventRoll, viewModel.Stage);
+        Assert.True(viewModel.RollCommand.CanExecute(null));
     }
 
     [Fact]
