@@ -1,7 +1,7 @@
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.Reference;
 using InfinityMercsApp.Views.Adaptive;
 
-namespace InfinityMercsApp.Views;
+namespace InfinityMercsApp.Views.Reference;
 
 public partial class MercsGlossaryPage : AdaptiveContentPage
 {

@@ -1,11 +1,11 @@
 using System.ComponentModel;
 using InfinityMercsApp.Domain.Models.Perks.Tables;
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.Reference;
 using InfinityMercsApp.Views.Adaptive;
 using InfinityMercsApp.Views.Base;
 
 using InfinityMercsApp.Presentation.Layouts;
-namespace InfinityMercsApp.Views;
+namespace InfinityMercsApp.Views.Reference;
 
 /// <summary>
 /// Draws the selected perk table. The table's contents come from <see cref="PerksTablesViewModel.Table"/>;

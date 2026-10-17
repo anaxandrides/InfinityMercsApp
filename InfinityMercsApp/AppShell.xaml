@@ -3,7 +3,10 @@
     x:Class="InfinityMercsApp.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:views="clr-namespace:InfinityMercsApp.Views"
+    xmlns:aboutViews="clr-namespace:InfinityMercsApp.Views.About"
+    xmlns:feedbackViews="clr-namespace:InfinityMercsApp.Views.Feedback"
+    xmlns:referenceViews="clr-namespace:InfinityMercsApp.Views.Reference"
+    xmlns:settingsViews="clr-namespace:InfinityMercsApp.Views.Settings"
     xmlns:marketplacesViews="clr-namespace:InfinityMercsApp.Views.Marketplaces"
     xmlns:companyViewerViews="clr-namespace:InfinityMercsApp.Views.Company.Viewer"
     xmlns:companyViews="clr-namespace:InfinityMercsApp.Views.Company"
@@ -33,7 +36,7 @@
 
     <ShellContent
         Title="Settings"
-        ContentTemplate="{DataTemplate views:SettingsPage}"
+        ContentTemplate="{DataTemplate settingsViews:SettingsPage}"
         Route="SettingsPage" />
 
     <FlyoutItem
@@ -41,11 +44,11 @@
         Route="MercsReference">
         <ShellContent
             Title="Mercs Glossary"
-            ContentTemplate="{DataTemplate views:MercsGlossaryPage}"
+            ContentTemplate="{DataTemplate referenceViews:MercsGlossaryPage}"
             Route="MercsGlossaryPage" />
         <ShellContent
             Title="Perks Tables"
-            ContentTemplate="{DataTemplate views:PerksTablesPage}"
+            ContentTemplate="{DataTemplate referenceViews:PerksTablesPage}"
             Route="PerksTablesPage" />
         <ShellContent
             Title="Armory"
@@ -76,7 +79,7 @@
 
     <ShellContent
         Title="About"
-        ContentTemplate="{DataTemplate views:AboutPage}"
+        ContentTemplate="{DataTemplate aboutViews:AboutPage}"
         Route="AboutPage" />
 
     <ShellContent
@@ -87,7 +90,7 @@
 
     <!-- <ShellContent
         Title="Feedback/Bugs"
-        ContentTemplate="{DataTemplate views:FeedbackBugsPage}"
+        ContentTemplate="{DataTemplate feedbackViews:FeedbackBugsPage}"
         Route="FeedbackBugsPage" /> -->
 
 

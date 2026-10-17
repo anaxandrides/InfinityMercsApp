@@ -3,7 +3,7 @@ using InfinityMercsApp.Domain.Models.Perks.Tables;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 
-namespace InfinityMercsApp.ViewModels;
+namespace InfinityMercsApp.ViewModels.Reference;
 
 /// <summary>Picks a perk list and lays it out as a table of tracks by tiers.</summary>
 public partial class PerksTablesViewModel : ViewModelBase

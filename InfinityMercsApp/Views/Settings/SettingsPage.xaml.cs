@@ -1,7 +1,7 @@
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.Settings;
 using InfinityMercsApp.Views.Base;
 
-namespace InfinityMercsApp.Views;
+namespace InfinityMercsApp.Views.Settings;
 
 public partial class SettingsPage : ContentPageBase
 {

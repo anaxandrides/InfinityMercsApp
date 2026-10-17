@@ -3,10 +3,10 @@ using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Import;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.UnitTests.Support;
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.Settings;
 using NSubstitute;
 
-namespace InfinityMercsApp.UnitTests.ViewModels;
+namespace InfinityMercsApp.UnitTests.ViewModels.Settings;
 
 public sealed class SettingsViewModelTests
 {

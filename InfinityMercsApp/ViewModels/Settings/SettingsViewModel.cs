@@ -6,7 +6,7 @@ using InfinityMercsApp.Services.Import;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 
-namespace InfinityMercsApp.ViewModels;
+namespace InfinityMercsApp.ViewModels.Settings;
 
 /// <summary>The display-units preference, and a check for army data updates like the one at startup.</summary>
 public partial class SettingsViewModel(

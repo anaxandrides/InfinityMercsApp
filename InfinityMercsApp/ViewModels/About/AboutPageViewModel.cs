@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 
-namespace InfinityMercsApp.ViewModels;
+namespace InfinityMercsApp.ViewModels.About;
 
 /// <summary>Opens the author contact and attribution links shown on the About page.</summary>
 public partial class AboutPageViewModel(

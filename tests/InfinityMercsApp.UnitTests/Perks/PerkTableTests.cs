@@ -1,7 +1,7 @@
 using InfinityMercsApp.Domain.Models.Perks.Catalog;
 using InfinityMercsApp.Domain.Models.Perks.Tables;
 using InfinityMercsApp.Services.Navigation;
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.Reference;
 using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.Perks;

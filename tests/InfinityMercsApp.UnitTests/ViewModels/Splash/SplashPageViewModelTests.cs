@@ -2,11 +2,11 @@ using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Import;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.UnitTests.Support;
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.Splash;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
-namespace InfinityMercsApp.UnitTests.ViewModels;
+namespace InfinityMercsApp.UnitTests.ViewModels.Splash;
 
 /// <summary>
 /// Every launch checks the army data before the app opens: updates are stored when accepted (or at once when nothing

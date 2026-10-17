@@ -5,10 +5,10 @@ public partial class AppShell : Shell
     public AppShell()
     {
         InitializeComponent();
-        Routing.RegisterRoute(nameof(Views.SplashPage), typeof(Views.SplashPage));
+        Routing.RegisterRoute(nameof(Views.Splash.SplashPage), typeof(Views.Splash.SplashPage));
         // Routes declared in AppShell.xaml ShellContent entries must not be registered here,
         // otherwise Shell can throw ambiguous-route exceptions.
-        Routing.RegisterRoute(nameof(Views.FeedbackBugsPage), typeof(Views.FeedbackBugsPage));
+        Routing.RegisterRoute(nameof(Views.Feedback.FeedbackBugsPage), typeof(Views.Feedback.FeedbackBugsPage));
 
         // Season flow — pushed as a stack on top of SeasonPage.
         Routing.RegisterRoute(nameof(Views.Season.PlayModePage), typeof(Views.Season.PlayModePage));

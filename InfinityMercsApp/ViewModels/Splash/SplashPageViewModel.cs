@@ -6,7 +6,7 @@ using InfinityMercsApp.Services.Import;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 
-namespace InfinityMercsApp.ViewModels;
+namespace InfinityMercsApp.ViewModels.Splash;
 
 /// <summary>
 /// The way into the app. Every launch downloads the army data from the Infinity Army API and compares it with

@@ -1,9 +1,9 @@
 using InfinityMercsApp.Services.Navigation;
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.About;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
-namespace InfinityMercsApp.UnitTests.ViewModels;
+namespace InfinityMercsApp.UnitTests.ViewModels.About;
 
 public sealed class AboutPageViewModelTests
 {

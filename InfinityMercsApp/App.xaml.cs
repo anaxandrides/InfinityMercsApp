@@ -1,4 +1,4 @@
-using InfinityMercsApp.Views;
+using InfinityMercsApp.Views.Splash;
 using InfinityMercsApp.Views.Adaptive;
 using System.Collections;
 using System.Globalization;

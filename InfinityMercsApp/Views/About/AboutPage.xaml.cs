@@ -1,7 +1,7 @@
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.About;
 using InfinityMercsApp.Views.Base;
 
-namespace InfinityMercsApp.Views;
+namespace InfinityMercsApp.Views.About;
 
 public partial class AboutPage : ContentPageBase
 {

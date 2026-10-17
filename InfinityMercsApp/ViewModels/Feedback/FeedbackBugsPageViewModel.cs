@@ -5,7 +5,7 @@ using InfinityMercsApp.Services.Feedback;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 
-namespace InfinityMercsApp.ViewModels;
+namespace InfinityMercsApp.ViewModels.Feedback;
 
 /// <summary>Collects and submits a feedback/bug ticket.</summary>
 public partial class FeedbackBugsPageViewModel(

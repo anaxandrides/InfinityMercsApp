@@ -6,7 +6,7 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.Presentation.Layouts;
-namespace InfinityMercsApp.ViewModels;
+namespace InfinityMercsApp.ViewModels.Reference;
 
 /// <summary>The MERCS rules index; choosing a rule shows its text.</summary>
 public partial class MercsGlossaryViewModel(

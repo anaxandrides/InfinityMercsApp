@@ -2,8 +2,8 @@
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
-             x:Class="InfinityMercsApp.Views.PerksTablesPage"
-             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels"
+             x:Class="InfinityMercsApp.Views.Reference.PerksTablesPage"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels.Reference"
              xmlns:perks="clr-namespace:InfinityMercsApp.Domain.Models.Perks.Tables;assembly=InfinityMercsApp.Domain"
              x:DataType="viewModels:PerksTablesViewModel"
              Title="Perks Tables">

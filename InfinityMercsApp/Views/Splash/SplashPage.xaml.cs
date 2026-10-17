@@ -1,6 +1,6 @@
-using InfinityMercsApp.ViewModels;
+using InfinityMercsApp.ViewModels.Splash;
 
-namespace InfinityMercsApp.Views;
+namespace InfinityMercsApp.Views.Splash;
 
 public partial class SplashPage
 {
