@@ -15,6 +15,7 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Services.Season.Peripherals;
 using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InfinityMercsApp.ViewModels.Season.Overview.Items;
@@ -28,7 +29,8 @@ namespace InfinityMercsApp.ViewModels.Season.Overview;
 /// skills and weapons, with a picker per gear slot for the season gear the company owns. Gear choices are
 /// saved to the season file; an augment that sets a stat ("WIP=12") changes the stat line. An augment needs its
 /// requirement met by what the trooper has, its other gear included; a change that would leave an equipped augment
-/// without it takes that augment off, once confirmed. The SWC of the gear equipped across the
+/// without it takes that augment off, once confirmed. The Peripheral (Controller) augment brings a peripheral with
+/// it, picked when it is equipped, and leaves the peripheral uncontrolled when it comes off. The SWC of the gear equipped across the
 /// company may not go over the company's SWC. Any trooper but the captain can be retired.
 /// </summary>
 public partial class SeasonTeamViewModel : ObservableObject
@@ -41,7 +43,7 @@ public partial class SeasonTeamViewModel : ObservableObject
     private readonly MarketplaceDetailViewModel _detailPopup;
     private readonly IDialogService _dialogs;
     private readonly Func<Task> _seasonChanged;
-    private readonly Func<int, Task> _rollOwed;
+    private readonly ITeamChanges _changes;
     private SavedCompanyFile? _company;
     private SavedImprovedCaptainStats _captain = new();
     private CompanyLoadouts _loadouts = new();
@@ -58,11 +60,11 @@ public partial class SeasonTeamViewModel : ObservableObject
         MarketplaceDetailViewModel detailPopup,
         IDialogService dialogs,
         Func<Task> seasonChanged,
-        Func<int, Task> rollOwed)
+        ITeamChanges changes)
     {
         _dialogs = dialogs;
         _seasonChanged = seasonChanged;
-        _rollOwed = rollOwed;
+        _changes = changes;
         _roster = roster;
         _packageFiles = packageFiles;
         _seasonFiles = seasonFiles;
@@ -137,6 +139,15 @@ public partial class SeasonTeamViewModel : ObservableObject
 
     public bool HasOwedRoll => OwedRollText.Length > 0;
 
+    /// <summary>Whether the selected trooper is a peripheral no one controls, which can be sold.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SellPeripheralCommand))]
+    public partial bool CanSellSelected { get; set; }
+
+    /// <summary>The sell button's text, e.g. "SELL PERIPHERAL · 2 CR".</summary>
+    [ObservableProperty]
+    public partial string SellText { get; set; } = string.Empty;
+
     /// <summary>The company's equipped SWC against its SWC, e.g. "SWC EQUIPPED 1.5 / 2".</summary>
     [ObservableProperty]
     public partial string SwcText { get; set; } = string.Empty;
@@ -183,7 +194,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         Units.Clear();
         SelectedUnit = null;
         SelectedName = SelectedBaseName = SelectedUnitType = OwedRollText = string.Empty;
-        CanRetireSelected = false;
+        CanRetireSelected = CanSellSelected = false;
     }
 
     /// <summary>
@@ -273,7 +284,12 @@ public partial class SeasonTeamViewModel : ObservableObject
 
     /// <summary>Rolls what the selected trooper still owes on the Booty or Metachemistry table.</summary>
     [RelayCommand]
-    private Task RollOwedAsync() => SelectedUnit is { OwedRolls.Count: > 0 } item ? _rollOwed(item.EntryIndex) : Task.CompletedTask;
+    private Task RollOwedAsync() => SelectedUnit is { OwedRolls.Count: > 0 } item ? _changes.RollOwedAsync(item.EntryIndex) : Task.CompletedTask;
+
+    /// <summary>Sells the selected peripheral, one from the Peripheral (Controller) augment that no trooper controls.</summary>
+    [RelayCommand(CanExecute = nameof(CanSellSelected))]
+    private Task SellPeripheralAsync() =>
+        SelectedUnit is { IsUncontrolledPeripheral: true } item ? _changes.SellPeripheralAsync(item.EntryIndex) : Task.CompletedTask;
 
     [RelayCommand]
     private Task ShowWeaponAsync(ProfileLine? line) =>
@@ -304,6 +320,8 @@ public partial class SeasonTeamViewModel : ObservableObject
         SelectedBaseName = string.Equals(baseName.Trim(), item.Name.Trim(), StringComparison.OrdinalIgnoreCase) ? string.Empty : baseName;
         SelectedUnitType = item.UnitTypeCode;
         CanRetireSelected = !item.IsLieutenant && !item.IsPeripheralUnit;
+        CanSellSelected = item.IsUncontrolledPeripheral;
+        SellText = item.IsUncontrolledPeripheral ? $"SELL PERIPHERAL · {item.PeripheralSellPrice} CR" : string.Empty;
         ShowProgress(item);
 
         Detail.HeaderColors = _roster.HeaderColorsFor(item.VisualFactionId > 0 ? item.VisualFactionId : item.SourceFactionId);
@@ -436,14 +454,27 @@ public partial class SeasonTeamViewModel : ObservableObject
         }
 
         var stranded = StrandedBy(after);
-        if (stranded.Count > 0)
+        var peripherals = PeripheralChangeTo(after, item);
+        if (stranded.Count > 0 || !peripherals.IsEmpty)
         {
-            _ = ConfirmStrandedAsync(after, stranded);
+            _ = ApplyAsync(after, stranded, peripherals);
             return;
         }
 
         _loadouts = after;
         _ = SaveThenRefreshAsync();
+    }
+
+    // Who loses or gains the Peripheral (Controller) augment, in its slot or the extra one.
+    private PeripheralChange PeripheralChangeTo(CompanyLoadouts after, CompanyViewerUnitListItem picking)
+    {
+        bool Controls(CompanyLoadouts loadouts, int entryIndex) =>
+            new List<GearSlot> { GearSlot.Augments, GearSlot.Extra }.Any(slot =>
+                string.Equals(loadouts.For(entryIndex)[slot], TohaaPeripherals.AugmentName, StringComparison.OrdinalIgnoreCase));
+
+        var losing = Units.Select(unit => unit.EntryIndex).Where(index => Controls(_loadouts, index) && !Controls(after, index)).ToList();
+        var gaining = !Controls(_loadouts, picking.EntryIndex) && Controls(after, picking.EntryIndex) ? picking.EntryIndex : (int?)null;
+        return new PeripheralChange(losing, gaining, picking.Name);
     }
 
     // The augments, on any trooper, that meet their requirement now but wouldn't with the gear in <paramref name="after"/>.
@@ -467,24 +498,34 @@ public partial class SeasonTeamViewModel : ObservableObject
         return stranded;
     }
 
-    // Once confirmed, the change goes ahead and the stranded augments go back to the inventory; otherwise the
+    // A change that strands augments goes ahead once confirmed, the stranded augments going back to the inventory;
+    // one that moves the Peripheral (Controller) augment goes ahead once the peripherals have moved. Otherwise the
     // pickers go back to what was equipped.
-    private async Task ConfirmStrandedAsync(CompanyLoadouts after, IReadOnlyList<StrandedAugment> stranded)
+    private async Task ApplyAsync(CompanyLoadouts after, IReadOnlyList<StrandedAugment> stranded, PeripheralChange peripherals)
     {
-        var lines = string.Join(Environment.NewLine, stranded.Select(augment => augment.Describe()));
-        if (!await _dialogs.ConfirmAsync(
-                "Augments Come Off",
-                $"This leaves an augment without its requirement, so it goes back to the inventory:{Environment.NewLine}{lines}",
-                "Continue",
-                "Cancel"))
+        if (stranded.Count > 0)
+        {
+            var lines = string.Join(Environment.NewLine, stranded.Select(augment => augment.Describe()));
+            if (!await _dialogs.ConfirmAsync(
+                    "Augments Come Off",
+                    $"This leaves an augment without its requirement, so it goes back to the inventory:{Environment.NewLine}{lines}",
+                    "Continue",
+                    "Cancel"))
+            {
+                RefreshGearPickers();
+                return;
+            }
+
+            foreach (var augment in stranded)
+            {
+                after.Assign(augment.EntryIndex, augment.Slot, null);
+            }
+        }
+
+        if (!peripherals.IsEmpty && !await _changes.ChangePeripheralsAsync(peripherals))
         {
             RefreshGearPickers();
             return;
-        }
-
-        foreach (var augment in stranded)
-        {
-            after.Assign(augment.EntryIndex, augment.Slot, null);
         }
 
         _loadouts = after;

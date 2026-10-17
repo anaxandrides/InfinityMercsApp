@@ -4,6 +4,7 @@ using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
+using InfinityMercsApp.Services.Season.Peripherals;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.ViewModels.Company.Viewer;
@@ -21,7 +22,7 @@ public sealed class SeasonTeamViewModelTests
     private readonly MarketplaceDetailViewModel _popup;
     private readonly SeasonTeamViewModel _team;
     private readonly Func<Task> _seasonChanged = Substitute.For<Func<Task>>();
-    private readonly Func<int, Task> _rollOwed = Substitute.For<Func<int, Task>>();
+    private readonly ITeamChanges _changes = Substitute.For<ITeamChanges>();
     private double _companySwc = 2;
     private List<SeasonTransaction> _alsoBought = [];
 
@@ -31,7 +32,7 @@ public sealed class SeasonTeamViewModelTests
 
         // As the season page does: the season is read again, and the tab shown again from it.
         _seasonChanged().Returns(_ => ShowSeasonAsync());
-        _team = new SeasonTeamViewModel(new CompanyRoster(_kit.ArmyData), new UnitDetailViewModel(_kit.ArmyData, _kit.Settings), _kit.PackageFiles, _kit.SeasonFiles, _popup, _kit.Dialogs, _seasonChanged, _rollOwed);
+        _team = new SeasonTeamViewModel(new CompanyRoster(_kit.ArmyData), new UnitDetailViewModel(_kit.ArmyData, _kit.Settings), _kit.PackageFiles, _kit.SeasonFiles, _popup, _kit.Dialogs, _seasonChanged, _changes);
     }
 
     // The company's pistol, Spitfire, Light Armour, WIP and Courage augments and monofilament blade.
@@ -71,7 +72,11 @@ public sealed class SeasonTeamViewModelTests
             new StoreTroopType { ArmorName = "Belts and Pouches", CostCr = 5, Effects = new ArmorEffects { ExtraSlot = true } }
         ],
         Items = [new StoreItem { Name = "Engineer (+Gizmokit)", Category = "Roles", CostCr = 10 }],
-        Augments = [new StoreAugment { Name = "Armed Turret (MMR)", Requirement = "Engineer", CostCr = 10 }]
+        Augments =
+        [
+            new StoreAugment { Name = "Armed Turret (MMR)", Requirement = "Engineer", CostCr = 10 },
+            new StoreAugment { Name = TohaaPeripherals.AugmentName, CostCr = 5 }
+        ]
     };
 
     private static InventoryCatalog Catalog { get; } = InventoryCatalog.From([SeasonTestKit.NumberOne, SeasonTestKit.JadeTemu, Armoury]);
@@ -129,7 +134,7 @@ public sealed class SeasonTeamViewModelTests
         _team.SelectUnitCommand.Execute(Unit("Bolt"));
         Assert.Equal("ROLL BOOTY", _team.OwedRollText);
         await _team.RollOwedCommand.ExecuteAsync(null);
-        await _rollOwed.Received(1)(1);
+        await _changes.Received(1).RollOwedAsync(1);
     }
 
     // The Armed Turret needs an Engineer: Bolt can't take it until the Engineer role is equipped.
@@ -170,6 +175,74 @@ public sealed class SeasonTeamViewModelTests
         Assert.False(Picker(GearSlot.Armor).IsAvailable);
         _team.SelectUnitCommand.Execute(Unit("Captain"));
         Assert.True(Picker(GearSlot.Armor).IsAvailable);
+    }
+
+    private GearOption ControllerAugment() =>
+        Picker(GearSlot.Augments).Options.Single(option => option.ItemName == TohaaPeripherals.AugmentName);
+
+    [Fact]
+    public async Task EquippingThePeripheralControllerAugmentPicksItsPeripheral()
+    {
+        _alsoBought = [SeasonTestKit.Bought("Armoury", TohaaPeripherals.AugmentName)];
+        _changes.ChangePeripheralsAsync(Arg.Any<PeripheralChange>()).Returns(true);
+        await LoadAsync();
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        Picker(GearSlot.Augments).SelectedOption = ControllerAugment();
+
+        await _changes.Received(1).ChangePeripheralsAsync(Arg.Is<PeripheralChange>(change =>
+            change.LosingControl.Count == 0 && change.GainingControl == 1 && change.GainingName == "Bolt"));
+        Assert.Equal(TohaaPeripherals.AugmentName, SavedLoadouts().For(1)[GearSlot.Augments]);
+    }
+
+    [Fact]
+    public async Task CancellingThePeripheralPickLeavesTheAugmentOff()
+    {
+        _alsoBought = [SeasonTestKit.Bought("Armoury", TohaaPeripherals.AugmentName)];
+        await LoadAsync();
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        Picker(GearSlot.Augments).SelectedOption = ControllerAugment();
+
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Augments]);
+    }
+
+    [Fact]
+    public async Task TakingTheAugmentOffLeavesItsPeripheralUncontrolled()
+    {
+        _alsoBought = [SeasonTestKit.Bought("Armoury", TohaaPeripherals.AugmentName)];
+        _changes.ChangePeripheralsAsync(Arg.Any<PeripheralChange>()).Returns(true);
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(1, GearSlot.Augments, TohaaPeripherals.AugmentName);
+        await LoadAsync(loadouts);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        Picker(GearSlot.Augments).SelectedOption = GearOption.None;
+
+        await _changes.Received(1).ChangePeripheralsAsync(Arg.Is<PeripheralChange>(change =>
+            change.LosingControl.SequenceEqual(new List<int> { 1 }) && change.GainingControl == null));
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Augments]);
+    }
+
+    [Fact]
+    public async Task AnUncontrolledPeripheralCanBeSold()
+    {
+        var company = SeasonTestKit.Company();
+        company.Entries.Add(new SavedCompanyEntry
+        {
+            EntryIndex = 7, Name = "Chaksa Peripheral B", IsPeripheralUnit = true, FromControllerAugment = true, Cost = 4, UnitTypeCode = "PERIPHERAL"
+        });
+        await _team.LoadAsync(company, SeasonTestKit.SeasonPath, _kit.Season, Catalog);
+
+        _team.SelectUnitCommand.Execute(Unit("Chaksa Peripheral B"));
+
+        Assert.True(_team.CanSellSelected);
+        Assert.Equal("SELL PERIPHERAL · 2 CR", _team.SellText);
+        Assert.Equal("Peripheral · No controller", Unit("Chaksa Peripheral B").Subtitle);
+        await _team.SellPeripheralCommand.ExecuteAsync(null);
+        await _changes.Received(1).SellPeripheralAsync(7);
+        _team.SelectUnitCommand.Execute(Unit("Traktor Mul"));
+        Assert.False(_team.CanSellSelected);
     }
 
     // Bolt as an Engineer carrying the Armed Turret.

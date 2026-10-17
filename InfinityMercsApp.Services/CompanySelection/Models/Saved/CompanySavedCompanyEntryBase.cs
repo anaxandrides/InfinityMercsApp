@@ -17,7 +17,14 @@ public abstract class CompanySavedCompanyEntryBase
     public int LogoSourceFactionId { get; init; }
     public int LogoSourceUnitId { get; init; }
     public bool IsPeripheralUnit { get; init; }
-    public int? ParentEntryIndex { get; init; }
+    /// <summary>The trooper a peripheral is connected to; null for a controlled peripheral no trooper controls now.</summary>
+    public int? ParentEntryIndex { get; set; }
+
+    /// <summary>
+    /// A peripheral added by the Peripheral (Controller) augment. The company owns it: it moves to whoever equips the
+    /// augment next, and keeps its XP, perks and injuries.
+    /// </summary>
+    public bool FromControllerAugment { get; init; }
     public int Cost { get; init; }
     public bool IsLieutenant { get; init; }
 

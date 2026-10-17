@@ -67,6 +67,13 @@ public static class SeasonTroopers
         return results;
     }
 
+    /// <summary>
+    /// The trooper controlling a peripheral from the Peripheral (Controller) augment; null when none does, or the
+    /// one that did has retired.
+    /// </summary>
+    public static int? ControllerOf(SavedCompanyEntry peripheral, SeasonFile? season) =>
+        peripheral.ParentEntryIndex is { } controller && season?.IsRetired(controller) != true ? controller : null;
+
     /// <summary>The stat bonuses bought for the captain, which only the lieutenant's saved line holds.</summary>
     public static CaptainStatBonuses CaptainBonusesOf(SavedCompanyEntry entry, SavedImprovedCaptainStats? captain) =>
         entry.IsLieutenant && captain is { IsEnabled: true } ? captain.Bonuses : CaptainStatBonuses.None;

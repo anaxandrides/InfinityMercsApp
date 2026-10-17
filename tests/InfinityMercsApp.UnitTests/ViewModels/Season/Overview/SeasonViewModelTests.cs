@@ -8,6 +8,9 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Season;
 using InfinityMercsApp.ViewModels.Season.Overview;
+using InfinityMercsApp.ViewModels.Season.Overview.Items;
+using InfinityMercsApp.Services.Season.Peripherals;
+using InfinityMercsApp.UnitTests.Services.Season.Peripherals;
 using InfinityMercsApp.UnitTests.ViewModels.Company.Viewer;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season;
@@ -126,6 +129,87 @@ public sealed class SeasonViewModelTests
         await _kit.CompanyFiles.DidNotReceiveWithAnyArgs().SaveAsync(Arg.Any<string>(), Arg.Any<SavedCompanyFile>());
     }
 
+    // The Tohaa army is known, the season has 20 CR, and Bolt is picking a peripheral.
+    private async Task<(SeasonViewModel ViewModel, SavedCompanyFile Company)> PickingAPeripheralAsync(string? choice)
+    {
+        TohaaArmyData.AddTo(_kit.ArmyData);
+        _kit.Season.StartingFunds = new SeasonStartingFunds { Credits = 20 };
+        var company = SeasonTestKit.Company();
+        _kit.CompanyFiles.LoadAsync(SeasonTestKit.CompanyPath).Returns(company);
+        var viewModel = await _kit.OpenAsync();
+        _kit.Dialogs.ChooseAsync("Peripheral for Bolt", "Cancel", Arg.Any<IReadOnlyList<string>>()).Returns(choice);
+        return (viewModel, company);
+    }
+
+    private static PeripheralChange BoltGainsControl(params IEnumerable<int> losing) => new([.. losing], 1, "Bolt");
+
+    [Fact]
+    public async Task BuyingAPeripheralAddsItToTheRosterAndChargesItsCost()
+    {
+        var (viewModel, company) = await PickingAPeripheralAsync("Chaksa Peripheral B: Combi Rifle (Gorgos Squad), 4 CR");
+
+        Assert.True(await ((ITeamChanges)viewModel).ChangePeripheralsAsync(BoltGainsControl()));
+
+        var peripheral = company.Entries.Single(entry => entry.FromControllerAugment);
+        Assert.Equal((4, 1), (peripheral.EntryIndex, peripheral.ParentEntryIndex));
+        await _kit.CompanyFiles.Received().SaveAsync(SeasonTestKit.CompanyPath, company);
+        var charge = SeasonRounds.CurrentMarketplace(_kit.Season).Transactions.Single();
+        Assert.Equal((SeasonViewModel.PeripheralPrefix + "Chaksa Peripheral B", 4), (charge.ItemName, charge.CostCr));
+    }
+
+    [Fact]
+    public async Task AnOwnedPeripheralIsOfferedAgainForFree()
+    {
+        var (viewModel, company) = await PickingAPeripheralAsync("Chaksa Peripheral B (owned, #7)");
+        company.Entries.Add(new SavedCompanyEntry { EntryIndex = 7, Name = "Chaksa Peripheral B", IsPeripheralUnit = true, FromControllerAugment = true, ParentEntryIndex = 2 });
+
+        // The lieutenant's augment moves to Bolt, and its peripheral with it.
+        Assert.True(await ((ITeamChanges)viewModel).ChangePeripheralsAsync(BoltGainsControl(2)));
+
+        Assert.Equal(1, company.Entries.Single(entry => entry.EntryIndex == 7).ParentEntryIndex);
+        Assert.Empty(SeasonRounds.CurrentMarketplace(_kit.Season).Transactions);
+    }
+
+    [Fact]
+    public async Task APeripheralTheCompanyCantAffordIsNotBought()
+    {
+        var (viewModel, company) = await PickingAPeripheralAsync("Chaksa Peripheral A: Combi Rifle (Gorgos Squad), 7 CR");
+        // Before the first contract, with only the 5 CR left from recruiting.
+        _kit.Season.Rounds.Clear();
+        _kit.Season.StartingFunds = new SeasonStartingFunds { Credits = 5 };
+
+        Assert.False(await ((ITeamChanges)viewModel).ChangePeripheralsAsync(BoltGainsControl()));
+
+        Assert.DoesNotContain(company.Entries, entry => entry.FromControllerAugment);
+        await _kit.Dialogs.Received(1).ShowAlertAsync("Not Enough CR", Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task CancellingThePickChangesNothing()
+    {
+        var (viewModel, company) = await PickingAPeripheralAsync(null);
+        company.Entries.Add(new SavedCompanyEntry { EntryIndex = 7, Name = "Chaksa Peripheral B", IsPeripheralUnit = true, FromControllerAugment = true, ParentEntryIndex = 2 });
+
+        Assert.False(await ((ITeamChanges)viewModel).ChangePeripheralsAsync(BoltGainsControl(2)));
+
+        await _kit.CompanyFiles.DidNotReceiveWithAnyArgs().SaveAsync(Arg.Any<string>(), Arg.Any<SavedCompanyFile>());
+    }
+
+    [Fact]
+    public async Task SellingAPeripheralRemovesItForHalfItsCost()
+    {
+        var (viewModel, company) = await PickingAPeripheralAsync(null);
+        company.Entries.Add(new SavedCompanyEntry { EntryIndex = 7, Name = "Chaksa Peripheral A", IsPeripheralUnit = true, FromControllerAugment = true, Cost = 7 });
+        _kit.Dialogs.ConfirmAsync("Sell Peripheral", Arg.Any<string>(), "Sell", "Cancel").Returns(true);
+
+        await ((ITeamChanges)viewModel).SellPeripheralAsync(7);
+
+        Assert.DoesNotContain(company.Entries, entry => entry.EntryIndex == 7);
+        var sale = SeasonRounds.CurrentMarketplace(_kit.Season).Transactions.Single();
+        Assert.Equal(-4, sale.CostCr);
+        Assert.True(sale.IsSale);
+    }
+
     [Fact]
     public async Task AMissingCompanyShowsAnEmptySeason()
     {
@@ -228,6 +312,8 @@ public sealed class SeasonViewModelTests
     [Fact]
     public async Task StartingFundsAreOnlyWorkedOutOnce()
     {
+        // Before the first contract, with only the 5 CR left from recruiting.
+        _kit.Season.Rounds.Clear();
         _kit.Season.StartingFunds = new SeasonStartingFunds { Credits = 5 };
 
         await _kit.OpenAsync();

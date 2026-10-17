@@ -110,12 +110,16 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             BaseUnitName = baseUnitName,
             BaseUnitDisplayName = SavedUnitText.BaseDisplayName(baseUnitName),
             UnitTypeCode = SavedUnitText.UnitTypeCode(worn.UnitTypeCode),
-            Subtitle = entry.IsPeripheralUnit ? "Peripheral" : entry.IsLieutenant ? "Lieutenant" : string.Empty,
+            Subtitle = entry.IsPeripheralUnit
+                ? entry.FromControllerAugment && SeasonTroopers.ControllerOf(entry, season) is null ? "Peripheral · No controller" : "Peripheral"
+                : entry.IsLieutenant ? "Lieutenant" : string.Empty,
             SourceFactionId = sourceFactionId,
             VisualFactionId = logoFactionId,
             SourceUnitId = entry.SourceUnitId,
             ProfileKey = entry.ProfileKey,
             IsPeripheralUnit = entry.IsPeripheralUnit,
+            IsUncontrolledPeripheral = entry.FromControllerAugment && SeasonTroopers.ControllerOf(entry, season) is null,
+            PeripheralSellPrice = entry.FromControllerAugment ? (int)Math.Ceiling(entry.Cost / 2.0) : 0,
             IsLieutenant = entry.IsLieutenant,
             Cost = entry.Cost,
             SavedEquipment = equipment,

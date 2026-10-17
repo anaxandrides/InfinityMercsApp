@@ -23,6 +23,6 @@
   ],
   "augments": [
     { "name": "QAZ Creature (Disposable (1), Perimeter, Deployable)", "requirement": "Doctor", "costCr": 12, "costNote": null },
-    { "name": "Peripheral (Controller): Add any non-servant Tohaa peripheral unit to your company.", "requirement": null, "costCr": 5, "costNote": "+ Cost of Unit" }
+    { "name": "Peripheral (Controller)", "requirement": null, "costCr": 5, "costNote": "+ the cost of a non-Servant Tohaa peripheral, paid when it is equipped" }
   ]
 }

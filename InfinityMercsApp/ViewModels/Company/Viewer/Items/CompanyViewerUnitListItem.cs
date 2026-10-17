@@ -22,6 +22,12 @@ public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewe
     public int SourceUnitId { get; init; }
     public string ProfileKey { get; init; } = string.Empty;
     public bool IsPeripheralUnit { get; init; }
+
+    /// <summary>A peripheral from the Peripheral (Controller) augment that no trooper controls now.</summary>
+    public bool IsUncontrolledPeripheral { get; init; }
+
+    /// <summary>What a peripheral from the Peripheral (Controller) augment sells for: half its cost, rounded up.</summary>
+    public int PeripheralSellPrice { get; init; }
     public bool IsLieutenant { get; init; }
     public int Cost { get; init; }
     public string SavedEquipment { get; init; } = "-";

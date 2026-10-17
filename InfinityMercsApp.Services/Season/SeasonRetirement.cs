@@ -17,7 +17,8 @@ public static class SeasonRetirement
 
     /// <summary>
     /// The trooper retiring, with the renown it keeps (its cost and XP; its gear goes back to the inventory) and
-    /// the peripherals that leave with it; null when it can't retire.
+    /// the peripherals that leave with it; null when it can't retire. A peripheral from the Peripheral (Controller)
+    /// augment stays with the company, uncontrolled, as it does when the augment comes off.
     /// </summary>
     public static RetiringTrooper? For(SavedCompanyFile company, int entryIndex, SeasonFile season, InventoryCatalog catalog)
     {
@@ -27,7 +28,7 @@ public static class SeasonRetirement
         }
 
         var peripherals = company.Entries
-            .Where(candidate => candidate.IsPeripheralUnit && candidate.ParentEntryIndex == entryIndex)
+            .Where(candidate => candidate.IsPeripheralUnit && !candidate.FromControllerAugment && candidate.ParentEntryIndex == entryIndex)
             .Select(peripheral => new RetiringPeripheral(peripheral.EntryIndex, SeasonTroopers.NameOf(peripheral)))
             .ToList();
         return new RetiringTrooper(
