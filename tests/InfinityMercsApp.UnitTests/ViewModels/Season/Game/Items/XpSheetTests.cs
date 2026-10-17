@@ -66,6 +66,23 @@ public sealed class XpSheetTests
         Assert.False(xp.ScanEnemy || xp.ScanEnemyFo);
     }
 
+    // As with the numbered rows, only the last ticked box can be unticked: Attempted waits until Succeeded is clear.
+    [Fact]
+    public void TheFirstBoxOfAPairIsGreyedOutWhileTheSecondIsTicked()
+    {
+        var sheet = new XpSheet("Alpha", new UnitXpData { AttemptButton = true, SucceedButton = true });
+        Assert.False(sheet.Attempted.IsEnabled);
+
+        sheet.Succeeded.IsChecked = false;
+        Assert.True(sheet.Attempted.IsEnabled);
+        Assert.True(sheet.Attempted.IsChecked);
+
+        sheet.ScannedWithFo.IsChecked = true;
+        Assert.False(sheet.Scanned.IsEnabled);
+        sheet.ScannedWithFo.IsChecked = false;
+        Assert.True(sheet.Scanned.IsEnabled);
+    }
+
     [Fact]
     public void TheSheetStartsFromTheSavedXp()
     {

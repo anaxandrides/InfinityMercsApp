@@ -5,7 +5,8 @@ namespace InfinityMercsApp.ViewModels.Season.Game.Items;
 
 /// <summary>
 /// The XP a trooper earned this game, as checkboxes over its <see cref="UnitXpData"/>. Numbered rows are ticked
-/// in order; succeeding needs an attempt, and scanning with a forward observer needs a scan.
+/// in order; succeeding needs an attempt, and scanning with a forward observer needs a scan, so the first box of
+/// each pair is greyed out while the second is ticked.
 /// </summary>
 public sealed partial class XpSheet : ObservableObject
 {
@@ -25,7 +26,9 @@ public sealed partial class XpSheet : ObservableObject
         Attempted = new XpCheck("Attempted", xp.AttemptButton, OnAttemptedChanged);
         Succeeded = new XpCheck("Succeeded", xp.SucceedButton, OnSucceededChanged);
         Scanned = new XpCheck("Scanned", xp.ScanEnemy, OnScannedChanged);
-        ScannedWithFo = new XpCheck("Scanned with FO", xp.ScanEnemyFo, OnScannedWithFoChanged);
+        ScannedWithFo = new XpCheck("With Forward Observer", xp.ScanEnemyFo, OnScannedWithFoChanged);
+        Attempted.IsEnabled = !Succeeded.IsChecked;
+        Scanned.IsEnabled = !ScannedWithFo.IsChecked;
         TagAndBag = new XpCheck("Tagged and Bagged", xp.TagAndBag, check => Update(() => _xp.TagAndBag = check.IsChecked));
     }
 
@@ -95,6 +98,8 @@ public sealed partial class XpSheet : ObservableObject
         {
             Attempted.IsChecked = true;
         }
+
+        Attempted.IsEnabled = !check.IsChecked;
     });
 
     private void OnScannedChanged(XpCheck check) => Update(() =>
@@ -113,6 +118,8 @@ public sealed partial class XpSheet : ObservableObject
         {
             Scanned.IsChecked = true;
         }
+
+        Scanned.IsEnabled = !check.IsChecked;
     });
 
     // Applies a box change, then works out the total again.

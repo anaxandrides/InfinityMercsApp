@@ -380,7 +380,7 @@
                 <Label Style="{StaticResource XpSection}" Text="Making a roll to accomplish an objective that is NOT attacking the opponent" />
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="4" Margin="0,2,0,0">
                     <HorizontalStackLayout Spacing="4">
-                        <CheckBox Color="#34D399" IsChecked="{Binding Attempted.IsChecked}" />
+                        <CheckBox Color="#34D399" IsChecked="{Binding Attempted.IsChecked}" IsEnabled="{Binding Attempted.IsEnabled}" />
                         <Label Text="{Binding Attempted.Label}" Style="{StaticResource XpLabel}" />
                     </HorizontalStackLayout>
                     <HorizontalStackLayout Grid.Column="1" Spacing="4" HorizontalOptions="End">
@@ -390,10 +390,10 @@
                 </Grid>
 
                 <BoxView Style="{StaticResource Divider}" />
-                <Label Style="{StaticResource XpSection}" Text="Scan Enemy - LoF to target unconscious, immobilized, or shasvastii state. That unit gets the Targeted state." />
+                <Label Style="{StaticResource XpSection}" Text="Scanning an enemy (the Scan skill): with LoF, marking an unconscious, immobilized or Shasvastii-state enemy, which becomes Targeted. A Forward Observer earns 1 more XP." />
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="4" Margin="0,2,0,0">
                     <HorizontalStackLayout Spacing="4">
-                        <CheckBox Color="#34D399" IsChecked="{Binding Scanned.IsChecked}" />
+                        <CheckBox Color="#34D399" IsChecked="{Binding Scanned.IsChecked}" IsEnabled="{Binding Scanned.IsEnabled}" />
                         <Label Text="{Binding Scanned.Label}" Style="{StaticResource XpLabel}" />
                     </HorizontalStackLayout>
                     <HorizontalStackLayout Grid.Column="1" Spacing="4" HorizontalOptions="End">
