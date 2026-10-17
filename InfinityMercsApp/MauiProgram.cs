@@ -2,6 +2,7 @@ using CommunityToolkit.Maui;
 using InfinityMercsApp.Infrastructure;
 using InfinityMercsApp.Infrastructure.Options;
 using InfinityMercsApp.Services.Import;
+using InfinityMercsApp.Services.Records;
 using Microsoft.Extensions.Logging;
 using SkiaSharp.Views.Maui.Controls.Hosting;
 using System.Runtime.Versioning;
@@ -29,6 +30,14 @@ public static class MauiProgram
 				fonts.AddFont("Ethnocentric-Regular.otf", "EthnocentricRegular");
 				fonts.AddFont("Conthrax-SemiBold.otf", "ConthraxSemiBold");
 			});
+
+#if WINDOWS
+		// The unpackaged Windows build keeps its data under the manifest's publisher name, which was the template's
+		// "User Name" until it became infinitymercsteam; data there is copied across once.
+		DataFolderMove.CopyIfNew(
+			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "User Name", AppInfo.Current.PackageName, "Data"),
+			FileSystem.Current.AppDataDirectory);
+#endif
 
 		// A database from before the typed-table layout is discarded; the network import rebuilds it.
 		var dbPath = Path.Combine(FileSystem.Current.AppDataDirectory, "infinitymercs.db3");
