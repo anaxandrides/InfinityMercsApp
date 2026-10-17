@@ -588,8 +588,9 @@
                 </VerticalStackLayout>
             </ScrollView>
 
-            <!-- Markets: a store at a time, buying into a cart kept across stores -->
-            <Grid IsVisible="{Binding IsMarketplaceTab}" RowDefinitions="Auto,*">
+            <!-- Markets: a store at a time, buying into a cart kept across stores; the cart is bought from the bar at
+                 the bottom, shown only while it holds something. -->
+            <Grid IsVisible="{Binding IsMarketplaceTab}" RowDefinitions="Auto,*,Auto">
                 <Border BackgroundColor="{StaticResource Plate}" StrokeThickness="0" Padding="12,6">
                     <VerticalStackLayout>
                         <Picker Title="Select store..."
@@ -686,30 +687,6 @@
 
                 <ScrollView Grid.Row="1" IsVisible="{Binding Marketplace.ShowsStock}">
                     <VerticalStackLayout Padding="16,12">
-                        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,2">
-                            <Label Text="{Binding Marketplace.StoreName}"
-                                   Style="{StaticResource LabelTitleSmall}"
-                                   FontAttributes="Bold"
-                                   TextColor="{StaticResource TextPrimary}"
-                                   VerticalTextAlignment="Center" />
-                            <Button Grid.Column="1"
-                                    Text="BUY"
-                                    Style="{StaticResource ButtonCaption}"
-                                    BackgroundColor="{StaticResource SignalDim}"
-                                    TextColor="{StaticResource Signal}"
-                                    BorderColor="{StaticResource Signal}"
-                                    BorderWidth="1"
-                                    CornerRadius="6"
-                                    Padding="12,6"
-                                    HeightRequest="36"
-                                    Command="{Binding Marketplace.BuyCommand}">
-                                <Button.Triggers>
-                                    <Trigger TargetType="Button" Property="IsEnabled" Value="False">
-                                        <Setter Property="Opacity" Value="0.45" />
-                                    </Trigger>
-                                </Button.Triggers>
-                            </Button>
-                        </Grid>
                         <Label Text="{Binding Marketplace.AlignmentText}"
                                IsVisible="{Binding Marketplace.HasAlignmentText}"
                                Style="{StaticResource LabelBody}"
@@ -830,6 +807,22 @@
                         </VerticalStackLayout>
                     </VerticalStackLayout>
                 </ScrollView>
+
+                <!-- Buys the whole cart, from whichever store it was filled in. -->
+                <Border Grid.Row="2"
+                        IsVisible="{Binding Marketplace.HasCartItems}"
+                        BackgroundColor="{StaticResource Plate}"
+                        Stroke="{StaticResource Hairline}"
+                        StrokeThickness="1"
+                        Padding="12,8">
+                    <Button Text="{Binding Marketplace.BuyText}"
+                            Command="{Binding Marketplace.BuyCommand}"
+                            BackgroundColor="{StaticResource Signal}"
+                            TextColor="{StaticResource Void}"
+                            FontAttributes="Bold"
+                            CornerRadius="4"
+                            MinimumHeightRequest="{StaticResource MinTouchTarget}" />
+                </Border>
             </Grid>
         </Grid>
 

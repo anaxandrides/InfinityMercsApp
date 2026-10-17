@@ -148,6 +148,7 @@ public sealed class SeasonMarketplaceViewModelTests
         Assert.Equal(1, Item("Spitfire").Quantity);
         Assert.True(_market.HasCartItems);
         Assert.True(_market.BuyCommand.CanExecute(null));
+        Assert.Equal("BUY · 2 items · 32 CR", _market.BuyText);
     }
 
     [Fact]
@@ -172,6 +173,7 @@ public sealed class SeasonMarketplaceViewModelTests
         Assert.Equal(0, rifle.Quantity);
         Assert.False(_market.HasCartItems);
         Assert.False(_market.BuyCommand.CanExecute(null));
+        Assert.Equal("BUY", _market.BuyText);
     }
 
     [Fact]

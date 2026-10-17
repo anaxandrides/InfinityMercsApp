@@ -87,6 +87,10 @@ public partial class SeasonMarketplaceViewModel(
     [NotifyCanExecuteChangedFor(nameof(BuyCommand))]
     public partial bool HasCartItems { get; set; }
 
+    /// <summary>The buy button's text, with what the cart holds across stores, e.g. "BUY · 3 items · 27 CR".</summary>
+    [ObservableProperty]
+    public partial string BuyText { get; set; } = "BUY";
+
     /// <summary>The markets of the company's factions, which it may take as its War Market without rolling.</summary>
     public IReadOnlyList<string> FactionMarketNames { get; private set; } = [];
 
@@ -277,7 +281,8 @@ public partial class SeasonMarketplaceViewModel(
     // A row is affordable while one more fits in the CR left after the cart; SWC only limits equipping.
     private void ShowAffordability()
     {
-        var remainingCr = _ledger.CreditsBalance - _cart.Values.Sum(line => line.TotalCr);
+        var cartCr = _cart.Values.Sum(line => line.TotalCr);
+        var remainingCr = _ledger.CreditsBalance - cartCr;
         ResourcesText = SeasonEconomy.BalanceText(remainingCr, _ledger.CompanySwc);
         foreach (var row in Rows())
         {
@@ -285,5 +290,7 @@ public partial class SeasonMarketplaceViewModel(
         }
 
         HasCartItems = _cart.Count > 0;
+        var items = _cart.Values.Sum(line => line.Quantity);
+        BuyText = HasCartItems ? $"BUY · {items} {(items == 1 ? "item" : "items")} · {cartCr} CR" : "BUY";
     }
 }
