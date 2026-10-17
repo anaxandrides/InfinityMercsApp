@@ -19,6 +19,21 @@ public sealed class SeasonInventoryTests
         Marketplace = new SeasonMarketplace { Transactions = transactions.ToList() }
     };
 
+    // Each copy of armour that rolled when bought is named with its result, and is still found as its armour.
+    [Fact]
+    public void RolledArmourCopiesKeepTheirResults()
+    {
+        var regeneration = Bought("Number One", "Light Armour (LI)");
+        regeneration.RolledResult = "Regeneration";
+        var superJump = Bought("Number One", "Light Armour (LI)");
+        superJump.RolledResult = "Super-Jump";
+
+        var entries = SeasonInventory.From(new SeasonFile { Rounds = [Round(1, regeneration, superJump)] }, Catalog).Entries;
+
+        Assert.Equal(["Light Armour (LI) [Regeneration]", "Light Armour (LI) [Super-Jump]"], entries.Select(entry => entry.Name));
+        Assert.Equal("Light Armour (LI)", Catalog.Find(entries[0].Name)?.Name);
+    }
+
     [Fact]
     public void NoSeasonOwnsNothing()
     {

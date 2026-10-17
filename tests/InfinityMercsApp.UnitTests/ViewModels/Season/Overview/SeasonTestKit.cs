@@ -13,6 +13,7 @@ using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.Services.Wiki;
 using InfinityMercsApp.UnitTests.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Company.Viewer;
+using InfinityMercsApp.ViewModels.Season;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
 using InfinityMercsApp.ViewModels.Components;
@@ -40,6 +41,9 @@ internal sealed class SeasonTestKit
     public IDice Dice { get; } = Substitute.For<IDice>();
     public IAppPackageFiles PackageFiles { get; } = Substitute.For<IAppPackageFiles>();
     public IAppSettingsProvider Settings { get; } = Substitute.For<IAppSettingsProvider>();
+
+    /// <summary>The Booty and Metachemistry roll prompt, over the kit's dialogs, dice and army data.</summary>
+    public RecruitRollPrompt Rolls() => new(Dialogs, Dice, ArmyData);
 
     /// <summary>The season file the page reads; its latest round takes the page's updates.</summary>
     public SeasonFile Season { get; set; } = new() { Rounds = [new SeasonRound { RoundIndex = 1 }] };

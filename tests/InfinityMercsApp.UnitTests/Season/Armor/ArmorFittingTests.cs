@@ -1,6 +1,7 @@
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Season.Armor;
 using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
 
 namespace InfinityMercsApp.UnitTests.Season.Armor;
 
@@ -158,6 +159,14 @@ public sealed class ArmorFittingTests
         var trooper = Trooper();
 
         Assert.Equal(trooper, ArmorFitting.Wear(trooper, "LI", null, CaptainStatBonuses.None).Profile);
+    }
+
+    [Fact]
+    public void ChemtankAndTheWetsuitRollWhenBought()
+    {
+        Assert.Equal(RecruitRollTable.Metachemistry, PackagedArmor.Named("Chemtank").Effects.Roll);
+        Assert.Equal(RecruitRollTable.Booty, PackagedArmor.Named("Irmandihno Wetsuit").Effects.Roll);
+        Assert.Equal(2, PackagedArmor.All.Count(armor => armor.Effects.Roll is not null));
     }
 
     // Belts and Pouches, Chemtank's Metachemistry, the Wetsuit's Booty and Symbio-Resonance's profile choice are

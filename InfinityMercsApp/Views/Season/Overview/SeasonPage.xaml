@@ -373,6 +373,19 @@
                                         HeightRequest="40"
                                         HorizontalOptions="Start"
                                         Padding="14,0" />
+                                <!-- Booty and Metachemistry are rolled once; a trooper that hasn't rolled yet can here. -->
+                                <Button Text="{Binding Team.OwedRollText}"
+                                        IsVisible="{Binding Team.HasOwedRoll}"
+                                        Command="{Binding Team.RollOwedCommand}"
+                                        BackgroundColor="{StaticResource SignalDim}"
+                                        TextColor="{StaticResource Signal}"
+                                        BorderColor="{StaticResource Signal}"
+                                        BorderWidth="1"
+                                        CornerRadius="4"
+                                        FontAttributes="Bold"
+                                        HeightRequest="40"
+                                        HorizontalOptions="Start"
+                                        Padding="14,0" />
                                 <Label Text="(none)"
                                        IsVisible="{Binding Team.HasPerks, Converter={StaticResource InvertedBoolConverter}}"
                                        TextColor="{StaticResource TextMuted}"

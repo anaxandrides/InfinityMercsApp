@@ -2,6 +2,7 @@ using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Marketplace;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
 
 namespace InfinityMercsApp.Domain.Season.Inventory;
 
@@ -89,7 +90,8 @@ public sealed class SeasonInventory
                 return;
             }
 
-            Add(item.Name, item.Category, item.StoreName, item.CostCr, roundIndex);
+            var name = string.IsNullOrWhiteSpace(transaction.RolledResult) ? item.Name : new RolledArmor(item.Name, transaction.RolledResult).Name;
+            Add(name, item.Category, item.StoreName, item.CostCr, roundIndex);
         }
 
         public void Add(string name, string? category, string source, int costCr, int roundIndex)

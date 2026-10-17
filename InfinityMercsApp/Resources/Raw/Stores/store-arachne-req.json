@@ -16,7 +16,7 @@
     { "name": "Hacker (+Hacking Device Plus)", "costCr": 15, "costSwc": 0.5, "category": "Roles", "wikiUrl": "https://infinitythewiki.com/Hacking_Device#Hacking_Device_Plus" }
   ],
   "troopTypes": [
-    { "type": null, "costCr": 5, "armorName": "Chemtank", "arm": null, "bts": null, "abilities": "Impetuous, Metachemistry, Limited Cover", "effects": {"skills": [{"name": "Limited Cover"}], "characteristics": ["Impetuous"]} },
+    { "type": null, "costCr": 5, "armorName": "Chemtank", "arm": null, "bts": null, "abilities": "Impetuous, Metachemistry, Limited Cover", "effects": {"skills": [{"name": "Limited Cover"}], "characteristics": ["Impetuous"], "roll": "Metachemistry"} },
     { "type": "MI", "costCr": 15, "armorName": "Hellcat Dropsuit", "arm": 2, "bts": 3, "abilities": "Combat Jump (-3), Parachutist", "effects": {"skills": [{"name": "Combat Jump (-3)", "whenHeld": "Combat Jump (+3)"}, {"name": "Parachutist"}]} },
     { "type": "HI", "costCr": 25, "armorName": "Riot Armor", "arm": 3, "bts": 3, "abilities": "Multispectral Visor Level 1, Dodge(+3), Frenzy", "effects": {"skills": [{"name": "Dodge (+3)"}, {"name": "Frenzy"}], "equipment": ["Multispectral Visor L1"]} },
     { "type": "REM", "costCr": 15, "armorName": "Black Labs Body Modification", "arm": null, "bts": null, "abilities": "VITA becomes STR, Remote Presence, Courage", "effects": {"skills": [{"name": "Remote Presence"}, {"name": "Courage"}]} }

@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.ViewModels.Components;
@@ -44,6 +45,13 @@ public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewe
 
     /// <summary>The trooper's season so far: rank, perk points, injuries and perks.</summary>
     public TrooperProgress? Progress { get; init; }
+
+    /// <summary>The trooper's Booty and Metachemistry rolls, e.g. "Booty: DA CC Weapon (rolled 7)".</summary>
+    public IReadOnlyList<string> RollLines { get; init; } = [];
+
+    /// <summary>The Booty or Metachemistry rolls the trooper has yet to make.</summary>
+    public IReadOnlyList<OwedRoll> OwedRolls { get; init; } = [];
+
     public int ExperienceLevel => CompanyUnitExperienceRanks.GetRankLevel(ExperiencePoints);
     public string ExperienceRankName => CompanyUnitExperienceRanks.GetRankName(ExperiencePoints);
     public string CaptainIconPackagedPath { get; init; } = string.Empty;

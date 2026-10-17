@@ -39,6 +39,7 @@ public partial class SeasonTeamViewModel : ObservableObject
     private readonly MarketplaceDetailViewModel _detailPopup;
     private readonly IDialogService _dialogs;
     private readonly Func<Task> _seasonChanged;
+    private readonly Func<int, Task> _rollOwed;
     private SavedCompanyFile? _company;
     private SavedImprovedCaptainStats _captain = new();
     private CompanyLoadouts _loadouts = new();
@@ -54,10 +55,12 @@ public partial class SeasonTeamViewModel : ObservableObject
         ISeasonFileService seasonFiles,
         MarketplaceDetailViewModel detailPopup,
         IDialogService dialogs,
-        Func<Task> seasonChanged)
+        Func<Task> seasonChanged,
+        Func<int, Task> rollOwed)
     {
         _dialogs = dialogs;
         _seasonChanged = seasonChanged;
+        _rollOwed = rollOwed;
         _roster = roster;
         _packageFiles = packageFiles;
         _seasonFiles = seasonFiles;
@@ -125,6 +128,13 @@ public partial class SeasonTeamViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(RetireCommand))]
     public partial bool CanRetireSelected { get; set; }
 
+    /// <summary>The roll button's text for a trooper still owed a Booty or Metachemistry roll, e.g. "ROLL BOOTY".</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasOwedRoll))]
+    public partial string OwedRollText { get; set; } = string.Empty;
+
+    public bool HasOwedRoll => OwedRollText.Length > 0;
+
     /// <summary>The company's equipped SWC against its SWC, e.g. "SWC EQUIPPED 1.5 / 2".</summary>
     [ObservableProperty]
     public partial string SwcText { get; set; } = string.Empty;
@@ -170,7 +180,7 @@ public partial class SeasonTeamViewModel : ObservableObject
     {
         Units.Clear();
         SelectedUnit = null;
-        SelectedName = SelectedBaseName = SelectedUnitType = string.Empty;
+        SelectedName = SelectedBaseName = SelectedUnitType = OwedRollText = string.Empty;
         CanRetireSelected = false;
     }
 
@@ -259,6 +269,10 @@ public partial class SeasonTeamViewModel : ObservableObject
         await _seasonChanged();
     }
 
+    /// <summary>Rolls what the selected trooper still owes on the Booty or Metachemistry table.</summary>
+    [RelayCommand]
+    private Task RollOwedAsync() => SelectedUnit is { OwedRolls.Count: > 0 } item ? _rollOwed(item.EntryIndex) : Task.CompletedTask;
+
     [RelayCommand]
     private Task ShowWeaponAsync(ProfileLine? line) =>
         line is null || line.IsPlaceholder ? Task.CompletedTask : _detailPopup.ShowWeaponAsync(line.Text);
@@ -298,7 +312,8 @@ public partial class SeasonTeamViewModel : ObservableObject
         RefreshGearPickers();
     }
 
-    // The captain's Spec-Ops buys are listed first among the perks, as on an army sheet.
+    // The captain's Spec-Ops buys are listed first among the perks, as on an army sheet, then Booty and
+    // Metachemistry results.
     private void ShowProgress(CompanyViewerUnitListItem item)
     {
         var progress = item.Progress;
@@ -306,8 +321,10 @@ public partial class SeasonTeamViewModel : ObservableObject
         Perks =
         [
             .. item.IsLieutenant ? _captain.SpecOpsPurchases(StatKeys.VitalityFor(item.UnitTypeCode)) : [],
+            .. item.RollLines,
             .. progress?.Perks.Select(perk => CompanyPerkCatalog.FindById(perk)?.Description ?? perk) ?? []
         ];
+        OwedRollText = item.OwedRolls.Count == 0 ? string.Empty : $"ROLL {item.OwedRolls[0].Table.ToString().ToUpperInvariant()}";
         Injuries = [
             .. progress?.Record.Injuries.Select(injury => $"{injury.Label()}: {injury.EffectText()}") ?? []
         ];

@@ -5,6 +5,7 @@ using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Armor;
 using InfinityMercsApp.Domain.Season.Inventory;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
@@ -48,6 +49,23 @@ public static class SeasonTroopers
             entry.UnitTypeCode,
             ArmorOf(entry, season, catalog),
             CaptainBonusesOf(entry, captain));
+
+    /// <summary>
+    /// The recruit table results on the trooper: its own Booty or Metachemistry rolls, then the result of the rolled
+    /// armour it wears this season.
+    /// </summary>
+    public static IReadOnlyList<string> RollResultsOf(SavedCompanyEntry entry, SeasonFile? season)
+    {
+        var results = entry.RecruitRolls.Select(roll => roll.Result).ToList();
+        if (season?.UnitGear.GetValueOrDefault(entry.EntryIndex) is { } gear &&
+            UnitLoadout.From(gear)[GearSlot.Armor] is { } armorName &&
+            RolledArmor.Parse(armorName) is { } rolled)
+        {
+            results.Add(rolled.Result);
+        }
+
+        return results;
+    }
 
     /// <summary>The stat bonuses bought for the captain, which only the lieutenant's saved line holds.</summary>
     public static CaptainStatBonuses CaptainBonusesOf(SavedCompanyEntry entry, SavedImprovedCaptainStats? captain) =>

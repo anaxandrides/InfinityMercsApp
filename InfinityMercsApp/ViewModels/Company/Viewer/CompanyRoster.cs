@@ -4,6 +4,7 @@ using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Inventory;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Common;
@@ -44,12 +45,13 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
     {
         var captain = company.ImprovedCaptainStats ?? new SavedImprovedCaptainStats();
         var captainName = string.IsNullOrWhiteSpace(captain.CaptainName) ? "Captain" : captain.CaptainName.Trim();
+        var kinds = new GainKinds(armyData.GetWeaponNames(), armyData.GetSkillNames());
 
         return company.Entries
             .Where(entry => season?.IsRetired(entry.EntryIndex) != true)
             .OrderByDescending(entry => entry.IsLieutenant)
             .ThenBy(entry => entry.EntryIndex)
-            .Select((entry, position) => UnitOf(entry, position, captain, captainName, season, catalog ?? InventoryCatalog.Empty))
+            .Select((entry, position) => UnitOf(entry, position, captain, captainName, season, catalog ?? InventoryCatalog.Empty, kinds))
             .ToList();
     }
 
@@ -59,7 +61,8 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         SavedImprovedCaptainStats captain,
         string captainName,
         SeasonFile? season,
-        InventoryCatalog catalog)
+        InventoryCatalog catalog,
+        GainKinds kinds)
     {
         var sourceFactionId = EffectiveSourceFactionId(entry);
         var baseUnitName = !string.IsNullOrWhiteSpace(entry.BaseUnitName) ? entry.BaseUnitName
@@ -89,11 +92,16 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             ProfileText.Lines(skills),
             ProfileText.Lines(SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Chars))));
 
-        // Armour changes the underlying line; injuries, perks and the rest then add on top. Perk skills show with
-        // the perks, beside this line.
+        // Armour changes the underlying line; injuries, perks and the rest then add on top, and Booty and
+        // Metachemistry come last of all. Perk skills show with the perks, beside this line.
         var worn = SeasonTroopers.InArmor(entry, saved, season, catalog, captain);
-        var profile = worn.Limit(worn.Profile.With(progress.ChangeBesidePerks));
-        equipment = ProfileText.AppendDistinct(equipment, worn.Equipment, keepTextWhenNothingAdded: true);
+        var rolled = RollResults.Apply(
+            worn.Profile.With(progress.ChangeBesidePerks), worn.UnitTypeCode, SeasonTroopers.RollResultsOf(entry, season), kinds);
+        var profile = worn.Limit(rolled.Profile);
+        equipment = ProfileText.AppendDistinct(equipment, [.. worn.Equipment, .. rolled.Equipment], keepTextWhenNothingAdded: true);
+        var rolledWeapons = WeaponLists.Split(rolled.Weapons);
+        ranged = ProfileText.AppendDistinct(ranged, rolledWeapons.Ranged, keepTextWhenNothingAdded: true);
+        var melee = ProfileText.AppendDistinct(SavedCodeNames.JoinOrDash(weapons.Melee), rolledWeapons.Melee, keepTextWhenNothingAdded: true);
 
         return new CompanyViewerUnitListItem
         {
@@ -114,7 +122,7 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             SavedSkills = ProfileText.JoinOrDash(profile.Skills),
             SavedCharacteristics = ProfileText.JoinOrDash(profile.Characteristics),
             SavedRangedWeapons = ranged,
-            SavedCcWeapons = SavedCodeNames.JoinOrDash(weapons.Melee),
+            SavedCcWeapons = melee,
             SavedPeripheralNameHeading = entry.PeripheralNameHeading,
             UnitMov = profile.Move,
             UnitCc = profile.Cc,
@@ -127,6 +135,8 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             UnitS = profile.Silhouette,
             ExperiencePoints = progress.TotalXp,
             Progress = progress,
+            RollLines = entry.RecruitRolls.Select(roll => $"{roll.Describe(worn.UnitTypeCode)} (rolled {roll.Roll})").ToList(),
+            OwedRolls = RecruitSkills.Owed(saved.Skills, entry.RecruitRolls),
             CaptainIconPackagedPath = entry.IsLieutenant ? SavedUnitText.CaptainIconPath : string.Empty,
             ExperienceIconPackagedPath = SavedUnitText.ExperienceIconPath(progress.TotalXp),
             SelectionAccentColor = AccentFor(logoFactionId),

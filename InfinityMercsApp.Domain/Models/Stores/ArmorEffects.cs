@@ -1,3 +1,5 @@
+using InfinityMercsApp.Domain.Season.RecruitRolls;
+
 namespace InfinityMercsApp.Domain.Models.Stores;
 
 /// <summary>
@@ -34,6 +36,12 @@ public sealed class ArmorEffects
 
     /// <summary>Characteristics the armour takes away, e.g. Teseum Plate's Hackable.</summary>
     public IReadOnlyList<string> CharacteristicsLost { get; set; } = [];
+
+    /// <summary>
+    /// The table each copy rolls on once when bought (Chemtank's Metachemistry, the Wetsuit's Booty); the copy keeps
+    /// its result wherever it goes.
+    /// </summary>
+    public RecruitRollTable? Roll { get; set; }
 
     /// <summary>Belts and Pouches: one more equipment slot, of any kind but Armor.</summary>
     public bool ExtraSlot { get; set; }

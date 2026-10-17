@@ -23,4 +23,10 @@ internal sealed class MauiDialogService : IDialogService
             ? number
             : null;
     }
+
+    public async Task<string?> ChooseAsync(string title, string cancel, IReadOnlyList<string> options)
+    {
+        var choice = await CurrentPage.DisplayActionSheetAsync(title, cancel, null, [.. options]);
+        return options.FirstOrDefault(option => string.Equals(option, choice, StringComparison.Ordinal));
+    }
 }

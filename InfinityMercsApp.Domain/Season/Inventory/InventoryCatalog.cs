@@ -1,6 +1,7 @@
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Marketplace;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
 
 namespace InfinityMercsApp.Domain.Season.Inventory;
 
@@ -62,10 +63,12 @@ public sealed class InventoryCatalog
 
     /// <summary>The item sold under this name by this store, or by any store when this one does not list it.</summary>
     public CatalogItem? Find(string storeName, string itemName) =>
-        _byStoreAndName.GetValueOrDefault(Key(storeName, itemName)) ?? _byName.GetValueOrDefault(itemName.Trim());
+        _byStoreAndName.GetValueOrDefault(Key(storeName, itemName)) ?? Find(itemName);
 
-    /// <summary>The item sold under this name by any store.</summary>
-    public CatalogItem? Find(string itemName) => _byName.GetValueOrDefault(itemName.Trim());
+    /// <summary>The item sold under this name by any store; a rolled copy of armour is found as its armour.</summary>
+    public CatalogItem? Find(string itemName) =>
+        _byName.GetValueOrDefault(itemName.Trim()) ??
+        (RolledArmor.Parse(itemName) is { } rolled ? _byName.GetValueOrDefault(rolled.ArmorName) : null);
 
     private static string Key(string storeName, string itemName) => $"{StoreLabels.StoreName(storeName)}|{itemName.Trim()}";
 }

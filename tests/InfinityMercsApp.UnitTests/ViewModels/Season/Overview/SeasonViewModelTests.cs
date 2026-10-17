@@ -1,9 +1,12 @@
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
+using InfinityMercsApp.Domain.Season.Rolls;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.ViewModels.Season;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using InfinityMercsApp.UnitTests.ViewModels.Company.Viewer;
 using InfinityMercsApp.Domain.Models.Stores;
@@ -57,6 +60,70 @@ public sealed class SeasonViewModelTests
         await _kit.SeasonFiles.Received(1).CreateAsync("Blue Team", "blue-1", SeasonTestKit.CompanyPath);
         Assert.Equal("Round 0", viewModel.RoundTitle);
         Assert.False(viewModel.WarMarketChoice.IsOpen);
+    }
+
+    // Bolt has Booty, and the Booty table gives a DA CC Weapon on 7.
+    private SavedCompanyFile BoltWithBooty()
+    {
+        var company = SeasonTestKit.Company();
+        company.Entries[0].CustomSkills.Add("Booty");
+        _kit.CompanyFiles.LoadAsync(SeasonTestKit.CompanyPath).Returns(company);
+        _kit.ArmyData.GetRecruitTable(RecruitRollTable.Booty).Returns([new RollRange(1, 10, "DA CC Weapon"), new RollRange(11, 20, "HMG")]);
+        _kit.Dialogs.ChooseAsync(Arg.Any<string>(), "Later", Arg.Any<IReadOnlyList<string>>()).Returns(RecruitRollPrompt.RollChoice);
+        _kit.Dice.RollD20().Returns(7);
+        return company;
+    }
+
+    [Fact]
+    public async Task AFoundedCompanyRollsForBootyAndKeepsTheResult()
+    {
+        _kit.Season = new SeasonFile();
+        var company = BoltWithBooty();
+
+        var viewModel = await _kit.OpenAsync(withSeasonFile: false);
+
+        Assert.Equal([new RecruitRoll(RecruitRollTable.Booty, 7, "DA CC Weapon")], company.Entries[0].RecruitRolls);
+        await _kit.CompanyFiles.Received(1).SaveAsync(SeasonTestKit.CompanyPath, company);
+        Assert.Empty(viewModel.Team.Units.Single(unit => unit.Name == "Bolt").OwedRolls);
+    }
+
+    // A company opened again is not asked; the Team tab offers the roll instead.
+    [Fact]
+    public async Task OpeningASeasonDoesNotAskForRollsOwedFromBefore()
+    {
+        BoltWithBooty();
+
+        var viewModel = await _kit.OpenAsync();
+
+        await _kit.Dialogs.DidNotReceiveWithAnyArgs().ChooseAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IReadOnlyList<string>>());
+        Assert.NotEmpty(viewModel.Team.Units.Single(unit => unit.Name == "Bolt").OwedRolls);
+    }
+
+    [Fact]
+    public async Task ANewRecruitRollsWhenThePageIsBack()
+    {
+        var viewModel = await _kit.OpenAsync();
+        var company = BoltWithBooty();
+        var recruit = CompanyRosterTests.Entry(4, "Ghulam", skills: ["Booty"]);
+        company.Entries.Add(recruit);
+
+        await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
+
+        Assert.Single(recruit.RecruitRolls);
+        Assert.Empty(company.Entries[0].RecruitRolls);
+    }
+
+    [Fact]
+    public async Task PuttingARollOffSavesNothing()
+    {
+        _kit.Season = new SeasonFile();
+        var company = BoltWithBooty();
+        _kit.Dialogs.ChooseAsync(Arg.Any<string>(), "Later", Arg.Any<IReadOnlyList<string>>()).Returns((string?)null);
+
+        await _kit.OpenAsync(withSeasonFile: false);
+
+        Assert.Empty(company.Entries[0].RecruitRolls);
+        await _kit.CompanyFiles.DidNotReceiveWithAnyArgs().SaveAsync(Arg.Any<string>(), Arg.Any<SavedCompanyFile>());
     }
 
     [Fact]

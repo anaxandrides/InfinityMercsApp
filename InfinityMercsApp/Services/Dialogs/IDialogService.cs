@@ -11,4 +11,8 @@ public interface IDialogService
     /// <summary>Asks for a whole number from <paramref name="minimum"/> to <paramref name="maximum"/>.</summary>
     /// <returns>The number, or null when the user cancels or enters something outside the range.</returns>
     Task<int?> AskNumberAsync(string title, string message, int minimum, int maximum);
+
+    /// <summary>Asks which of <paramref name="options"/> to take.</summary>
+    /// <returns>The option chosen, or null when the user picks <paramref name="cancel"/>.</returns>
+    Task<string?> ChooseAsync(string title, string cancel, IReadOnlyList<string> options);
 }

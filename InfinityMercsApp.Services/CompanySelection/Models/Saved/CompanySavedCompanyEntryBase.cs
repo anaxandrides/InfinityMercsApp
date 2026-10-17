@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
 
 namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
@@ -86,6 +87,10 @@ public abstract class CompanySavedCompanyEntryBase
     public string ExperienceRankName => CompanyUnitExperienceRanks.GetRankName(ExperiencePoints);
     [JsonPropertyName("Perks")]
     public List<CompanyTrooperPerkState> Perks { get; init; } = [];
+
+    /// <summary>The trooper's Booty and Metachemistry rolls, made once when it was bought and kept for good.</summary>
+    [JsonPropertyName("RecruitRolls")]
+    public List<RecruitRoll> RecruitRolls { get; set; } = [];
 
     [JsonPropertyName("Current MOV")]
     public string CurrentMov { get; init; } = "-";

@@ -7,6 +7,8 @@ using DomainFaction = InfinityMercsApp.Domain.Models.Metadata.Faction;
 using DomainSkill = InfinityMercsApp.Domain.Models.Metadata.Skill;
 using DomainWeapon = InfinityMercsApp.Domain.Models.Metadata.Weapon;
 using DomainAmmunition = InfinityMercsApp.Domain.Models.Metadata.Ammunition;
+using DomainBooty = InfinityMercsApp.Domain.Models.Metadata.Booty;
+using DomainMetachemistry = InfinityMercsApp.Domain.Models.Metadata.Metachemistry;
 using InfinityMercsApp.Infrastructure.Models.Database.Metadata;
 using InfinityMercsApp.Infrastructure.Repositories;
 using DbAmmunition = InfinityMercsApp.Infrastructure.Models.Database.Metadata.Ammunition;
@@ -213,6 +215,20 @@ public sealed class MetadataProvider(ISQLiteRepository sqliteRepository) : IMeta
             .Select(MapAmmunition)
             .ToList();
     }
+
+    /// <inheritdoc/>
+    public IReadOnlyList<DomainBooty> GetBooty() =>
+        sqliteRepository.GetAll<DbBooty>(x => true)
+            .OrderBy(row => row.Id)
+            .Select(row => new DomainBooty { Id = row.Id, Name = row.Name, Value = row.Value })
+            .ToList();
+
+    /// <inheritdoc/>
+    public IReadOnlyList<DomainMetachemistry> GetMetachemistry() =>
+        sqliteRepository.GetAll<DbMetachemistry>(x => true)
+            .OrderBy(row => row.Id)
+            .Select(row => new DomainMetachemistry { Id = row.Id, Name = row.Name, Value = row.Value })
+            .ToList();
 
     private static DomainFaction MapFaction(DbFaction source)
     {

@@ -56,5 +56,11 @@ public interface IMetadataProvider
     /// </summary>
     /// <returns></returns>
     IReadOnlyList<Ammunition> GetAmmunitions();
+
+    /// <summary>The Booty table's rows, lowest roll first; each row's name is its d20 range ("1-2").</summary>
+    IReadOnlyList<Booty> GetBooty();
+
+    /// <summary>The Metachemistry table's rows, lowest roll first; each row's name is its d20 range ("1-3").</summary>
+    IReadOnlyList<Metachemistry> GetMetachemistry();
 }
 

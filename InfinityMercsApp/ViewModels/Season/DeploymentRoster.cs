@@ -8,6 +8,7 @@ using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Armor;
 using InfinityMercsApp.Domain.Season.Inventory;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanyProfiles;
@@ -66,6 +67,7 @@ public sealed partial class DeploymentRoster(
         var seasonGear = season?.UnitGear ?? [];
         var captain = CaptainUpgrades.From(company.ImprovedCaptainStats);
         var catalog = await stores.CatalogAsync();
+        var kinds = new GainKinds(armyData.GetWeaponNames(), armyData.GetSkillNames());
 
         return company.Entries
             .Where(e => !e.IsPeripheralUnit && season?.IsRetired(e.EntryIndex) != true)
@@ -80,6 +82,7 @@ public sealed partial class DeploymentRoster(
                 catalog,
                 SeasonTroopers.CaptainBonusesOf(entry, company.ImprovedCaptainStats),
                 SeasonTroopers.ProgressOf(entry, season),
+                new RolledResults(SeasonTroopers.RollResultsOf(entry, season), kinds),
                 SeasonRenown.Of(entry, season, catalog).Total,
                 showUnitsInInches))
             .ToList();
@@ -93,6 +96,7 @@ public sealed partial class DeploymentRoster(
         InventoryCatalog catalog,
         CaptainStatBonuses captainBonuses,
         TrooperProgress progress,
+        RolledResults rolls,
         int renown,
         bool showUnitsInInches)
     {
@@ -113,7 +117,8 @@ public sealed partial class DeploymentRoster(
 
         ApplySeasonGear(profile, gear ?? [], catalog);
 
-        // Armour changes the underlying line; injuries, perks, rank skills and services then add on top.
+        // Armour changes the underlying line; injuries, perks, rank skills and services then add on top, and Booty
+        // and Metachemistry come last of all.
         var worn = ArmorFitting.Wear(
             new TrooperProfile(
                 MoveText(entry), profile.Cc, profile.Bs, profile.Ph, profile.Wip, profile.Arm, profile.Bts, profile.Vitality, profile.S,
@@ -121,8 +126,12 @@ public sealed partial class DeploymentRoster(
             entry.UnitTypeCode,
             armor,
             captainBonuses);
-        var changed = worn.Limit(worn.Profile.With(progress.Change));
-        profile.Equipment = ProfileText.AppendDistinct(profile.Equipment, worn.Equipment, keepTextWhenNothingAdded: true);
+        var rolled = RollResults.Apply(worn.Profile.With(progress.Change), worn.UnitTypeCode, rolls.Results, rolls.Kinds);
+        var changed = worn.Limit(rolled.Profile);
+        profile.Equipment = ProfileText.AppendDistinct(profile.Equipment, [.. worn.Equipment, .. rolled.Equipment], keepTextWhenNothingAdded: true);
+        var rolledWeapons = WeaponLists.Split(rolled.Weapons);
+        profile.RangedWeapons = ProfileText.AppendDistinct(profile.RangedWeapons, rolledWeapons.Ranged, keepTextWhenNothingAdded: true);
+        profile.MeleeWeapons = ProfileText.AppendDistinct(profile.MeleeWeapons, rolledWeapons.Melee, keepTextWhenNothingAdded: true);
         (profile.Cc, profile.Bs, profile.Ph, profile.Wip, profile.Arm, profile.Bts, profile.Vitality, profile.S) =
             (changed.Cc, changed.Bs, changed.Ph, changed.Wip, changed.Arm, changed.Bts, changed.Vitality, changed.Silhouette);
         profile.Skills = ProfileText.JoinOrDash(changed.Skills);

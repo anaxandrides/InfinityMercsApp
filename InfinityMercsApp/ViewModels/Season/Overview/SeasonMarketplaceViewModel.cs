@@ -3,7 +3,9 @@ using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
+using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.Marketplace;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Season.Overview.Items;
@@ -17,13 +19,15 @@ namespace InfinityMercsApp.ViewModels.Season.Overview;
 /// round, then the services), one store's stock at notoriety-adjusted prices, and a cart kept across stores.
 /// What is left to spend is the season's CR less the cart; SWC is not spent, so the balance shows the
 /// company's SWC. Buying records the cart where the season is shopping now (the latest round, or the initial
-/// purchases before the first contract) and then calls <c>purchased</c>.
+/// purchases before the first contract) and then calls <c>purchased</c>. Each copy of armour that rolls on a
+/// recruit table rolls as it is bought, and keeps its result.
 /// </summary>
 public partial class SeasonMarketplaceViewModel(
     IStoreProvider storeProvider,
     ISeasonFileService seasonFiles,
     IDialogService dialogs,
     MarketplaceDetailViewModel detailPopup,
+    RecruitRollPrompt rolls,
     Func<Task> purchased) : ObservableObject
 {
     private readonly Dictionary<string, SeasonCartLine> _cart = new(StringComparer.OrdinalIgnoreCase);
@@ -210,19 +214,38 @@ public partial class SeasonMarketplaceViewModel(
     private async Task BuyAsync()
     {
         var ledger = SeasonEconomy.Ledger(await seasonFiles.LoadAsync(_seasonFilePath));
-        var transactions = _cart.Values
-            .SelectMany(line => Enumerable.Repeat(line, line.Quantity))
-            .Select(line => new SeasonTransaction
+        var transactions = new List<SeasonTransaction>();
+        foreach (var line in _cart.Values)
+        {
+            var table = RollTableOf(line);
+            for (var copy = 0; copy < line.Quantity; copy++)
             {
-                OriginStore = line.StoreName,
-                ItemName = line.ItemName,
-                CostCr = line.CostCr,
-                CostSwc = line.CostSwc > 0 ? line.CostSwc : null,
-                SwcGrant = string.Equals(line.Category, InventoryCategories.Exchange, StringComparison.OrdinalIgnoreCase)
-                    ? SeasonEconomy.SwcGrantFromItemName(line.ItemName)
-                    : null
-            })
-            .ToList();
+                string? rolled = null;
+                if (table is { } rollsOn)
+                {
+                    if (await rolls.RollAsync(line.ItemName, new OwedRoll(rollsOn, CanReroll: false), null, "Cancel") is not { } roll)
+                    {
+                        await dialogs.ShowAlertAsync("Nothing Bought", $"{line.ItemName} rolls on the {rollsOn} table as it is bought, so nothing was bought.");
+                        return;
+                    }
+
+                    rolled = RollEffects.Side(roll.Result, null);
+                }
+
+                transactions.Add(new SeasonTransaction
+                {
+                    OriginStore = line.StoreName,
+                    ItemName = line.ItemName,
+                    CostCr = line.CostCr,
+                    CostSwc = line.CostSwc > 0 ? line.CostSwc : null,
+                    SwcGrant = string.Equals(line.Category, InventoryCategories.Exchange, StringComparison.OrdinalIgnoreCase)
+                        ? SeasonEconomy.SwcGrantFromItemName(line.ItemName)
+                        : null,
+                    RolledResult = rolled
+                });
+            }
+        }
+
         var storeNames = StoreNames().ToList();
 
         var recorded = await seasonFiles.UpdateAsync(_seasonFilePath, season =>
@@ -252,6 +275,15 @@ public partial class SeasonMarketplaceViewModel(
         ShowAffordability();
         await purchased();
     }
+
+    // The recruit table a line's armour rolls on when bought, if any.
+    private RecruitRollTable? RollTableOf(SeasonCartLine line) =>
+        _openStores
+            .Where(store => string.Equals(store.Name, line.StoreName, StringComparison.OrdinalIgnoreCase))
+            .SelectMany(store => store.TroopTypes)
+            .FirstOrDefault(troop => !string.IsNullOrWhiteSpace(troop.ArmorName) &&
+                                     string.Equals(InventoryCatalog.ArmorName(troop), line.ItemName, StringComparison.OrdinalIgnoreCase))
+            ?.Effects.Roll;
 
     private T FromCart<T>(T row) where T : MarketplaceRow
     {

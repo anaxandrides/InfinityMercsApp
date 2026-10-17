@@ -3,6 +3,7 @@ using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Inventory;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.ViewModels.Company.Viewer;
@@ -20,6 +21,7 @@ public sealed class SeasonTeamViewModelTests
     private readonly MarketplaceDetailViewModel _popup;
     private readonly SeasonTeamViewModel _team;
     private readonly Func<Task> _seasonChanged = Substitute.For<Func<Task>>();
+    private readonly Func<int, Task> _rollOwed = Substitute.For<Func<int, Task>>();
     private double _companySwc = 2;
     private List<SeasonTransaction> _alsoBought = [];
 
@@ -29,7 +31,7 @@ public sealed class SeasonTeamViewModelTests
 
         // As the season page does: the season is read again, and the tab shown again from it.
         _seasonChanged().Returns(_ => ShowSeasonAsync());
-        _team = new SeasonTeamViewModel(new CompanyRoster(_kit.ArmyData), new UnitDetailViewModel(_kit.ArmyData, _kit.Settings), _kit.PackageFiles, _kit.SeasonFiles, _popup, _kit.Dialogs, _seasonChanged);
+        _team = new SeasonTeamViewModel(new CompanyRoster(_kit.ArmyData), new UnitDetailViewModel(_kit.ArmyData, _kit.Settings), _kit.PackageFiles, _kit.SeasonFiles, _popup, _kit.Dialogs, _seasonChanged, _rollOwed);
     }
 
     // The company's pistol, Spitfire, Light Armour, WIP and Courage augments and monofilament blade.
@@ -108,6 +110,24 @@ public sealed class SeasonTeamViewModelTests
         Assert.True(_team.HasPerks);
         _team.SelectUnitCommand.Execute(Unit("Bolt"));
         Assert.Empty(_team.Perks);
+    }
+
+    [Fact]
+    public async Task ATrooperOwedABootyRollCanRollItAndRollsAreListedWithItsPerks()
+    {
+        var company = SeasonTestKit.Company();
+        company.Entries[0].CustomSkills.Add("Booty");
+        company.Entries[1].CustomSkills.Add("Metachemistry");
+        company.Entries[1].RecruitRolls = [new RecruitRoll(RecruitRollTable.Metachemistry, 4, "Super-Jump")];
+
+        await _team.LoadAsync(company, SeasonTestKit.SeasonPath, _kit.Season, Catalog);
+
+        Assert.Equal(["Metachemistry: Super-Jump (rolled 4)"], _team.Perks);
+        Assert.False(_team.HasOwedRoll);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        Assert.Equal("ROLL BOOTY", _team.OwedRollText);
+        await _team.RollOwedCommand.ExecuteAsync(null);
+        await _rollOwed.Received(1)(1);
     }
 
     [Fact]

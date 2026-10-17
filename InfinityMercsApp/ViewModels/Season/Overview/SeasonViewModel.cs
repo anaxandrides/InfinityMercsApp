@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Inventory;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Domain.Utilities;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
@@ -35,6 +36,8 @@ public partial class SeasonViewModel : ViewModelBase
     private readonly IArmyDataService _armyData;
     private readonly IDialogService _dialogs;
     private readonly ICompanySelectionNavigator _companySelection;
+    private readonly RecruitRollPrompt _rolls;
+    private readonly HashSet<int> _rollsToAskFor = [];
     private string _companyFilePath = string.Empty;
     private string? _seasonFilePath;
     private bool _needsLoad;
@@ -62,9 +65,10 @@ public partial class SeasonViewModel : ViewModelBase
         _dialogs = dialogs;
         _companySelection = companySelection;
         DetailPopup = detailPopup;
-        Team = new SeasonTeamViewModel(roster, detail, packageFiles, seasonFiles, detailPopup, dialogs, RefreshSeasonAsync);
+        _rolls = new RecruitRollPrompt(dialogs, dice, armyData);
+        Team = new SeasonTeamViewModel(roster, detail, packageFiles, seasonFiles, detailPopup, dialogs, RefreshSeasonAsync, RollOwedAsync);
         Inventory = new SeasonInventoryViewModel(seasonFiles, dialogs, RefreshSeasonAsync);
-        Marketplace = new SeasonMarketplaceViewModel(storeProvider, seasonFiles, dialogs, detailPopup, RefreshSeasonAsync);
+        Marketplace = new SeasonMarketplaceViewModel(storeProvider, seasonFiles, dialogs, detailPopup, _rolls, RefreshSeasonAsync);
         WarMarketChoice = new WarMarketChoiceViewModel(seasonFiles, dice, OnWarMarketChosenAsync);
         Services = new SeasonServicesViewModel(seasonFiles, dialogs, RefreshSeasonAsync);
     }
@@ -120,7 +124,8 @@ public partial class SeasonViewModel : ViewModelBase
 
     /// <summary>
     /// Loads the company the first time, then brings everything up to date with the season file. Coming back,
-    /// the company is read again, since recruiting adds troopers to it.
+    /// the company is read again, since recruiting adds troopers to it. A company just founded, and recruits just
+    /// hired, then roll for Booty and Metachemistry.
     /// </summary>
     public override async Task InitializeAsync()
     {
@@ -136,6 +141,9 @@ public partial class SeasonViewModel : ViewModelBase
         }
 
         await RefreshSeasonAsync();
+        var newTroopers = _rollsToAskFor.ToList();
+        _rollsToAskFor.Clear();
+        await RollOwedAsync(newTroopers);
     }
 
     private async Task ReloadCompanyAsync()
@@ -144,6 +152,8 @@ public partial class SeasonViewModel : ViewModelBase
         {
             if (_companyFiles.Exists(_companyFilePath) && await _companyFiles.LoadAsync(_companyFilePath) is { } company)
             {
+                var known = _company?.Entries.Select(entry => entry.EntryIndex).ToHashSet() ?? [];
+                _rollsToAskFor.UnionWith(company.Entries.Select(entry => entry.EntryIndex).Where(index => !known.Contains(index)));
                 _company = company;
             }
         }
@@ -219,7 +229,12 @@ public partial class SeasonViewModel : ViewModelBase
                 ? Path.GetFileNameWithoutExtension(_companyFilePath)
                 : company.CompanyName;
             CompanyType = company.CompanyType;
-            _seasonFilePath ??= await _seasonFiles.CreateAsync(CompanyName, company.CompanyIdentifier, _companyFilePath);
+            if (_seasonFilePath is null)
+            {
+                // A company opened without a season was just founded.
+                _seasonFilePath = await _seasonFiles.CreateAsync(CompanyName, company.CompanyIdentifier, _companyFilePath);
+                _rollsToAskFor.UnionWith(company.Entries.Select(entry => entry.EntryIndex));
+            }
 
             // The CR left from recruiting and the captain's SWC, for a season that does not have them yet.
             if (await _seasonFiles.LoadAsync(_seasonFilePath) is { StartingFunds: null })
@@ -283,6 +298,68 @@ public partial class SeasonViewModel : ViewModelBase
             seasonFile,
             Marketplace.FactionMarketNames,
             stores.Where(store => store.IsWarMarket).Select(store => store.Name).ToList());
+    }
+
+    // The Team tab's roll button, for a trooper still owed a roll.
+    private Task RollOwedAsync(int entryIndex) => RollOwedAsync([entryIndex]);
+
+    // Each trooper rolls what it owes in turn, and each roll is saved to the company as it is made. Putting one off
+    // stops the rest; the Team tab offers them again.
+    private async Task RollOwedAsync(IReadOnlyList<int> entryIndexes)
+    {
+        var rolledAny = false;
+        foreach (var unit in Team.Units.Where(unit => entryIndexes.Contains(unit.EntryIndex)).ToList())
+        {
+            foreach (var owed in unit.OwedRolls)
+            {
+                if (await _rolls.RollAsync(unit.Name, owed, unit.UnitTypeCode, "Later") is not { } roll)
+                {
+                    await AfterRollsAsync(rolledAny);
+                    return;
+                }
+
+                if (!await SaveRollAsync(unit.EntryIndex, roll))
+                {
+                    await _dialogs.ShowAlertAsync("Roll Not Saved", $"{unit.Name}'s {owed.Table} roll couldn't be saved to the company file.");
+                    await AfterRollsAsync(rolledAny);
+                    return;
+                }
+
+                rolledAny = true;
+            }
+        }
+
+        await AfterRollsAsync(rolledAny);
+    }
+
+    private async Task AfterRollsAsync(bool rolledAny)
+    {
+        if (rolledAny)
+        {
+            await ReloadCompanyAsync();
+            await RefreshSeasonAsync();
+        }
+    }
+
+    private async Task<bool> SaveRollAsync(int entryIndex, RecruitRoll roll)
+    {
+        try
+        {
+            if (await _companyFiles.LoadAsync(_companyFilePath) is not { } company ||
+                company.Entries.FirstOrDefault(entry => entry.EntryIndex == entryIndex) is not { } entry)
+            {
+                return false;
+            }
+
+            entry.RecruitRolls.Add(roll);
+            await _companyFiles.SaveAsync(_companyFilePath, company);
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            Console.Error.WriteLine($"Saving a recruit roll failed: {ex.Message}");
+            return false;
+        }
     }
 
     // The new War Market joins the market list straight away.

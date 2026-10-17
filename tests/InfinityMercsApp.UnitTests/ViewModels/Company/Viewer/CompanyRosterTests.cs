@@ -1,5 +1,7 @@
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Domain.Models.Season.Gear;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Packaging;
@@ -45,6 +47,43 @@ public sealed class CompanyRosterTests
         CurrentPh = "10",
         CurrentVitaOrStr = "1"
     };
+
+    [Fact]
+    public void BootyAndMetachemistryResultsAreOnTheTrooper()
+    {
+        _armyData.GetWeaponNames().Returns(["DA CC Weapon"]);
+        _armyData.GetSkillNames().Returns(["Regeneration"]);
+        var entry = Entry(1, "Ghulam", skills: ["Booty", "Metachemistry"]);
+        entry.RecruitRolls = [new RecruitRoll(RecruitRollTable.Booty, 7, "DA CC Weapon"), new RecruitRoll(RecruitRollTable.Metachemistry, 20, "+3 PH + Regeneration")];
+
+        var unit = Create().UnitsOf(new SavedCompanyFile { Entries = [entry] })[0];
+
+        Assert.Equal("DA CC Weapon", unit.SavedCcWeapons);
+        Assert.Equal("13", unit.UnitPh);
+        Assert.Contains("Regeneration", unit.SavedSkills);
+        Assert.Equal(["Booty: DA CC Weapon (rolled 7)", "Metachemistry: +3 PH + Regeneration (rolled 20)"], unit.RollLines);
+        Assert.Empty(unit.OwedRolls);
+    }
+
+    [Fact]
+    public void ATrooperWithBootyOwesARollUntilItRolls()
+    {
+        var unit = Create().UnitsOf(new SavedCompanyFile { Entries = [Entry(1, "Ghulam", skills: ["Booty (ReRoll)"])] })[0];
+
+        Assert.Equal([new OwedRoll(RecruitRollTable.Booty, CanReroll: true)], unit.OwedRolls);
+    }
+
+    // The armour's own roll goes with it to whoever wears it.
+    [Fact]
+    public void RolledArmourGivesItsResultToItsWearer()
+    {
+        _armyData.GetSkillNames().Returns(["Regeneration"]);
+        var season = new SeasonFile { UnitGear = new() { [1] = [new SeasonUnitGear { ItemName = "Chemtank [Regeneration]", Slot = GearSlot.Armor.Key() }] } };
+
+        var unit = Create().UnitsOf(new SavedCompanyFile { Entries = [Entry(1, "Ghulam")] }, season)[0];
+
+        Assert.Contains("Regeneration", unit.SavedSkills);
+    }
 
     [Fact]
     public void ASeasonLeavesOutItsRetiredTroopers()

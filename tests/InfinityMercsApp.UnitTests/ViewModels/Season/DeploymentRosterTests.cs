@@ -231,6 +231,22 @@ public sealed class DeploymentRosterTests : IDisposable
         Assert.Contains("Immunity (Shock)", fusilier.Skills);
     }
 
+    // The Wetsuit's own Booty roll goes with it, and comes after the armour and everything else.
+    [Fact]
+    public async Task RolledArmoursResultIsOnItsWearer()
+    {
+        var data = Army101Data.Create();
+        data.GetWeaponNames().Returns(["HMG"]);
+        var roster = new DeploymentRoster(data, _seasonFiles, new StoreCatalog(_stores));
+        var season = new SeasonFile();
+        season.UnitGear[2] = [new SeasonUnitGear { ItemName = "Irmandihno Wetsuit (LI) [HMG]", Slot = GearSlot.Armor.Key() }];
+        _seasonFiles.LoadAsync(SeasonPath).Returns(season);
+
+        var fusilier = (await roster.LoadAsync(_records.WriteCompany("c.json", Company), SeasonPath, showUnitsInInches: true))[1];
+
+        Assert.Contains("HMG", fusilier.RangedWeapons);
+    }
+
     [Fact]
     public async Task AnExtraSlotsItemWorksAsItsOwnKind()
     {

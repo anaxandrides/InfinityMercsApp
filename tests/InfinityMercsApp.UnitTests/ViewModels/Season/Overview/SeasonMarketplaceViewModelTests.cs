@@ -1,6 +1,9 @@
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
+using InfinityMercsApp.Domain.Season.Rolls;
+using InfinityMercsApp.ViewModels.Season;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
 using InfinityMercsApp.ViewModels.Marketplaces.Items;
@@ -17,7 +20,7 @@ public sealed class SeasonMarketplaceViewModelTests
 
     public SeasonMarketplaceViewModelTests()
     {
-        _market = new SeasonMarketplaceViewModel(_kit.Stores, _kit.SeasonFiles, _kit.Dialogs, _kit.Popup(), () =>
+        _market = new SeasonMarketplaceViewModel(_kit.Stores, _kit.SeasonFiles, _kit.Dialogs, _kit.Popup(), _kit.Rolls(), () =>
         {
             _purchases++;
             return Task.CompletedTask;
@@ -228,6 +231,53 @@ public sealed class SeasonMarketplaceViewModelTests
         Assert.Equal(0, Item("Pistol").Quantity);
         Assert.False(_market.HasCartItems);
         Assert.Equal(1, _purchases);
+    }
+
+    // Number One selling a Chemtank, whose copies each roll on the Metachemistry table as they are bought.
+    private void SellChemtanks()
+    {
+        var store = new Store
+        {
+            Name = "Number One",
+            AssociatedFactions = ["PanOceania"],
+            Alignment = StoreAlignments.Lawful,
+            TroopTypes = [new StoreTroopType { ArmorName = "Chemtank", CostCr = 5, Effects = new ArmorEffects { Roll = RecruitRollTable.Metachemistry } }]
+        };
+        _kit.Stores.GetAvailableStoresAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>())
+            .Returns([SeasonTestKit.Recruitment, SeasonTestKit.BaseMarket, store, SeasonTestKit.Medical]);
+        _kit.Stores.GetStoreByNameAsync("Number One", Arg.Any<CancellationToken>()).Returns(store);
+        _kit.ArmyData.GetRecruitTable(RecruitRollTable.Metachemistry).Returns([new RollRange(1, 10, "Regeneration"), new RollRange(11, 20, "+6 BTS")]);
+    }
+
+    [Fact]
+    public async Task EachCopyOfRolledArmourKeepsItsOwnRoll()
+    {
+        SellChemtanks();
+        GiveThreeRounds();
+        await OpenAsync();
+        _kit.Dialogs.ChooseAsync(Arg.Any<string>(), "Cancel", Arg.Any<IReadOnlyList<string>>()).Returns(RecruitRollPrompt.RollChoice);
+        _kit.Dice.RollD20().Returns(4, 15);
+        _market.IncrementCommand.Execute(_market.TroopTypeRows[0]);
+        _market.IncrementCommand.Execute(_market.TroopTypeRows[0]);
+
+        await _market.BuyCommand.ExecuteAsync(null);
+
+        Assert.Equal(["Regeneration", "+6 BTS"], _kit.Season.Rounds[2].Marketplace.Transactions.Select(transaction => transaction.RolledResult));
+    }
+
+    [Fact]
+    public async Task PuttingOffArmoursRollBuysNothing()
+    {
+        SellChemtanks();
+        GiveThreeRounds();
+        await OpenAsync();
+        _market.IncrementCommand.Execute(_market.TroopTypeRows[0]);
+
+        await _market.BuyCommand.ExecuteAsync(null);
+
+        Assert.Empty(_kit.Season.Rounds[2].Marketplace.Transactions);
+        Assert.True(_market.HasCartItems);
+        Assert.Equal(0, _purchases);
     }
 
     [Fact]

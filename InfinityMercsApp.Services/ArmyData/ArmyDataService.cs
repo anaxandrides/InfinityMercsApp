@@ -1,4 +1,6 @@
 using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
+using InfinityMercsApp.Domain.Season.Rolls;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
@@ -104,6 +106,25 @@ internal sealed class ArmyDataService(
         var queryResult = cohesiveCompanyFactionQueryProvider.GetFilterQuerySource(factionIds, cancellationToken);
         return queryResult.MergedMercsListEntries;
     }
+
+    public IReadOnlyList<RollRange> GetRecruitTable(RecruitRollTable table)
+    {
+        if (metadataProvider is null)
+        {
+            return [];
+        }
+
+        var rows = table == RecruitRollTable.Booty
+            ? metadataProvider.GetBooty().Select(row => RollRange.Parse(row.Name, row.Value))
+            : metadataProvider.GetMetachemistry().Select(row => RollRange.Parse(row.Name, row.Value));
+        return rows.OfType<RollRange>().OrderBy(row => row.Min).ToList();
+    }
+
+    public IReadOnlyList<string> GetWeaponNames() =>
+        metadataProvider?.GetAllWeapons().Select(weapon => weapon.Name).Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? [];
+
+    public IReadOnlyList<string> GetSkillNames() =>
+        metadataProvider?.GetSkills().Select(skill => skill.Name).ToList() ?? [];
 
     public string FormatMovement(Movement? movement) =>
         Movement.Format(movement, appSettingsProvider?.GetShowUnitsInInches() ?? false);
