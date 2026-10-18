@@ -1,4 +1,4 @@
-namespace InfinityMercsApp.ViewModels.Components.UnitFilter;
+namespace InfinityMercsApp.Domain.Models.Filtering;
 
 public sealed class UnitFilterPopupOptions
 {

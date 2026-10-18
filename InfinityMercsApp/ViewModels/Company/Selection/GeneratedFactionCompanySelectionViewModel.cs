@@ -2,11 +2,11 @@ using System.Globalization;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Presentation.Company.Selection;
 using InfinityMercsApp.Services.CompanySelection.Common;
+using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
-using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
@@ -105,7 +105,7 @@ public abstract class GeneratedFactionCompanySelectionViewModel : CompanySelecti
     protected override void SetActiveSlot(int slot)
     {
         var previous = ActiveSlotIndex;
-        ActiveSlotIndex = CompanySelectionFactionSlotsWorkflow.ResolveActiveSlotIndex(slot, ShowRightSlot);
+        ActiveSlotIndex = FactionSlots.Active(slot, ShowRightSlot);
         ShowLieutenantsOnly(ActiveSlotIndex == 0);
         if (previous != ActiveSlotIndex && _hasLoadedFactions)
         {

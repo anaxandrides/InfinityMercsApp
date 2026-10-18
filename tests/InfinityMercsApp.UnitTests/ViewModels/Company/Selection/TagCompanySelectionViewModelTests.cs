@@ -2,7 +2,7 @@ using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection;
-using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using NSubstitute;
 using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 

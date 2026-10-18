@@ -3,7 +3,6 @@ using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Services.CompanySelection.Teams;
-using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
@@ -106,32 +105,14 @@ public sealed partial class CohesiveCompanySelectionViewModel : CompanySelection
         _validCoreFireteamsByFaction.Clear();
         foreach (var row in cachedByFaction.Values)
         {
-            _validCoreFireteamsByFaction[row.FactionId] = CohesiveCompanyTeamEligibilityWorkflow.ToValidCoreFireteamSet(row.ValidCoreFireteams);
+            _validCoreFireteamsByFaction[row.FactionId] = CoreFireteamEligibility.ToValidCoreFireteamSet(row.ValidCoreFireteams);
         }
 
         return ordered.Where(faction => cachedByFaction.TryGetValue(faction.Id, out var row) && row.HasValidCoreFireteams).ToList();
     }
 
-    private List<string> EvaluateValidCoreFireteams(FactionRecord faction, int maxCost, CancellationToken cancellationToken)
-    {
-        var snapshot = Services.ArmyData.GetFactionSnapshot(faction.Id, cancellationToken);
-        if (snapshot?.FireteamChart is null)
-        {
-            return [];
-        }
-
-        var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, ArmyFilterSection.Type);
-        var categoryLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, ArmyFilterSection.Category);
-        return CohesiveCompanyTeamEligibilityWorkflow.EvaluateValidCoreFireteams(
-            snapshot.FireteamChart,
-            Services.ArmyData.GetResumeByFactionMercsOnly(faction.Id, cancellationToken),
-            UnitFilterLookups.From(snapshot.Filters),
-            typeLookup,
-            ActiveUnitFilter,
-            maxCost,
-            unit => CompanyUnitDetailsShared.IsCharacterCategory(unit, categoryLookup),
-            unitId => Services.ArmyData.GetUnit(faction.Id, unitId, cancellationToken));
-    }
+    private List<string> EvaluateValidCoreFireteams(FactionRecord faction, int maxCost, CancellationToken cancellationToken) =>
+        Services.CoreFireteams.ValidCoreFireteams(faction.Id, ActiveUnitFilter, maxCost, cancellationToken);
 
     // What the cached validity depends on: the points limit and the filter.
     private string ValidityFilterKey(int maxCost)

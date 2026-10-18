@@ -10,6 +10,7 @@ using InfinityMercsApp.Presentation.Themes;
 using InfinityMercsApp.Presentation.Units;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Common;
+using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Packaging;
@@ -286,11 +287,11 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
 
     /// <summary>The unit header's colours for a faction, falling back to the display's default red.</summary>
     public CompanyHeaderColors HeaderColorsFor(int factionId) =>
-        CompanySelectionVisualThemeWorkflow.GetHeaderColors(ThemeFactionName(factionId));
+        FactionColors.GetHeaderColors(ThemeFactionName(factionId));
 
     /// <summary>The faction's accent for a selected tile.</summary>
     public Color AccentFor(int factionId) =>
-        CompanySelectionVisualThemeWorkflow.GetFactionTheme(ThemeFactionName(factionId), DefaultAccent, Color.FromArgb("#4B5563")).Primary;
+        FactionColors.GetFactionTheme(ThemeFactionName(factionId), DefaultAccent, Color.FromArgb("#4B5563")).Primary;
 
     private string? ThemeFactionName(int factionId)
     {
@@ -302,7 +303,7 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         var metadataName = armyData.GetMetadataFactionById(factionId)?.Name;
         return !string.IsNullOrWhiteSpace(metadataName) && CompanySelectionSharedUtilities.IsThemeFactionName(metadataName)
             ? metadataName
-            : CompanySelectionVisualThemeWorkflow.InferThemeFactionNameFromFactionId(factionId);
+            : ThemeFactions.ByFactionId(factionId);
     }
 
     public static FormattedString Simple(string? text, Color color)

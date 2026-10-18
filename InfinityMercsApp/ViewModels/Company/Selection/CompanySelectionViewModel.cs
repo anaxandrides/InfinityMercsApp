@@ -3,11 +3,11 @@ using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Domain.Utilities;
 using InfinityMercsApp.Presentation.Company.Selection;
-using InfinityMercsApp.Presentation.Themes;
-using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Services.CompanySelection.Profiles;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.CompanySelection.Teams;
@@ -17,11 +17,9 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Collections;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
-using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
 using InfinityMercsApp.ViewModels.Components.UnitFilter;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
-using ArmySpecopsUnitRecord = InfinityMercsApp.Domain.Models.Army.SpecOps.SpecopsUnit;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
@@ -236,8 +234,10 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     /// <summary>Whether the right slot can be picked to receive a faction.</summary>
     protected virtual bool CanPickRightSlot => ShowRightSlot;
 
-    protected int PointsRemaining =>
-        CompanySelectionVisibilityWorkflow.ComputePointsRemaining(SelectedStartSeasonPoints, SeasonPointsCapText);
+    /// <summary>The points limit less what the company costs so far.</summary>
+    protected int PointsRemaining => Points(SelectedStartSeasonPoints) - Points(SeasonPointsCapText);
+
+    private static int Points(string text) => int.TryParse(text, out var points) ? points : 0;
 
     protected override void OnLayoutApplied() => ShowPanes();
 
@@ -418,8 +418,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         }
         else if (targetWasEmpty)
         {
-            SetActiveSlot(CompanySelectionFactionSlotsWorkflow.ResolveAutoSelectedSlotIndex(
-                ShowRightSlot, LeftSlotFaction, RightSlotFaction, ActiveSlotIndex));
+            SetActiveSlot(FactionSlots.AfterFilling(ShowRightSlot, LeftSlotFaction is not null, RightSlotFaction is not null, ActiveSlotIndex));
         }
         else
         {
@@ -447,7 +446,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     /// <summary>Puts <paramref name="item"/> in slot <paramref name="slot"/> unless the other slot already has it.</summary>
     protected bool TryAssignFaction(int slot, ArmyFactionSelectionItem item, out bool factionChanged)
     {
-        if (CompanySelectionFactionSlotsWorkflow.IsDuplicateSelectionForActiveSlot(ShowRightSlot, slot, LeftSlotFaction, RightSlotFaction, item))
+        if (FactionSlots.IsInOtherSlot(ShowRightSlot, slot, LeftSlotFaction?.Id, RightSlotFaction?.Id, item.Id))
         {
             factionChanged = false;
             return false;
@@ -501,7 +500,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
     /// <summary>Makes <paramref name="slot"/> the one the next faction pick goes to.</summary>
     protected virtual void SetActiveSlot(int slot) =>
-        ActiveSlotIndex = FixedFactionSlot ?? CompanySelectionFactionSlotsWorkflow.ResolveActiveSlotIndex(slot, ShowRightSlot);
+        ActiveSlotIndex = FixedFactionSlot ?? FactionSlots.Active(slot, ShowRightSlot);
 
     [RelayCommand]
     private void OpenFactionStrip() => ShowFactionStrip = IsFoundingCompany;
@@ -537,41 +536,40 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         IsLoadingUnits = true;
         try
         {
-            var merged = await CompanySelectionUnitLoadWorkflow.BuildMergedUnitsAndTeamsAsync(
-                factions,
-                faction => faction.Id,
-                ResumesFor,
-                Services.SpecOps.GetSpecopsUnitsByFaction,
-                Services.ArmyData.GetFactionSnapshot,
-                CacheUnitLogosAsync,
-                CreateResumeUnit,
-                CreateSpecOpsUnit,
-                cancellationToken);
+            var read = new List<FactionUnits>();
+            foreach (var faction in factions)
+            {
+                var resumes = ResumesFor(faction.Id, cancellationToken);
+                read.Add(Services.UnitCatalog.Read(faction.Id, resumes, cancellationToken));
+                await CacheUnitLogosAsync(faction.Id, resumes, cancellationToken);
+            }
 
-            CompanySelectionUnitLoadWorkflow.PopulateUnitsCollection(Units, merged.UnitsByKey.Values);
+            var merged = SelectionUnitCatalog.Merge(read);
+            var units = merged.Units.Select(CreateUnit).ToList();
+            foreach (var unit in ArmyUnitSort.OrderByUnitTypeAndName(units, x => x.Type, x => x.Name))
+            {
+                Units.Add(unit);
+            }
+
             if (await TryRecoverEmptyUnitListAsync(cancellationToken))
             {
                 return;
             }
 
             BeforeTeamsBuilt(factions);
-            CompanySelectionUnitLoadWorkflow.BuildTeamEntriesFromMerged(
-                merged.UnitsByKey,
-                merged.TeamsByName.Values,
-                TeamEntries,
-                IncludeTeam,
-                TeamCount,
-                TeamCountText,
-                (name, min, max, slug, sourceUnits) =>
-                    CompanyTeamProfilesWorkflow.BuildTeamUnitLimitItem(name, DisplayedTeamMinimum(min), max, slug, sourceUnits),
-                (name, countsText, isWildcardBucket, isExpanded, allowedProfiles) => new ArmyTeamListItem
+            var listedTeams = merged.Teams.Where(team => IncludeTeam(team) && TeamCount(team) > 0);
+            foreach (var listing in TeamListings.Build(units, listedTeams, merged.Teams))
+            {
+                TeamEntries.Add(new ArmyTeamListItem
                 {
-                    Name = name,
-                    TeamCountsText = countsText,
-                    IsWildcardBucket = isWildcardBucket,
-                    IsExpanded = isExpanded,
-                    AllowedProfiles = allowedProfiles
+                    Name = listing.Name,
+                    TeamCountsText = listing.Team is { } team ? TeamCountText(team) : string.Empty,
+                    IsWildcardBucket = listing.IsWildcardBucket,
+                    IsExpanded = true,
+                    AllowedProfiles = new ObservableCollection<ArmyTeamUnitLimitItem>(
+                        listing.Slots.Select(slot => ArmyTeamUnitLimitItem.For(slot, DisplayedTeamMinimum(slot.Min))))
                 });
+            }
 
             ApplyUnitVisibilityFilters(cancellationToken);
             BuildFilterOptions(cancellationToken);
@@ -608,56 +606,22 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     /// <summary>Whether a unit stands out in the list (the TAG company's own TAG).</summary>
     protected virtual bool IsHighlightedUnit(int factionId, int unitId) => false;
 
-    private ArmyUnitSelectionItem CreateResumeUnit(
-        int factionId,
-        ArmyResumeRecord unit,
-        IReadOnlyDictionary<int, string> typeLookup,
-        IReadOnlyDictionary<int, string> categoryLookup)
+    private ArmyUnitSelectionItem CreateUnit(SelectionUnitSource unit)
     {
-        var logo = LogoIdsFor(factionId, unit.UnitId, unit.Logo);
+        var logo = LogoIdsFor(unit.FactionId, unit.UnitId, unit.LogoField);
         return new ArmyUnitSelectionItem
         {
             Id = unit.UnitId,
-            SourceFactionId = factionId,
+            SourceFactionId = unit.FactionId,
             LogoSourceFactionId = logo.FactionId,
             LogoSourceUnitId = logo.UnitId,
             Slug = unit.Slug,
             Name = unit.Name,
             Type = unit.Type,
-            IsCharacter = CompanyUnitDetailsShared.IsCharacterCategory(unit, categoryLookup),
-            Subtitle = CompanyUnitDetailsShared.BuildUnitSubtitle(unit, typeLookup, categoryLookup),
-            IsSpecOps = false,
-            UseBlueHalfOpacityBackground = IsHighlightedUnit(factionId, unit.UnitId),
-            CachedLogoPath = Services.Logos?.TryGetCachedUnitLogoPath(logo.FactionId, logo.UnitId),
-            PackagedLogoPath = PackagedUnitLogoPath(logo)
-        };
-    }
-
-    private ArmyUnitSelectionItem CreateSpecOpsUnit(
-        int factionId,
-        ArmySpecopsUnitRecord specOpsUnit,
-        IReadOnlyDictionary<int, ArmyResumeRecord> resumeByUnitId,
-        IReadOnlyList<ArmyResumeRecord> units,
-        IReadOnlyDictionary<int, string> typeLookup,
-        IReadOnlyDictionary<int, string> categoryLookup)
-    {
-        var baseName = !string.IsNullOrWhiteSpace(specOpsUnit.Name)
-            ? specOpsUnit.Name.Trim()
-            : units.FirstOrDefault(unit => unit.UnitId == specOpsUnit.UnitId)?.Name ?? $"Unit {specOpsUnit.UnitId}";
-        resumeByUnitId.TryGetValue(specOpsUnit.UnitId, out var resume);
-        var logo = LogoIdsFor(factionId, specOpsUnit.UnitId, resume?.Logo);
-        return new ArmyUnitSelectionItem
-        {
-            Id = specOpsUnit.UnitId,
-            SourceFactionId = factionId,
-            LogoSourceFactionId = logo.FactionId,
-            LogoSourceUnitId = logo.UnitId,
-            Slug = specOpsUnit.Slug,
-            Name = $"{baseName} - Spec Ops",
-            Type = resume?.Type,
-            IsCharacter = resume is not null && CompanyUnitDetailsShared.IsCharacterCategory(resume, categoryLookup),
-            Subtitle = resume is not null ? CompanyUnitDetailsShared.BuildUnitSubtitle(resume, typeLookup, categoryLookup) : "Spec Ops",
-            IsSpecOps = true,
+            IsCharacter = unit.IsCharacter,
+            Subtitle = unit.Subtitle,
+            IsSpecOps = unit.IsSpecOps,
+            UseBlueHalfOpacityBackground = !unit.IsSpecOps && IsHighlightedUnit(unit.FactionId, unit.UnitId),
             CachedLogoPath = Services.Logos?.TryGetCachedUnitLogoPath(logo.FactionId, logo.UnitId),
             PackagedLogoPath = PackagedUnitLogoPath(logo)
         };
@@ -710,12 +674,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
         try
         {
-            var context = CompanySelectionVisibilityWorkflow.BuildUnitVisibilityLookupContext(
-                UnitSourceFactions(),
-                faction => faction.Id,
-                Services.ArmyData.GetFactionSnapshot,
-                Services.SpecOps.GetSpecopsUnitsByFaction,
-                cancellationToken);
+            var context = Services.Visibility.Lookups(UnitSourceFactions().Select(faction => faction.Id), cancellationToken);
             ApplyUnitVisibility(context, cancellationToken);
             AdjustUnitVisibility(context, cancellationToken);
 
@@ -730,7 +689,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
                 ApplyLieutenantVisualStates();
             }
 
-            CompanySelectionVisibilityWorkflow.RefreshTeamEntryVisibility(TeamEntries, Units);
+            RefreshTeamVisibility();
         }
         catch (Exception ex)
         {
@@ -738,15 +697,30 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         }
     }
 
-    protected void ApplyUnitVisibility(CompanyUnitVisibilityLookupContext context, CancellationToken cancellationToken) =>
-        CompanySelectionVisibilityWorkflow.ApplyUnitVisibility(
-            Units,
-            context,
-            ActiveUnitFilter,
-            LieutenantOnlyUnits,
-            PointsRemaining,
-            Services.ArmyData.GetUnit,
-            cancellationToken);
+    protected void ApplyUnitVisibility(CompanyUnitVisibilityLookupContext context, CancellationToken cancellationToken)
+    {
+        foreach (var unit in Units)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            unit.IsVisible = Services.Visibility.Shows(context, unit, ActiveUnitFilter, LieutenantOnlyUnits, PointsRemaining, cancellationToken);
+        }
+    }
+
+    // A fireteam shows while any of its slots does; a slot shows while a unit it stands for does.
+    private void RefreshTeamVisibility()
+    {
+        var visible = VisibleUnits.Of(Units);
+        foreach (var team in TeamEntries)
+        {
+            foreach (var slot in team.AllowedProfiles)
+            {
+                slot.IsVisible = visible.Shows(slot, team.IsWildcardBucket);
+            }
+
+            team.IsVisible = team.AllowedProfiles.Any(slot => slot.IsVisible);
+            team.IsExpanded = true;
+        }
+    }
 
     /// <summary>Company-specific visibility rules; by default an empty result shows every unit rather than none.</summary>
     protected virtual void AdjustUnitVisibility(CompanyUnitVisibilityLookupContext context, CancellationToken cancellationToken)
@@ -774,16 +748,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             return Task.CompletedTask;
         }
 
-        var resolved = CompanyTeamSelectionWorkflow.ResolveSelectedTeamUnit<ArmyUnitSelectionItem>(
-            Units,
-            teamItem.ResolvedUnitId,
-            teamItem.ResolvedSourceFactionId,
-            teamItem.Slug,
-            teamItem.Name,
-            unit => unit.Id,
-            unit => unit.SourceFactionId,
-            unit => unit.Slug,
-            unit => unit.Name);
+        var resolved = TeamSlots.UnitFor(Units, teamItem);
         return resolved is null ? Task.CompletedTask : SelectUnitAsync(resolved, RestrictsProfilesFor(teamItem));
     }
 
@@ -853,7 +818,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             Detail.UnitNameHeading = unit.Name;
             var details = Services.UnitDetails.Load(
                 unit.SourceFactionId, unit.Id, unit.IsSpecOps, LieutenantOnlyUnits, Detail.ShowUnitsInInches, cancellationToken);
-            ApplyUnitHeaderColors(unit.SourceFactionId, details.Unit, cancellationToken);
+            ApplyUnitHeaderColors(unit.SourceFactionId, details.Unit);
             if (details.ProfileGroups.IsEmpty)
             {
                 Console.Error.WriteLine($"No profiles found for unit {unit.Id} of faction {unit.SourceFactionId}.");
@@ -881,9 +846,8 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
     private static string Listed(IReadOnlyList<string> names) => names.Count == 0 ? "-" : string.Join(", ", names);
 
-    private void ApplyUnitHeaderColors(int sourceFactionId, ArmyUnitRecord? unit, CancellationToken cancellationToken) =>
-        Detail.ApplyHeaderColors(CompanySelectionVisualThemeWorkflow.ResolveThemeFactionName(
-            Mode, Services.ArmyData, sourceFactionId, unit?.FactionIds, cancellationToken));
+    private void ApplyUnitHeaderColors(int sourceFactionId, ArmyUnitRecord? unit) =>
+        Detail.ApplyHeaderColors(Services.ThemeFactions.NameFor(Mode, sourceFactionId, unit?.FactionIds));
 
     // Picks up a changed inches/centimetres preference and re-formats every distance shown.
     private void ApplyDisplayUnitsPreference()
@@ -910,21 +874,19 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             return;
         }
 
-        var profiles = CompanyProfilePopulationWorkflowService.BuildProfiles(new CompanyProfilePopulationRequest
+        var configurations = ProfileConfigurations.Build(new ProfileConfigurationRequest
         {
             ProfileGroups = profileGroups,
             Filters = filters,
             ForceLieutenant = forceLieutenant,
-            ShowTacticalAwarenessIcon = Detail.Icons.TacticalAwareness,
             ShowUnitsInInches = Detail.ShowUnitsInInches,
-            ShouldIncludeOption = (_, _, optionName) => IncludesOption(optionName),
-            AdjustOptionDisplayCost = (group, option, cost) => AdjustOptionDisplayCost(profileGroups, filters, group, option, cost),
-            FormatMoveValue = FormatMove
+            IncludesOption = IncludesOption,
+            AdjustCost = (group, option, cost) => AdjustOptionDisplayCost(profileGroups, filters, group, option, cost)
         });
 
-        foreach (var profile in profiles)
+        foreach (var configuration in configurations)
         {
-            Profiles.Add(profile);
+            Profiles.Add(ViewerProfileItem.From(configuration, FormatMove, Detail.Icons.TacticalAwareness));
         }
 
         ApplyLieutenantVisualStates();
@@ -943,20 +905,21 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     /// </summary>
     protected void ApplyLieutenantVisualStates()
     {
-        var visibleProfiles = CompanySelectionRosterWorkflow.ApplyLieutenantVisualStates(
-            MercsCompanyEntries,
-            Profiles,
-            SelectedStartSeasonPoints,
-            SeasonPointsCapText,
-            Detail.Stats.Ava,
-            SelectedUnit,
-            ActiveUnitFilter,
-            LieutenantOnlyUnits,
-            entry => entry.IsLieutenant,
-            entry => entry.SourceUnitId,
-            entry => entry.SourceFactionId,
-            unit => unit.Id,
-            unit => unit.SourceFactionId);
+        var room = RosterRoom.For(
+            MercsCompanyEntries, Points(SelectedStartSeasonPoints), Points(SeasonPointsCapText), Detail.Stats.Ava, SelectedUnit?.Id, SelectedUnit?.SourceFactionId);
+        var visibleProfiles = 0;
+        foreach (var profile in Profiles)
+        {
+            var availability = ProfileAvailability.Of(
+                ProfileValues.ParseCost(profile.Cost), profile.IsLieutenant, room, ActiveUnitFilter, LieutenantOnlyUnits);
+            profile.IsVisible = availability.IsVisible;
+            profile.IsLieutenantBlocked = availability.IsBlocked;
+            if (availability.IsVisible)
+            {
+                visibleProfiles++;
+            }
+        }
+
         visibleProfiles = AdjustLieutenantVisualStates(visibleProfiles);
 
         ProfilesStatus = visibleProfiles == 0 ? "No configurations found for this unit." : $"{visibleProfiles} configurations loaded.";
@@ -986,6 +949,15 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
     private PeripheralMercsCompanyStats? PeripheralStats(string peripheralName, UnitProfile profile, ArmyFilterCatalog? filters) =>
         CompanyUnitDetailsShared.BuildPeripheralStatBlock(peripheralName, profile, filters, Detail.ShowUnitsInInches);
+
+    // The statline of the profile's first peripheral, when the selected unit has its profile.
+    private PeripheralMercsCompanyStats? PeripheralStatsOf(ViewerProfileItem profile)
+    {
+        var peripheralName = CompanyUnitDetailsShared.ExtractFirstPeripheralName(profile.Peripherals);
+        return !string.IsNullOrWhiteSpace(peripheralName) && Detail.ProfileGroups.FindPeripheralProfile(peripheralName) is { } peripheralProfile
+            ? PeripheralStats(peripheralName, peripheralProfile, Detail.Filters)
+            : null;
+    }
 
     /// <summary>
     /// The first logo that exists: a downloaded unit or faction logo, else a packaged one, else the unit's packaged path.
@@ -1039,27 +1011,8 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             return;
         }
 
-        var peripheralStats = CompanySelectionRosterWorkflow.BuildMercsCompanyPeripheralStats(
-            profile, Detail.ProfileGroups, Detail.Filters, PeripheralStats);
-        var entry = CompanySelectionRosterWorkflow.BuildMercsCompanyEntry(
-            unit,
-            profile,
-            Detail.CommonEquipment.ToList(),
-            CommonSkillsFor(unit, profile, Detail.CommonSkills),
-            Detail.Stats.Mov,
-            Detail.Stats.Cc,
-            Detail.Stats.Bs,
-            Detail.Stats.Ph,
-            Detail.Stats.Wip,
-            Detail.Stats.Arm,
-            Detail.Stats.Bts,
-            Detail.Stats.VitalityHeader,
-            Detail.Stats.Vitality,
-            Detail.Stats.S,
-            Detail.UnitMoveFirstCm,
-            Detail.UnitMoveSecondCm,
-            FormatMove,
-            peripheralStats);
+        var entry = NewTrooperEntry.From(
+            unit, profile, Detail, CommonSkillsFor(unit, profile, Detail.CommonSkills), PeripheralStatsOf(profile), FormatMove);
         OnEntryBuilt(entry);
 
         if (entry.IsLieutenant)
@@ -1324,7 +1277,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     [RelayCommand]
     private void OpenUnitFilter()
     {
-        var options = CompanySelectionUnitFilterOptionsService.GetPreparedPopupOptionsForCurrentPoints(_preparedFilterOptions, FilterMaxPoints);
+        var options = UnitFilterOptionsCatalog.WithMaxPoints(_preparedFilterOptions, FilterMaxPoints);
         var request = new UnitFilterRequest(
             options,
             ActiveUnitFilter,
@@ -1342,11 +1295,9 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     private void ApplyUnitFilter(UnitFilterCriteria? criteria)
     {
         UnitFilter = null;
-        var normalized = NormalizeFilterCriteria(criteria ?? UnitFilterCriteria.None);
-        ActiveUnitFilter = CompanySelectionUnitFilterOptionsService.ApplyCriteriaFromPopup(
-            normalized,
-            value => LieutenantOnlyUnits = value,
-            value => TeamsView = value);
+        ActiveUnitFilter = NormalizeFilterCriteria(criteria ?? UnitFilterCriteria.None);
+        LieutenantOnlyUnits = ActiveUnitFilter.LieutenantOnlyUnits;
+        TeamsView = ActiveUnitFilter.TeamsView;
         IsUnitFilterActive = ActiveUnitFilter.IsActive;
         ApplyUnitVisibilityFilters();
     }
@@ -1358,24 +1309,12 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         TeamsView = AllowsTeamsFilter && criteria.TeamsView
     };
 
-    private int FilterMaxPoints => CompanySelectionUnitFilterOptionsService.ResolveFilterPopupMaxPoints(SelectedStartSeasonPoints);
+    private int FilterMaxPoints => UnitFilterOptionsCatalog.MaxPointsFor(SelectedStartSeasonPoints);
 
     /// <summary>Prepares the filter's choices from the source factions' units.</summary>
-    protected void BuildFilterOptions(CancellationToken cancellationToken = default)
-    {
-        var factions = UnitSourceFactions();
-        CompanySelectionUnitFilterOptionsService.BuildUnitFilterPopupOptions(
-            factions.Count > 1,
-            factions.FirstOrDefault(),
-            factions.Skip(1).FirstOrDefault(),
-            faction => faction.Id,
-            (factionId, token) => Services.ArmyData.GetFactionSnapshot(factionId, token)?.Filters,
-            Services.ArmyData.GetMergedMercsArmyList,
-            FilterMaxPoints,
-            value => _preparedFilterOptions = value,
-            _ => { },
-            cancellationToken);
-    }
+    protected void BuildFilterOptions(CancellationToken cancellationToken = default) =>
+        _preparedFilterOptions = Services.FilterOptions.For(
+            UnitSourceFactions().Select(faction => faction.Id).ToList(), FilterMaxPoints, cancellationToken);
 
     /// <summary>Forgets the prepared filter options so the next filter rebuilds them.</summary>
     protected void ForgetFilterOptions() => _preparedFilterOptions = null;

@@ -202,14 +202,14 @@ public sealed partial class CompanyUnitDetail : ObservableObject, IUnitDisplay
 
     private void RefreshSummaries()
     {
-        var accents = CompanySelectionVisualThemeWorkflow.GetSummaryAccentColorsForSecondaryBackground(HeaderColors.Secondary);
+        var accents = FactionColors.GetSummaryAccentColorsForSecondaryBackground(HeaderColors.Secondary);
         EquipmentSummaryFormatted = Named("Equipment", CommonEquipment, accents.Equipment);
         SpecialSkillsSummaryFormatted = CompanyProfileFormatting.BuildNamedSummaryFormatted(
             "Special Skills", CommonSkills, accents.Skills, highlightLieutenantPurple: HighlightLieutenant);
     }
 
     private static CompanyHeaderColors HeaderColorsFor(string? vanillaFactionName) =>
-        CompanySelectionVisualThemeWorkflow.GetHeaderColors(vanillaFactionName);
+        FactionColors.GetHeaderColors(vanillaFactionName);
 
     private static FormattedString Named(string label, IEnumerable<string> values, Color color) =>
         CompanyProfileFormatting.BuildNamedSummaryFormatted(label, values, color);

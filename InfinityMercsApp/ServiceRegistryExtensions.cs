@@ -6,6 +6,7 @@ using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
+using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Feedback;
@@ -145,12 +146,17 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<CompanyRecordCatalog>()
                 .AddSingleton<ICompanyFileService, CompanyFileStore>()
                 .AddSingleton<CompanyFactionCatalog>()
+                .AddSingleton<ThemeFactions>()
                 .AddSingleton<UnitDetailsLoader>()
                 .AddSingleton<CaptainOptionCatalog>()
                 .AddSingleton<CaptainSetup>()
                 .AddSingleton<SavedEntryWriter>()
                 .AddSingleton<CompanyFounder>()
                 .AddSingleton<CompanyRecruiter>()
+                .AddSingleton<CoreFireteamEligibility>()
+                .AddSingleton<SelectionUnitCatalog>()
+                .AddSingleton<UnitVisibility>()
+                .AddSingleton<UnitFilterOptionsCatalog>()
                 .AddSingleton<CompanyRoster>()
                 .AddSingleton<DeploymentRoster>()
                 .AddSingleton<MissionDebrief>()

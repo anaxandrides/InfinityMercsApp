@@ -44,16 +44,7 @@ public sealed class LoneWolfCompanySelectionViewModel(CompanySelectionServices s
         }
     }
 
-    private bool IsRegular(ArmyUnitSelectionItem unit, CompanyUnitVisibilityLookupContext context, CancellationToken cancellationToken)
-    {
-        var profileGroups = Services.ArmyData.GetUnit(unit.SourceFactionId, unit.Id, cancellationToken)?.ProfileGroups;
-        if (context.SpecopsByFactionId.TryGetValue(unit.SourceFactionId, out var specOpsById) &&
-            specOpsById.TryGetValue(unit.Id, out var specOps) &&
-            (unit.IsSpecOps || profileGroups is not { IsEmpty: false }))
-        {
-            profileGroups = specOps.ProfileGroups;
-        }
-
-        return profileGroups is { IsEmpty: false } groups && UnitTraits.ReadOrderTraits(groups).HasRegular;
-    }
+    private bool IsRegular(ArmyUnitSelectionItem unit, CompanyUnitVisibilityLookupContext context, CancellationToken cancellationToken) =>
+        Services.Visibility.ProfileGroupsOf(context, unit, cancellationToken) is { IsEmpty: false } groups &&
+        UnitTraits.ReadOrderTraits(groups).HasRegular;
 }

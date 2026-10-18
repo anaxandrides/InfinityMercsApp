@@ -4,13 +4,12 @@ using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
+using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
-using InfinityMercsApp.Services.Records;
-using InfinityMercsApp.Services.Season;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 
@@ -18,15 +17,16 @@ namespace InfinityMercsApp.ViewModels.Company.Selection;
 public sealed record CompanySelectionServices(
     INavigationService Navigation,
     IDialogService Dialogs,
-    ICaptainConfigurationDialog CaptainDialog,
     IArmyDataService ArmyData,
     ISpecOpsProvider SpecOps,
     IAppPackageFiles PackageFiles,
-    ICompanyFileService CompanyFiles,
-    ISeasonFileService SeasonFiles,
-    RecordPaths Paths,
     CompanyFactionCatalog FactionCatalog,
+    ThemeFactions ThemeFactions,
+    SelectionUnitCatalog UnitCatalog,
+    UnitVisibility Visibility,
+    UnitFilterOptionsCatalog FilterOptions,
     UnitDetailsLoader UnitDetails,
+    CoreFireteamEligibility CoreFireteams,
     CaptainSetup Captains,
     CompanyFounder Founder,
     CompanyRecruiter Recruiter,

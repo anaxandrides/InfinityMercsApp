@@ -1,10 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection.Items;
 
-public partial class ArmyUnitSelectionItem : ObservableObject, IViewerListItem
+public partial class ArmyUnitSelectionItem : ObservableObject, IViewerListItem, ISelectionUnit
 {
     public int Id { get; init; }
     public int SourceFactionId { get; init; }

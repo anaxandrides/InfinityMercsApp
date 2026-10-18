@@ -1,24 +1,35 @@
 using System.Text.RegularExpressions;
-using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Traits;
-using InfinityMercsApp.Presentation.Company.Selection;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Units;
-using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
-namespace InfinityMercsApp.ViewModels.Company.Selection.Workflows;
+namespace InfinityMercsApp.Services.CompanySelection.Profiles;
 
-internal sealed class CompanyProfileCoordinator
+/// <summary>The configurations a selection screen lists for a unit: one per distinct option without SWC.</summary>
+public static class ProfileConfigurations
 {
     /// <summary>
-    /// Builds display-ready viewer profiles for a unit's visible options.
+    /// A controller's options only, when the unit has controller groups. Options that differ only by how many of a
+    /// peripheral they bring are listed once, with the fewest.
     /// </summary>
-    public IReadOnlyList<ViewerProfileItem> BuildProfiles(CompanyProfileBuildRequest request)
+    public static IReadOnlyList<ProfileConfiguration> Build(ProfileConfigurationRequest request)
     {
         var unit = request.ProfileGroups;
-        var names = request.EntryNames;
-        var profiles = new List<ViewerProfileItem>();
+        if (unit.IsEmpty)
+        {
+            return [];
+        }
+
+        var filters = request.Filters;
+        var names = new ProfileEntryNames(filters.Extras, request.ShowUnitsInInches);
+        var weaponsLookup = filters.Names(ArmyFilterSection.Weapons);
+        var equipLookup = filters.Names(ArmyFilterSection.Equip);
+        var skillsLookup = filters.Names(ArmyFilterSection.Skills);
+        var charsLookup = filters.Names(ArmyFilterSection.Chars);
+        var peripheralLookup = filters.Names(ArmyFilterSection.Peripheral);
+        var profiles = new List<ProfileConfiguration>();
         var equipUsageCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var skillUsageCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var hasControllerGroups = unit.Groups.Any(unit.IsControllerGroup);
@@ -40,14 +51,14 @@ internal sealed class CompanyProfileCoordinator
                 }
 
                 var optionNameForFilter = ReadOptionNameOrGroup(option, groupName);
-                if (!request.ShouldIncludeOption(group, option, optionNameForFilter))
+                if (!request.IncludesOption(optionNameForFilter))
                 {
                     continue;
                 }
 
                 foreach (var name in names.OrderedUnique(
                              unit.GetEntriesWithIncludes(option, ProfileEntryKind.Equip),
-                             request.EquipLookup))
+                             equipLookup))
                 {
                     equipUsageCounts[name] = equipUsageCounts.TryGetValue(name, out var count) ? count + 1 : 1;
                 }
@@ -55,7 +66,7 @@ internal sealed class CompanyProfileCoordinator
                 var optionSkillNames = CompanyProfileText.BuildConfigurationSkillNames(
                     names.OrderedUnique(
                         unit.GetEntriesWithIncludes(option, ProfileEntryKind.Skills),
-                        request.SkillsLookup));
+                        skillsLookup));
                 foreach (var name in optionSkillNames)
                 {
                     skillUsageCounts[name] = skillUsageCounts.TryGetValue(name, out var count) ? count + 1 : 1;
@@ -63,7 +74,7 @@ internal sealed class CompanyProfileCoordinator
             }
         }
 
-        var bestConfigurationByKey = new Dictionary<string, (int Index, int PeripheralCount)>(StringComparer.OrdinalIgnoreCase);
+        var bestConfigurationByKey = new Dictionary<string, ListedConfiguration>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var group in unit.Groups)
         {
@@ -82,22 +93,22 @@ internal sealed class CompanyProfileCoordinator
                 }
 
                 var optionName = ReadOptionNameOrGroup(option, groupName);
-                if (!request.ShouldIncludeOption(group, option, optionName))
+                if (!request.IncludesOption(optionName))
                 {
                     continue;
                 }
 
-                optionName = BuildOptionDisplayName(option, optionName, request.EquipLookup, request.SkillsLookup);
+                optionName = BuildOptionDisplayName(option, optionName, equipLookup, skillsLookup);
 
                 var optionWeapons = names.OrderedUnique(
                     unit.GetEntriesWithIncludes(option, ProfileEntryKind.Weapons),
-                    request.WeaponsLookup);
+                    weaponsLookup);
                 var rangedWeaponNames = optionWeapons.Where(x => !CompanyProfileText.IsMeleeWeaponName(x)).ToList();
                 var meleeWeaponNames = optionWeapons.Where(CompanyProfileText.IsMeleeWeaponName).ToList();
 
                 var optionEquipmentNames = names.OrderedUnique(
                         unit.GetEntriesWithIncludes(option, ProfileEntryKind.Equip),
-                        request.EquipLookup)
+                        equipLookup)
                     .ToList();
                 var uniqueEquipmentNames = optionEquipmentNames
                     .Where(x => equipUsageCounts.TryGetValue(x, out var c) && c == 1)
@@ -113,10 +124,10 @@ internal sealed class CompanyProfileCoordinator
                 var optionSkillNames = CompanyProfileText.BuildConfigurationSkillNames(
                     names.OrderedUnique(
                         unit.GetEntriesWithIncludes(option, ProfileEntryKind.Skills),
-                        request.SkillsLookup));
+                        skillsLookup));
                 var optionCharacteristicNames = names.OrderedUnique(
                         unit.GetEntriesWithIncludes(option, ProfileEntryKind.Chars),
-                        request.CharsLookup)
+                        charsLookup)
                     .ToList();
                 var (hasRegular, hasIrregular, hasImpetuous, hasTacticalAwareness) = UnitTraits.ReadOrderTraits(option);
                 var (hasCube, hasCube2, hasHackable) = UnitTraits.ReadTechTraits(
@@ -141,7 +152,7 @@ internal sealed class CompanyProfileCoordinator
 
                 var peripheralNames = names.Counted(
                     unit.GetDisplayPeripheralEntries(group, option),
-                    request.PeripheralLookup);
+                    peripheralLookup);
                 var firstPeripheralName = peripheralNames.FirstOrDefault();
                 var peripheralUnitName = CompanyUnitDetailsShared.ExtractFirstPeripheralName(firstPeripheralName);
 
@@ -155,7 +166,7 @@ internal sealed class CompanyProfileCoordinator
                     if (peripheralProfile is not null)
                     {
                         hasPeripheralProfile = true;
-                        peripheralStats = request.BuildPeripheralStatBlock(extractedPeripheralName, peripheralProfile);
+                        peripheralStats = CompanyPeripheralStatBlockService.Build(extractedPeripheralName, peripheralProfile, filters, request.ShowUnitsInInches);
                     }
                 }
 
@@ -164,10 +175,11 @@ internal sealed class CompanyProfileCoordinator
                 var ftMasterPeripheralName = ResolveFtMasterPeripheralName(peripheralUnitName);
                 if (peripheralHasControlModifier && !string.IsNullOrWhiteSpace(ftMasterPeripheralName))
                 {
-                    EnsureSkill(uniqueSkillsNames, $"FT Master ({ftMasterPeripheralName})");
+                    EnsureSkill(uniqueSkillsNames, PeripheralControl.FtMaster(ftMasterPeripheralName));
                 }
 
-                var cost = request.ReadAdjustedOptionCost(group, option);
+                var adjustedCost = unit.GetAdjustedCost(group, option);
+                var cost = request.AdjustCost is null ? adjustedCost : request.AdjustCost(group, option, adjustedCost);
                 var displayPeripheralNames = peripheralNames;
                 var displayCost = cost;
 
@@ -189,80 +201,50 @@ internal sealed class CompanyProfileCoordinator
                 var peripheralCount = CompanyUnitDetailsShared.GetPeripheralTotalCount(peripheralNames);
                 var dedupeKey =
                     $"{groupName}|{optionName}|{string.Join("|", rangedWeaponNames)}|{string.Join("|", meleeWeaponNames)}|{string.Join("|", uniqueEquipmentNames)}|{string.Join("|", uniqueSkillsNames)}|{string.Join("|", normalizedPeripheralNames)}|{swc}";
-                var hasExisting = bestConfigurationByKey.TryGetValue(dedupeKey, out var existingConfiguration);
-                if (hasExisting && peripheralCount >= existingConfiguration.PeripheralCount)
+                bestConfigurationByKey.TryGetValue(dedupeKey, out var existingConfiguration);
+                if (existingConfiguration is not null && peripheralCount >= existingConfiguration.PeripheralCount)
                 {
                     continue;
                 }
 
-                var isLieutenant = request.ForceLieutenant || option.IsLieutenant(request.SkillsLookup);
+                var isLieutenant = request.ForceLieutenant || option.IsLieutenant(skillsLookup);
                 var profileKey = $"{groupName}|{optionName}|{displayCost}|{swc}|lt:{(isLieutenant ? 1 : 0)}";
                 var peripheralEquipment = peripheralStats?.Equipment ?? "-";
                 if (peripheralHasControlModifier)
                 {
                     peripheralSkills = EnsureSkillLine(peripheralSkills, "Irregular");
                 }
-                var hasPeripheralStats = peripheralStats is not null;
-                var profileItem = new ViewerProfileItem
-                {
-                    GroupName = groupName,
-                    Name = optionName,
-                    ProfileKey = profileKey,
-                    IsLieutenant = isLieutenant,
-                    NameFormatted = CompanyProfileFormatting.BuildNameFormatted(optionName),
-                    RangedWeapons = CompanyProfileText.JoinOrDash(rangedWeaponNames),
-                    RangedWeaponsFormatted = CompanyProfileFormatting.BuildListFormattedString(rangedWeaponNames, Color.FromArgb("#EF4444")),
-                    MeleeWeapons = CompanyProfileText.JoinOrDash(meleeWeaponNames),
-                    MeleeWeaponsFormatted = CompanyProfileFormatting.BuildListFormattedString(meleeWeaponNames, Color.FromArgb("#22C55E")),
-                    UniqueEquipment = CompanyProfileText.JoinOrDash(uniqueEquipmentNames),
-                    UniqueEquipmentFormatted = CompanyProfileFormatting.BuildListFormattedString(uniqueEquipmentNames, Color.FromArgb("#06B6D4")),
-                    UniqueSkills = CompanyProfileText.JoinOrDash(uniqueSkillsNames),
-                    UniqueSkillsFormatted = CompanyProfileFormatting.BuildListFormattedString(
-                        uniqueSkillsNames,
-                        Color.FromArgb("#F59E0B"),
-                        highlightLieutenantPurple: request.ForceLieutenant),
-                    Characteristics = CompanyProfileText.JoinOrDash(optionCharacteristicNames),
-                    Peripherals = CompanyProfileText.JoinOrDash(displayPeripheralNames),
-                    PeripheralsFormatted = CompanyProfileFormatting.BuildListFormattedString(displayPeripheralNames, Color.FromArgb("#FACC15")),
-                    HasPeripheralStatBlock = hasPeripheralStats,
-                    PeripheralNameHeading = peripheralStats?.NameHeading ?? string.Empty,
-                    PeripheralMov = peripheralStats is not null
-                        ? request.FormatMoveValue(peripheralStats.MoveFirstCm, peripheralStats.MoveSecondCm)
-                        : "-",
-                    PeripheralCc = peripheralStats?.Cc ?? "-",
-                    PeripheralBs = peripheralStats?.Bs ?? "-",
-                    PeripheralPh = peripheralStats?.Ph ?? "-",
-                    PeripheralWip = peripheralStats?.Wip ?? "-",
-                    PeripheralArm = peripheralStats?.Arm ?? "-",
-                    PeripheralBts = peripheralStats?.Bts ?? "-",
-                    PeripheralVitalityHeader = peripheralStats?.VitalityHeader ?? Stat.Vita.Key(),
-                    PeripheralVitality = peripheralStats?.Vitality ?? "-",
-                    PeripheralS = peripheralStats?.S ?? "-",
-                    PeripheralAva = peripheralStats?.Ava ?? "-",
-                    PeripheralSubtitle = CompanyUnitDetailsShared.BuildPeripheralSubtitle(peripheralStats),
-                    PeripheralEquipmentLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Equipment", peripheralEquipment, Color.FromArgb("#06B6D4")),
-                    HasPeripheralEquipmentLine = hasPeripheralStats && !string.IsNullOrWhiteSpace(peripheralEquipment) && peripheralEquipment != "-",
-                    PeripheralSkillsLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Skills", peripheralSkills, Color.FromArgb("#F59E0B")),
-                    HasPeripheralSkillsLine = hasPeripheralStats && !string.IsNullOrWhiteSpace(peripheralSkills) && peripheralSkills != "-",
-                    PeripheralGrantsFtMaster = peripheralHasControlModifier && !string.IsNullOrWhiteSpace(ftMasterPeripheralName),
-                    PeripheralIsIrregular = peripheralHasControlModifier,
-                    PeripheralUnitName = ftMasterPeripheralName,
-                    Swc = swc,
-                    SwcDisplay = $"SWC {swc}",
-                    Cost = displayCost,
-                    ShowProfileTacticalAwarenessIcon = !request.ShowTacticalAwarenessIcon &&
-                                                       (hasTacticalAwareness || optionSkillNames.Any(x => x.Contains("tactical awareness", StringComparison.OrdinalIgnoreCase)))
-                };
 
-                if (hasExisting)
+                var profileItem = new ProfileConfiguration(
+                    groupName,
+                    optionName,
+                    profileKey,
+                    isLieutenant,
+                    request.ForceLieutenant,
+                    rangedWeaponNames,
+                    meleeWeaponNames,
+                    uniqueEquipmentNames,
+                    uniqueSkillsNames,
+                    optionCharacteristicNames,
+                    displayPeripheralNames,
+                    peripheralStats,
+                    peripheralEquipment,
+                    peripheralSkills,
+                    peripheralHasControlModifier,
+                    ftMasterPeripheralName,
+                    swc,
+                    displayCost,
+                    hasTacticalAwareness || optionSkillNames.Any(x => x.Contains("tactical awareness", StringComparison.OrdinalIgnoreCase)));
+
+                if (existingConfiguration is not null)
                 {
                     profiles[existingConfiguration.Index] = profileItem;
-                    bestConfigurationByKey[dedupeKey] = (existingConfiguration.Index, peripheralCount);
+                    bestConfigurationByKey[dedupeKey] = existingConfiguration with { PeripheralCount = peripheralCount };
                     continue;
                 }
 
                 profiles.Add(profileItem);
-                bestConfigurationByKey[dedupeKey] = (profiles.Count - 1, peripheralCount);
+                bestConfigurationByKey[dedupeKey] = new ListedConfiguration(profiles.Count - 1, peripheralCount);
             }
         }
 
@@ -376,33 +358,8 @@ internal sealed class CompanyProfileCoordinator
         characteristics.Add(name);
     }
 
-    private static bool HasPeripheralControlModifier(IEnumerable<string> peripheralNames, string? peripheralSkills)
-    {
-        foreach (var peripheralName in peripheralNames)
-        {
-            if (string.IsNullOrWhiteSpace(peripheralName))
-            {
-                continue;
-            }
-
-            if (peripheralName.Contains("synchronized", StringComparison.OrdinalIgnoreCase) ||
-                peripheralName.Contains("control", StringComparison.OrdinalIgnoreCase) ||
-                peripheralName.Contains("cyberplug", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(peripheralSkills) &&
-            (peripheralSkills.Contains("synchronized", StringComparison.OrdinalIgnoreCase) ||
-             peripheralSkills.Contains("control", StringComparison.OrdinalIgnoreCase) ||
-             peripheralSkills.Contains("cyberplug", StringComparison.OrdinalIgnoreCase)))
-        {
-            return true;
-        }
-
-        return false;
-    }
+    private static bool HasPeripheralControlModifier(IEnumerable<string> peripheralNames, string? peripheralSkills) =>
+        peripheralNames.Any(PeripheralControl.Mentions) || PeripheralControl.Mentions(peripheralSkills);
 
     private static string ResolveFtMasterPeripheralName(string? peripheralUnitName)
     {

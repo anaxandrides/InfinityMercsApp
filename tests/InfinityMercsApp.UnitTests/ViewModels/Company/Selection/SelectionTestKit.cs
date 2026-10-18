@@ -8,6 +8,7 @@ using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
+using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
@@ -97,13 +98,18 @@ internal sealed class SelectionTestKit
             var captains = new CaptainSetup(CaptainDialog, new CaptainOptionCatalog(ArmyData, SpecOps), ArmyData);
             var entries = new SavedEntryWriter(ArmyData);
             return new(
-                Navigation, Dialogs, CaptainDialog, ArmyData, SpecOps, PackageFiles, CompanyFiles, SeasonFiles, Paths,
-                new CompanyFactionCatalog(ArmyData),
-                new UnitDetailsLoader(ArmyData, SpecOps),
-                captains,
-                new CompanyFounder(captains, entries, Paths),
-                new CompanyRecruiter(entries, CompanyFiles, SeasonFiles),
-                Settings);
+                Navigation, Dialogs, ArmyData, SpecOps, PackageFiles,
+                FactionCatalog: new CompanyFactionCatalog(ArmyData),
+                ThemeFactions: new ThemeFactions(ArmyData),
+                UnitCatalog: new SelectionUnitCatalog(ArmyData, SpecOps),
+                Visibility: new UnitVisibility(ArmyData, SpecOps),
+                FilterOptions: new UnitFilterOptionsCatalog(ArmyData),
+                UnitDetails: new UnitDetailsLoader(ArmyData, SpecOps),
+                CoreFireteams: new CoreFireteamEligibility(ArmyData),
+                Captains: captains,
+                Founder: new CompanyFounder(captains, entries, Paths),
+                Recruiter: new CompanyRecruiter(entries, CompanyFiles, SeasonFiles),
+                Settings: Settings);
         }
     }
 

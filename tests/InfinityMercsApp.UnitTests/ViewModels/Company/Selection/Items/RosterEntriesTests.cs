@@ -1,7 +1,7 @@
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.ViewModels.Company.Selection.Workflows;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
-namespace InfinityMercsApp.UnitTests.ViewModels.Company.Selection.Workflows;
+namespace InfinityMercsApp.UnitTests.ViewModels.Company.Selection.Items;
 
 public sealed class RosterEntriesTests
 {

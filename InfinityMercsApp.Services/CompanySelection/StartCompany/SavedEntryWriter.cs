@@ -1,18 +1,11 @@
-using System.Globalization;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.ArmyData;
-using InfinityMercsApp.Services.CompanySelection.Captain;
-using InfinityMercsApp.Services.CompanySelection.Common;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.Services.CompanySelection.SpecOps;
 using InfinityMercsApp.Services.CompanySelection.Units;
-using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 
 namespace InfinityMercsApp.Services.CompanySelection.StartCompany;
 
