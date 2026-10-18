@@ -13,6 +13,10 @@ public abstract class CompanySavedCompanyFileBase<TFaction, TEntry>
     public string CreatedUtc { get; init; } = string.Empty;
     public int StartSeasonPoints { get; init; }
     public int PointsLimit { get; init; }
+    /// <summary>
+    /// The CR spent recruiting the company when it was founded, which sets its starting funds. Later recruits are
+    /// charged to the season as Additional Recruitment instead, so this never changes.
+    /// </summary>
     public int CurrentPoints { get; init; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SavedImprovedCaptainStats? ImprovedCaptainStats { get; init; }
