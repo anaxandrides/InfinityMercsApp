@@ -203,6 +203,11 @@
                                            TextColor="#F59E0B"
                                            FontSize="{DynamicResource FontSizeMicro}"
                                            FontAttributes="Bold" />
+                                    <Label Text="TA: NOT FOR THE CORE FIRETEAM"
+                                           IsVisible="{Binding ShowsCoreFireteamTacticalNote}"
+                                           TextColor="#8A97A8"
+                                           FontSize="{DynamicResource FontSizeMicro}"
+                                           LineBreakMode="TailTruncation" />
                                 </VerticalStackLayout>
                                 <controls:SvgIcon Grid.Column="2"
                                                   Source="SVGCache/CBIcons/tactical.svg"

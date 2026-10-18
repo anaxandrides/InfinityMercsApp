@@ -188,6 +188,8 @@ public sealed partial class CohesiveCompanySelectionViewModel : CompanySelection
 
     protected override string CoreFireteam => TrackedFireteamName;
 
+    protected override IReadOnlyList<FireteamSlot> CoreFireteamSlots => TrackedFireteamSlots() ?? [];
+
     protected override void OnPreparingRecruitment(SavedCompanyFile company) =>
         TrackedFireteamName = _trackedFireteamToRestore = company.CoreFireteam;
 
@@ -238,7 +240,6 @@ public sealed partial class CohesiveCompanySelectionViewModel : CompanySelection
         {
             var entry = MercsCompanyEntries[i];
             entry.IsIrregular = claimed is not null && i < claimed.Count && !claimed[i];
-            entry.IrregularInCompany = claimed is null ? null : entry.IsIrregular;
         }
     }
 

@@ -43,4 +43,15 @@ public sealed class GameUnitItemTests
         Assert.False(digger.IsTransmuted);
         Assert.Contains(new StatValue(Stat.Arm, "3"), digger.Statline);
     }
+
+    [Theory]
+    [InlineData(true, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(false, true, false)]
+    public void ShowsCoreFireteamTacticalNote_TokenAndPlace_ShowsWhenItHasBoth(bool hasToken, bool inCoreFireteam, bool expected)
+    {
+        var row = new GameUnitItem(new DeploymentUnitItem { Name = "Kamau", IsInCoreFireteam = inCoreFireteam }, hasToken, []);
+
+        Assert.Equal(expected, row.ShowsCoreFireteamTacticalNote);
+    }
 }

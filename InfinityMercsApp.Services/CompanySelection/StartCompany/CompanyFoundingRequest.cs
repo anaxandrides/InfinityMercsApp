@@ -21,4 +21,7 @@ public sealed class CompanyFoundingRequest<TFaction, TEntry>
 
     /// <summary>A Cohesive company's core fireteam; empty for any other company.</summary>
     public string CoreFireteam { get; init; } = string.Empty;
+
+    /// <summary>The places in a Cohesive company's core fireteam, wildcards included; empty for any other company.</summary>
+    public IReadOnlyList<FireteamSlot> CoreFireteamSlots { get; init; } = [];
 }

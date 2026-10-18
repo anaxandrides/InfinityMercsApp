@@ -9,12 +9,6 @@ public interface ICompanyMercsEntry
 
     /// <summary>A Proxy Pack's Lone Wolf, the only trooper that company has.</summary>
     bool IsLoneWolf { get; }
-
-    /// <summary>
-    /// Whether the company makes the trooper Irregular (true) or Regular (false), as a Cohesive company does by its
-    /// core fireteam; null when its profile decides.
-    /// </summary>
-    bool? IrregularInCompany { get; }
     bool IsSpecOps { get; }
     string UnitTypeCode { get; }
     string ProfileKey { get; }

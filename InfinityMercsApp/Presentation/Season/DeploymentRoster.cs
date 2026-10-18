@@ -7,6 +7,7 @@ using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Armor;
+using InfinityMercsApp.Domain.Season.Game;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Domain.Season.Troopers;
@@ -33,6 +34,9 @@ public sealed partial class DeploymentRoster(
     FactionLogoCacheService? logos = null)
 {
     internal const int TagCompanyFactionId = 2003;
+
+    // The one skill a Transmutation (X) trooper keeps in both profiles, whatever gave it.
+    private const string Neurocinetics = "Neurocinetics";
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -76,6 +80,7 @@ public sealed partial class DeploymentRoster(
         var kinds = new GainKinds(armyData.GetWeaponNames(), armyData.GetSkillNames());
         var servants = _servants.Of(company);
         var controllers = SeasonTroopers.ControllersOf(company, season, servants);
+        var outsideCoreFireteam = CoreFireteamOrders.Irregular(company, season);
 
         return company.Entries
             .Where(e => SeasonTroopers.IsDeployable(e, season, servants))
@@ -93,6 +98,7 @@ public sealed partial class DeploymentRoster(
                 new RolledResults(SeasonTroopers.RollResultsOf(entry, season), kinds),
                 SeasonRenown.Of(entry, company, season, catalog, servants).Total,
                 controllers.Contains(entry.EntryIndex),
+                outsideCoreFireteam,
                 showUnitsInInches))
             .ToList();
     }
@@ -108,6 +114,7 @@ public sealed partial class DeploymentRoster(
         RolledResults rolls,
         int renown,
         bool controlsPeripheral,
+        IReadOnlySet<int>? outsideCoreFireteam,
         bool showUnitsInInches)
     {
         var factionId = SeasonTroopers.SourceFactionId(entry);
@@ -158,6 +165,7 @@ public sealed partial class DeploymentRoster(
         var logoUnitId = entry.LogoSourceUnitId > 0 ? entry.LogoSourceUnitId : entry.SourceUnitId;
         var experienceLevel = progress.RankLevel;
         var startingVitality = Math.Max(1, int.TryParse(changed.Vitality, out var vitality) ? vitality : 1);
+        var fitsCoreFireteam = outsideCoreFireteam is not null && !entry.IsPeripheralUnit;
 
         return new DeploymentUnitItem
         {
@@ -169,7 +177,11 @@ public sealed partial class DeploymentRoster(
             IsLieutenant = entry.IsLieutenant,
             IsLoneWolf = entry.IsLoneWolf,
             AspectOf = entry.AspectOf,
-            IsIrregular = entry.IrregularInCompany ?? HasLine(characteristics, "Irregular", splitOnCommas: true),
+            // A Cohesive company's core fireteam decides, for every trooper that can take a place in it.
+            IsIrregular = fitsCoreFireteam
+                ? outsideCoreFireteam?.Contains(entry.EntryIndex) == true
+                : HasLine(characteristics, "Irregular", splitOnCommas: true),
+            IsInCoreFireteam = fitsCoreFireteam && outsideCoreFireteam?.Contains(entry.EntryIndex) == false,
             IsImpetuous = HasLine(characteristics, "Impetuous", splitOnCommas: true),
             IsTagFromTagCompany = factionId == TagCompanyFactionId &&
                                   UnitTypeCodes.IsTag(entry.UnitTypeCode),
@@ -190,7 +202,8 @@ public sealed partial class DeploymentRoster(
             Renown = renown,
             VitalityStat = StatKeys.VitalityFor(worn.UnitTypeCode),
             StartingVitality = startingVitality,
-            TransmutesTo = _transmuted.For(entry, factionId, armor?.ArmorName, startingVitality, showUnitsInInches),
+            TransmutesTo = _transmuted.For(entry, factionId, armor?.ArmorName, startingVitality, showUnitsInInches)?
+                .Carrying(CarriedGearOf(gear ?? [], catalog, changed.Skills, rolled.Equipment)),
             HasNwi = HasLine(profile.Skills, "No Wound Incapacitation"),
             HasRemotePresence = HasLine(profile.Skills, "Remote Presence"),
             Equipment = TextDistances.Convert(profile.Equipment, showUnitsInInches),
@@ -239,6 +252,31 @@ public sealed partial class DeploymentRoster(
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// What a Transmutation (X) trooper keeps in its second profile: its season gear's roles and augments, its Booty
+    /// equipment, and Neurocinetics wherever it came from. Weapons stay on the row anyway, and armour stays behind.
+    /// </summary>
+    internal static CarriedGear CarriedGearOf(
+        IEnumerable<SeasonUnitGear> gear, InventoryCatalog catalog, IEnumerable<string> skills, IReadOnlyList<string> rolledEquipment)
+    {
+        var gearSkills = new List<string>();
+        var overrides = new List<StatOverride>();
+        foreach (var item in EquippedItem.In(gear, catalog).Where(item => item.Slot is GearSlot.Roles or GearSlot.Augments))
+        {
+            if (item.Slot == GearSlot.Augments && StatOverride.TryParse(item.Name, out var statOverride))
+            {
+                overrides.Add(statOverride);
+            }
+            else
+            {
+                gearSkills.Add(item.Name);
+            }
+        }
+
+        gearSkills.AddRange(skills.Where(skill => skill.Contains(Neurocinetics, StringComparison.OrdinalIgnoreCase)));
+        return new CarriedGear(gearSkills, rolledEquipment, overrides);
     }
 
     // The movement in centimetres when the entry has both values, so it reads back unambiguously; otherwise as saved.

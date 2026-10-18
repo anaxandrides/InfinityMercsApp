@@ -4,6 +4,7 @@ using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
+using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Presentation.Season;
 using InfinityMercsApp.Services.Season;
@@ -150,6 +151,26 @@ public sealed class DeploymentRosterTests : IDisposable
     }
 
     [Fact]
+    public void CarriedGearOf_SeasonGear_KeepsRolesAugmentsBootyAndNeurocinetics()
+    {
+        List<SeasonUnitGear> gear =
+        [
+            new() { Slot = "Augments", ItemName = "BS = 14" },
+            new() { Slot = "Augments", ItemName = "Mimetism (-3)" },
+            new() { Slot = "Roles", ItemName = "Forward Observer" },
+            new() { Slot = "Primary", ItemName = "Spitfire" },
+            new() { Slot = "Armor", ItemName = "Light Armour (LI)" }
+        ];
+
+        var carried = DeploymentRoster.CarriedGearOf(
+            gear, InventoryCatalog.Empty, ["Courage", "Neurocinetics (B2 in Active)"], ["Medikit"]);
+
+        Assert.Equal(["Mimetism (-3)", "Forward Observer", "Neurocinetics (B2 in Active)"], carried.Skills);
+        Assert.Equal(["Medikit"], carried.Equipment);
+        Assert.Equal([new StatOverride(Stat.Bs, 14)], carried.Overrides);
+    }
+
+    [Fact]
     public async Task LoadAsync_MissingCompany_ReturnsNoUnits()
     {
         Assert.Empty(await _roster.LoadAsync("/nowhere/c.json", null, true));
@@ -271,25 +292,37 @@ public sealed class DeploymentRosterTests : IDisposable
         Assert.Contains(PeripheralKinds.ControllerSkill, units[0].Skills);
     }
 
-    // A Cohesive company decides: in its core fireteam a trooper is Regular, outside it Irregular.
-    [Fact]
-    public async Task LoadAsync_CohesiveOrderType_OverridesTheProfile()
-    {
-        const string cohesive = """
-            {
-              "companyType": "Cohesive Company", "coreFireteam": "Fusilier Core",
-              "entries": [
-                { "entryIndex": 1, "name": "Drummer", "isLieutenant": true, "sourceFactionId": 101, "irregularInCompany": true,
-                  "Custom Characteristics": [ "Regular" ] },
-                { "entryIndex": 2, "name": "Kamau", "sourceFactionId": 101, "irregularInCompany": false,
-                  "Custom Characteristics": [ "Irregular" ] }
-              ]
-            }
-            """;
+    // A Cohesive company's core fireteam has room for one Kamau: the lieutenant fits nowhere, the second Kamau is left out.
+    private const string Cohesive = """
+        {
+          "companyType": "Cohesive Company", "coreFireteam": "Kamau Core",
+          "coreFireteamSlots": [ { "name": "Kamau", "max": "1" } ],
+          "entries": [
+            { "entryIndex": 1, "name": "Drummer", "isLieutenant": true, "sourceFactionId": 101, "Custom Characteristics": [ "Regular" ] },
+            { "entryIndex": 2, "name": "Kamau", "sourceFactionId": 101, "Custom Characteristics": [ "Irregular" ] },
+            { "entryIndex": 3, "name": "Kamau", "sourceFactionId": 101, "Custom Characteristics": [ "Regular" ] }
+          ]
+        }
+        """;
 
-        var units = await _roster.LoadAsync(_records.WriteCompany("cohesive.json", cohesive), SeasonPath, showUnitsInInches: true);
+    [Fact]
+    public async Task LoadAsync_CohesiveCompany_CoreFireteamDecidesTheOrderType()
+    {
+        var units = await _roster.LoadAsync(_records.WriteCompany("cohesive.json", Cohesive), SeasonPath, showUnitsInInches: true);
+
+        Assert.Equal([true, false, true], units.Select(unit => unit.IsIrregular));
+        Assert.Equal([false, true, false], units.Select(unit => unit.IsInCoreFireteam));
+    }
+
+    [Fact]
+    public async Task LoadAsync_CohesiveTrooperRetired_FreesItsFireteamPlace()
+    {
+        _seasonFiles.LoadAsync(SeasonPath).Returns(new SeasonFile { Retired = [new RetiredTrooper { EntryIndex = 2 }] });
+
+        var units = await _roster.LoadAsync(_records.WriteCompany("cohesive.json", Cohesive), SeasonPath, showUnitsInInches: true);
 
         Assert.Equal([true, false], units.Select(unit => unit.IsIrregular));
+        Assert.Equal(3, units[1].EntryIndex);
     }
 
     [Fact]

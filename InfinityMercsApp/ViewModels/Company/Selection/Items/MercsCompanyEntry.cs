@@ -22,9 +22,6 @@ public partial class MercsCompanyEntry : ObservableObject, IViewerListItem, ICom
     /// <inheritdoc/>
     public bool IsLoneWolf { get; set; }
 
-    /// <inheritdoc/>
-    public bool? IrregularInCompany { get; set; }
-
     /// <summary>Recruited as a Spec Ops profile, whose captain upgrades come from the Spec-Ops chart.</summary>
     public bool IsSpecOps { get; init; }
 

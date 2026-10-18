@@ -149,32 +149,6 @@ public sealed class CompanyRecruiterTests
         Assert.Equal([0, 3, 4], _saved.Entries.Select(entry => entry.EntryIndex));
     }
 
-    // A Cohesive recruit can take the fireteam place an earlier trooper had, making that one Irregular.
-    [Fact]
-    public async Task HireAsync_CohesiveRoster_SavesEachTroopersOrderType()
-    {
-        var fusilier = new MercsCompanyEntry { Name = "Fusilier", IsOnRoster = true, SavedEntryIndex = 3, IrregularInCompany = true };
-        var recruit = Recruit("Alpha", 10);
-        recruit.IrregularInCompany = false;
-
-        await HireAsync(fusilier, recruit);
-
-        Assert.NotNull(_saved);
-        Assert.Equal([null, true, null, false], _saved.Entries.Select(entry => entry.IrregularInCompany));
-    }
-
-    [Fact]
-    public async Task HireAsync_SeasonNotSavedForCohesive_PutsOrderTypesBack()
-    {
-        _seasonFiles.UpdateAsync(SeasonPath, Arg.Any<Action<SeasonFile>>()).Returns(false);
-        var fusilier = new MercsCompanyEntry { Name = "Fusilier", IsOnRoster = true, SavedEntryIndex = 3, IrregularInCompany = true };
-
-        await HireAsync(fusilier, Recruit("Alpha", 10));
-
-        Assert.NotNull(_saved);
-        Assert.All(_saved.Entries, entry => Assert.Null(entry.IrregularInCompany));
-    }
-
     [Fact]
     public async Task HireAsync_CompanyNotSaved_ChargesNothing()
     {

@@ -212,7 +212,6 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
             IsLieutenant = entry.IsLieutenant,
             CarriesCaptainUpgrades = entry.IsLieutenant,
             IsLoneWolf = entry.IsLoneWolf,
-            IrregularInCompany = entry.IrregularInCompany,
             // Persist peripherals as dedicated child entries only.
             HasPeripheralStatBlock = false,
             PeripheralNameHeading = string.Empty,

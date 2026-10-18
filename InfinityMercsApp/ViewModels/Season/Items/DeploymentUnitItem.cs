@@ -30,6 +30,9 @@ public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListIt
     /// <summary>For one of the Lone Wolf's Aspects, the Lone Wolf's entry; null for every other trooper.</summary>
     public int? AspectOf { get; init; }
     public bool IsIrregular { get; init; }
+
+    /// <summary>A Cohesive company's trooper with a place in its core fireteam.</summary>
+    public bool IsInCoreFireteam { get; init; }
     public bool IsImpetuous { get; init; }
     public bool IsTagFromTagCompany { get; init; }
     public int SlotCost => IsTagFromTagCompany ? 2 : 1;

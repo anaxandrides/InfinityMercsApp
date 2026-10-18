@@ -13,7 +13,7 @@ namespace InfinityMercsApp.ViewModels.Season.Game.Items;
 /// A deployed trooper's row on the game tracker: wounds, XP, its Tactical Awareness token and its weapons. A Lone
 /// Wolf's loadouts each have a row; the one the Lone Wolf is in shows its profile, and the rest show the Aspect of the
 /// Wolf's until the Lone Wolf transfers into them. A Transmutation (X) trooper shows its second profile while it has
-/// taken enough wounds, keeping its weapons.
+/// taken enough wounds, keeping its weapons and the rest of its gear.
 /// </summary>
 public sealed partial class GameUnitItem : ObservableObject
 {
@@ -91,6 +91,12 @@ public sealed partial class GameUnitItem : ObservableObject
 
     /// <summary>An Elite Deployment gives troopers (and a lieutenant with Tactical Awareness) a token to spend.</summary>
     public bool HasTacticalToken { get; }
+
+    /// <summary>
+    /// A Cohesive company may never spend Tactical Awareness on its core fireteam, so a token held by one of its
+    /// troopers carries a reminder: the app doesn't know which troopers formed the fireteam in play.
+    /// </summary>
+    public bool ShowsCoreFireteamTacticalNote => HasTacticalToken && Unit.IsInCoreFireteam;
 
     [ObservableProperty]
     public partial WoundState WoundState { get; set; }

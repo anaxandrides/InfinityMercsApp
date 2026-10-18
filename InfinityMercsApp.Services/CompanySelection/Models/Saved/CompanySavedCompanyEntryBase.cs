@@ -39,13 +39,6 @@ public abstract class CompanySavedCompanyEntryBase
     public bool IsLoneWolf { get; init; }
 
     /// <summary>
-    /// Whether the company makes the trooper Irregular (true) or Regular (false): a Cohesive company's troopers
-    /// outside its core fireteam are Irregular. Null when the trooper's profile decides. Recruiting can change it,
-    /// since a recruit may take a fireteam place.
-    /// </summary>
-    public bool? IrregularInCompany { get; set; }
-
-    /// <summary>
     /// For one of the Lone Wolf's Aspects, the Lone Wolf's entry: the Aspect has a loadout of its own, but its stats,
     /// perks, XP and injuries are the Lone Wolf's. Null for every other trooper.
     /// </summary>

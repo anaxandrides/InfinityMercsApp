@@ -20,6 +20,11 @@ public abstract class CompanySavedCompanyFileBase<TFaction, TEntry>
     public int CurrentPoints { get; init; }
     /// <summary>A Cohesive company's core fireteam, chosen when it was founded; empty for any other company.</summary>
     public string CoreFireteam { get; init; } = string.Empty;
+    /// <summary>
+    /// The places in a Cohesive company's core fireteam, wildcards included, as they stood when it was founded; empty
+    /// for any other company. Who is Regular is worked out from them (see <c>CoreFireteamOrders</c>).
+    /// </summary>
+    public List<FireteamSlot> CoreFireteamSlots { get; init; } = [];
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SavedImprovedCaptainStats? ImprovedCaptainStats { get; init; }

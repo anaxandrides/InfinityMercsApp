@@ -1355,7 +1355,8 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
                 ShowUnitsInInches = Detail.ShowUnitsInInches,
                 SelectedStartSeasonPoints = SelectedStartSeasonPoints,
                 SeasonPointsCapText = SeasonPointsCapText,
-                CoreFireteam = CoreFireteam
+                CoreFireteam = CoreFireteam,
+                CoreFireteamSlots = CoreFireteamSlots
             });
             switch (founding.Outcome)
             {
@@ -1380,6 +1381,9 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     /// <summary>A Cohesive company's core fireteam, saved with it; empty for any other company.</summary>
     protected virtual string CoreFireteam => string.Empty;
 
+    /// <summary>The places in a Cohesive company's core fireteam, saved with it; empty for any other company.</summary>
+    protected virtual IReadOnlyList<FireteamSlot> CoreFireteamSlots => [];
+
     /// <summary>Takes up what the saved company fixed when it was founded, before its roster is listed.</summary>
     protected virtual void OnPreparingRecruitment(SavedCompanyFile company)
     {
@@ -1396,7 +1400,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             return;
         }
 
-        var outcome = await Services.Recruiter.HireAsync(recruitment, MercsCompanyEntries.ToList());
+        var outcome = await Services.Recruiter.HireAsync(recruitment, recruits);
         switch (outcome)
         {
             case RecruitmentOutcome.Hired:

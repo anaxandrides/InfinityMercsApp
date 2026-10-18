@@ -111,7 +111,7 @@ public sealed class CohesiveCompanySelectionViewModelTests
         var entry = Assert.Single(viewModel.MercsCompanyEntries);
         Assert.Contains(CohesiveCompanySelectionViewModel.NumberTwoSkill, entry.SavedSkills);
         Assert.Contains(CohesiveCompanySelectionViewModel.FireteamMasterSkill, entry.SavedSkills);
-        Assert.False(entry.IrregularInCompany);
+        Assert.False(entry.IsIrregular);
     }
 
     [Fact]
