@@ -130,17 +130,31 @@ public sealed class ArmorFittingTests
         Assert.Equal(["Holomask", "Holoprojector"], Wear(Trooper(), "LI", "Bashi Holo Suit").Equipment);
     }
 
-    // A trooper has one type: one made a REM is a REM, and a REM stays one whatever it wears.
+    // A trooper has one type: one made a REM is a REM.
     [Fact]
     public void Wear_ArmourOfAnotherType_GivesOneType()
     {
         var remote = Wear(Trooper(characteristics: ["Regular"]), "LI", "Black Labs Body Modification");
+
         Assert.Equal("REM", remote.UnitTypeCode);
         Assert.Contains(ArmorFitting.Hackable, remote.Profile.Characteristics);
+    }
 
-        var stillRemote = Wear(Trooper(), "REM", "Stim Suit");
-        Assert.Equal(("REM", "3"), (stillRemote.UnitTypeCode, stillRemote.Profile.Arm));
-        Assert.DoesNotContain(ArmorFitting.ShockImmunity, Wear(Trooper(), "REM", "Haidao Armor").Profile.Skills);
+    // A REM changes type like anyone else; Remote Presence is its own skill and stays.
+    [Fact]
+    public void Wear_RemoteInTypedArmour_ChangesTypeAndKeepsRemotePresence()
+    {
+        var remote = Trooper(skills: ["Remote Presence"], characteristics: ["Regular", ArmorFitting.Hackable]);
+
+        var medium = Wear(remote, "REM", "Stim Suit");
+        var heavy = Wear(remote, "REM", "Haidao Armor");
+
+        Assert.Equal("MI", medium.UnitTypeCode);
+        Assert.Contains("Remote Presence", medium.Profile.Skills);
+        Assert.DoesNotContain(ArmorFitting.Hackable, medium.Profile.Characteristics);
+        Assert.Equal("HI", heavy.UnitTypeCode);
+        Assert.Contains(ArmorFitting.ShockImmunity, heavy.Profile.Skills);
+        Assert.Contains(ArmorFitting.Hackable, heavy.Profile.Characteristics);
     }
 
     [Fact]

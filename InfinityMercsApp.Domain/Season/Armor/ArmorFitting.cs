@@ -9,8 +9,9 @@ namespace InfinityMercsApp.Domain.Season.Armor;
 
 /// <summary>
 /// Puts armour on a trooper, by the Mercenaries armour rules. The troop type changes first: becoming HI gives two
-/// wounds skill steps, Hackable and Immunity (Shock), and leaving HI takes them away. A trooper has one type, so
-/// a REM stays a REM. The armour's ARM and BTS then replace the underlying ones, and when the type changed, ARM is
+/// wounds skill steps, Hackable and Immunity (Shock), and leaving HI takes them away. A trooper has one type, and a
+/// REM changes type like anyone else: it stops being Hackable unless it becomes HI, but keeps skills such as Remote
+/// Presence. The armour's ARM and BTS then replace the underlying ones, and when the type changed, ARM is
 /// capped at 2 for LI and 3 for MI. The captain's bought bonuses stay on top of whatever the armour sets.
 /// TAGs wear no armour.
 /// </summary>
@@ -34,7 +35,7 @@ public static partial class ArmorFitting
         }
 
         var effects = armor.Effects;
-        var newType = string.IsNullOrWhiteSpace(armor.Type) || UnitTypeCodes.IsRemote(type) ? type : armor.Type.Trim().ToUpperInvariant();
+        var newType = string.IsNullOrWhiteSpace(armor.Type) ? type : armor.Type.Trim().ToUpperInvariant();
         var typeChanged = !string.Equals(type, newType, StringComparison.Ordinal);
 
         var skills = profile.Skills.ToList();
@@ -56,6 +57,10 @@ public static partial class ArmorFitting
         if (UnitTypeCodes.IsRemote(newType) && !UnitTypeCodes.IsRemote(type))
         {
             AddDistinct(characteristics, Hackable);
+        }
+        else if (UnitTypeCodes.IsRemote(type) && !UnitTypeCodes.IsRemote(newType) && !UnitTypeCodes.IsHeavyInfantry(newType))
+        {
+            characteristics.RemoveAll(characteristic => SameName(characteristic, Hackable));
         }
 
         var arm = armor.Arm is { } armorArm ? armorArm : Number(profile.Arm) - captainBonuses.Arm;
