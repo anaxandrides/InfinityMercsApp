@@ -6,7 +6,7 @@ namespace InfinityMercsApp.UnitTests.Season;
 public sealed class SeasonStatusUpdateTests
 {
     [Fact]
-    public void TotalsCreditsExperienceAndNotoriety()
+    public void For_PlayedRounds_TotalsCreditsExperienceAndNotoriety()
     {
         var season = new SeasonFile
         {

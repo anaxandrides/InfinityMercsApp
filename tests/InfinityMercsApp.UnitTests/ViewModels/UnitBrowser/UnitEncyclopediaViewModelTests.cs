@@ -22,7 +22,7 @@ public sealed class UnitEncyclopediaViewModelTests
     }
 
     [Fact]
-    public async Task ListsFactionsAndFiltersToSectorials()
+    public async Task ShowSectorialEntriesOnly_Set_FiltersToSectorials()
     {
         var viewModel = await OpenAsync();
         Assert.Equal(["PanOceania", "Military Orders"], viewModel.Factions.Select(f => f.Name));
@@ -36,7 +36,7 @@ public sealed class UnitEncyclopediaViewModelTests
     }
 
     [Fact]
-    public async Task BrowsingStepsFromFactionToUnitToDetailAndBack()
+    public async Task Step_Browsing_MovesFromFactionToUnitToDetailAndBack()
     {
         var viewModel = await OpenAsync();
         Assert.Equal(BrowseStep.Factions, viewModel.Step);
@@ -63,7 +63,7 @@ public sealed class UnitEncyclopediaViewModelTests
     }
 
     [Fact]
-    public async Task ChangingFactionClearsTheUnit()
+    public async Task ShowSectorialEntriesOnly_FactionChanged_ClearsTheUnit()
     {
         var viewModel = await OpenAsync();
         await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Factions[0]);
@@ -78,7 +78,7 @@ public sealed class UnitEncyclopediaViewModelTests
     }
 
     [Fact]
-    public async Task TheLieutenantFilterKeepsOnlyUnitsThatCanBeLieutenant()
+    public async Task ApplyUnitFilterCommand_LieutenantsOnly_KeepsOnlyPossibleLieutenants()
     {
         var viewModel = await OpenAsync();
         await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Factions[0]);
@@ -91,7 +91,7 @@ public sealed class UnitEncyclopediaViewModelTests
     }
 
     [Fact]
-    public async Task FilterOptionsComeFromTheFactionsUnits()
+    public async Task BuildUnitFilterPopupOptions_FactionSelected_ComeFromItsUnits()
     {
         var viewModel = await OpenAsync();
         Assert.Empty((viewModel.BuildUnitFilterPopupOptions()).Weapons);
@@ -105,7 +105,7 @@ public sealed class UnitEncyclopediaViewModelTests
     }
 
     [Fact]
-    public async Task TabsSwitchBetweenUnitsAndFireteams()
+    public async Task ShowFireteamsAndShowUnitsCommands_Tabs_SwitchBetweenThem()
     {
         var viewModel = await OpenAsync();
         viewModel.ShowFireteamsCommand.Execute(null);
@@ -115,7 +115,7 @@ public sealed class UnitEncyclopediaViewModelTests
     }
 
     [Fact]
-    public async Task OpensTheFilterOnTheAppliedFilter()
+    public async Task OpenUnitFilterCommand_FilterApplied_OpensOnIt()
     {
         var viewModel = await OpenAsync();
         Assert.False(viewModel.IsUnitFilterOpen);
@@ -133,7 +133,7 @@ public sealed class UnitEncyclopediaViewModelTests
     }
 
     [Fact]
-    public async Task ApplyingAFilterClosesThePopup()
+    public async Task ApplyUnitFilterCommand_PopupOpen_ClosesIt()
     {
         var viewModel = await OpenAsync();
         viewModel.OpenUnitFilterCommand.Execute(null);
@@ -144,7 +144,7 @@ public sealed class UnitEncyclopediaViewModelTests
     }
 
     [Fact]
-    public async Task OnAPhoneOnlyTheCurrentStepShows()
+    public async Task PaneVisibility_Compact_ShowsOnlyTheCurrentStep()
     {
         var viewModel = await OpenAsync();
         Assert.True(viewModel.IsFactionsPaneVisible);

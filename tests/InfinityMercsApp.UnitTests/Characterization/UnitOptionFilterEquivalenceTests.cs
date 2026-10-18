@@ -28,7 +28,7 @@ public sealed class UnitOptionFilterEquivalenceTests
 
     [Theory]
     [MemberData(nameof(CorpusSources))]
-    public void VisibilityAndFilterOptions_MatchLegacyFilterService(string source)
+    public void UnitOptionFilter_EveryCorpusUnit_MatchesLegacyVisibilityAndOptions(string source)
     {
         var reader = new ArmyJsonReader();
         var mismatches = new List<string>();
@@ -101,7 +101,7 @@ public sealed class UnitOptionFilterEquivalenceTests
     [InlineData(1, true)]
     [InlineData(2, false)]
     [InlineData(99, false)]
-    public void Classification_MatchesLegacyFilterService(int? unitType, bool expected)
+    public void MatchesClassification_UnitType_MatchesLegacyFilterService(int? unitType, bool expected)
     {
         var typeLookup = new Dictionary<int, string> { [1] = "LI", [2] = "MI" };
         var legacy = LegacyFilter.MatchesClassificationFilter(

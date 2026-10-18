@@ -6,7 +6,7 @@ namespace InfinityMercsApp.UnitTests.Season.Troopers;
 public sealed class InjuryEffectsTests
 {
     [Fact]
-    public void EachInjuryChangesWhatTheTableSays()
+    public void Change_EachInjury_ChangesWhatTheTableSays()
     {
         Assert.Equal(["Frenzy"], Injury.BattleFury.Change().CharacteristicsGained);
         Assert.Equal((-1, -1), (Injury.PuncturedLung.Change().Ph, Injury.PuncturedLung.Change().SecondMoveInches));
@@ -20,7 +20,7 @@ public sealed class InjuryEffectsTests
     }
 
     [Fact]
-    public void InjuriesReadByLabelOrName()
+    public void TryParse_LabelOrName_ReadsTheInjury()
     {
         Assert.True(InjuryEffects.TryParse("Shell Shocked", out var injury));
         Assert.Equal(Injury.ShellShocked, injury);
@@ -30,7 +30,7 @@ public sealed class InjuryEffectsTests
     }
 
     [Fact]
-    public void ARollGivesAnInjuryTheTrooperDoesNotHave()
+    public void RollNew_InjuriesHeld_GivesOneNotHeld()
     {
         var rolls = new Queue<int>([3, 5, 9]);
 
@@ -38,7 +38,7 @@ public sealed class InjuryEffectsTests
     }
 
     [Fact]
-    public void ATrooperWithEveryInjuryRollsNothing()
+    public void RollNew_EveryInjuryHeld_ReturnsNull()
     {
         Assert.Null(InjuryRules.RollNew(() => 1, Enum.GetValues<Injury>()));
     }
@@ -48,13 +48,13 @@ public sealed class InjuryEffectsTests
     [InlineData(true, false, true, false)]
     [InlineData(true, true, true, true)]
     [InlineData(false, false, false, false)]
-    public void RestingTroopersAndTheCaptainRecover(bool deployed, bool captain, bool injuredBefore, bool recovers)
+    public void Recovers_RestingOrCaptain_Recover(bool deployed, bool captain, bool injuredBefore, bool recovers)
     {
         Assert.Equal(recovers, InjuryRules.Recovers(deployed, captain, injuredBefore));
     }
 
     [Fact]
-    public void TheTableFindsAnInjurysRow()
+    public void EntryFor_Injury_FindsItsRow()
     {
         Assert.Equal("13-14 | Legs Injury", InjuryRules.EntryFor(Injury.LegsInjury).ToString());
     }

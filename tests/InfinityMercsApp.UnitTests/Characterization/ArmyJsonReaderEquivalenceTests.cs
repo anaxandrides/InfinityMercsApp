@@ -104,7 +104,7 @@ public sealed class ArmyJsonReaderEquivalenceTests
 
     [Theory]
     [MemberData(nameof(FactionIdCases))]
-    public void FactionIds_MatchLegacyParsing(string? json, List<int> expected)
+    public void ReadFactionIds_Json_MatchesLegacyParsing(string? json, List<int> expected)
     {
         Assert.Equal(expected, LegacySharedUtilities.ParseFactionIds(json));
         Assert.Equal(expected, new ArmyJsonReader().ReadFactionIds(json));
@@ -128,7 +128,7 @@ public sealed class ArmyJsonReaderEquivalenceTests
     }
 
     [Fact]
-    public void ReadProfileGroups_CachesByContent()
+    public void ReadProfileGroups_SameContentTwice_ReturnsCachedGroups()
     {
         var reader = new ArmyJsonReader();
         var json = ReferenceCorpus.Army101Unit(1806).ProfileGroupsJson;
@@ -140,7 +140,7 @@ public sealed class ArmyJsonReaderEquivalenceTests
     }
 
     [Fact]
-    public void ReadUnitFilters_KeepsIntegerIdsPerSection()
+    public void ReadUnitFilters_MixedIds_KeepsIntegerIdsPerSection()
     {
         var filters = new ArmyJsonReader().ReadUnitFilters(
             """{"categories":[3],"types":[1,2],"chars":[5],"skills":["7",8],"equip":[],"weapons":[84,null],"ammunition":{"bad":1}}""");

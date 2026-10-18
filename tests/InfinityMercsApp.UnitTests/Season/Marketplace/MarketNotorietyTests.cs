@@ -10,7 +10,7 @@ public sealed class MarketNotorietyTests
     private static readonly Store Neutral = new() { Name = "Haven", Alignment = StoreAlignments.Neutral };
 
     [Fact]
-    public void LawfulMarketsChargeMoreForNotoriety()
+    public void For_LawfulMarket_ChargesMoreForNotoriety()
     {
         var notoriety = MarketNotoriety.For(Lawful, 3);
 
@@ -19,7 +19,7 @@ public sealed class MarketNotorietyTests
     }
 
     [Fact]
-    public void ChaoticMarketsChargeLessButNeverBelowHalf()
+    public void For_ChaoticMarket_ChargesLessButNeverBelowHalf()
     {
         var notoriety = MarketNotoriety.For(Chaotic, 4);
 
@@ -29,7 +29,7 @@ public sealed class MarketNotorietyTests
     }
 
     [Fact]
-    public void NeutralMarketsAndAnUnknownCompanyChangeNothing()
+    public void For_NeutralMarketOrNoNotoriety_ChangesNothing()
     {
         Assert.Equal(10, MarketNotoriety.For(Neutral, 5).Price(10));
         Assert.Equal("Neutral", MarketNotoriety.For(Neutral, 5).AlignmentText("Neutral"));

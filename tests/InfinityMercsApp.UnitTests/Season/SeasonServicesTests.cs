@@ -7,14 +7,14 @@ namespace InfinityMercsApp.UnitTests.Season;
 public sealed class SeasonServicesTests
 {
     [Fact]
-    public void PricesFollowTheServicesTable()
+    public void Cost_EveryService_FollowsTheServicesTable()
     {
         Assert.Equal([4, 8, 4, 8, 15, 11], SeasonServices.All.Select(service => service.Cost()));
         Assert.Equal("Advanced Therapy", SeasonService.AdvancedTherapy.Name());
     }
 
     [Fact]
-    public void TherapyWritesOffInjuries()
+    public void RemoveInjury_InjuredTrooper_WritesOffInjuries()
     {
         var trooper = new SeasonTrooper { Injuries = [Injury.Arms, Injury.BodyInjury] };
 
@@ -26,7 +26,7 @@ public sealed class SeasonServicesTests
     }
 
     [Fact]
-    public void AngerManagementTakesFrenzyOrImpetuousAndCover()
+    public void CalmDown_FrenzyOrImpetuous_TakesThemAndCover()
     {
         var frenzied = new SeasonTrooper();
         SeasonServices.CalmDown(frenzied, SeasonService.CalmFrenzy, keepsNoCover: false);
@@ -42,7 +42,7 @@ public sealed class SeasonServicesTests
     }
 
     [Fact]
-    public void RegularTrainingSwapsIrregularForRegular()
+    public void TrainRegular_IrregularTrooper_SwapsForRegularOnce()
     {
         var trooper = new SeasonTrooper();
 
@@ -54,7 +54,7 @@ public sealed class SeasonServicesTests
     }
 
     [Fact]
-    public void RetrainingSwapsAPerkForOneOfTheSameTier()
+    public void Retrain_PerkOfTheSameTier_SwapsIt()
     {
         var trooper = new SeasonTrooper { Perks = ["body-track-1-tier-1", "reflex-track-2-tier-1"] };
         var terrain = new PerkPick("body-track-6-tier-1", "Terrain (Total)", "body-8-13", "Body", 6, 1);
@@ -65,7 +65,7 @@ public sealed class SeasonServicesTests
     }
 
     [Fact]
-    public void RetrainingRefusesAnotherTierOrAPerkOthersBuildOn()
+    public void Retrain_OtherTierOrPerkBuiltOn_Refuses()
     {
         var trooper = new SeasonTrooper { Perks = ["body-track-1-tier-1", "body-track-1-tier-3"] };
         var tierTwo = new PerkPick("reflex-track-8-tier-2", "+1 BS", "reflex-11-16", "Reflex", 8, 2);

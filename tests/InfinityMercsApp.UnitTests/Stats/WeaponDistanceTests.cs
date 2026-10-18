@@ -7,7 +7,7 @@ public sealed class WeaponDistanceTests
     private static WeaponDistanceBand Band(string name, int max, string mod) => new() { Name = name, Max = max, Mod = mod };
 
     [Fact]
-    public void BarBandsRunFromThePreviousBandsEnd()
+    public void GetOrderedBands_Bands_RunFromThePreviousBandsEnd()
     {
         var distance = new WeaponDistance
         {
@@ -20,7 +20,7 @@ public sealed class WeaponDistanceTests
     }
 
     [Fact]
-    public void ARepeatedBandKeepsItsLastValue()
+    public void Short_RepeatedBand_KeepsTheLastValue()
     {
         var shortBand = new WeaponDistance { Bands = [Band("short", 40, "+3"), Band("short", 60, "+6")] }.Short;
 

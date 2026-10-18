@@ -5,7 +5,7 @@ namespace InfinityMercsApp.UnitTests.Season.RecruitRolls;
 public sealed class RecruitSkillsTests
 {
     [Fact]
-    public void ATrooperOwesARollPerTableItsSkillsName()
+    public void Owed_SkillsNamingTables_OwesARollPerTable()
     {
         var owed = RecruitSkills.Owed(["Courage", "Booty (ReRoll)", "MetaChemistry"], []);
 
@@ -13,7 +13,7 @@ public sealed class RecruitSkillsTests
     }
 
     [Fact]
-    public void ATableRolledOnIsNotOwedAgain()
+    public void Owed_TableAlreadyRolled_IsNotOwed()
     {
         Assert.Empty(RecruitSkills.Owed(["Booty"], [new RecruitRoll(RecruitRollTable.Booty, 7, "DA CC Weapon")]));
     }
@@ -23,10 +23,10 @@ public sealed class RecruitSkillsTests
     [InlineData("booty (Re-Roll)", RecruitRollTable.Booty)]
     [InlineData("Metachemistry", RecruitRollTable.Metachemistry)]
     [InlineData("Mimetism (-3)", null)]
-    public void ASkillNamesItsTable(string skill, RecruitRollTable? table) => Assert.Equal(table, RecruitSkills.TableOf(skill));
+    public void TableOf_Skill_NamesItsTable(string skill, RecruitRollTable? table) => Assert.Equal(table, RecruitSkills.TableOf(skill));
 
     [Fact]
-    public void ARollDescribesTheSideForTheTroopersType()
+    public void Describe_TwoSidedResult_DescribesTheTroopersSide()
     {
         var roll = new RecruitRoll(RecruitRollTable.Booty, 20, "TAG: BS Attack (+1B) / Other Troop Types: HMG");
 

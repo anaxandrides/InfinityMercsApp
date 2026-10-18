@@ -7,7 +7,7 @@ namespace InfinityMercsApp.UnitTests.Services.Import;
 public sealed class ArmyDataCheckTests
 {
     [Fact]
-    public void Summary_ListsTheMetadataThenEachArmyByName()
+    public void UpdateSummary_Updates_ListsMetadataThenEachArmyByName()
     {
         var check = ArmyDataCheck.Downloaded(
             ArmyDataChecks.Metadata(),
@@ -25,7 +25,7 @@ public sealed class ArmyDataCheckTests
     }
 
     [Fact]
-    public void Summary_ShortensALongList()
+    public void UpdateSummary_LongList_ShortensIt()
     {
         var armies = Enumerable.Range(1, 10)
             .Select(index => ArmyDataChecks.Army("2.0", storedVersion: "1.0", isUpdate: true, factionId: index, name: $"Army {index:00}"))
@@ -40,7 +40,7 @@ public sealed class ArmyDataCheckTests
     }
 
     [Fact]
-    public void UpToDateCheck_HasNoUpdates()
+    public void UpToDate_NothingNew_HasNoUpdates()
     {
         var check = ArmyDataChecks.UpToDate();
 
@@ -51,7 +51,7 @@ public sealed class ArmyDataCheckTests
     }
 
     [Fact]
-    public void FailedCheck_KeepsItsReason()
+    public void Failed_Reason_KeepsIt()
     {
         var check = ArmyDataCheck.Failed("offline");
 

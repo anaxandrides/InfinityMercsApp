@@ -26,7 +26,7 @@ public sealed class GeneratedFactionCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task TheGeneratedFactionFillsTheRightSlotAndTheLeftShowsLieutenants()
+    public async Task InitializeAsync_Airborne_FillsRightSlotAndShowsLieutenants()
     {
         var viewModel = await SelectionTestKit.OpenAsync(new AirborneCompanySelectionViewModel(_kit.Services));
 
@@ -39,7 +39,7 @@ public sealed class GeneratedFactionCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task OnlyTheLeftSlotsUnitsAreListed()
+    public async Task SelectFactionCommand_LeftSlot_ListsOnlyItsUnits()
     {
         var viewModel = await OpenWithFactionAsync(new AirborneCompanySelectionViewModel(_kit.Services));
 
@@ -50,7 +50,7 @@ public sealed class GeneratedFactionCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task TheAirborneCaptainJumpsInAndTheGeneratedSlotOpens()
+    public async Task AddProfileToMercsCompanyCommand_AirborneCaptain_OpensTheGeneratedSlot()
     {
         var viewModel = await OpenWithFactionAsync(new AirborneCompanySelectionViewModel(_kit.Services));
         await viewModel.SelectUnitFromListCommand.ExecuteAsync(viewModel.Units.First(unit => unit.IsVisible));
@@ -68,7 +68,7 @@ public sealed class GeneratedFactionCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task TheLeftSlotGivesOnlyOneCaptain()
+    public async Task AddProfileToMercsCompanyCommand_SecondLeftSlotTrooper_IsBlocked()
     {
         var viewModel = await OpenWithFactionAsync(new InspiringCompanySelectionViewModel(_kit.Services));
         var unit = viewModel.Units.First(candidate => candidate.IsVisible);
@@ -84,7 +84,7 @@ public sealed class GeneratedFactionCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task TheInspiringCompanyUsesItsOwnFaction()
+    public async Task InitializeAsync_Inspiring_UsesItsOwnFaction()
     {
         var viewModel = await SelectionTestKit.OpenAsync(new InspiringCompanySelectionViewModel(_kit.Services));
 
@@ -93,7 +93,7 @@ public sealed class GeneratedFactionCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task TheFilterHasNoFireteamView()
+    public async Task OpenUnitFilterCommand_GeneratedCompany_HasNoFireteamView()
     {
         var viewModel = await OpenWithFactionAsync(new AirborneCompanySelectionViewModel(_kit.Services));
 
@@ -105,7 +105,7 @@ public sealed class GeneratedFactionCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task RecruitingAnAirborneCompanyListsTheGeneratedFactionsTroopers()
+    public async Task PrepareRecruitment_AirborneCompany_ListsTheGeneratedFactionsTroopers()
     {
         var company = new SavedCompanyFile
         {

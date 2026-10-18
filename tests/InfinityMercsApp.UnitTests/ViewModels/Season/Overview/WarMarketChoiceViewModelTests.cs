@@ -28,7 +28,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public void PreparingLeavesThePopupShut()
+    public void Prepare_RoundWithoutWarMarket_LeavesThePopupShut()
     {
         _choice.Prepare(SeasonTestKit.SeasonPath, _kit.Season, ["Number One"], ["Number One", "Jade Temu"]);
 
@@ -37,7 +37,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public void OpensForARoundWithoutAWarMarket()
+    public void OpenCommand_RoundWithoutWarMarket_Opens()
     {
         Open();
 
@@ -51,7 +51,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public void StaysShutOnceTheRoundHasOne()
+    public void OpenCommand_RoundHasWarMarket_StaysShut()
     {
         _kit.Season.Rounds[0].Marketplace.WarMarket = "Jade Temu";
 
@@ -62,7 +62,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public void ARoundsOldTemporaryStoreCountsAsItsWarMarket()
+    public void OpenCommand_OldTemporaryStore_CountsAsTheWarMarket()
     {
         _kit.Season.Rounds[0].TemporaryStore = "Jade Temu";
 
@@ -72,7 +72,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public void WithoutASeasonNothingIsNeeded()
+    public void OpenCommand_NoSeason_NeedsNothing()
     {
         _choice.Prepare(SeasonTestKit.SeasonPath, null, [], []);
         _choice.OpenCommand.Execute(null);
@@ -82,7 +82,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public void BeforeTheFirstContractOnlyAFactionMarketCanBeTaken()
+    public void RollCommand_BeforeFirstContract_OnlyAFactionMarketCanBeTaken()
     {
         Open(new SeasonFile());
         _kit.Dice.RollD20().Returns(3);
@@ -99,7 +99,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public void TakingTheFactionsMarket()
+    public void SelectedFactionMarket_Picked_TakesIt()
     {
         Open();
 
@@ -111,7 +111,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public void RollingRerollsTheCompanysOwnMarkets()
+    public void RollCommand_CompanysOwnMarket_Rerolls()
     {
         Open();
         _choice.SelectedFactionMarket = "Number One";
@@ -127,7 +127,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public void ANineteenLetsTheCompanyChoose()
+    public void RollCommand_Nineteen_LetsTheCompanyChoose()
     {
         Open();
         _kit.Dice.RollD20().Returns(19);
@@ -142,7 +142,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public void RollingOnlyTheCompanysMarketsEndsInAChoice()
+    public void RollCommand_OnlyOwnMarketsRolled_EndsInAChoice()
     {
         Open();
         _kit.Dice.RollD20().Returns(1);
@@ -154,7 +154,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public void PickingTheNumberRolledAtTheTable()
+    public void SelectedRoll_RolledAtTheTable_PicksThatMarket()
     {
         Open();
 
@@ -173,7 +173,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public void AChoiceOnlyCountsWhenChoosingIsAllowed()
+    public void SelectedChoice_ChoosingNotAllowed_DoesNotCount()
     {
         Open();
 
@@ -183,7 +183,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public void ClosingPutsTheChoiceOff()
+    public void CloseCommand_Open_PutsTheChoiceOff()
     {
         Open();
 
@@ -194,7 +194,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public void OpeningAgainStartsAfresh()
+    public void OpenCommand_OpenedAgain_StartsAfresh()
     {
         Open();
         _choice.SelectedRoll = _choice.RollOptions[2];
@@ -208,7 +208,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public async Task ConfirmingSavesTheMarketForTheRoundAndCloses()
+    public async Task ConfirmCommand_MarketPicked_SavesItAndCloses()
     {
         Open();
         _choice.SelectedRoll = _choice.RollOptions[2];
@@ -222,7 +222,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public async Task BeforeTheFirstContractTheMarketIsSavedWithTheInitialPurchases()
+    public async Task ConfirmCommand_BeforeFirstContract_SavesWithInitialPurchases()
     {
         _kit.Season = new SeasonFile();
         Open();
@@ -234,7 +234,7 @@ public sealed class WarMarketChoiceViewModelTests
     }
 
     [Fact]
-    public void TheRollOptionsCoverTheTable()
+    public void StoreRollOptionAll_Table_CoversEveryRow()
     {
         Assert.Equal(19, StoreRollOption.All.Count);
         Assert.Equal("1 — Number One", StoreRollOption.All[0].Label);

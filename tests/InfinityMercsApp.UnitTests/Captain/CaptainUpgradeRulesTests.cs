@@ -9,15 +9,15 @@ public sealed class CaptainUpgradeRulesTests
     [InlineData(10, 18)]
     [InlineData(28, 0)]
     [InlineData(35, 0)]
-    public void StartingExperience_IsWhatTheUnitCostsUnder28(int unitCost, int expected) =>
+    public void StartingExperience_UnitCost_IsTheCostUnder28(int unitCost, int expected) =>
         Assert.Equal(expected, CaptainUpgradeRules.StartingExperience(unitCost));
 
     [Fact]
-    public void StartingExperience_UsesTheOverrideWhenGiven() =>
+    public void StartingExperience_OverrideGiven_UsesTheOverride() =>
         Assert.Equal(5, CaptainUpgradeRules.StartingExperience(10, overrideExperience: 5));
 
     [Fact]
-    public void StatOptions_AccumulateCostAcrossTiers()
+    public void StatOptions_SeveralTiers_AccumulatesCost()
     {
         var options = CaptainUpgradeRules.StatOptions(Stat.Cc, 14, CaptainStatChart.SpecOps);
         Assert.Equal<(int, int, int)>(
@@ -26,7 +26,7 @@ public sealed class CaptainUpgradeRulesTests
     }
 
     [Fact]
-    public void StatOptions_ClampToTheHardCapAndStopThere()
+    public void StatOptions_NearHardCap_ClampsAndStops()
     {
         // PH caps at 14: from 13, tier 1 reaches 14 and no further tiers are offered.
         var options = CaptainUpgradeRules.StatOptions(Stat.Ph, 13, CaptainStatChart.SpecOps);
@@ -37,18 +37,18 @@ public sealed class CaptainUpgradeRulesTests
     }
 
     [Fact]
-    public void StatOptions_AtTheCapOfferOnlyNoUpgrade()
+    public void StatOptions_AtCap_OffersOnlyNoUpgrade()
     {
         Assert.Single(CaptainUpgradeRules.StatOptions(Stat.Vita, 2, CaptainStatChart.SpecOps));
         Assert.Single(CaptainUpgradeRules.StatOptions(Stat.Wip, 15, CaptainStatChart.SpecOps));
     }
 
     [Fact]
-    public void StatOptions_ForAnUnknownStatOfferOnlyNoUpgrade() =>
+    public void StatOptions_UnknownStat_OffersOnlyNoUpgrade() =>
         Assert.Equal<int>([0], CaptainUpgradeRules.StatOptions(Stat.Mov, 4, CaptainStatChart.SpecOps).Select(o => o.Tier));
 
     [Fact]
-    public void SpecOps_BtsHasNoCap() =>
+    public void StatOptions_SpecOpsBts_HasNoCap() =>
         Assert.Equal(4, CaptainUpgradeRules.StatOptions(Stat.Bts, 3, CaptainStatChart.SpecOps).Count);
 
     /// <summary>Stat, base value, and the (tier, bonus, total XP) the Mercenaries chart offers.</summary>
@@ -67,11 +67,11 @@ public sealed class CaptainUpgradeRulesTests
 
     [Theory]
     [MemberData(nameof(MercenariesTiers))]
-    public void Mercenaries_FollowTheRulesChartAndItsCaps(Stat stat, int baseValue, IReadOnlyList<(int Tier, int Bonus, int Cost)> expected) =>
+    public void StatOptions_MercenariesChart_FollowsTheRulesChartAndCaps(Stat stat, int baseValue, IReadOnlyList<(int Tier, int Bonus, int Cost)> expected) =>
         Assert.Equal(expected, CaptainUpgradeRules.StatOptions(stat, baseValue, CaptainStatChart.Mercenaries).Select(o => (o.Tier, o.Bonus, o.Cost)));
 
     [Fact]
-    public void TheChartsDifferForPhAndWip()
+    public void StatOptions_PhAndWip_DifferBetweenCharts()
     {
         Assert.Equal<int>([0, 1, 3], CaptainUpgradeRules.StatOptions(Stat.Ph, 10, CaptainStatChart.SpecOps).Select(o => o.Bonus));
         Assert.Equal<int>([0, 1, 3, 6], CaptainUpgradeRules.StatOptions(Stat.Wip, 8, CaptainStatChart.SpecOps).Select(o => o.Bonus));

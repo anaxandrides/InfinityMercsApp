@@ -24,18 +24,18 @@ public sealed class ThemeFactionsTests
     }
 
     [Fact]
-    public void ASectorialShowsItsVanillaFactionsColours() =>
+    public void VanillaName_Sectorial_ReturnsItsVanillaFaction() =>
         Assert.Equal("PanOceania", _themes.VanillaName(102));
 
     [Fact]
-    public void AFactionMissingFromTheMetadataGoesByItsId() =>
+    public void VanillaName_NotInMetadata_GoesByItsId() =>
         Assert.Equal("Tohaa", _themes.VanillaName(899));
 
     [Fact]
-    public void AFactionWithNoThemeKeepsItsOwnName() =>
+    public void VanillaName_NoTheme_KeepsItsOwnName() =>
         Assert.Equal("Somebody's Company", _themes.VanillaName(4242));
 
     [Fact]
-    public void AVanillaScreenPrefersTheUnitsOwnFactionWithColours() =>
+    public void NameFor_VanillaScreen_PrefersTheUnitsFactionWithColours() =>
         Assert.Equal("PanOceania", _themes.NameFor(ArmySourceSelectionMode.VanillaFactions, 4242, [4242, 102]));
 }

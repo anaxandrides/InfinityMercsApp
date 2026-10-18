@@ -58,7 +58,7 @@ public sealed class InjuriesViewModelTests
     }
 
     [Fact]
-    public async Task APassingRollSettlesWithoutInjury()
+    public async Task RollCommand_PassingRoll_SettlesWithoutInjury()
     {
         _dice.RollD20().Returns(11);
         var check = (await OpenAsync("14")).Injuries[0];
@@ -74,7 +74,7 @@ public sealed class InjuriesViewModelTests
     }
 
     [Fact]
-    public async Task AFailedRollPicksTheInjuryFromTheTable()
+    public async Task RollCommand_FailedRoll_PicksTheInjuryFromTheTable()
     {
         _dice.RollD20().Returns(13);
         var check = (await OpenAsync("14")).Injuries[0];
@@ -90,7 +90,7 @@ public sealed class InjuriesViewModelTests
     }
 
     [Fact]
-    public async Task WithoutPhARollJustShowsTheNumber()
+    public async Task RollCommand_NoPh_JustShowsTheNumber()
     {
         _dice.RollD20().Returns(4);
         var check = (await OpenAsync("-")).Injuries[0];
@@ -104,7 +104,7 @@ public sealed class InjuriesViewModelTests
     }
 
     [Fact]
-    public async Task PassAtTheTableLocksTheVirtualRoll()
+    public async Task PassCommand_AtTheTable_LocksTheVirtualRoll()
     {
         var check = (await OpenAsync("14")).Injuries[0];
 
@@ -117,7 +117,7 @@ public sealed class InjuriesViewModelTests
     }
 
     [Fact]
-    public async Task FailAtTheTableSettlesOnceAnInjuryIsChosen()
+    public async Task FailCommand_AtTheTable_SettlesOnceAnInjuryIsChosen()
     {
         var viewModel = await OpenAsync("14");
         var check = viewModel.Injuries[0];
@@ -137,7 +137,7 @@ public sealed class InjuriesViewModelTests
     }
 
     [Fact]
-    public async Task ContinuingNeedsEveryCheckSettledThenOpensMissionOutcome()
+    public async Task ContinueCommand_EveryCheckSettled_OpensMissionOutcome()
     {
         var viewModel = await OpenAsync("14", "12");
         viewModel.Injuries[0].PassCommand.Execute(null);
@@ -151,7 +151,7 @@ public sealed class InjuriesViewModelTests
     }
 
     [Fact]
-    public async Task ContinuingSavesTheInjuriesTaken()
+    public async Task ContinueCommand_InjuriesTaken_SavesThem()
     {
         _dice.RollD20().Returns(13);
         var viewModel = await OpenAsync("14", "14");
@@ -165,7 +165,7 @@ public sealed class InjuriesViewModelTests
     }
 
     [Fact]
-    public async Task AnInjuryAlreadyCarriedIsNotOfferedAndIsRolledAgain()
+    public async Task InjuryOptions_InjuryAlreadyCarried_NotOfferedAndRolledAgain()
     {
         _season.TrooperFor(1).Injuries.Add(Injury.LegsInjury);
         _dice.RollD20().Returns(13, 13, 19);
@@ -180,7 +180,7 @@ public sealed class InjuriesViewModelTests
     }
 
     [Fact]
-    public async Task ATrooperWithEveryInjurySettlesOnFail()
+    public async Task FailCommand_EveryInjuryCarried_Settles()
     {
         _season.TrooperFor(0).Injuries.AddRange(Enum.GetValues<Injury>());
         var check = (await OpenAsync("14")).Injuries[0];
@@ -192,7 +192,7 @@ public sealed class InjuriesViewModelTests
     }
 
     [Fact]
-    public async Task RestingTroopersAndTheCaptainShedAnInjury()
+    public async Task Recoveries_RestingTroopersAndCaptain_ShedAnInjury()
     {
         _season.TrooperFor(7).Injuries.AddRange([Injury.Arms, Injury.BodyInjury]);
         _season.TrooperFor(0).Injuries.Add(Injury.EyesInjury);

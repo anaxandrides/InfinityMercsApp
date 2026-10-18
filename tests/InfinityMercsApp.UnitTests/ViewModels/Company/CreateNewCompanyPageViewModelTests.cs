@@ -13,7 +13,7 @@ public sealed class CreateNewCompanyPageViewModelTests
     private CreateNewCompanyPageViewModel Create() => new(_navigation, _companySelection);
 
     [Fact]
-    public async Task StandardOpensTheSourcePopup()
+    public async Task OpenStandardCompanyPopupCommand_Executed_OpensTheSourcePopup()
     {
         await Create().OpenStandardCompanyPopupCommand.ExecuteAsync(null);
 
@@ -22,7 +22,7 @@ public sealed class CreateNewCompanyPageViewModelTests
     }
 
     [Fact]
-    public async Task BackReturnsToTheSeasonHome()
+    public async Task NavigateBackCommand_Executed_ReturnsToTheSeasonHome()
     {
         await Create().NavigateBackCommand.ExecuteAsync(null);
 
@@ -35,7 +35,7 @@ public sealed class CreateNewCompanyPageViewModelTests
     [InlineData(nameof(CreateNewCompanyPageViewModel.OpenAirborneCompanyPageCommand), CompanyKind.Airborne, ArmySourceSelectionMode.Sectorials)]
     [InlineData(nameof(CreateNewCompanyPageViewModel.OpenTAGCompanyPageCommand), CompanyKind.Tag, ArmySourceSelectionMode.Sectorials)]
     [InlineData(nameof(CreateNewCompanyPageViewModel.OpenLoneWolfCompanyPopupCommand), CompanyKind.LoneWolf, ArmySourceSelectionMode.VanillaFactions)]
-    public async Task OtherCompaniesOpenTheirSelectionScreens(string command, CompanyKind kind, ArmySourceSelectionMode mode)
+    public async Task OpenCompanyCommands_OtherCompanies_OpenTheirSelectionScreens(string command, CompanyKind kind, ArmySourceSelectionMode mode)
     {
         var viewModel = Create();
         var relayCommand = Assert.IsAssignableFrom<CommunityToolkit.Mvvm.Input.IAsyncRelayCommand>(
@@ -48,7 +48,7 @@ public sealed class CreateNewCompanyPageViewModelTests
     }
 
     [Fact]
-    public void ListsTheFiveCompanyCardsInOneColumnOnAPhone()
+    public void Choices_Compact_ListsFiveCardsInOneColumn()
     {
         var viewModel = Create();
 
@@ -59,7 +59,7 @@ public sealed class CreateNewCompanyPageViewModelTests
     }
 
     [Fact]
-    public void ReflowsTheCardsForTheWidth()
+    public void ApplyLayoutCommand_Wide_ReflowsTheCards()
     {
         var viewModel = Create();
         var changed = new List<string?>();

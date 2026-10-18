@@ -80,7 +80,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public void StartsWaitingForTheEventRoll()
+    public void Constructor_NewDowntime_WaitsForTheEventRoll()
     {
         var viewModel = Create();
 
@@ -95,7 +95,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task CancellingARealRollChangesNothing()
+    public async Task RealCommand_Cancelled_ChangesNothing()
     {
         var viewModel = Create();
         _dialogs.AskNumberAsync("Real Roll", Arg.Any<string>(), 1, 20).Returns((int?)null);
@@ -109,7 +109,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task RollingShowsTheEventAndItsChoices()
+    public async Task RollCommand_Rolled_ShowsTheEventAndItsChoices()
     {
         _dice.RollD20().Returns(3);
         var viewModel = Create();
@@ -129,7 +129,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task AQuietWeekLetsAnEventBePicked()
+    public async Task RollCommand_QuietWeek_LetsAnEventBePicked()
     {
         var viewModel = Create();
         await EnterRollAsync(viewModel, 19);
@@ -147,7 +147,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task NoEventSettlesAQuietWeek()
+    public async Task NoEventCommand_QuietWeek_Settles()
     {
         var viewModel = Create();
         await EnterRollAsync(viewModel, 20);
@@ -161,7 +161,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task PickingAChoiceKeepsOnlyThatCardAndListsTheMercs()
+    public async Task PickChoiceCommand_Choice_KeepsItsCardAndListsTheMercs()
     {
         var viewModel = Create();
         await EnterRollAsync(viewModel, 1);
@@ -178,7 +178,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task APassedTestRecordsTheOutcomeAndRewardsTheParticipant()
+    public async Task PickParticipantCommand_TestPassed_RecordsAndRewards()
     {
         var viewModel = Create();
         await EnterRollAsync(viewModel, 1);
@@ -210,7 +210,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task AP2PChoiceLetsCrRaiseTheTarget()
+    public async Task CrToSpend_P2PChoice_RaisesTheTarget()
     {
         var viewModel = Create();
         await EnterRollAsync(viewModel, 1);
@@ -238,7 +238,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task CrSpentOnAFailedP2PTestIsRecorded()
+    public async Task CrToSpend_FailedP2PTest_RecordsTheSpend()
     {
         var viewModel = Create();
         await EnterRollAsync(viewModel, 1);
@@ -254,7 +254,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task AMercMissingARequirementCannotBePicked()
+    public async Task Participants_MissingRequirement_IsNotEligible()
     {
         var viewModel = Create();
         await EnterRollAsync(viewModel, 15);
@@ -270,7 +270,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task ACaptainChoiceListsOnlyTheCaptain()
+    public async Task PickChoiceCommand_CaptainChoice_ListsOnlyTheCaptain()
     {
         var viewModel = Create();
         await EnterRollAsync(viewModel, 11);
@@ -282,7 +282,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task TheMostRenownedMercShowsTheirRenown()
+    public async Task PickChoiceCommand_MostRenownedChoice_ShowsTheirRenown()
     {
         var viewModel = Create();
         await EnterRollAsync(viewModel, 13);
@@ -293,7 +293,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task NobodyEligibleBlocksTheFlow()
+    public async Task PickChoiceCommand_NobodyEligible_BlocksTheFlow()
     {
         _debrief.Units = [];
         var viewModel = Create();
@@ -309,7 +309,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task ATestWithoutATargetBlocksTheFlow()
+    public async Task PickParticipantCommand_TestWithoutTarget_BlocksTheFlow()
     {
         _debrief.Units[0].UnitPh = "-";
         var viewModel = Create();
@@ -326,7 +326,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task AWonPistolIsRolledAndRecorded()
+    public async Task PickParticipantCommand_PistolWon_RollsAndRecordsIt()
     {
         _dice.RollD20().Returns(1);
         var viewModel = Create();
@@ -343,7 +343,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task AFailedAttackInjuresTheParticipant()
+    public async Task PickParticipantCommand_AttackFailed_InjuresTheParticipant()
     {
         var viewModel = Create();
         await EnterRollAsync(viewModel, 1);
@@ -362,7 +362,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task AnInjuryAlreadyCarriedIsRolledAgain()
+    public async Task PickParticipantCommand_InjuryAlreadyCarried_RollsAgain()
     {
         _season.TrooperFor(1).Injuries.Add(Injury.BrainInjury);
         var viewModel = Create();
@@ -377,7 +377,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task ContinuingGoesToRankUpWhenATrooperHasPerkPoints()
+    public async Task BackToBaseCommand_PerkPointsOwed_GoesToRankUp()
     {
         _companyFiles.Exists(CompanyPath).Returns(true);
         _companyFiles.LoadAsync(CompanyPath).Returns(new SavedCompanyFile { Entries = [new SavedCompanyEntry { EntryIndex = 1, BaseUnitName = "Alpha" }] });
@@ -390,7 +390,7 @@ public sealed class DowntimeViewModelTests
     }
 
     [Fact]
-    public async Task BackToBaseReturnsToTheRoot()
+    public async Task BackToBaseCommand_NothingOwed_ReturnsToTheRoot()
     {
         await Create().BackToBaseCommand.ExecuteAsync(null);
 

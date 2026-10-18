@@ -23,7 +23,7 @@ public sealed class LoadSeasonViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task ShowsTheEmptyStateWithoutSeasons()
+    public async Task SeasonRecords_NoSeasons_ShowsTheEmptyState()
     {
         var viewModel = await OpenAsync();
 
@@ -32,7 +32,7 @@ public sealed class LoadSeasonViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task OpeningASeasonGoesToTheSeasonPage()
+    public async Task OpenSeasonCommand_Season_GoesToTheSeasonPage()
     {
         var company = _records.WriteCompany("company.json", "{}");
         var season = _records.WriteSeason("s.json", $$"""{"companyName":"Kestrel","companyFilePath":{{System.Text.Json.JsonSerializer.Serialize(company)}}}""");
@@ -48,7 +48,7 @@ public sealed class LoadSeasonViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task AMissingCompanyFileIsReportedInsteadOfOpened()
+    public async Task OpenSeasonCommand_MissingCompanyFile_ReportsIt()
     {
         _records.WriteSeason("s.json", """{"companyName":"Gone","companyFilePath":"/nowhere/company.json"}""");
         var viewModel = await OpenAsync();

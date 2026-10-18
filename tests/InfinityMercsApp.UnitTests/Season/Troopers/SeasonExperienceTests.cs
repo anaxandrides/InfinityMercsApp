@@ -12,7 +12,7 @@ public sealed class SeasonExperienceTests
     };
 
     [Fact]
-    public void AddsMissionAndDowntimeXpByEntry()
+    public void GainedBy_EntryIndex_AddsMissionAndDowntimeXp()
     {
         var season = new SeasonFile
         {
@@ -28,7 +28,7 @@ public sealed class SeasonExperienceTests
     }
 
     [Fact]
-    public void OlderResultsMatchByName()
+    public void GainedBy_OlderResultsWithoutIndex_MatchesByName()
     {
         var season = new SeasonFile
         {

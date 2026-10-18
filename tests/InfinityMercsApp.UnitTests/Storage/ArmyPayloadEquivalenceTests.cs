@@ -18,7 +18,7 @@ public sealed class ArmyPayloadEquivalenceTests
             .Select(army => army.FactionId));
 
     [Fact]
-    public void NearlyEveryReferenceArmyKeptItsPayload()
+    public void RawJson_ReferenceArmies_AllButOneKeptTheirPayload()
     {
         // Army 2001 was stored without its raw payload; every other army has one to compare against.
         var withoutPayload = TypedStorageRoundTripTests.ReadLegacyArmies()
@@ -29,7 +29,7 @@ public sealed class ArmyPayloadEquivalenceTests
 
     [Theory]
     [MemberData(nameof(Armies))]
-    public void PayloadArmyContent_MatchesTheColumns(int factionId)
+    public void ReadArmyPayload_ArmyContent_MatchesTheColumns(int factionId)
     {
         var army = TypedStorageRoundTripTests.ReadLegacyArmies().Single(x => x.FactionId == factionId);
         var payload = _reader.ReadArmyPayload(army.RawJson);
@@ -44,7 +44,7 @@ public sealed class ArmyPayloadEquivalenceTests
 
     [Theory]
     [MemberData(nameof(Armies))]
-    public void PayloadUnits_MatchTheUnitColumns(int factionId)
+    public void ReadArmyPayload_Units_MatchTheUnitColumns(int factionId)
     {
         var army = TypedStorageRoundTripTests.ReadLegacyArmies().Single(x => x.FactionId == factionId);
         var payload = _reader.ReadArmyPayload(army.RawJson);

@@ -9,7 +9,7 @@ public sealed class UnitTraitsTests
         new() { Orders = types.Select(type => new OrderEntry(type, null, null)).ToList() };
 
     [Fact]
-    public void AnOptionsOrdersGiveItsOrderTraits() =>
+    public void ReadOrderTraits_OptionOrders_GiveItsOrderTraits() =>
         Assert.Equal(new UnitOrderTraits(false, true, false, true), UnitTraits.ReadOrderTraits(OptionWithOrders("irregular", "TACTICAL", "")));
 
     [Theory]
@@ -18,6 +18,6 @@ public sealed class UnitTraitsTests
     [InlineData("Cube", true, false, false)]
     [InlineData("No Cube", false, false, false)]
     [InlineData("Hackable", false, false, true)]
-    public void AnOptionsNamesGiveItsTechTraits(string name, bool cube, bool cube2, bool hackable) =>
+    public void ReadTechTraits_OptionNames_GiveItsTechTraits(string name, bool cube, bool cube2, bool hackable) =>
         Assert.Equal(new UnitTechTraits(cube, cube2, hackable), UnitTraits.ReadTechTraits([name]));
 }

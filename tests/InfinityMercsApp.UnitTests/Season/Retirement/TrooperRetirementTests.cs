@@ -18,7 +18,7 @@ public sealed class TrooperRetirementTests
     };
 
     [Fact]
-    public void ARetiredTrooperKeepsItsRenownAndGivesUpItsGear()
+    public void Apply_Trooper_KeepsRenownAndGivesUpGear()
     {
         var season = Season();
 
@@ -33,7 +33,7 @@ public sealed class TrooperRetirementTests
     }
 
     [Fact]
-    public void PeripheralsLeaveWithTheirTrooperWithoutRenown()
+    public void Apply_TrooperWithPeripherals_TheyLeaveWithoutRenown()
     {
         var season = Season();
 

@@ -60,7 +60,7 @@ public sealed class CompanyFounderTests : IDisposable
     };
 
     [Fact]
-    public void NextCompanyFileNameSlugsTheNameAndTakesTheNextIndex()
+    public void NextCompanyFileName_Name_SlugsItAndTakesTheNextIndex()
     {
         var dir = _records.Paths.CompaniesDirectory;
 
@@ -69,7 +69,7 @@ public sealed class CompanyFounderTests : IDisposable
     }
 
     [Fact]
-    public async Task AFoundedCompanyIsWrittenToTheCompaniesFolder()
+    public async Task FoundAsync_CaptainChosen_WritesTheCompaniesFolderFile()
     {
         var result = await _founder.FoundAsync(Request("Standard Company", Trooper("Alpha", isLieutenant: true), Trooper("Bravo")));
 
@@ -81,7 +81,7 @@ public sealed class CompanyFounderTests : IDisposable
     }
 
     [Fact]
-    public async Task ACompanyWithNobodyInItIsNotFounded()
+    public async Task FoundAsync_NoTroopers_ReturnsNoTroopers()
     {
         var result = await _founder.FoundAsync(Request("Standard Company"));
 
@@ -90,7 +90,7 @@ public sealed class CompanyFounderTests : IDisposable
     }
 
     [Fact]
-    public async Task BackingOutOfTheCaptainPopupSavesNothing()
+    public async Task FoundAsync_CaptainPopupCancelled_SavesNothing()
     {
         _dialog.ShowAsync(Arg.Any<CaptainUpgradePopupContext>()).Returns((SavedImprovedCaptainStats?)null);
 
@@ -101,7 +101,7 @@ public sealed class CompanyFounderTests : IDisposable
     }
 
     [Fact]
-    public async Task ATagCompanysCaptainGetsTheTagSpecOpsPopup()
+    public async Task FoundAsync_TagCompany_ShowsTheTagSpecOpsPopup()
     {
         await _founder.FoundAsync(Request(CompanyFounder.TagCompanyType, Trooper("Squalo", isLieutenant: true)));
 

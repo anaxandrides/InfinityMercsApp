@@ -12,7 +12,7 @@ public sealed class ByeRoundTests
     [Theory]
     [InlineData(ByeXpSplit.FourTroopers, 4, 7)]
     [InlineData(ByeXpSplit.SixTroopers, 6, 5)]
-    public void EachSplitHasItsLimitAndXp(ByeXpSplit split, int mostTroopers, int xpEach)
+    public void MostTroopersAndXpEach_Split_HaveItsLimitAndXp(ByeXpSplit split, int mostTroopers, int xpEach)
     {
         Assert.Equal(mostTroopers, ByeRound.MostTroopers(split));
         Assert.Equal(xpEach, ByeRound.XpEach(split));
@@ -24,15 +24,15 @@ public sealed class ByeRoundTests
     [InlineData(ByeXpSplit.FourTroopers, 5, false)]
     [InlineData(ByeXpSplit.SixTroopers, 6, true)]
     [InlineData(ByeXpSplit.SixTroopers, 7, false)]
-    public void NoMoreTroopersThanTheSplitAllows(ByeXpSplit split, int count, bool valid) =>
+    public void IsValid_TrooperCount_NoMoreThanTheSplitAllows(ByeXpSplit split, int count, bool valid) =>
         Assert.Equal(valid, ByeRound.IsValid(new ByeRoundChoice(split, Troopers(count))));
 
     [Fact]
-    public void ATrooperGainsTheXpOnlyOnce() =>
+    public void IsValid_TrooperListedTwice_IsFalse() =>
         Assert.False(ByeRound.IsValid(new ByeRoundChoice(ByeXpSplit.FourTroopers, [new(1, "A"), new(1, "A")])));
 
     [Fact]
-    public void TheByeIsTheNextRoundWithTheChosenTroopersXp()
+    public void Apply_Choice_AddsTheNextRoundWithTheTroopersXp()
     {
         var season = new SeasonFile { Rounds = [new SeasonRound { RoundIndex = 1 }, new SeasonRound { RoundIndex = 2 }] };
 
@@ -48,7 +48,7 @@ public sealed class ByeRoundTests
     }
 
     [Fact]
-    public void TheChosenInjuryIsWrittenOff()
+    public void Apply_InjuryWriteOff_WritesOffThatInjury()
     {
         var season = new SeasonFile();
         season.TrooperFor(2).Injuries.AddRange([Injury.Arms, Injury.EyesInjury]);
@@ -62,7 +62,7 @@ public sealed class ByeRoundTests
     }
 
     [Fact]
-    public void AnInvalidChoiceIsRefused()
+    public void Apply_InvalidChoice_Throws()
     {
         var season = new SeasonFile();
 

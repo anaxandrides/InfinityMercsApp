@@ -12,32 +12,32 @@ public sealed class SeasonStartTests
         new() { EntryIndex = 0, IsLieutenant = true, ProfileKey = $"Joan|JOAN OF ARC|47|{swc}|lt:1" };
 
     [Fact]
-    public void TheCreditsLeftFromRecruitingCarryOver()
+    public void FundsFor_CreditsLeftFromRecruiting_CarryOver()
     {
         Assert.Equal(33, SeasonStart.FundsFor(Company(90, 57, Captain("0"))).Credits);
     }
 
     [Fact]
-    public void OverspentRecruitingLeavesNothing()
+    public void FundsFor_OverspentRecruiting_LeavesNothing()
     {
         Assert.Equal(0, SeasonStart.FundsFor(Company(75, 80, Captain("0"))).Credits);
     }
 
     [Fact]
-    public void ACaptainWhoGivesSwcStartsTheCompanysSwc()
+    public void FundsFor_CaptainGivesSwc_StartsTheCompanysSwc()
     {
         Assert.Equal(1, SeasonStart.FundsFor(Company(75, 75, Captain("+1"))).Swc);
     }
 
     [Fact]
-    public void OtherwiseTheCompanyStartsWithNoSwc()
+    public void FundsFor_NoSwcCaptain_StartsWithNoSwc()
     {
         Assert.Equal(0, SeasonStart.FundsFor(Company(75, 75, Captain("0"))).Swc);
         Assert.Equal(0, SeasonStart.FundsFor(Company(75, 75)).Swc);
     }
 
     [Fact]
-    public void OnlyTheCaptainsSwcCounts()
+    public void FundsFor_TrooperGivesSwc_CountsOnlyTheCaptains()
     {
         var trooper = new SavedCompanyEntry { EntryIndex = 1, ProfileKey = "Harper|DR. HARPER FTO|32|+1|lt:0" };
 
@@ -45,7 +45,7 @@ public sealed class SeasonStartTests
     }
 
     [Fact]
-    public void AnOddProfileKeyGivesNoSwc()
+    public void FundsFor_OddProfileKey_GivesNoSwc()
     {
         var captain = new SavedCompanyEntry { IsLieutenant = true, ProfileKey = "Joan" };
 

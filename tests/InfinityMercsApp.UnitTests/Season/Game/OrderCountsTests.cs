@@ -5,7 +5,7 @@ namespace InfinityMercsApp.UnitTests.Season.Game;
 public sealed class OrderCountsTests
 {
     [Fact]
-    public void ConsciousTroopersGiveOrdersPlusTheMercsBonus()
+    public void For_ConsciousTroopers_GiveOrdersPlusTheMercsBonus()
     {
         var counts = OrderCounts.For(
         [
@@ -21,5 +21,5 @@ public sealed class OrderCountsTests
     }
 
     [Fact]
-    public void AnEmptyCompanyStillGetsTheBonusOrder() => Assert.Equal(new OrderCounts(0, 0, 0, 1), OrderCounts.For([]));
+    public void For_NoTroopers_StillGivesTheBonusOrder() => Assert.Equal(new OrderCounts(0, 0, 0, 1), OrderCounts.For([]));
 }

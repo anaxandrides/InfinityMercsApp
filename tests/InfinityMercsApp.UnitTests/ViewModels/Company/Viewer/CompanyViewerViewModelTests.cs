@@ -44,7 +44,7 @@ public sealed class CompanyViewerViewModelTests
     }
 
     [Fact]
-    public async Task OpeningACompanyListsItsTroopersAndSelectsTheFirst()
+    public async Task InitializeAsyncCommand_Company_ListsTroopersSelectingTheFirst()
     {
         var viewModel = await OpenAsync(Company());
 
@@ -62,7 +62,7 @@ public sealed class CompanyViewerViewModelTests
     }
 
     [Fact]
-    public async Task AnUnnamedCompanyIsTitledByItsFile()
+    public async Task Title_UnnamedCompany_IsItsFileName()
     {
         var viewModel = await OpenAsync(Company(name: " "));
 
@@ -70,7 +70,7 @@ public sealed class CompanyViewerViewModelTests
     }
 
     [Fact]
-    public async Task SelectingAnotherTrooperShowsIt()
+    public async Task SelectUnitCommand_AnotherTrooper_ShowsIt()
     {
         var viewModel = await OpenAsync(Company());
         var bolt = viewModel.CompanyUnits[1];
@@ -86,7 +86,7 @@ public sealed class CompanyViewerViewModelTests
     }
 
     [Fact]
-    public async Task APeripheralShowsThePeripheralIcon()
+    public async Task SelectUnitCommand_Peripheral_ShowsThePeripheralIcon()
     {
         var viewModel = await OpenAsync(Company());
 
@@ -96,7 +96,7 @@ public sealed class CompanyViewerViewModelTests
     }
 
     [Fact]
-    public async Task AMissingFileSaysSo()
+    public async Task InitializeAsyncCommand_MissingFile_SaysSo()
     {
         _companyFiles.Exists(CompanyPath).Returns(false);
         var viewModel = new CompanyViewerViewModel(_navigation, _companyFiles, _packageFiles, new CompanyRoster(_armyData), new UnitDetailViewModel(_armyData));
@@ -110,15 +110,15 @@ public sealed class CompanyViewerViewModelTests
     }
 
     [Fact]
-    public async Task AnEmptyFileSaysSo() =>
+    public async Task InitializeAsyncCommand_EmptyFile_SaysSo() =>
         Assert.Equal("Unable to read saved company data.", (await OpenAsync(null)).StatusMessage);
 
     [Fact]
-    public async Task ACompanyWithoutTroopersSaysSo() =>
+    public async Task InitializeAsyncCommand_NoTroopers_SaysSo() =>
         Assert.Equal("No units found in this company.", (await OpenAsync(new SavedCompanyFile { CompanyName = "Empty" })).StatusMessage);
 
     [Fact]
-    public async Task AReadFailureIsShown()
+    public async Task InitializeAsyncCommand_ReadFails_ShowsIt()
     {
         _companyFiles.Exists(CompanyPath).Returns(true);
         _companyFiles.LoadAsync(CompanyPath).ThrowsAsync(new IOException("disk gone"));
@@ -131,7 +131,7 @@ public sealed class CompanyViewerViewModelTests
     }
 
     [Fact]
-    public async Task TheCompanyIsOnlyReloadedForANewFile()
+    public async Task InitializeAsyncCommand_SameFile_DoesNotReload()
     {
         var viewModel = await OpenAsync(Company());
 
@@ -141,7 +141,7 @@ public sealed class CompanyViewerViewModelTests
     }
 
     [Fact]
-    public async Task ThePackagedLogoIsUsedWhenItExists()
+    public async Task LogoSource_PackagedLogoExists_UsesIt()
     {
         _packageFiles.ExistsAsync("SVGCache/units/101-12.svg").Returns(true);
 
@@ -151,7 +151,7 @@ public sealed class CompanyViewerViewModelTests
     }
 
     [Fact]
-    public async Task ATagUnitWithoutALogoFallsBackToTheTagIcon()
+    public async Task LogoSource_TagUnitWithoutLogo_FallsBackToTheTagIcon()
     {
         var company = new SavedCompanyFile { Entries = [CompanyRosterTests.Entry(1, "Turtlemek")] };
 
@@ -161,7 +161,7 @@ public sealed class CompanyViewerViewModelTests
     }
 
     [Fact]
-    public async Task RenamingCanBeRejected()
+    public async Task RejectNameCommand_Editing_KeepsTheName()
     {
         var viewModel = await OpenAsync(Company());
 
@@ -177,7 +177,7 @@ public sealed class CompanyViewerViewModelTests
     }
 
     [Fact]
-    public async Task SavingANameRenamesTheTileAndTheSavedEntry()
+    public async Task SaveNameCommand_NewName_RenamesTileAndSavedEntry()
     {
         var company = Company();
         var viewModel = await OpenAsync(company);
@@ -194,7 +194,7 @@ public sealed class CompanyViewerViewModelTests
     }
 
     [Fact]
-    public async Task ABlankNameKeepsTheCurrentOne()
+    public async Task SaveNameCommand_BlankName_KeepsTheCurrentOne()
     {
         var viewModel = await OpenAsync(Company());
 
@@ -206,7 +206,7 @@ public sealed class CompanyViewerViewModelTests
     }
 
     [Fact]
-    public async Task NothingCanBeRenamedWithoutASelection()
+    public async Task EditAndSaveNameCommands_NoSelection_CannotExecute()
     {
         var viewModel = await OpenAsync(new SavedCompanyFile());
 

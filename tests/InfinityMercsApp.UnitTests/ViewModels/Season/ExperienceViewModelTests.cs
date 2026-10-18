@@ -29,7 +29,7 @@ public sealed class ExperienceViewModelTests
     }
 
     [Fact]
-    public async Task ConfirmingWaitsForAnMvp()
+    public async Task ConfirmCommand_NoMvp_CannotExecute()
     {
         var viewModel = await OpenAsync(new() { Name = "A", DeploymentXp = 1 }, new() { Name = "B", DeploymentXp = 1 });
         Assert.False(viewModel.ConfirmCommand.CanExecute(null));
@@ -39,7 +39,7 @@ public sealed class ExperienceViewModelTests
     }
 
     [Fact]
-    public async Task OnlyOneTrooperCanBeMvp()
+    public async Task IsMvp_SecondTrooperPicked_UnpicksTheFirst()
     {
         var viewModel = await OpenAsync(new() { Name = "A", DeploymentXp = 1 }, new() { Name = "B", DeploymentXp = 1 });
 
@@ -53,7 +53,7 @@ public sealed class ExperienceViewModelTests
     }
 
     [Fact]
-    public async Task ConfirmingRecordsXpOnTheLatestRoundAndOpensDowntime()
+    public async Task ConfirmCommand_MvpPicked_RecordsXpAndOpensDowntime()
     {
         var viewModel = await OpenAsync(
             new() { Name = "Benched", DeploymentXp = 0 },
@@ -71,7 +71,7 @@ public sealed class ExperienceViewModelTests
     }
 
     [Fact]
-    public async Task WithNoTroopersConfirmingIsAllowed()
+    public async Task ConfirmCommand_NoTroopers_CanExecute()
     {
         var viewModel = await OpenAsync();
         Assert.True(viewModel.ConfirmCommand.CanExecute(null));

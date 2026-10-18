@@ -6,7 +6,7 @@ namespace InfinityMercsApp.UnitTests.Season.Marketplace;
 public sealed class StoreLabelsTests
 {
     [Fact]
-    public void AMarketListsItsFactionsTypeAndAlignment()
+    public void For_Market_ListsFactionsTypeAndAlignment()
     {
         var store = new Store
         {
@@ -20,7 +20,7 @@ public sealed class StoreLabelsTests
     }
 
     [Fact]
-    public void AnUnlistedFactionKeepsItsName()
+    public void For_UnlistedFaction_KeepsItsName()
     {
         var store = new Store { Name = "Outpost", AssociatedFactions = ["Corsairs"] };
 
@@ -28,7 +28,7 @@ public sealed class StoreLabelsTests
     }
 
     [Fact]
-    public void AlwaysAvailableIsNotShownAsAnAlignment()
+    public void For_AlwaysAvailable_IsNotShownAsAnAlignment()
     {
         var store = new Store { Name = "Bazaar", AssociatedType = "General", Alignment = StoreAlignments.AlwaysAvailable };
 
@@ -36,19 +36,19 @@ public sealed class StoreLabelsTests
     }
 
     [Fact]
-    public void ANeutralStoreWithNoFactionsSaysSo()
+    public void For_NeutralStoreWithoutFactions_SaysNeutral()
     {
         Assert.Equal("Haven [Neutral]", StoreLabels.For(new Store { Name = "Haven", Alignment = StoreAlignments.Neutral }));
     }
 
     [Fact]
-    public void AStoreWithNothingToAddIsJustItsName()
+    public void For_NothingToAdd_IsJustTheName()
     {
         Assert.Equal("Corner Shop", StoreLabels.For(new Store { Name = "Corner Shop" }));
     }
 
     [Fact]
-    public void ServicesAreListedByName()
+    public void For_Services_ListsThemByName()
     {
         Assert.Equal("🩺 Medical Services", StoreLabels.For(new Store { Name = ServiceStoreNames.MedicalServices }));
         Assert.Equal("Additional Recruitment", StoreLabels.For(new Store { Name = ServiceStoreNames.AdditionalRecruitment }));
@@ -62,7 +62,7 @@ public sealed class StoreLabelsTests
     [InlineData("  Number One  ", "Number One")]
     [InlineData("", "")]
     [InlineData(null, "")]
-    public void LabelsReadBackToTheStoreName(string? label, string expected)
+    public void StoreName_Label_ReadsBackTheStoreName(string? label, string expected)
     {
         Assert.Equal(expected, StoreLabels.StoreName(label));
     }

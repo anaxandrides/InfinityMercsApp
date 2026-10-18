@@ -19,7 +19,7 @@ public sealed class LoneWolfCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task EveryFactionIsOfferedVanillaOrSectorial()
+    public async Task InitializeAsync_LoneWolf_OffersEveryFaction()
     {
         var viewModel = await SelectionTestKit.OpenAsync(new LoneWolfCompanySelectionViewModel(_kit.Services, ArmySourceSelectionMode.VanillaFactions));
 
@@ -28,7 +28,7 @@ public sealed class LoneWolfCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task OnlyRegularTroopersShow()
+    public async Task SelectFactionCommand_LoneWolf_ShowsOnlyRegularTroopers()
     {
         var viewModel = await OpenWithFactionAsync();
 
@@ -43,7 +43,7 @@ public sealed class LoneWolfCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task TheFilterHasNoLieutenantOrFireteamOptions()
+    public async Task OpenUnitFilterCommand_LoneWolf_HasNoLieutenantOrFireteamOptions()
     {
         var viewModel = await OpenWithFactionAsync();
 

@@ -13,13 +13,13 @@ public sealed class SavedCodeNamesTests
         new() { Id = id, Extra = extras.Any() ? extras.ToList() : null };
 
     [Fact]
-    public void ResolvesNamesWithExtrasAndSkipsUnknownCodes() =>
+    public void Resolve_CodesWithExtras_NamesThemSkippingUnknown() =>
         Assert.Equal(
             ["Combi Rifle", "Combi Rifle (+1, -3)"],
             SavedCodeNames.Resolve(Filters, [Code(33), Code(33, 298, 6, 6), Code(999_999), null], ProfileEntryKind.Weapons));
 
     [Fact]
-    public void AnEntryListsItsCodedNamesThenItsCustomNames()
+    public void ForEntry_CodedAndCustomNames_ListsCodedThenCustom()
     {
         var entry = new SavedCompanyEntry { CurrentSkillCodes = [Code(86)], CustomSkills = ["Homebrew Skill"] };
 
@@ -28,7 +28,7 @@ public sealed class SavedCodeNamesTests
     }
 
     [Fact]
-    public void WeaponsSplitIntoRangedAndMeleeWithoutRepeats()
+    public void Weapons_Entry_SplitsIntoRangedAndMeleeWithoutRepeats()
     {
         var entry = new SavedCompanyEntry { CurrentWeaponCodes = [Code(33), Code(6)], CustomWeapons = ["combi rifle", "-", " Knife "] };
 
@@ -39,7 +39,7 @@ public sealed class SavedCodeNamesTests
     }
 
     [Fact]
-    public void JoinsOneNamePerLineOrADash()
+    public void JoinOrDash_Names_JoinsOnePerLineOrADash()
     {
         Assert.Equal($"A{Environment.NewLine}B", SavedCodeNames.JoinOrDash([" A ", "-", "", "a", "B"]));
         Assert.Equal("-", SavedCodeNames.JoinOrDash(["-", " "]));
@@ -49,6 +49,6 @@ public sealed class SavedCodeNamesTests
     [InlineData(ProfileEntryKind.Chars, "chars")]
     [InlineData(ProfileEntryKind.Equip, "equip")]
     [InlineData(ProfileEntryKind.Ammo, "ammunition")]
-    public void EachEntryKindHasAFilterSection(ProfileEntryKind kind, string section) =>
+    public void ArmyFilterSectionFor_EachEntryKind_HasASection(ProfileEntryKind kind, string section) =>
         Assert.Equal(section, ArmyFilterSection.For(kind));
 }

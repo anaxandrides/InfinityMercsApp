@@ -16,21 +16,21 @@ public sealed class FireteamMatchingTests
     [InlineData("Ñ-Señor Massacre", "NSENORMASSACRE")]
     [InlineData("  ", "")]
     [InlineData(null, "")]
-    public void NormalizeTeamUnitName_KeepsUpperCaseLettersAndDigitsWithoutAccents(string? name, string expected) =>
+    public void NormalizeTeamUnitName_AnyName_KeepsUpperCaseLettersAndDigitsWithoutAccents(string? name, string expected) =>
         Assert.Equal(expected, FireteamMatching.NormalizeTeamUnitName(name));
 
     [Theory]
     [InlineData("reinf-orc_troops", "orc-troops")]
     [InlineData("Orc Troops-REINF", "orc-troops")]
     [InlineData("--fusilier--", "fusilier")]
-    public void NormalizeSlugForLookup_DropsReinforcementMarkersAndPunctuation(string slug, string expected) =>
+    public void NormalizeSlugForLookup_ReinforcementOrPunctuation_DropsThem(string slug, string expected) =>
         Assert.Equal(expected, FireteamMatching.NormalizeSlugForLookup(slug));
 
     [Theory]
     [InlineData("Wildcard", null, true)]
     [InlineData("Orc", "wild-card", true)]
     [InlineData("Orc", "orc", false)]
-    public void IsWildcardEntry_ChecksNameAndSlug(string name, string? slug, bool expected) =>
+    public void IsWildcardEntry_NameOrSlug_ChecksBoth(string name, string? slug, bool expected) =>
         Assert.Equal(expected, FireteamMatching.IsWildcardEntry(name, slug));
 
     [Theory]
@@ -38,11 +38,11 @@ public sealed class FireteamMatchingTests
     [InlineData("fto", true)]
     [InlineData("Lofton", false)]
     [InlineData(null, false)]
-    public void IsFtoLabel_MatchesTheWholeWord(string? label, bool expected) =>
+    public void IsFtoLabel_Label_MatchesOnlyTheWholeWord(string? label, bool expected) =>
         Assert.Equal(expected, FireteamMatching.IsFtoLabel(label));
 
     [Fact]
-    public void ResolveUnitForTeamEntry_PrefersSlugThenNormalisedSlugThenName()
+    public void ResolveUnitForTeamEntry_SeveralCandidates_PrefersSlugThenNormalisedSlugThenName()
     {
         List<TestUnit> units = [new("Orc Troops", "orc-troops"), new("Fusiliers", "fusiliers"), new("Bolts", null)];
 
@@ -54,7 +54,7 @@ public sealed class FireteamMatchingTests
     }
 
     [Fact]
-    public void ResolveUnitForTeamEntry_PrefersReinforcementUnitsForReinforcementSlots()
+    public void ResolveUnitForTeamEntry_ReinforcementSlot_PrefersReinforcementUnits()
     {
         List<TestUnit> units = [new("Orc Troops", "orc-troops"), new("Orc Troops REINF", "orc-troops-reinf")];
 

@@ -15,7 +15,7 @@ public sealed class PerkTableTests
         new() { ListId = "test-list", ListName = "Test", Roots = roots.ToList() };
 
     [Fact]
-    public void OptionsPutTheAttributeListsFirstWithTheirRolls()
+    public void Options_Catalog_PutsAttributeListsFirstWithRolls()
     {
         var options = PerkTable.Options();
 
@@ -25,7 +25,7 @@ public sealed class PerkTableTests
     }
 
     [Fact]
-    public void EveryCatalogListHasATable()
+    public void ForList_EveryCatalogList_ReturnsATable()
     {
         Assert.All(PerkTable.Options(), option =>
         {
@@ -37,10 +37,10 @@ public sealed class PerkTableTests
     }
 
     [Fact]
-    public void UnknownListsHaveNoTable() => Assert.Null(PerkTable.ForList("Nonsense"));
+    public void ForList_UnknownList_ReturnsNull() => Assert.Null(PerkTable.ForList("Nonsense"));
 
     [Fact]
-    public void LaysOutTracksByTierPaddedToFiveTiers()
+    public void Build_TracksOfFewTiers_LaysOutByTierPaddedToFive()
     {
         var first = Node("x-track-2-tier-1", "Alpha", 1);
         first.AddChild(Node("x-track-2-tier-2", "Beta, Gamma", 2, "x-track-2-tier-1"));
@@ -56,7 +56,7 @@ public sealed class PerkTableTests
     }
 
     [Fact]
-    public void AParentAndChildReferenceMakeOneLink()
+    public void Build_ParentAndChildOnOneTrack_MakesOneLink()
     {
         var parent = Node("x-track-1-tier-1", "A", 1);
         parent.AddChild(Node("x-track-1-tier-3", "B", 3, "x-track-1-tier-1"));
@@ -69,7 +69,7 @@ public sealed class PerkTableTests
     }
 
     [Fact]
-    public void NodesWithoutTrackIdsAreLeftOut()
+    public void Build_NodesWithoutTrackIds_ReturnsNull()
     {
         Assert.Null(PerkTable.Build(List(Node("loose", "A", 1))));
     }
@@ -78,18 +78,18 @@ public sealed class PerkTableTests
     [InlineData("Plain", "Plain")]
     [InlineData("Trailing,", "Trailing")]
     [InlineData(" ", "")]
-    public void PerkTextSplitsOnlyRealLists(string name, string expected) =>
+    public void PerkText_Name_SplitsOnlyRealLists(string name, string expected) =>
         Assert.Equal(expected, PerkTable.PerkText(name));
 
     [Fact]
-    public void RollLabelJoinsRanges()
+    public void RollLabel_Ranges_JoinsThem()
     {
         Assert.Equal("Always", PerkTable.RollLabel([]));
         Assert.Equal("1-5/11", PerkTable.RollLabel([new() { Min = 1, Max = 5 }, new() { Min = 11, Max = 11 }]));
     }
 
     [Fact]
-    public void TheViewModelShowsTheFirstListAndFollowsTheSelection()
+    public void PerksTablesViewModel_SelectionChanged_ShowsTheSelectedTable()
     {
         var viewModel = new PerksTablesViewModel(Substitute.For<INavigationService>());
 

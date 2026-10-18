@@ -7,7 +7,7 @@ public sealed class RolledArmorTests
     [Theory]
     [InlineData("Chemtank", "Regeneration")]
     [InlineData("Irmandihno Wetsuit (LI)", "Mimetism (-6)")]
-    public void ARolledCopyIsNamedWithItsResult(string armor, string result)
+    public void Name_RolledCopy_ParsesBackToTheSameArmor(string armor, string result)
     {
         var name = new RolledArmor(armor, result).Name;
 
@@ -17,5 +17,5 @@ public sealed class RolledArmorTests
     [Theory]
     [InlineData("Chemtank")]
     [InlineData("Light Armour (LI)")]
-    public void ArmourWithNoResultIsNotRolled(string name) => Assert.Null(RolledArmor.Parse(name));
+    public void Parse_NoResult_ReturnsNull(string name) => Assert.Null(RolledArmor.Parse(name));
 }

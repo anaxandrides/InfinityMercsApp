@@ -12,7 +12,7 @@ public sealed class StandardCompanySourcePopupPageViewModelTests
     private StandardCompanySourcePopupPageViewModel Create() => new(_navigation, _companySelection);
 
     [Fact]
-    public async Task EachChoiceOpensStandardSelectionWithItsSource()
+    public async Task SourceCommands_EachChoice_OpensStandardSelectionWithItsSource()
     {
         var viewModel = Create();
 
@@ -27,7 +27,7 @@ public sealed class StandardCompanySourcePopupPageViewModelTests
     }
 
     [Fact]
-    public async Task ANavigationFailureIsSwallowed()
+    public async Task TwoSectorialsSelectedCommand_NavigationFails_SwallowsIt()
     {
         _companySelection.OpenAsync(default).ReturnsForAnyArgs(Task.FromException(new InvalidOperationException("no shell")));
 
@@ -35,7 +35,7 @@ public sealed class StandardCompanySourcePopupPageViewModelTests
     }
 
     [Fact]
-    public async Task BackReturnsToCompanyCreation()
+    public async Task ClosePopupCommand_Executed_ReturnsToCompanyCreation()
     {
         await Create().ClosePopupCommand.ExecuteAsync(null);
 

@@ -37,7 +37,7 @@ public sealed class ViewerRulesEquivalenceTests
     [InlineData("+7.5")]
     [InlineData("20")]
     [InlineData("7.5")]
-    public void RealDistanceExtras_FormatTheSameInViewerAndShared(string distance)
+    public void DistanceTextConvert_RealDistanceExtras_MatchesViewerFormatting(string distance)
     {
         // Every DISTANCE extra in the bundled data; the viewer's own formatter and DistanceText agree on all.
         foreach (var inches in (IEnumerable<bool>)[false, true])
@@ -50,7 +50,7 @@ public sealed class ViewerRulesEquivalenceTests
 
     [Theory]
     [MemberData(nameof(CorpusSources))]
-    public void ViewerDisplayRules_MatchLegacyViewer(string source, bool inches)
+    public void ViewerDisplayRules_EveryCorpusUnit_MatchLegacyViewer(string source, bool inches)
     {
         var reader = new ArmyJsonReader();
         var mismatches = new List<string>();

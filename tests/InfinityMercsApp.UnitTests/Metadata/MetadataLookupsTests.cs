@@ -9,7 +9,7 @@ public sealed class MetadataLookupsTests
     private readonly IMetadataProvider _metadata = Substitute.For<IMetadataProvider>();
 
     [Fact]
-    public void PrefersWeaponsNamedExactlyAsTheItem()
+    public void WeaponsFor_ExactNameMatches_PrefersThem()
     {
         _metadata.SearchWeaponsByName("Combi Rifle").Returns(
         [
@@ -24,7 +24,7 @@ public sealed class MetadataLookupsTests
     }
 
     [Fact]
-    public void FallsBackToEveryMatch()
+    public void WeaponsFor_NoExactMatch_ReturnsEveryMatch()
     {
         _metadata.SearchWeaponsByName("Rifle").Returns([new Weapon { Name = "Combi Rifle" }, new Weapon { Name = "MULTI Rifle" }]);
 

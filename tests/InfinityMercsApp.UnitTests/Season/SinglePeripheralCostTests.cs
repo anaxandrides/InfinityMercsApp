@@ -18,6 +18,6 @@ public sealed class SinglePeripheralCostTests
     [InlineData("4", "Bot", 3, "0")]
     [InlineData("-", "Bot", 3, "-")]
     [InlineData("30", "Drone", 3, "30")]
-    public void DropsOnePeripheralCostPerExtraPeripheral(string cost, string peripheral, int count, string expected) =>
+    public void SinglePeripheralCost_ExtraPeripherals_DropsOneCostEach(string cost, string peripheral, int count, string expected) =>
         Assert.Equal(expected, UnitOptionFilter.SinglePeripheralCost(Unit, cost, peripheral, count));
 }

@@ -8,7 +8,7 @@ public sealed class TrooperProfileTests
         new("10-5", "13", "12", "10", "13", "1", "0", vitality, "2", skills ?? ["Courage"], ["Regular", "Cube"]);
 
     [Fact]
-    public void AttributesChangeAndDashesStay()
+    public void With_AttributeChange_ChangesNumbersKeepsDashes()
     {
         var profile = Fusilier() with { Bts = "-" };
 
@@ -18,7 +18,7 @@ public sealed class TrooperProfileTests
     }
 
     [Fact]
-    public void MovementChangesInGameInches()
+    public void With_MoveChange_ChangesInGameInches()
     {
         Assert.Equal("10cm-3cm", Fusilier().With(new TrooperChange { SecondMoveInches = -1 }).Move);
         Assert.Equal("5cm-5cm", Fusilier().With(new TrooperChange { FirstMoveInches = -2 }).Move);
@@ -38,7 +38,7 @@ public sealed class TrooperProfileTests
 
     [Theory]
     [MemberData(nameof(WoundsSteps))]
-    public void WoundsSkillStepsAlongDoggedNwiVita(string vitality, IReadOnlyList<string> skills, int steps, string expectedVitality, string? expectedSkill)
+    public void With_WoundsSkillSteps_StepsAlongDoggedNwiVita(string vitality, IReadOnlyList<string> skills, int steps, string expectedVitality, string? expectedSkill)
     {
         var changed = Fusilier(vitality, skills).With(new TrooperChange { WoundsSkillSteps = steps });
 
@@ -47,7 +47,7 @@ public sealed class TrooperProfileTests
     }
 
     [Fact]
-    public void CharacteristicsAreGainedAndLost()
+    public void With_CharacteristicChanges_GainsAndLosesThem()
     {
         var changed = Fusilier().With(new TrooperChange
         {
@@ -59,20 +59,20 @@ public sealed class TrooperProfileTests
     }
 
     [Fact]
-    public void SkillsAreAddedOnce()
+    public void With_SkillsGained_AddsEachOnce()
     {
         Assert.Equal(["Courage", "Climbing Plus"], Fusilier().With(new TrooperChange { SkillsGained = ["courage", "Climbing Plus"] }).Skills);
     }
 
     [Fact]
-    public void SilhouetteIsReplaced()
+    public void With_Silhouette_ReplacesIt()
     {
         Assert.Equal("7", Fusilier().With(new TrooperChange { Silhouette = 7 }).Silhouette);
     }
 
     // Screens with a perk list show a perk's skill there; only one improving a held skill changes the skills.
     [Fact]
-    public void PerkSkillsJoinTheSkillsOnlyWhereThereIsNoPerkList()
+    public void With_PerkSkills_JoinSkillsOnlyWithoutAPerkList()
     {
         var change = new TrooperChange { PerkSkills = ["Climbing Plus"] };
 
@@ -81,7 +81,7 @@ public sealed class TrooperProfileTests
     }
 
     [Fact]
-    public void APerkSkillAddsIntoTheSameSkillHeld()
+    public void With_PerkSkillAlreadyHeld_AddsIntoIt()
     {
         var change = new TrooperChange { PerkSkills = ["Mimetism (-3)"], ListsPerkSkills = false };
 

@@ -15,7 +15,7 @@ public sealed class MarketplaceDetailViewModelTests
         new(_metadata, Substitute.For<IWikiDescriptionService>(), Substitute.For<ILauncher>());
 
     [Fact]
-    public async Task AWeaponShowsItsProfilesUnderItsName()
+    public async Task ShowWeaponAsync_KnownWeapon_ShowsItsProfiles()
     {
         _metadata.SearchWeaponsByName("Spitfire").Returns([new Weapon { Name = "Spitfire" }]);
         var popup = Create();
@@ -30,7 +30,7 @@ public sealed class MarketplaceDetailViewModelTests
     }
 
     [Fact]
-    public async Task ARowItDoesNotKnowOpensNothing()
+    public async Task ShowRowAsync_UnknownRow_OpensNothing()
     {
         var popup = Create();
 

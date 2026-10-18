@@ -19,7 +19,7 @@ public sealed class CohesiveCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task SectorialsThatCanFieldACoreFireteamAreOfferedAndTheAnswerIsCached()
+    public async Task InitializeAsync_Sectorials_OffersThoseWithACoreFireteamAndCaches()
     {
         var viewModel = await OpenAsync();
 
@@ -33,7 +33,7 @@ public sealed class CohesiveCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task TheUnitsPaneOpensOnFireteams()
+    public async Task SelectFactionCommand_Faction_OpensOnFireteams()
     {
         var viewModel = await OpenWithFactionAsync();
 
@@ -46,7 +46,7 @@ public sealed class CohesiveCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task AFireteamIsTrackedByDefaultAndCanBeChanged()
+    public async Task TrackedFireteamName_UnitsLoaded_TracksOneByDefault()
     {
         var viewModel = await OpenWithFactionAsync();
         var trackable = viewModel.TeamEntries.Where(team => team.ShowTrackingRadioButton).ToList();
@@ -63,7 +63,7 @@ public sealed class CohesiveCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task NoTrackedFireteamReadsAsSelectFireteam()
+    public async Task SetTrackedFireteam_Null_ReadsAsSelectFireteam()
     {
         var viewModel = await OpenWithFactionAsync();
 
@@ -75,7 +75,7 @@ public sealed class CohesiveCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task TroopersJoinWithNumberTwoAndTheLieutenantWithFireteamMaster()
+    public async Task AddProfileToMercsCompanyCommand_Trooper_JoinsWithNumberTwoAndLieutenantFtMaster()
     {
         var viewModel = await OpenWithFactionAsync();
         viewModel.TeamsView = false;
@@ -91,7 +91,7 @@ public sealed class CohesiveCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task APointsLimitChangeRechecksTheSectorials()
+    public async Task SelectedStartSeasonPoints_Changed_RechecksTheSectorials()
     {
         var viewModel = await OpenWithFactionAsync();
         _kit.SpecOps.ClearReceivedCalls();

@@ -62,7 +62,7 @@ public sealed class GameModeViewModelTests : IDisposable
     private static OrderPoolItem Pool(GameModeViewModel viewModel, OrderKind kind) => viewModel.Orders.Single(pool => pool.Kind == kind);
 
     [Fact]
-    public async Task OpensOnRoundOneWithEachTroopersOrders()
+    public async Task InitializeAsyncCommand_Deployment_OpensOnRoundOneWithOrders()
     {
         var viewModel = await OpenAsync();
 
@@ -77,7 +77,7 @@ public sealed class GameModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task TacticalTokensOnlyComeWithAnEliteDeployment()
+    public async Task HasTacticalToken_EliteDeployment_OnlyThen()
     {
         Assert.All((await OpenAsync()).Units, unit => Assert.False(unit.HasTacticalToken));
 
@@ -87,7 +87,7 @@ public sealed class GameModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task OnlyOneRowIsOpenAtATime()
+    public async Task ToggleUnitCommand_SecondRow_ClosesTheFirst()
     {
         var viewModel = await OpenAsync();
 
@@ -102,7 +102,7 @@ public sealed class GameModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task WoundsChangeTheIconAndTheNextRoundsOrders()
+    public async Task TakeWoundCommand_Wounded_ChangesIconAndNextRoundsOrders()
     {
         var viewModel = await OpenAsync(elite: true);
         var bolt = viewModel.Units[1];
@@ -123,7 +123,7 @@ public sealed class GameModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task ANewRoundRefillsSpentOrdersAndTokens()
+    public async Task NextRoundCommand_OrdersAndTokensSpent_RefillsThem()
     {
         var viewModel = await OpenAsync(elite: true);
         Pool(viewModel, OrderKind.Regular).UseCommand.Execute(null);
@@ -136,7 +136,7 @@ public sealed class GameModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task TheGameCanEndFromRoundThreeAndLastsFourRounds()
+    public async Task EndGameCommand_Rounds_CanEndFromThreeAndLastsFour()
     {
         var viewModel = await OpenAsync();
 
@@ -153,7 +153,7 @@ public sealed class GameModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task TheXpSheetUpdatesTheButtonAsBoxesAreTicked()
+    public async Task ShowXpCommand_BoxesTicked_UpdatesTheButton()
     {
         var viewModel = await OpenAsync();
         var bolt = viewModel.Units[1];
@@ -173,7 +173,7 @@ public sealed class GameModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task WoundsStopAtNoneAndAtTheMost()
+    public async Task TakeAndHealWoundCommands_Limits_StopAtNoneAndTheMost()
     {
         var viewModel = await OpenAsync();
         var bolt = viewModel.Units[1];
@@ -191,7 +191,7 @@ public sealed class GameModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task OnlyKnownWeaponsOpenInFull()
+    public async Task ShowWeaponCommand_UnknownWeapon_DoesNotOpen()
     {
         var viewModel = await OpenAsync();
         var known = new GameWeaponCard("Combi Rifle", [new GameWeaponMode(new(), WeaponModeModifiers.None, null, true)], false);
@@ -207,7 +207,7 @@ public sealed class GameModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task EndingNeedsConfirmation()
+    public async Task EndGameCommand_NotConfirmed_StaysInTheGame()
     {
         var viewModel = await OpenAsync();
         _dialogs.ConfirmAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(false);
@@ -218,7 +218,7 @@ public sealed class GameModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task EndingRecordsTheMissionAndGoesToTheOutcome()
+    public async Task EndGameCommand_Confirmed_RecordsTheMissionAndGoesToTheOutcome()
     {
         var season = new SeasonFile();
         season.Rounds.Add(new SeasonRound { RoundIndex = 2 });
@@ -241,7 +241,7 @@ public sealed class GameModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task ADeadTrooperGoesToInjuryChecks()
+    public async Task EndGameCommand_DeadTrooper_GoesToInjuryChecks()
     {
         _dialogs.ConfirmAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(true);
         var viewModel = await OpenAsync();
@@ -260,7 +260,7 @@ public sealed class GameModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task AnInjuredTrooperThatRestedGoesToTheInjuriesPage()
+    public async Task EndGameCommand_InjuredTrooperRested_GoesToTheInjuriesPage()
     {
         var season = new SeasonFile();
         season.TrooperFor(9).Injuries.Add(Injury.Arms);

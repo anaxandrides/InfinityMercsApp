@@ -52,7 +52,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public void ListsEveryStoreAndShowsNoneAtFirst()
+    public void Constructor_Stores_ListsEveryStoreShowingNone()
     {
         var viewModel = CreateViewModel();
 
@@ -62,7 +62,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task ShowsTheSelectedStore()
+    public async Task SelectStoreCommand_KnownStore_ShowsIt()
     {
         var viewModel = await WithBlackMarketAsync();
 
@@ -79,7 +79,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task ListsTheFactionsAStoreServes()
+    public async Task SelectStoreCommand_StoreWithFactions_ListsThem()
     {
         _stores.GetStoreByNameAsync("Bazaar", Arg.Any<CancellationToken>())
             .Returns(new Store { Name = "Bazaar", AssociatedFactions = ["Haqqislam", "Nomads"] });
@@ -93,7 +93,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task PickingAStoreLoadsIt()
+    public async Task SelectedStoreName_Set_LoadsTheStore()
     {
         var viewModel = CreateViewModel();
 
@@ -105,7 +105,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task AnUnknownStoreLeavesTheCurrentOneShowing()
+    public async Task SelectStoreCommand_UnknownStore_KeepsTheCurrentOne()
     {
         var viewModel = await WithBlackMarketAsync();
 
@@ -116,7 +116,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task ClearingTheStoreHidesIt()
+    public async Task SelectStoreCommand_Null_HidesTheStore()
     {
         var viewModel = await WithBlackMarketAsync();
 
@@ -126,7 +126,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task TheCartShowsOnlyWithAStoreAndQuantityControls()
+    public async Task ShowCart_WideLayout_OnlyWithAStore()
     {
         var viewModel = CreateViewModel();
         viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Wide);
@@ -143,7 +143,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task QuantitiesFillTheCartAndTotal()
+    public async Task IncrementCommand_Rows_FillsTheCartAndTotal()
     {
         var viewModel = await WithBlackMarketAsync();
         var pistol = viewModel.ItemGroups[0].Items[0];
@@ -164,7 +164,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task ChangingStoreEmptiesTheCart()
+    public async Task SelectStoreCommand_CartFilled_EmptiesTheCart()
     {
         var viewModel = await WithBlackMarketAsync();
         viewModel.IncrementCommand.Execute(viewModel.AugmentRows[0]);
@@ -175,7 +175,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task AnItemDetailLoadsItsWikiDescription()
+    public async Task ShowDetailCommand_ItemWithWikiPage_LoadsItsDescription()
     {
         IReadOnlyList<WikiContentBlock> blocks = [new WikiContentBlock { Type = WikiBlockType.Paragraph, Text = "Shoots." }];
         _wiki.FetchContentAsync("https://wiki/pistol", null, Arg.Any<CancellationToken>()).Returns(blocks);
@@ -194,7 +194,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task AnEmptyWikiPageSaysSo()
+    public async Task ShowDetailCommand_EmptyWikiPage_SaysSo()
     {
         _wiki.FetchContentAsync("https://wiki/pistol", null, Arg.Any<CancellationToken>()).Returns([]);
         _metadata.SearchWeaponsByName("Pistol").Returns([]);
@@ -207,7 +207,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task AnItemWithoutAWikiPageFetchesNothing()
+    public async Task ShowDetailCommand_NoWikiPage_FetchesNothing()
     {
         _metadata.SearchWeaponsByName("Medkit").Returns([]);
         var viewModel = await WithBlackMarketAsync();
@@ -220,7 +220,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task AWikiPageThatArrivesAfterThePopupClosesIsDropped()
+    public async Task ShowDetailCommand_WikiArrivesAfterClose_DropsIt()
     {
         var pending = new TaskCompletionSource<IReadOnlyList<WikiContentBlock>>();
         _wiki.FetchContentAsync("https://wiki/pistol", null, Arg.Any<CancellationToken>()).Returns(pending.Task);
@@ -238,7 +238,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task ATroopTypeDetailLinksItsSkills()
+    public async Task ShowDetailCommand_TroopType_LinksItsSkills()
     {
         _metadata.GetSkills().Returns([new Skill { Name = "Mimetism", Wiki = "https://wiki/mimetism" }]);
         var viewModel = await WithBlackMarketAsync();
@@ -251,7 +251,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task AnAugmentDetailClosesWithBack()
+    public async Task DetailPopupCloseCommand_AugmentDetail_ClosesIt()
     {
         var viewModel = await WithBlackMarketAsync();
 
@@ -264,7 +264,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task OpensSkillLinks()
+    public async Task OpenLinkCommand_SkillLink_OpensIt()
     {
         await CreateViewModel().DetailPopup.OpenLinkCommand.ExecuteAsync("https://wiki/mimetism");
 
@@ -272,7 +272,7 @@ public sealed class MarketplacesViewModelTests
     }
 
     [Fact]
-    public async Task IgnoresMissingAndFailingLinks()
+    public async Task OpenLinkCommand_MissingOrFailingLink_IgnoresIt()
     {
         _launcher.OpenAsync(Arg.Any<Uri>()).ThrowsAsync(new InvalidOperationException("no browser"));
         var viewModel = CreateViewModel();

@@ -73,7 +73,7 @@ public sealed class ByeRoundViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task ListsTheTroopersAndTheirInjuries()
+    public async Task InitializeAsyncCommand_Season_ListsTroopersAndInjuries()
     {
         var viewModel = await OpenAsync();
 
@@ -89,7 +89,7 @@ public sealed class ByeRoundViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task NoMoreThanFourCanBeTickedAtSevenXp()
+    public async Task IsSelected_FourTroopersSplit_TicksNoMoreThanFour()
     {
         var viewModel = await OpenAsync();
 
@@ -100,7 +100,7 @@ public sealed class ByeRoundViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task TickingAgainUnticks()
+    public async Task IsSelected_TickedTwice_Unticks()
     {
         var viewModel = await OpenAsync();
 
@@ -110,7 +110,7 @@ public sealed class ByeRoundViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task GoingBackToFourWithSixTickedCannotBeConfirmed()
+    public async Task ConfirmCommand_SixTickedThenFourSplit_CannotExecute()
     {
         var viewModel = await OpenAsync();
         viewModel.SelectSplitCommand.Execute(ByeXpSplit.SixTroopers);
@@ -125,7 +125,7 @@ public sealed class ByeRoundViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task ConfirmingRecordsTheByeAndGoesToDowntime()
+    public async Task ConfirmCommand_Confirmed_RecordsTheByeAndGoesToDowntime()
     {
         var viewModel = await OpenAsync();
         Tick(viewModel, 2, 4);
@@ -146,7 +146,7 @@ public sealed class ByeRoundViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task DecliningTheConfirmationRecordsNothing()
+    public async Task ConfirmCommand_Declined_RecordsNothing()
     {
         _dialogs.ConfirmAsync(Arg.Any<string>(), Arg.Any<string>()).ReturnsForAnyArgs(false);
         var viewModel = await OpenAsync();
@@ -158,7 +158,7 @@ public sealed class ByeRoundViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task AFailedSaveSaysSoAndStays()
+    public async Task ConfirmCommand_SaveFails_SaysSoAndStays()
     {
         _seasonFiles.UpdateAsync(SeasonPath, Arg.Any<Action<SeasonFile>>()).Returns(false);
         var viewModel = await OpenAsync();

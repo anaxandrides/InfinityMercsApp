@@ -21,7 +21,7 @@ public sealed class SeasonInventoryTests
 
     // Each copy of armour that rolled when bought is named with its result, and is still found as its armour.
     [Fact]
-    public void RolledArmourCopiesKeepTheirResults()
+    public void From_RolledArmourCopies_KeepsTheirResults()
     {
         var regeneration = Bought("Number One", "Light Armour (LI)");
         regeneration.RolledResult = "Regeneration";
@@ -35,13 +35,13 @@ public sealed class SeasonInventoryTests
     }
 
     [Fact]
-    public void NoSeasonOwnsNothing()
+    public void From_NoSeason_OwnsNothing()
     {
         Assert.Empty(SeasonInventory.From(null, Catalog).Entries);
     }
 
     [Fact]
-    public void TalliesPurchasesWithTheirStoresAndRounds()
+    public void From_Purchases_TalliesThemWithStoresAndRounds()
     {
         var season = new SeasonFile
         {
@@ -60,7 +60,7 @@ public sealed class SeasonInventoryTests
     }
 
     [Fact]
-    public void SalesTakeOneAway()
+    public void From_Sale_TakesOneAway()
     {
         var season = new SeasonFile { Rounds = [Round(1, Bought("Number One", "Pistol"), Bought("Number One", "Combi Rifle"), Sold("Pistol"))] };
 
@@ -68,7 +68,7 @@ public sealed class SeasonInventoryTests
     }
 
     [Fact]
-    public void ExchangesServicesAndUnknownItemsAreNotKept()
+    public void From_ExchangesServicesAndUnknownItems_KeepsNone()
     {
         var season = new SeasonFile
         {
@@ -79,7 +79,7 @@ public sealed class SeasonInventoryTests
     }
 
     [Fact]
-    public void DowntimeWinningsAreKept()
+    public void From_DowntimeWinnings_KeepsThem()
     {
         var round = new SeasonRound
         {
@@ -103,7 +103,7 @@ public sealed class SeasonInventoryTests
     }
 
     [Fact]
-    public void ARandomPistolEffectWinsAPistol()
+    public void From_RandomPistolEffect_WinsAPistol()
     {
         var round = new SeasonRound { RoundIndex = 1, Downtime = new SeasonDowntimeEntry { OtherEffects = "Gained a random pistol" } };
 
@@ -113,7 +113,7 @@ public sealed class SeasonInventoryTests
     }
 
     [Fact]
-    public void ListsGearSlotsInSlotOrderThenOtherCategories()
+    public void From_MixedItems_ListsSlotsInOrderThenOtherCategories()
     {
         var season = new SeasonFile
         {
@@ -126,7 +126,7 @@ public sealed class SeasonInventoryTests
     }
 
     [Fact]
-    public void ListsWhatFitsASlot()
+    public void ItemsFor_Slot_ListsWhatFitsIt()
     {
         var season = new SeasonFile { Rounds = [Round(1, Bought("Number One", "Pistol"), Bought("Jade Temu", "Pistol"), Bought("Number One", "Combi Rifle"))] };
         var inventory = SeasonInventory.From(season, Catalog);
@@ -137,7 +137,7 @@ public sealed class SeasonInventoryTests
 
     // Belts and Pouches' extra slot takes gear of any kind but armour, and nothing that isn't gear.
     [Fact]
-    public void TheExtraSlotTakesAnyGearButArmour()
+    public void ItemsFor_ExtraSlot_ListsAnyGearButArmour()
     {
         var season = new SeasonFile
         {
@@ -148,7 +148,7 @@ public sealed class SeasonInventoryTests
     }
 
     [Fact]
-    public void AnExtraItemWorksAsItsOwnKind()
+    public void EquippedItemIn_ItemInExtraSlot_WorksAsItsOwnKind()
     {
         IReadOnlyList<SeasonUnitGear> gear =
         [
@@ -166,7 +166,7 @@ public sealed class SeasonInventoryTests
     [InlineData(12, 6)]
     [InlineData(5, 3)]
     [InlineData(0, 0)]
-    public void SellsForHalfRoundedUp(int cost, int sellPrice)
+    public void SellPrice_Cost_IsHalfRoundedUp(int cost, int sellPrice)
     {
         Assert.Equal(sellPrice, new InventoryEntry("Pistol", "Sidearm", cost, 1, [], []).SellPrice);
     }

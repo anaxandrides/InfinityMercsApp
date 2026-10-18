@@ -9,11 +9,11 @@ public sealed class UnitFilterOptionsCatalogTests
     [InlineData("75", 200)]
     [InlineData("300", 300)]
     [InlineData("lots", 200)]
-    public void TheSliderRunsToThePointsLimitButAtLeast200(string limit, int max) =>
+    public void MaxPointsFor_PointsLimit_RunsToItButAtLeast200(string limit, int max) =>
         Assert.Equal(max, UnitFilterOptionsCatalog.MaxPointsFor(limit));
 
     [Fact]
-    public void BeforeAnyOptionsAreReadTheFilterOffersOnlyPoints()
+    public void WithMaxPoints_NoOptions_OffersOnlyPoints()
     {
         var options = UnitFilterOptionsCatalog.WithMaxPoints(null, 150);
 
@@ -22,7 +22,7 @@ public sealed class UnitFilterOptionsCatalogTests
     }
 
     [Fact]
-    public void ACopyKeepsTheChoicesWithTheNewSlider()
+    public void WithMaxPoints_Options_KeepsChoicesWithTheNewMax()
     {
         var options = UnitFilterOptionsCatalog.WithMaxPoints(new UnitFilterPopupOptions { Skills = ["Camouflage"], MaxPoints = 200 }, 120);
 

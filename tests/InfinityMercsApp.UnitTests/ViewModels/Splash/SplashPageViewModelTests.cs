@@ -21,7 +21,7 @@ public sealed class SplashPageViewModelTests
     private readonly IDialogService _dialogs = Substitute.For<IDialogService>();
 
     [Fact]
-    public async Task UpToDateData_OpensTheAppWithoutAsking()
+    public async Task InitializeAsync_UpToDate_OpensTheAppWithoutAsking()
     {
         Stored(true);
         Checks(ArmyDataChecks.UpToDate());
@@ -34,7 +34,7 @@ public sealed class SplashPageViewModelTests
     }
 
     [Fact]
-    public async Task FirstDownload_IsStoredWithoutAsking()
+    public async Task InitializeAsync_FirstDownload_StoresWithoutAsking()
     {
         Stored(false);
         var check = ArmyDataChecks.WithUpdate();
@@ -49,7 +49,7 @@ public sealed class SplashPageViewModelTests
     }
 
     [Fact]
-    public async Task Update_IsStoredWhenAccepted()
+    public async Task InitializeAsync_UpdateAccepted_StoresIt()
     {
         Stored(true);
         var check = ArmyDataChecks.WithUpdate();
@@ -65,7 +65,7 @@ public sealed class SplashPageViewModelTests
     }
 
     [Fact]
-    public async Task Update_IsNotStoredWhenDeclined()
+    public async Task InitializeAsync_UpdateDeclined_StoresNothing()
     {
         Stored(true);
         Checks(ArmyDataChecks.WithUpdate());
@@ -147,7 +147,7 @@ public sealed class SplashPageViewModelTests
     }
 
     [Fact]
-    public async Task ArmiesThatCouldNotBeStored_AreNamed()
+    public async Task InitializeAsync_ArmiesNotStored_NamesThem()
     {
         Stored(true);
         var check = ArmyDataChecks.WithUpdate();

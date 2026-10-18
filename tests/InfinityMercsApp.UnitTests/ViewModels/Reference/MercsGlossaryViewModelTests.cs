@@ -24,7 +24,7 @@ public sealed class MercsGlossaryViewModelTests
     }
 
     [Fact]
-    public async Task OpensOnTheFirstRuleWithoutLeavingTheIndex()
+    public async Task InitializeAsyncCommand_Index_OpensOnTheFirstRule()
     {
         var viewModel = await OpenAsync();
 
@@ -36,7 +36,7 @@ public sealed class MercsGlossaryViewModelTests
     }
 
     [Fact]
-    public async Task ChoosingARuleShowsItAndARuleWithoutAFileSaysSo()
+    public async Task SelectedItem_Rule_ShowsItOrSaysThereIsNone()
     {
         var viewModel = await OpenAsync();
 
@@ -51,7 +51,7 @@ public sealed class MercsGlossaryViewModelTests
     }
 
     [Fact]
-    public async Task HeadersCannotBeSelected()
+    public async Task SelectedItem_Header_IsNotSelected()
     {
         var viewModel = await OpenAsync();
         var current = viewModel.SelectedItem;
@@ -63,7 +63,7 @@ public sealed class MercsGlossaryViewModelTests
     }
 
     [Fact]
-    public async Task ASlowLoadDoesNotReplaceALaterChoice()
+    public async Task SelectedItem_SlowLoadThenLaterChoice_KeepsTheLaterChoice()
     {
         var slow = new TaskCompletionSource<string>();
         _files.ReadTextAsync("glossary/slow.md").Returns(slow.Task);
@@ -80,7 +80,7 @@ public sealed class MercsGlossaryViewModelTests
     }
 
     [Fact]
-    public async Task AMissingIndexShowsTheError()
+    public async Task InitializeAsyncCommand_MissingIndex_ShowsTheError()
     {
         _files.ReadTextAsync(MercsGlossary.IndexFile).ThrowsAsync(new FileNotFoundException("gone"));
         var viewModel = new MercsGlossaryViewModel(Substitute.For<INavigationService>(), _files);
@@ -96,7 +96,7 @@ public sealed class MercsGlossaryViewModelTests
     [InlineData(AdaptiveLayoutMode.Medium, 14)]
     [InlineData(AdaptiveLayoutMode.Expanded, 15)]
     [InlineData(AdaptiveLayoutMode.Wide, 16)]
-    public async Task ScalesTheIndexTextToTheWidth(AdaptiveLayoutMode mode, double fontSize)
+    public async Task ApplyLayoutCommand_Mode_ScalesTheIndexText(AdaptiveLayoutMode mode, double fontSize)
     {
         var viewModel = await OpenAsync();
         viewModel.ApplyLayoutCommand.Execute(mode == AdaptiveLayoutMode.Wide ? AdaptiveLayoutMode.Compact : AdaptiveLayoutMode.Wide);
@@ -110,7 +110,7 @@ public sealed class MercsGlossaryViewModelTests
     }
 
     [Fact]
-    public async Task OnAPhoneTheRuleTextReplacesTheIndex()
+    public async Task IsShowingDetail_Compact_ReplacesTheIndex()
     {
         var viewModel = await OpenAsync();
         Assert.True(viewModel.IsIndexPaneVisible);

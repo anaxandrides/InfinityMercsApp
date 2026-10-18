@@ -6,7 +6,7 @@ namespace InfinityMercsApp.UnitTests.Presentation.Marketplaces;
 public sealed class MarketplacesLayoutTests
 {
     [Fact]
-    public void StacksForAPhone()
+    public void For_Compact_StacksEverything()
     {
         var layout = MarketplacesLayout.For(AdaptiveLayoutMode.Compact);
 
@@ -20,7 +20,7 @@ public sealed class MarketplacesLayoutTests
     }
 
     [Fact]
-    public void MediumStacksTheStoreInfoButSplitsTheSections()
+    public void For_Medium_StacksStoreInfoAndSplitsSections()
     {
         var layout = MarketplacesLayout.For(AdaptiveLayoutMode.Medium);
 
@@ -32,7 +32,7 @@ public sealed class MarketplacesLayoutTests
     }
 
     [Fact]
-    public void ExpandedPutsTheStoreInfoInARail()
+    public void For_Expanded_PutsStoreInfoInARail()
     {
         var layout = MarketplacesLayout.For(AdaptiveLayoutMode.Expanded);
 
@@ -46,7 +46,7 @@ public sealed class MarketplacesLayoutTests
     }
 
     [Fact]
-    public void WideAddsTheCartRailAndBuying()
+    public void For_Wide_AddsTheCartRailAndBuying()
     {
         var layout = MarketplacesLayout.For(AdaptiveLayoutMode.Wide);
 

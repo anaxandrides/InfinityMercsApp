@@ -50,7 +50,7 @@ public sealed class CompanyRosterTests
     };
 
     [Fact]
-    public void BootyAndMetachemistryResultsAreOnTheTrooper()
+    public void UnitsOf_BootyAndMetachemistryRolled_PutsResultsOnTheTrooper()
     {
         _armyData.GetWeaponNames().Returns(["DA CC Weapon"]);
         _armyData.GetSkillNames().Returns(["Regeneration"]);
@@ -67,7 +67,7 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
-    public void ATrooperWithBootyOwesARollUntilItRolls()
+    public void UnitsOf_BootyNotRolled_OwesARoll()
     {
         var unit = Create().UnitsOf(new SavedCompanyFile { Entries = [Entry(1, "Ghulam", skills: ["Booty (ReRoll)"])] })[0];
 
@@ -76,7 +76,7 @@ public sealed class CompanyRosterTests
 
     // The armour's own roll goes with it to whoever wears it.
     [Fact]
-    public void RolledArmourGivesItsResultToItsWearer()
+    public void UnitsOf_RolledArmourWorn_GivesItsResultToTheWearer()
     {
         _armyData.GetSkillNames().Returns(["Regeneration"]);
         var season = new SeasonFile { UnitGear = new() { [1] = [new SeasonUnitGear { ItemName = "Chemtank [Regeneration]", Slot = GearSlot.Armor.Key() }] } };
@@ -87,7 +87,7 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
-    public void ASeasonLeavesOutItsRetiredTroopers()
+    public void UnitsOf_SeasonWithRetiredTroopers_LeavesThemOut()
     {
         var company = new SavedCompanyFile { Entries = [Entry(1, "Fusilier", isLieutenant: true), Entry(2, "Bolt"), Entry(3, "Zhanshi")] };
         var season = new SeasonFile { Retired = [new RetiredTrooper { EntryIndex = 2 }] };
@@ -97,7 +97,7 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
-    public void TheLieutenantComesFirstThenSavedOrder()
+    public void UnitsOf_Company_ListsLieutenantFirstThenSavedOrder()
     {
         var company = new SavedCompanyFile
         {
@@ -113,7 +113,7 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
-    public void CustomNamesAndTheCaptainsNameAreUsed()
+    public void UnitsOf_CustomAndCaptainNames_UsesThem()
     {
         var company = new SavedCompanyFile
         {
@@ -128,7 +128,7 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
-    public void TheCaptainsChoicesJoinTheLieutenantsLoadout()
+    public void UnitsOf_CaptainChoices_JoinTheLieutenantsLoadout()
     {
         var company = new SavedCompanyFile
         {
@@ -151,7 +151,7 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
-    public void ADisabledCaptainAddsNothing()
+    public void UnitsOf_DisabledCaptain_AddsNothing()
     {
         var company = new SavedCompanyFile
         {
@@ -163,7 +163,7 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
-    public void LogosDefaultToThePackagedUnitLogo()
+    public void UnitsOf_NoDownloadedLogo_UsesThePackagedUnitLogo()
     {
         var unit = Create().UnitsOf(new SavedCompanyFile { Entries = [Entry(1, "Bolt")] })[0];
 
@@ -176,7 +176,7 @@ public sealed class CompanyRosterTests
     [InlineData("Turtlemek", 101)]
     [InlineData("Repurposed Mining Equipment", 101)]
     [InlineData("Anything", CompanyRoster.TagCompanyFactionId)]
-    public void TagCompanyUnitsKeepTheTagCompanyAsSource(string baseName, int sourceFactionId)
+    public void UnitsOf_TagCompanyUnit_KeepsTheTagCompanyAsSource(string baseName, int sourceFactionId)
     {
         var entry = Entry(1, baseName, sourceFactionId: sourceFactionId);
         var unit = Create().UnitsOf(new SavedCompanyFile { Entries = [entry] })[0];
@@ -187,7 +187,7 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
-    public void AMissingBaseNameFallsBackToItsPosition()
+    public void UnitsOf_MissingBaseName_NamesItByPosition()
     {
         var entry = Entry(1, "");
         var unit = Create().UnitsOf(new SavedCompanyFile { Entries = [entry] })[0];
@@ -196,7 +196,7 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
-    public void TheProfileTidiesTheLieutenantsSkills()
+    public void ProfileOf_Lieutenant_TidiesItsSkills()
     {
         var item = new CompanyViewerUnitListItem
         {
@@ -219,7 +219,7 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
-    public void ShowOnSetsTheSavedStatsAndIcons()
+    public void ShowOn_SavedTrooper_SetsItsStatsAndIcons()
     {
         var detail = new UnitDetailViewModel(_armyData);
         var item = new CompanyViewerUnitListItem
@@ -244,7 +244,7 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
-    public void HeaderColoursFallBackToTheDefaultsForAnUnknownFaction()
+    public void HeaderColorsFor_UnknownFaction_ReturnsTheDefaults()
     {
         var colors = Create().HeaderColorsFor(0);
 
@@ -252,7 +252,7 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
-    public void MovementInCentimetresIsKeptUnambiguous()
+    public void UnitsOf_MovementInCentimetres_KeepsItUnambiguous()
     {
         var entries = new List<SavedCompanyEntry>
         {
@@ -266,7 +266,7 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
-    public void TheProfileCanWriteDistancesInTheReadersUnit()
+    public void ProfileOf_ShowUnitsInInches_WritesDistancesInThatUnit()
     {
         var item = new CompanyViewerUnitListItem
         {
@@ -284,7 +284,7 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
-    public async Task ALogoComesFromTheDownloadThePackageOrTheFallback()
+    public async Task LogoSourceAsync_AnyLogo_UsesDownloadThenPackageThenFallback()
     {
         var packageFiles = Substitute.For<IAppPackageFiles>();
         packageFiles.ExistsAsync("svgcache/units/101-11.svg").Returns(true);

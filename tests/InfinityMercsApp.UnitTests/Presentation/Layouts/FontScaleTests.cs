@@ -18,11 +18,11 @@ public sealed class FontScaleTests
 
     [Theory]
     [MemberData(nameof(Windows))]
-    public void FollowsTheShorterSide(double width, double height, double scale) =>
+    public void For_WindowSize_FollowsTheShorterSide(double width, double height, double scale) =>
         Assert.Equal(scale, FontScale.For(width, height), 2);
 
     [Fact]
-    public void SizesRoundToTheHalfPoint()
+    public void SizeOf_Scale_RoundsToTheHalfPoint()
     {
         var body = FontScale.Tokens.Single(token => token.ResourceKey == "FontSizeBody");
 
@@ -31,7 +31,7 @@ public sealed class FontScaleTests
     }
 
     [Fact]
-    public void EverySharedSizeIsScaled() =>
+    public void Tokens_SharedSizes_IncludesEveryOne() =>
         Assert.Equal(
             ["FontSizeMicro", "FontSizeCaption", "FontSizeBody", "FontSizeCardTitleCompact", "FontSizeSectionHeader",
              "FontSizeSubHeadline", "FontSizeTitleSmall", "FontSizeHeadline", "FontSizeTitleLarge", "FontSizeDisplay"],

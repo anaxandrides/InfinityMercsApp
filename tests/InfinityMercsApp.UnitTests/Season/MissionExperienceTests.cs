@@ -5,7 +5,7 @@ namespace InfinityMercsApp.UnitTests.Season;
 public sealed class MissionExperienceTests
 {
     [Fact]
-    public void ADeployedTrooperEarnsTheMissionNumber()
+    public void Lines_DeployedTrooper_EarnsTheMissionNumber()
     {
         var unit = new ExperienceUnitResult { DeploymentXp = 3 };
 
@@ -14,7 +14,7 @@ public sealed class MissionExperienceTests
     }
 
     [Fact]
-    public void EverySourceIsListedInOrderAndAddsToTheTotal()
+    public void Lines_EverySource_ListedInOrderAndAddedToTotal()
     {
         var unit = new ExperienceUnitResult
         {

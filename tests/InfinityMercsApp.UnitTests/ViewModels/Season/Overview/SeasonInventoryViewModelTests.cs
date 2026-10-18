@@ -33,7 +33,7 @@ public sealed class SeasonInventoryViewModelTests
         _kit.Dialogs.ConfirmAsync("Sell Equipment", Arg.Any<string>(), "Sell", "Cancel").Returns(confirm);
 
     [Fact]
-    public void ListsOwnedGearByCategory()
+    public void Show_OwnedGear_ListsItByCategory()
     {
         ShowOwned(SeasonTestKit.Bought("Number One", "Pistol"), SeasonTestKit.Bought("Number One", "Pistol"), SeasonTestKit.Bought("Number One", "Combi Rifle"));
 
@@ -44,7 +44,7 @@ public sealed class SeasonInventoryViewModelTests
     }
 
     [Fact]
-    public void SaysWhenNothingIsOwned()
+    public void Show_NothingOwned_SaysSo()
     {
         ShowOwned();
 
@@ -53,7 +53,7 @@ public sealed class SeasonInventoryViewModelTests
     }
 
     [Fact]
-    public void SaysWhenThereIsNoSeason()
+    public void Show_NoSeason_SaysSo()
     {
         _inventory.Show(null, null, SeasonInventory.Empty);
 
@@ -61,7 +61,7 @@ public sealed class SeasonInventoryViewModelTests
     }
 
     [Fact]
-    public async Task SellingRecordsASaleForHalfThePrice()
+    public async Task SellCommand_Confirmed_RecordsASaleForHalfThePrice()
     {
         ShowOwned(SeasonTestKit.Bought("Number One", "Combi Rifle"));
         ConfirmSales(true);
@@ -75,7 +75,7 @@ public sealed class SeasonInventoryViewModelTests
     }
 
     [Fact]
-    public async Task CancellingSellsNothing()
+    public async Task SellCommand_Cancelled_SellsNothing()
     {
         ShowOwned(SeasonTestKit.Bought("Number One", "Combi Rifle"));
         ConfirmSales(false);
@@ -87,7 +87,7 @@ public sealed class SeasonInventoryViewModelTests
     }
 
     [Fact]
-    public async Task AnUnpricedItemCannotBeSold()
+    public async Task SellCommand_UnpricedItem_SellsNothing()
     {
         var unpriced = new InventoryItem(new InventoryEntry("Trophy", "General", 0, 1, [], []));
 
@@ -98,7 +98,7 @@ public sealed class SeasonInventoryViewModelTests
     }
 
     [Fact]
-    public async Task ASaleBeforeTheFirstContractIsRecordedWithTheInitialPurchases()
+    public async Task SellCommand_BeforeFirstContract_RecordsWithInitialPurchases()
     {
         _kit.Season = new SeasonFile();
         _kit.Season.InitialPurchases.Transactions.Add(SeasonTestKit.Bought("Number One", "Combi Rifle"));
@@ -112,7 +112,7 @@ public sealed class SeasonInventoryViewModelTests
     }
 
     [Fact]
-    public async Task AFailedSaveSaysSo()
+    public async Task SellCommand_SaveFails_SaysSo()
     {
         ShowOwned(SeasonTestKit.Bought("Number One", "Combi Rifle"));
         _kit.SeasonFiles.UpdateAsync(SeasonTestKit.SeasonPath, Arg.Any<Action<SeasonFile>>()).Returns(false);

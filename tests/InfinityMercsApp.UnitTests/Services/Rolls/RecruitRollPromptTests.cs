@@ -25,14 +25,14 @@ public sealed class RecruitRollPromptTests
     private Task<RecruitRoll?> RollAsync(bool canReroll) => _prompt.RollAsync("Ghulam", new OwedRoll(RecruitRollTable.Booty, canReroll), "LI", "Later");
 
     [Fact]
-    public async Task ARollKeepsItsResult()
+    public async Task RollAsync_NoReroll_KeepsTheResult()
     {
         Assert.Equal(new RecruitRoll(RecruitRollTable.Booty, 4, "DA CC Weapon"), await RollAsync(canReroll: false));
         await _dialogs.Received(1).ShowAlertAsync("Booty rolled 4", "Ghulam gains DA CC Weapon for good.");
     }
 
     [Fact]
-    public async Task ARerollKeepsTheSecondResult()
+    public async Task RollAsync_Rerolled_KeepsTheSecondResult()
     {
         _dialogs.ChooseAsync(Arg.Is<string>(title => title.Contains("Keep it")), RecruitRollPrompt.KeepChoice, Arg.Any<IReadOnlyList<string>>())
             .Returns(RecruitRollPrompt.RerollChoice);
@@ -41,7 +41,7 @@ public sealed class RecruitRollPromptTests
     }
 
     [Fact]
-    public async Task KeepingTheFirstRollSkipsTheReroll()
+    public async Task RollAsync_FirstRollKept_SkipsTheReroll()
     {
         _dialogs.ChooseAsync(Arg.Is<string>(title => title.Contains("Keep it")), RecruitRollPrompt.KeepChoice, Arg.Any<IReadOnlyList<string>>())
             .Returns((string?)null);
@@ -51,7 +51,7 @@ public sealed class RecruitRollPromptTests
     }
 
     [Fact]
-    public async Task ARealRollIsEntered()
+    public async Task RollAsync_RealRollChosen_UsesTheEnteredRoll()
     {
         _dialogs.ChooseAsync(Arg.Is<string>(title => title.Contains("roll on")), "Later", Arg.Any<IReadOnlyList<string>>()).Returns(RecruitRollPrompt.RealChoice);
         _dialogs.AskNumberAsync(Arg.Any<string>(), Arg.Any<string>(), 1, 20).Returns(18);
@@ -61,7 +61,7 @@ public sealed class RecruitRollPromptTests
     }
 
     [Fact]
-    public async Task WithoutTheTableNothingIsRolled()
+    public async Task RollAsync_NoTable_RollsNothing()
     {
         Assert.Null(await _prompt.RollAsync("Ghulam", new OwedRoll(RecruitRollTable.Metachemistry, false), "LI", "Later"));
         await _dialogs.Received(1).ShowAlertAsync("No Metachemistry Table", Arg.Any<string>());

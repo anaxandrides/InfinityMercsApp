@@ -10,7 +10,7 @@ public sealed class CreateNewCompanyLayoutTests
     [InlineData(AdaptiveLayoutMode.Medium, 2, "*,*", "Auto,Auto,Auto")]
     [InlineData(AdaptiveLayoutMode.Expanded, 3, "*,*,*", "Auto,Auto")]
     [InlineData(AdaptiveLayoutMode.Wide, 3, "*,*,*", "Auto,Auto")]
-    public void FitsFiveCardsIntoColumnsForTheWidth(AdaptiveLayoutMode mode, int columns, string gridColumns, string gridRows)
+    public void For_EachMode_FitsFiveCardsIntoColumns(AdaptiveLayoutMode mode, int columns, string gridColumns, string gridRows)
     {
         var layout = CreateNewCompanyLayout.For(mode);
 
@@ -20,7 +20,7 @@ public sealed class CreateNewCompanyLayoutTests
     }
 
     [Fact]
-    public void FillsRowsLeftToRight()
+    public void CellFor_FiveCards_FillsRowsLeftToRight()
     {
         var layout = CreateNewCompanyLayout.For(AdaptiveLayoutMode.Medium);
 
@@ -28,7 +28,7 @@ public sealed class CreateNewCompanyLayoutTests
     }
 
     [Fact]
-    public void CompactCardsAreShortRowsWithTheTitleBesideTheIcon()
+    public void CompanyCardStyleFor_Compact_PutsTitleBesideTheIcon()
     {
         var card = CompanyCardStyle.For(AdaptiveLayoutMode.Compact);
 
@@ -41,7 +41,7 @@ public sealed class CreateNewCompanyLayoutTests
     }
 
     [Fact]
-    public void WiderCardsStackALargeIconAboveTheTitle()
+    public void For_Expanded_StacksALargeIconAboveTheTitle()
     {
         var layout = CreateNewCompanyLayout.For(AdaptiveLayoutMode.Expanded);
 

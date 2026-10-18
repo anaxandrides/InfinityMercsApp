@@ -12,7 +12,7 @@ public sealed class FireteamLevelsTests
     [InlineData(4, "BS Attack (+1 SD), +3 Discover and +1 Dodge, +1 BS")]
     [InlineData(6, "BS Attack (+1 SD), +3 Discover and +1 Dodge, +1 BS, Sixth Sense, +1 WIP")]
     [InlineData(7, null)]
-    public void BonusText_AccumulatesUpToTheLevel(int level, string? expected) =>
+    public void BonusText_Level_AccumulatesBonusesUpToIt(int level, string? expected) =>
         Assert.Equal(expected, FireteamLevels.BonusText(level));
 
     [Theory]
@@ -22,17 +22,17 @@ public sealed class FireteamLevelsTests
     [InlineData("x", 0)]
     [InlineData("*", int.MaxValue / 2)]
     [InlineData(null, int.MaxValue / 2)]
-    public void MaxSlots_ReadsTheSlotCount(string? max, int expected) =>
+    public void MaxSlots_MaxText_ReadsTheSlotCount(string? max, int expected) =>
         Assert.Equal(expected, FireteamLevels.MaxSlots(max));
 
     [Fact]
-    public void SlotNameKeys_IncludeAliasesAndPluralVariants() =>
+    public void SlotNameKeys_NameWithAliases_IncludesAliasesAndPlurals() =>
         Assert.Equal(
             new HashSet<string> { "FUSILIER", "FUSILIERS", "ORC", "ORCS", "KAMAU", "KAMAUS" },
             FireteamLevels.SlotNameKeys("Fusiliers (Orc / Kamau)"));
 
     [Fact]
-    public void ClaimSlots_FillEachSlotUpToItsMax()
+    public void ClaimSlots_MoreMembersThanMax_FillsEachSlotUpToMax()
     {
         List<FireteamSlot> slots = [new FireteamSlot("Fusilier", null, null, "2")];
         var members = Enumerable.Range(0, 3).Select(_ => new FireteamMember("Fusiliers", "Fusilier", 1, 1)).ToList();
@@ -42,7 +42,7 @@ public sealed class FireteamLevelsTests
     }
 
     [Fact]
-    public void ClaimSlots_MatchByResolvedUnitWhenNamesDiffer()
+    public void ClaimSlots_NamesDiffer_MatchesByResolvedUnit()
     {
         List<FireteamSlot> slots = [new FireteamSlot("Something Else", 7, 3, "1")];
         Assert.Equal<bool>([true, false], FireteamLevels.ClaimSlots(
@@ -51,14 +51,14 @@ public sealed class FireteamLevelsTests
     }
 
     [Fact]
-    public void ClaimSlots_WithoutSlotsLeaveEveryoneIrregular()
+    public void ClaimSlots_NoSlots_LeavesEveryoneIrregular()
     {
         Assert.Equal<bool>([false], FireteamLevels.ClaimSlots([new FireteamMember("Orc", null, 1, 1)], []));
         Assert.Equal(0, FireteamLevels.Level([new FireteamMember("Orc", null, 1, 1)], []));
     }
 
     [Fact]
-    public void Level_IsCappedAtSix()
+    public void Level_MoreThanSixMembers_IsCappedAtSix()
     {
         var members = Enumerable.Range(0, 8).Select(_ => new FireteamMember("Orc", null, 1, 1)).ToList();
         Assert.Equal(FireteamLevels.MaxLevel, FireteamLevels.Level(members, [new FireteamSlot("Orc", null, null, "*")]));
@@ -68,7 +68,7 @@ public sealed class FireteamLevelsTests
 
     [Theory]
     [MemberData(nameof(Seeds))]
-    public void LevelAndIrregularStatus_MatchTheLegacyEvaluator(int seed)
+    public void LevelAndClaimSlots_RandomTeams_MatchLegacyEvaluator(int seed)
     {
         var random = new Random(seed);
         List<string> names = ["Orc Troops", "Orcs", "Fusilier", "Kamau (Hacker)", "Bolts", "Wildcard", "Moderator", ""];

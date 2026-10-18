@@ -20,7 +20,7 @@ public sealed class ArmorFittingTests
         ArmorFitting.Wear(trooper, type, PackagedArmor.Named(armorName), bonuses ?? CaptainStatBonuses.None);
 
     [Fact]
-    public void BecomingHeavyInfantryGivesTwoWoundsSkillsHackableAndShockImmunity()
+    public void Wear_BecomingHeavyInfantry_GivesWoundsSkillHackableAndShockImmunity()
     {
         var worn = Wear(Trooper(), "MI", "Haidao Armor");
 
@@ -35,7 +35,7 @@ public sealed class ArmorFittingTests
 
     // Heavy Armor's own wounds skill stacks with the two from becoming HI: Dogged, NWI, then +1 VITA.
     [Fact]
-    public void HeavyArmorsWoundsSkillStacksWithBecomingHeavyInfantry()
+    public void Wear_HeavyArmorFromLight_StacksWoundsSkills()
     {
         var worn = Wear(Trooper(), "LI", "Heavy Armor");
 
@@ -45,7 +45,7 @@ public sealed class ArmorFittingTests
     }
 
     [Fact]
-    public void LeavingHeavyInfantryTakesThemAwayAndCapsArm()
+    public void Wear_LeavingHeavyInfantry_TakesThemAwayAndCapsArm()
     {
         var heavy = Trooper(arm: "4", skills: ["No Wound Incapacitation", ArmorFitting.ShockImmunity], characteristics: ["Regular", ArmorFitting.Hackable]);
 
@@ -62,7 +62,7 @@ public sealed class ArmorFittingTests
     }
 
     [Fact]
-    public void ArmourAlwaysReplacesArmAndBts()
+    public void Wear_AnyArmour_ReplacesArmAndBts()
     {
         var worn = Wear(Trooper(arm: "3", bts: "6"), "LI", "Nanosuit");
 
@@ -71,7 +71,7 @@ public sealed class ArmorFittingTests
 
     // The LI and MI caps only apply when the armour changed the troop type.
     [Fact]
-    public void ArmIsOnlyCappedWhenTheTypeChanges()
+    public void Wear_TypeChanges_CapsArmOnlyThen()
     {
         Assert.Equal("3", Wear(Trooper(arm: "3"), "LI", "Jumpsuit").Profile.Arm);
         Assert.Equal("2", Wear(Trooper(arm: "3"), "MI", "Jumpsuit").Profile.Arm);
@@ -79,7 +79,7 @@ public sealed class ArmorFittingTests
     }
 
     [Fact]
-    public void TheCaptainsBoughtBonusesStayOnTop()
+    public void Wear_CaptainBonuses_StayOnTop()
     {
         var captain = new CaptainStatBonuses(0, 0, 1, 0, 2, 3, 0);
 
@@ -90,7 +90,7 @@ public sealed class ArmorFittingTests
     }
 
     [Fact]
-    public void ArmourDoggedAndNwiAreSkillsAsWritten()
+    public void Wear_ArmourDoggedOrNwi_AddsThemAsWritten()
     {
         Assert.Equal(["Courage", "Dogged"], Wear(Trooper(), "LI", "Stim Suit").Profile.Skills);
         Assert.Equal(["No Wound Incapacitation"], Wear(Trooper(skills: ["No Wound Incapacitation"]), "LI", "Stim Suit").Profile.Skills);
@@ -98,7 +98,7 @@ public sealed class ArmorFittingTests
     }
 
     [Fact]
-    public void SuperheavyArmorSetsTwoWoundsWithNwiInPlaceOfAnyWoundsSkill()
+    public void Wear_SuperheavyArmor_SetsTwoWoundsWithNwi()
     {
         var worn = Wear(Trooper(skills: ["Dogged"]), "LI", "Superheavy Armor", new CaptainStatBonuses(0, 0, 0, 0, 0, 0, 1));
 
@@ -107,7 +107,7 @@ public sealed class ArmorFittingTests
     }
 
     [Fact]
-    public void TeseumPlateIsNotHackableAndItsBtsCannotBeRaised()
+    public void Wear_TeseumPlate_IsNotHackableAndBtsCannotRise()
     {
         var worn = Wear(Trooper(), "MI", "Teseum Plate Armor");
 
@@ -116,7 +116,7 @@ public sealed class ArmorFittingTests
     }
 
     [Fact]
-    public void HeldSkillsAreImproved()
+    public void Wear_ArmourImprovingHeldSkill_ImprovesIt()
     {
         Assert.Contains("Infiltration (+3)", Wear(Trooper(skills: ["Infiltration"]), "LI", "Oniwaban Suit").Profile.Skills);
         Assert.Contains("Combat Jump (+3)", Wear(Trooper(skills: ["Combat Jump"]), "MI", "Hellcat Dropsuit").Profile.Skills);
@@ -125,14 +125,14 @@ public sealed class ArmorFittingTests
     }
 
     [Fact]
-    public void ArmourEquipmentIsListed()
+    public void Wear_ArmourWithEquipment_ListsIt()
     {
         Assert.Equal(["Holomask", "Holoprojector"], Wear(Trooper(), "LI", "Bashi Holo Suit").Equipment);
     }
 
     // A trooper has one type: one made a REM is a REM, and a REM stays one whatever it wears.
     [Fact]
-    public void TroopersHaveOneType()
+    public void Wear_ArmourOfAnotherType_GivesOneType()
     {
         var remote = Wear(Trooper(characteristics: ["Regular"]), "LI", "Black Labs Body Modification");
         Assert.Equal("REM", remote.UnitTypeCode);
@@ -144,7 +144,7 @@ public sealed class ArmorFittingTests
     }
 
     [Fact]
-    public void TagsWearNoArmour()
+    public void Wear_Tag_ChangesNothing()
     {
         var tag = Trooper(arm: "8");
 
@@ -154,7 +154,7 @@ public sealed class ArmorFittingTests
     }
 
     [Fact]
-    public void NoArmourChangesNothing()
+    public void Wear_NoArmour_ChangesNothing()
     {
         var trooper = Trooper();
 
@@ -162,7 +162,7 @@ public sealed class ArmorFittingTests
     }
 
     [Fact]
-    public void ChemtankAndTheWetsuitRollWhenBought()
+    public void Effects_ChemtankAndWetsuit_RollWhenBought()
     {
         Assert.Equal(RecruitRollTable.Metachemistry, PackagedArmor.Named("Chemtank").Effects.Roll);
         Assert.Equal(RecruitRollTable.Booty, PackagedArmor.Named("Irmandihno Wetsuit").Effects.Roll);
@@ -172,7 +172,7 @@ public sealed class ArmorFittingTests
     // Belts and Pouches, Chemtank's Metachemistry, the Wetsuit's Booty and Symbio-Resonance's profile choice are
     // handled elsewhere; every other row must say what it does.
     [Fact]
-    public void EveryShippedArmourRowHasItsEffects()
+    public void All_EveryShippedArmour_HasItsEffects()
     {
         IReadOnlyList<string> elsewhere = ["Symbio - Resonance"];
 

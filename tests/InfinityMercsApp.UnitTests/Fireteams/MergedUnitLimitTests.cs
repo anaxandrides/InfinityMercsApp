@@ -5,17 +5,17 @@ namespace InfinityMercsApp.UnitTests.Fireteams;
 public sealed class MergedUnitLimitTests
 {
     [Fact]
-    public void MergingWidensTheRangeAndKeepsTheFirstSlug() =>
+    public void MergeWith_TwoLimits_WidensRangeAndKeepsFirstSlug() =>
         Assert.Equal(
             new MergedUnitLimit(0, 4, "orc", true),
             new MergedUnitLimit(1, 2, "orc", false).MergeWith(new MergedUnitLimit(0, 4, "orc-troops", true)));
 
     [Fact]
-    public void AMissingSlugIsTakenFromTheOtherChart() =>
+    public void MergeWith_BlankSlug_TakesTheOtherSlug() =>
         Assert.Equal("orc", new MergedUnitLimit(1, 2, " ", false).MergeWith(new MergedUnitLimit(1, 2, "orc", false)).Slug);
 
     [Fact]
-    public void AMandatoryMinimumShowsAsAnAsterisk()
+    public void MinText_MandatoryMinimum_ShowsAnAsterisk()
     {
         Assert.Equal("*", new MergedUnitLimit(0, 3, null, true).MinText);
         Assert.Equal("1", new MergedUnitLimit(1, 3, null, false).MinText);

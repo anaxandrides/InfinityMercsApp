@@ -15,7 +15,7 @@ public sealed class CompanyPerkOwnershipResolverProfileCasesTests
     }
 
     [Fact]
-    public void ResolveOwnedPerks_O12_Nimrod_APMachinegun()
+    public void ResolveOwnedPerks_O12NimrodApMachinegun_ReturnsItsPerks()
     {
         var result = ResolveForUnitProfile(
             factionId: 1001,
@@ -39,7 +39,7 @@ public sealed class CompanyPerkOwnershipResolverProfileCasesTests
     }
 
     [Fact]
-    public void ResolveOwnedPerks_Ariadna_Rokot_Rifle_LightShotgun()
+    public void ResolveOwnedPerks_AriadnaRokotRifleLightShotgun_ReturnsItsPerks()
     {
         var result = ResolveForUnitProfile(
             factionId: 301,
@@ -52,7 +52,7 @@ public sealed class CompanyPerkOwnershipResolverProfileCasesTests
     }
 
     [Fact]
-    public void ResolveOwnedPerks_RamahTaskforce_Khawarijs_BoardingShotgun()
+    public void ResolveOwnedPerks_RamahKhawarijsBoardingShotgun_ReturnsItsPerks()
     {
         var result = ResolveForUnitProfile(
             factionId: 404,
@@ -65,7 +65,7 @@ public sealed class CompanyPerkOwnershipResolverProfileCasesTests
     }
 
     [Fact]
-    public void ResolveOwnedPerks_RamahTaskforce_YaraHaddad_Lieutenant()
+    public void ResolveOwnedPerks_RamahYaraHaddadLieutenant_ReturnsItsPerks()
     {
         var result = ResolveForUnitProfile(
             factionId: 404,
@@ -79,7 +79,7 @@ public sealed class CompanyPerkOwnershipResolverProfileCasesTests
     }
 
     [Fact]
-    public void ResolveOwnedPerks_Shindenbutai_KurayamiNinjas_Minelayer()
+    public void ResolveOwnedPerks_ShindenbutaiKurayamiMinelayer_ReturnsItsPerks()
     {
         var result = ResolveForUnitProfile(
             factionId: 1102,
@@ -93,7 +93,7 @@ public sealed class CompanyPerkOwnershipResolverProfileCasesTests
     }
 
     [Fact]
-    public void ResolveOwnedPerks_Shindenbutai_Nokizaru_ForwardObserver()
+    public void ResolveOwnedPerks_ShindenbutaiNokizaruForwardObserver_ReturnsItsPerks()
     {
         var result = ResolveForUnitProfile(
             factionId: 1102,
@@ -107,7 +107,7 @@ public sealed class CompanyPerkOwnershipResolverProfileCasesTests
     }
 
     [Fact]
-    public void ResolveOwnedPerks_Shindenbutai_Hatamoto_NCO_PlasmaCarbine()
+    public void ResolveOwnedPerks_ShindenbutaiHatamotoNcoPlasmaCarbine_ReturnsItsPerks()
     {
         var result = ResolveForUnitProfile(
             factionId: 1102,
@@ -121,7 +121,7 @@ public sealed class CompanyPerkOwnershipResolverProfileCasesTests
     }
 
     [Fact]
-    public void ResolveOwnedPerks_YuJing_KuangShi_ChainRifle()
+    public void ResolveOwnedPerks_YuJingKuangShiChainRifle_ReturnsItsPerks()
     {
         var result = ResolveForUnitProfile(
             factionId: 201,
@@ -134,7 +134,7 @@ public sealed class CompanyPerkOwnershipResolverProfileCasesTests
     }
 
     [Fact]
-    public void ResolveOwnedPerks_Bakunin_SinEater_Mk12()
+    public void ResolveOwnedPerks_BakuninSinEaterMk12_ReturnsItsPerks()
     {
         var result = ResolveForUnitProfile(
             factionId: 503,
@@ -147,7 +147,7 @@ public sealed class CompanyPerkOwnershipResolverProfileCasesTests
     }
 
     [Fact]
-    public void ResolveOwnedPerks_Neoterran_Bolt_KillerHackerDevice()
+    public void ResolveOwnedPerks_NeoterranBoltKillerHackingDevice_ReturnsItsPerks()
     {
         var result = ResolveForUnitProfile(
             factionId: 104,

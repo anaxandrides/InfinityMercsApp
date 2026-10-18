@@ -28,7 +28,7 @@ public sealed class LoadCompanyViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task ShowsTheEmptyStateWithoutCompanies()
+    public async Task SavedRecords_NoCompanies_ShowsTheEmptyState()
     {
         var viewModel = await OpenAsync();
 
@@ -39,7 +39,7 @@ public sealed class LoadCompanyViewModelTests : IDisposable
     [Theory]
     [InlineData(false, "//CompanyViewerPage")]
     [InlineData(true, "//SeasonPage")]
-    public async Task OpeningACompanyGoesToTheViewerOrANewSeason(bool seasonMode, string route)
+    public async Task OpenCompanyCommand_Mode_GoesToTheViewerOrANewSeason(bool seasonMode, string route)
     {
         var company = _records.WriteCompany("c.json", "{}");
         var viewModel = await OpenAsync(seasonMode);
@@ -54,7 +54,7 @@ public sealed class LoadCompanyViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task ConfirmedDeleteRemovesTheCompany()
+    public async Task DeleteCompanyCommand_Confirmed_RemovesTheCompany()
     {
         var company = _records.WriteCompany("c.json", """{"companyName":"Kestrel"}""");
         _dialogs.ConfirmAsync("Delete Company", "Confirm deletion of company [Kestrel]", "Confirm", "Back").Returns(true);
@@ -68,7 +68,7 @@ public sealed class LoadCompanyViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task DeclinedDeleteKeepsTheCompany()
+    public async Task DeleteCompanyCommand_Declined_KeepsTheCompany()
     {
         var company = _records.WriteCompany("c.json", "{}");
         var viewModel = await OpenAsync();

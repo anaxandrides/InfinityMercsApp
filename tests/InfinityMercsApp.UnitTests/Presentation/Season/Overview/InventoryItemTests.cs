@@ -6,7 +6,7 @@ namespace InfinityMercsApp.UnitTests.Presentation.Season.Overview;
 public sealed class InventoryItemTests
 {
     [Fact]
-    public void SeveralRoundsAreListed()
+    public void RoundsText_SeveralRounds_ListsThem()
     {
         var item = new InventoryItem(new InventoryEntry("Pistol", "Sidearm", 3, 2, ["Number One", "Jade Temu"], [0, 2]));
 
@@ -16,7 +16,7 @@ public sealed class InventoryItemTests
     }
 
     [Fact]
-    public void NothingKnownShowsNothing()
+    public void RoundsText_NothingKnown_ShowsNothing()
     {
         var item = new InventoryItem(new InventoryEntry("Trophy", "General", 0, 1, [], []));
 

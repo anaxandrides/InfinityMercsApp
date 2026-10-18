@@ -22,7 +22,7 @@ public sealed class CompanyUnitDetailTests
     };
 
     [Fact]
-    public void ANewDetailShowsNoUnit()
+    public void Constructor_New_ShowsNoUnit()
     {
         var detail = new CompanyUnitDetail();
 
@@ -34,7 +34,7 @@ public sealed class CompanyUnitDetailTests
     }
 
     [Fact]
-    public void APeripheralGetsItsOwnStatline()
+    public void ApplyPeripheral_Stats_ShowsItsOwnStatline()
     {
         var detail = new CompanyUnitDetail { ShowUnitsInInches = false };
 
@@ -50,7 +50,7 @@ public sealed class CompanyUnitDetailTests
     }
 
     [Fact]
-    public void ResettingThePeripheralHidesIt()
+    public void ResetPeripheral_PeripheralShown_HidesIt()
     {
         var detail = new CompanyUnitDetail();
         detail.ApplyPeripheral(Peripheral());
@@ -64,11 +64,11 @@ public sealed class CompanyUnitDetailTests
 
     // The season and viewer detail has no peripheral block, so the display must not show an empty one.
     [Fact]
-    public void ASavedTroopersDetailHasNoPeripheralBlock() =>
+    public void HasPeripheral_SavedTroopersDetail_IsFalse() =>
         Assert.False(new UnitDetailViewModel(Army101Data.Create()).HasPeripheral);
 
     [Fact]
-    public void ChangingUnitsReformatsBothMoves()
+    public void RefreshMoves_UnitsChanged_ReformatsBothMoves()
     {
         var detail = new CompanyUnitDetail { ShowUnitsInInches = false };
         detail.ApplyPeripheral(Peripheral());
@@ -81,7 +81,7 @@ public sealed class CompanyUnitDetailTests
     }
 
     [Fact]
-    public void IrregularWinsOverRegular()
+    public void SetOrderTraits_RegularAndIrregular_IrregularWins()
     {
         var detail = new CompanyUnitDetail();
 
@@ -92,7 +92,7 @@ public sealed class CompanyUnitDetailTests
     }
 
     [Fact]
-    public void ResettingClearsTheIconsAndStats()
+    public void Reset_IconsAndStatsShown_ClearsThem()
     {
         var detail = new CompanyUnitDetail();
         detail.SetOrderTraits(true, false, false, true);

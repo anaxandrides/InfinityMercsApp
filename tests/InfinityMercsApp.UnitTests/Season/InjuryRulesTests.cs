@@ -9,7 +9,7 @@ public sealed class InjuryRulesTests
     [InlineData("3", 0)]
     [InlineData("-", null)]
     [InlineData(null, null)]
-    public void AvoidTargetIsPhMinusThree(string? ph, int? expected) => Assert.Equal(expected, InjuryRules.AvoidTarget(ph));
+    public void AvoidTarget_Ph_IsPhMinusThree(string? ph, int? expected) => Assert.Equal(expected, InjuryRules.AvoidTarget(ph));
 
     [Theory]
     [InlineData(1, "Battle Fury")]
@@ -17,11 +17,11 @@ public sealed class InjuryRulesTests
     [InlineData(7, "Punctured Lung")]
     [InlineData(12, "Brain Injury")]
     [InlineData(20, "Shell Shocked")]
-    public void EveryRollMapsToAnInjury(int roll, string injury) =>
+    public void TableIndexForRoll_EveryRoll_MapsToAnInjury(int roll, string injury) =>
         Assert.Equal(injury, InjuryRules.Table[InjuryRules.TableIndexForRoll(roll)].Label);
 
     [Fact]
-    public void OffTableRollsMapToNothing()
+    public void TableIndexForRoll_OffTable_ReturnsMinusOne()
     {
         Assert.Equal(-1, InjuryRules.TableIndexForRoll(0));
         Assert.Equal(-1, InjuryRules.TableIndexForRoll(21));

@@ -32,7 +32,7 @@ public sealed class ArmyJsonReaderIdListTests
 
     [Theory]
     [MemberData(nameof(StoredExtrasJson))]
-    public void ReadIdList_MatchesLegacyElementParsing(string? json)
+    public void ReadIdList_Json_MatchesLegacyElementParsing(string? json)
     {
         Assert.Equal(LegacyIds(json), new ArmyJsonReader().ReadIdList(json));
     }

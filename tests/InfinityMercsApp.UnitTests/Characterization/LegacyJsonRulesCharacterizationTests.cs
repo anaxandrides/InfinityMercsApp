@@ -14,7 +14,7 @@ public sealed class LegacyJsonRulesCharacterizationTests
     private const int MaximusUnitId = 1720;
 
     [Fact]
-    public void Army101_ContainsTheExpectedNumberOfUnits()
+    public void Army101_Corpus_ContainsTheExpectedNumberOfUnits()
     {
         Assert.Equal(100, ReferenceCorpus.Army101.Count);
     }
@@ -48,7 +48,7 @@ public sealed class LegacyJsonRulesCharacterizationTests
     }
 
     [Fact]
-    public void Maximus_LieutenantIsRecognisedFromTheLieutenantOrder()
+    public void IsLieutenantOption_MaximusLieutenantOrder_RecognisesTheLieutenant()
     {
         var unit = ReferenceCorpus.Army101Unit(MaximusUnitId);
         var skills = CorpusLookups.For(unit.ArmyFiltersJson).Skills;
@@ -62,7 +62,7 @@ public sealed class LegacyJsonRulesCharacterizationTests
     }
 
     [Fact]
-    public void Army101_FifteenUnitsOfferALieutenantOption()
+    public void UnitHasLieutenantOption_Army101_FifteenUnitsOfferOne()
     {
         var count = ReferenceCorpus.Army101.Count(unit =>
             LegacyCompanyUnitFilterService.UnitHasLieutenantOption(
@@ -73,7 +73,7 @@ public sealed class LegacyJsonRulesCharacterizationTests
     }
 
     [Fact]
-    public void Filter_WeaponTermMatchesAnOptionThroughItsIncludes()
+    public void UnitHasVisibleOption_WeaponTermViaIncludes_MatchesTheOption()
     {
         var unit = ReferenceCorpus.Army101Unit(DrummersUnitId);
         var lookups = CorpusLookups.For(unit.ArmyFiltersJson);
@@ -98,7 +98,7 @@ public sealed class LegacyJsonRulesCharacterizationTests
     [InlineData("""{"swc":""}""", "")]
     [InlineData("""{"swc":null}""", "-")]
     [InlineData("""{}""", "-")]
-    public void ReadOptionSwc_NormalisesNumbersAndStrings(string json, string expected)
+    public void ReadOptionSwc_NumbersAndStrings_NormalisesThem(string json, string expected)
     {
         using var doc = JsonDocument.Parse(json);
         Assert.Equal(expected, LegacyCompanyProfileOptionService.ReadOptionSwc(doc.RootElement));
@@ -112,7 +112,7 @@ public sealed class LegacyJsonRulesCharacterizationTests
     [InlineData("""{"points":null,"pts":"12"}""", "12")]
     [InlineData("""{"cost":"x7"}""", "x7")]
     [InlineData("""{}""", "-")]
-    public void ReadOptionCost_FallsBackFromPointsToCostToPts(string json, string expected)
+    public void ReadOptionCost_MissingPoints_FallsBackToCostThenPts(string json, string expected)
     {
         using var doc = JsonDocument.Parse(json);
         Assert.Equal(expected, LegacyCompanyProfileOptionService.ReadOptionCost(doc.RootElement));
@@ -124,7 +124,7 @@ public sealed class LegacyJsonRulesCharacterizationTests
     [InlineData("""{"minis":-4}""", 0)]
     [InlineData("""{"minis":true}""", 0)]
     [InlineData("""{}""", 0)]
-    public void ReadOptionMinis_ClampsAndParsesStrings(string json, int expected)
+    public void ReadOptionMinis_StringsAndOutOfRange_ParsesAndClamps(string json, int expected)
     {
         using var doc = JsonDocument.Parse(json);
         Assert.Equal(expected, LegacyCompanyProfileOptionService.ReadOptionMinis(doc.RootElement));
@@ -137,7 +137,7 @@ public sealed class LegacyJsonRulesCharacterizationTests
     [InlineData("""{"id":5,"q":"2"}""", 2)]
     [InlineData("""{"id":5,"q":0}""", 1)]
     [InlineData("""{"id":5,"q":"many"}""", 1)]
-    public void ReadEntryQuantity_DefaultsToOne(string json, int expected)
+    public void ReadEntryQuantity_NoQuantity_DefaultsToOne(string json, int expected)
     {
         using var doc = JsonDocument.Parse(json);
         Assert.Equal(expected, LegacyCompanyProfileOptionService.ReadEntryQuantity(doc.RootElement));
@@ -152,7 +152,7 @@ public sealed class LegacyJsonRulesCharacterizationTests
     [InlineData("""7.5""", false, 0)]
     [InlineData("""{}""", false, 0)]
     [InlineData("""null""", false, 0)]
-    public void TryParseId_AcceptsNumbersStringsAndIdObjects(string json, bool expectedOk, int expectedId)
+    public void TryParseId_NumbersStringsAndIdObjects_AcceptsEach(string json, bool expectedOk, int expectedId)
     {
         using var doc = JsonDocument.Parse(json);
         var ok = LegacySharedUtilities.TryParseId(doc.RootElement, out var id);
@@ -161,7 +161,7 @@ public sealed class LegacyJsonRulesCharacterizationTests
     }
 
     [Fact]
-    public void AdjustedCost_RemovesPerModelCostForCollapsedDuplicatePeripherals()
+    public void AdjustedCost_CollapsedDuplicatePeripherals_RemovesPerModelCost()
     {
         // 3 minis for 30 points, 2 peripherals displayed: one duplicate collapsed → 30 - (2 - 1) * 10.
         const string json = """
@@ -177,7 +177,7 @@ public sealed class LegacyJsonRulesCharacterizationTests
     [Theory]
     [InlineData(31, "31")] // not divisible by minis → unchanged
     [InlineData(0, "0")]   // non-positive base → unchanged
-    public void AdjustedCost_LeavesIndivisibleOrZeroCostsAlone(int points, string expected)
+    public void AdjustedCost_IndivisibleOrZeroCost_LeavesItAlone(int points, string expected)
     {
         var json = $$"""
             [{"id":1,"profiles":[],"options":[{"id":1,"points":{{points}},"minis":3,"peripheral":[{"id":9,"q":2}]}]}]
@@ -223,7 +223,7 @@ public sealed class LegacyJsonRulesCharacterizationTests
     }
 
     [Fact]
-    public void Includes_ResolveToTheFirstGroupWithAMatchingOption()
+    public void GetOptionEntriesWithIncludes_SeveralMatchingGroups_UsesTheFirst()
     {
         const string json = """
             [{"id":1,"options":[{"id":1,"includes":[{"group":2,"option":5}]}]},
@@ -241,7 +241,7 @@ public sealed class LegacyJsonRulesCharacterizationTests
     [InlineData("")]
     [InlineData("not json")]
     [InlineData("""{"not":"an array"}""")]
-    public void UnitLevelQueries_ReturnFalseForMissingOrInvalidJson(string? json)
+    public void UnitLevelQueries_MissingOrInvalidJson_ReturnFalse(string? json)
     {
         var skills = new Dictionary<int, string> { [119] = "Lieutenant" };
         Assert.False(LegacyCompanyUnitFilterService.UnitHasLieutenantOption(json, skills));
@@ -257,20 +257,20 @@ public sealed class LegacyJsonRulesCharacterizationTests
 
     [Theory]
     [MemberData(nameof(FactionIdCases))]
-    public void ParseFactionIds_KeepsIntegerAndNumericStringEntries(string json, List<int> expected)
+    public void ParseFactionIds_MixedEntries_KeepsIntegersAndNumericStrings(string json, List<int> expected)
     {
         Assert.Equal(expected, LegacySharedUtilities.ParseFactionIds(json));
     }
 
     [Fact]
-    public void ReadMoveFromProfile_JoinsTheMoveArray()
+    public void ReadMoveFromProfile_MoveArray_JoinsIt()
     {
         using var doc = JsonDocument.Parse("""{"move":[10,"5",null]}""");
         Assert.Equal("10-5", LegacySharedUtilities.ReadMoveFromProfile(doc.RootElement));
     }
 
     [Fact]
-    public void ReadIntAsString_LooksInsideNestedStatContainersAndCaseVariants()
+    public void ReadIntAsString_NestedOrCaseVariantStat_FindsIt()
     {
         using var doc = JsonDocument.Parse("""{"CC":"14","stats":{"bs":12}}""");
         Assert.Equal("14", LegacySharedUtilities.ReadIntAsString(doc.RootElement, "cc"));

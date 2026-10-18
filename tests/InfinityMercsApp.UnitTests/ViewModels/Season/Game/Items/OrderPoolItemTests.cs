@@ -6,7 +6,7 @@ namespace InfinityMercsApp.UnitTests.ViewModels.Season.Game.Items;
 public sealed class OrderPoolItemTests
 {
     [Fact]
-    public void OrdersMoveBetweenAvailableAndUsed()
+    public void UseAndRestoreCommands_Orders_MoveBetweenAvailableAndUsed()
     {
         var pool = new OrderPoolItem(OrderKind.Regular);
         pool.Reset(2);
@@ -19,7 +19,7 @@ public sealed class OrderPoolItemTests
     }
 
     [Fact]
-    public void NothingMovesFromAnEmptySide()
+    public void UseAndRestoreCommands_EmptySide_CannotExecute()
     {
         var pool = new OrderPoolItem(OrderKind.Lieutenant);
         pool.Reset(0);
@@ -29,7 +29,7 @@ public sealed class OrderPoolItemTests
     }
 
     [Fact]
-    public void ResettingClearsSpentOrders()
+    public void Reset_SpentOrders_ClearsThem()
     {
         var pool = new OrderPoolItem(OrderKind.Irregular);
         pool.Reset(1);
@@ -46,6 +46,6 @@ public sealed class OrderPoolItemTests
     [InlineData(OrderKind.Impetuous, "impetuous")]
     [InlineData(OrderKind.Irregular, "irregular")]
     [InlineData(OrderKind.Regular, "regular")]
-    public void EachKindHasItsIcon(OrderKind kind, string icon) =>
+    public void IconPath_EachKind_HasItsIcon(OrderKind kind, string icon) =>
         Assert.Equal($"SVGCache/CBIcons/{icon}.svg", new OrderPoolItem(kind).IconPath);
 }

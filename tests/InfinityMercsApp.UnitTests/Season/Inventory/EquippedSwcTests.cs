@@ -8,7 +8,7 @@ public sealed class EquippedSwcTests
     private static readonly InventoryCatalog Catalog = InventoryCatalog.From([InventoryTestStores.NumberOne]);
 
     [Fact]
-    public void AnItemTakesItsCatalogSwc()
+    public void Of_Item_ReturnsItsCatalogSwc()
     {
         Assert.Equal(1.5, EquippedSwc.Of("Spitfire", Catalog));
         Assert.Equal(0, EquippedSwc.Of("Pistol", Catalog));
@@ -16,7 +16,7 @@ public sealed class EquippedSwcTests
     }
 
     [Fact]
-    public void TheCompanyTotalAddsEveryTroopersGear()
+    public void Of_Loadouts_AddsEveryTroopersGear()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Primary, "Spitfire");
@@ -27,7 +27,7 @@ public sealed class EquippedSwcTests
     }
 
     [Fact]
-    public void EquippingAddsTheItemAndTakesOffWhatWasInTheSlot()
+    public void After_Equipping_AddsTheItemLessWhatWasInTheSlot()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Secondary, "Spitfire");
@@ -39,7 +39,7 @@ public sealed class EquippedSwcTests
     }
 
     [Fact]
-    public void MovingAnItemFromAnotherTrooperAddsNothing()
+    public void After_TakenFromAnotherTrooper_AddsNothing()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Primary, "Spitfire");
@@ -48,7 +48,7 @@ public sealed class EquippedSwcTests
     }
 
     [Fact]
-    public void EquippingASpareCopyAddsItsSwc()
+    public void After_SpareCopy_AddsItsSwc()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Primary, "Spitfire");

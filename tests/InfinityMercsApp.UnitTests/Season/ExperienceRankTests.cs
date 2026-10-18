@@ -13,14 +13,14 @@ public sealed class ExperienceRankTests
     [InlineData(29, "Hired Gun", 2)]
     [InlineData(140, "Legend", 7)]
     [InlineData(999, "Legend", 7)]
-    public void RanksFollowTheExperienceThresholds(int xp, string name, int level)
+    public void GetRankNameAndLevel_Experience_FollowTheThresholds(int xp, string name, int level)
     {
         Assert.Equal(name, CompanyUnitExperienceRanks.GetRankName(xp));
         Assert.Equal(level, CompanyUnitExperienceRanks.GetRankLevel(xp));
     }
 
     [Fact]
-    public void RanksTwoThreeAndFiveGrantFreeSkills()
+    public void FreeSkillsFor_RanksTwoThreeAndFive_GrantFreeSkills()
     {
         Assert.Empty(CompanyUnitExperienceRanks.FreeSkillsFor(14));
         Assert.Equal(["Courage", "Fireteam: Mercs"], CompanyUnitExperienceRanks.FreeSkillsFor(30));

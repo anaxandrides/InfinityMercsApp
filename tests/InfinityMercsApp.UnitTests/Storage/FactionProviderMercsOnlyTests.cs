@@ -36,7 +36,7 @@ public sealed class FactionProviderMercsOnlyTests
         new() { ResumeKey = $"101-{unitId}", FactionId = 101, UnitId = unitId, Name = name, Type = type, Category = category, Slug = slug };
 
     [Fact]
-    public void LeavesOutCharactersTagsVehiclesAndMercsOnlyEntries()
+    public void GetResumeByFactionMercsOnly_Faction_LeavesOutWhatMercsCannotField()
     {
         var names = _provider.GetResumeByFactionMercsOnly(101).Select(unit => unit.Name);
 

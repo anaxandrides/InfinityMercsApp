@@ -6,7 +6,7 @@ namespace InfinityMercsApp.UnitTests.Presentation.Company;
 public sealed class SourcePopupLayoutTests
 {
     [Fact]
-    public void CompactStacksSmallerCardsAcrossTheScreen()
+    public void For_Compact_StacksSmallerCardsAcrossTheScreen()
     {
         var layout = SourcePopupLayout.For(AdaptiveLayoutMode.Compact);
 
@@ -22,7 +22,7 @@ public sealed class SourcePopupLayoutTests
     [InlineData(AdaptiveLayoutMode.Medium, 700)]
     [InlineData(AdaptiveLayoutMode.Expanded, 820)]
     [InlineData(AdaptiveLayoutMode.Wide, 820)]
-    public void WiderScreensCentreACappedCardWithChoicesSideBySide(AdaptiveLayoutMode mode, double maximumWidth)
+    public void For_WiderModes_CentresACappedCardWithChoicesSideBySide(AdaptiveLayoutMode mode, double maximumWidth)
     {
         var layout = SourcePopupLayout.For(mode);
 

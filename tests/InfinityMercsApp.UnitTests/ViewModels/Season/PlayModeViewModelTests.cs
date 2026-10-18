@@ -43,7 +43,7 @@ public sealed class PlayModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task StartsWithTheLieutenantDeployedAndSelected()
+    public async Task InitializeAsyncCommand_Company_DeploysAndSelectsTheLieutenant()
     {
         var viewModel = await OpenAsync(troopers: 2);
 
@@ -55,7 +55,7 @@ public sealed class PlayModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task TheLieutenantCannotBeUnchecked()
+    public async Task IsChecked_LieutenantUnchecked_StaysChecked()
     {
         var viewModel = await OpenAsync(troopers: 1);
 
@@ -65,7 +65,7 @@ public sealed class PlayModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task NoMoreThanSixSlotsCanBeFilled()
+    public async Task IsChecked_EveryTrooper_FillsNoMoreThanSixSlots()
     {
         var viewModel = await OpenAsync(troopers: 4, withTag: true);
 
@@ -81,7 +81,7 @@ public sealed class PlayModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task SelectingAUnitMovesTheHighlight()
+    public async Task SelectUnitCommand_Unit_MovesTheHighlight()
     {
         var viewModel = await OpenAsync(troopers: 1);
 
@@ -93,7 +93,7 @@ public sealed class PlayModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task DeployingOpensTheGameWithTheCheckedUnits()
+    public async Task DeployCommand_CheckedUnits_OpensTheGameWithThem()
     {
         var viewModel = await OpenAsync(troopers: 2);
         viewModel.DeploymentUnits[2].IsChecked = true;
@@ -108,7 +108,7 @@ public sealed class PlayModeViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task ReloadsWhenTheDistanceUnitsChange()
+    public async Task InitializeAsyncCommand_DistanceUnitsChanged_Reloads()
     {
         var viewModel = await OpenAsync(troopers: 1);
         viewModel.DeploymentUnits[1].IsChecked = true;

@@ -20,10 +20,10 @@ public sealed class CaptainBuildValidationTests
         CaptainBuildValidation.Problems(build).Select(problem => problem.Kind).ToList();
 
     [Fact]
-    public void AnUntouchedCaptainHasNoProblems() => Assert.Empty(CaptainBuildValidation.Problems(Build()));
+    public void Problems_UntouchedCaptain_ReturnsNone() => Assert.Empty(CaptainBuildValidation.Problems(Build()));
 
     [Fact]
-    public void TheCostCountsStatTiersAndFilledSlots()
+    public void SpentExperience_StatTiersAndFilledSlots_CountsEach()
     {
         var build = Build(stats: [new CaptainStatPick(Stat.Bs, 12, 2, CaptainStatChart.Mercenaries)], weapons: ["(2) - Sniper Rifle", "(1) - Grenades", CaptainChoiceLabel.None]);
 
@@ -32,7 +32,7 @@ public sealed class CaptainBuildValidationTests
     }
 
     [Fact]
-    public void SpendingMoreThanTheBudgetIsAProblem()
+    public void Problems_SpentOverBudget_ReturnsOverspent()
     {
         var problems = CaptainBuildValidation.Problems(Build(startingExperience: 1, weapons: ["(2) - Sniper Rifle", CaptainChoiceLabel.None, CaptainChoiceLabel.None]));
 
@@ -40,7 +40,7 @@ public sealed class CaptainBuildValidationTests
     }
 
     [Fact]
-    public void TheSameChoiceInTwoSlotsIsAProblem()
+    public void Problems_SameChoiceInTwoSlots_ReturnsDuplicateChoice()
     {
         var problems = CaptainBuildValidation.Problems(Build(weapons: ["(2) - Sniper Rifle", "(2) - sniper rifle", "(1) - Grenades"]));
 
@@ -48,7 +48,7 @@ public sealed class CaptainBuildValidationTests
     }
 
     [Fact]
-    public void AChoiceThatIsNotOfferedIsAProblem() =>
+    public void Problems_ChoiceNotOffered_ReturnsChoiceNotOffered() =>
         Assert.Equal([CaptainBuildProblemKind.ChoiceNotOffered], Kinds(Build(weapons: ["(0) - Spitfire", CaptainChoiceLabel.None, CaptainChoiceLabel.None])));
 
     [Theory]
@@ -56,7 +56,7 @@ public sealed class CaptainBuildValidationTests
     [InlineData(Stat.Vita, 2, 1)]
     [InlineData(Stat.Bs, 12, 4)]
     [InlineData(Stat.Bts, 6, 2)]
-    public void ATierPastTheCapOrTheChartIsAProblem(Stat stat, int baseValue, int tier)
+    public void Problems_TierPastCapOrChart_ReturnsStatTierNotOffered(Stat stat, int baseValue, int tier)
     {
         var problems = CaptainBuildValidation.Problems(Build(stats: [new CaptainStatPick(stat, baseValue, tier, CaptainStatChart.Mercenaries)]));
 
@@ -64,7 +64,7 @@ public sealed class CaptainBuildValidationTests
     }
 
     [Fact]
-    public void EveryProblemIsListed() =>
+    public void Problems_SeveralProblems_ListsEveryOne() =>
         Assert.Equal(
             [CaptainBuildProblemKind.Overspent, CaptainBuildProblemKind.StatTierNotOffered, CaptainBuildProblemKind.DuplicateChoice],
             Kinds(Build(startingExperience: 0, stats: [new CaptainStatPick(Stat.Vita, 2, 1, CaptainStatChart.Mercenaries)], weapons: ["(1) - Grenades", "(1) - Grenades", CaptainChoiceLabel.None])));

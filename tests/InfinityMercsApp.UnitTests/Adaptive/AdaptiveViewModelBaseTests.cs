@@ -15,7 +15,7 @@ public sealed class AdaptiveViewModelBaseTests
     }
 
     [Fact]
-    public void StartsCompact()
+    public void Constructor_NoLayoutApplied_StartsCompact()
     {
         var viewModel = new Sample();
 
@@ -25,7 +25,7 @@ public sealed class AdaptiveViewModelBaseTests
     }
 
     [Fact]
-    public void AppliesTheLayoutForEachMode()
+    public void ApplyLayoutCommand_EachMode_AppliesThatModesLayout()
     {
         var viewModel = new Sample();
         var changed = new List<string?>();

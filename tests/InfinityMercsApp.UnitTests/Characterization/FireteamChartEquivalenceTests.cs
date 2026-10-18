@@ -47,7 +47,7 @@ public sealed class FireteamChartEquivalenceTests
 
     [Theory]
     [MemberData(nameof(Charts))]
-    public void CompanyFireteamEntries_MatchLegacyParser(string source, string? json)
+    public void ReadFireteamChart_CompanyEntries_MatchLegacyParser(string source, string? json)
     {
         var expected = LegacyCompanyFireteamParser.ParseEntries(json)
             .Select(entry => $"{entry.Name} d{entry.Duo} h{entry.Haris} c{entry.Core} :: " +
@@ -68,7 +68,7 @@ public sealed class FireteamChartEquivalenceTests
 
     [Theory]
     [MemberData(nameof(Charts))]
-    public void ViewerFireteamListAndCounts_MatchLegacyViewer(string source, string? json)
+    public void ReadFireteamChart_ViewerListAndCounts_MatchLegacyViewer(string source, string? json)
     {
         var chart = new ArmyJsonReader().ReadFireteamChart(json);
         var (expectedTeams, expectedCounts) = LegacyViewer(json);

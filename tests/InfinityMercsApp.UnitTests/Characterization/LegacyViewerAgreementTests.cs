@@ -14,7 +14,7 @@ public sealed class LegacyViewerAgreementTests
 
     [Theory]
     [MemberData(nameof(CorpusSources))]
-    public void ViewerAndServiceOptionRules_AgreeOnEveryRealOption(string source)
+    public void OptionRules_EveryRealOption_ViewerAndServiceAgree(string source)
     {
         var mismatches = new List<string>();
         var units = ReferenceCorpus.All.Where(x => x.Source == source).ToList();

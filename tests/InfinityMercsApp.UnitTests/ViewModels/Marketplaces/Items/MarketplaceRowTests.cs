@@ -6,7 +6,7 @@ namespace InfinityMercsApp.UnitTests.ViewModels.Marketplaces.Items;
 public sealed class MarketplaceRowTests
 {
     [Fact]
-    public void QuantityNeverGoesBelowZero()
+    public void Quantity_Negative_StaysAtZero()
     {
         var row = new AugmentRow(new StoreAugment { Name = "Cube" }) { Quantity = 2 };
 
@@ -16,7 +16,7 @@ public sealed class MarketplaceRowTests
     }
 
     [Fact]
-    public void AnItemCostsCreditsAndSwc()
+    public void CostDisplay_StoreItem_ShowsCreditsAndSwc()
     {
         var row = new StoreItemRow(new StoreItem { Name = "Pistol", CostCr = 3, CostSwc = 0.5m });
 
@@ -25,7 +25,7 @@ public sealed class MarketplaceRowTests
     }
 
     [Fact]
-    public void ATroopTypeIsNamedByArmourAndType()
+    public void DisplayName_TroopType_NamesArmourAndType()
     {
         var row = new TroopTypeRow(new StoreTroopType { ArmorName = "Light Armour", Type = "LI", CostCr = 10, Arm = 1 });
 
@@ -37,11 +37,11 @@ public sealed class MarketplaceRowTests
     }
 
     [Fact]
-    public void AnUnnamedTroopTypeIsJustItsArmour() =>
+    public void DisplayName_TroopTypeWithoutType_IsJustTheArmour() =>
         Assert.Equal("Heavy Armour", new TroopTypeRow(new StoreTroopType { ArmorName = "Heavy Armour" }).DisplayName);
 
     [Fact]
-    public void AnAugmentShowsADashWithoutARequirement()
+    public void RequirementDisplay_NoRequirement_ShowsADash()
     {
         var row = new AugmentRow(new StoreAugment { Name = "Cube", CostCr = 4 });
 
@@ -51,7 +51,7 @@ public sealed class MarketplaceRowTests
     }
 
     [Fact]
-    public void GroupsItemsByCategoryInStoreOrder()
+    public void StoreItemGroupFrom_Items_GroupsByCategoryInStoreOrder()
     {
         var groups = StoreItemGroup.From(
         [
@@ -65,7 +65,7 @@ public sealed class MarketplaceRowTests
     }
 
     [Fact]
-    public void CartLinesAreTheRowsWithAQuantity()
+    public void MarketplaceCartLineFrom_Rows_KeepsThoseWithAQuantity()
     {
         IEnumerable<MarketplaceRow> rows =
         [

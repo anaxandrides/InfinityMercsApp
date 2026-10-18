@@ -12,14 +12,14 @@ public sealed class GearSlotPickerTests
     public GearSlotPickerTests() => _picker = new GearSlotPicker(GearSlot.Sidearm, (_, option) => _picked.Add(option));
 
     [Fact]
-    public void IsTitledBySlot()
+    public void Title_Slot_IsTheSlotsName()
     {
         Assert.Equal("SIDEARM", _picker.Title);
         Assert.Equal([GearOption.None], _picker.Options);
     }
 
     [Fact]
-    public void RefillingDoesNotCountAsAPick()
+    public void Show_SelectionRefilled_IsNotAPick()
     {
         var pistol = GearOption.For("Pistol", 0, null);
 
@@ -30,7 +30,7 @@ public sealed class GearSlotPickerTests
     }
 
     [Fact]
-    public void ChoosingReportsThePick()
+    public void SelectedOption_Chosen_ReportsThePick()
     {
         var pistol = GearOption.For("Pistol", 0, "Bolt");
         _picker.Show([GearOption.None, pistol], GearOption.None);

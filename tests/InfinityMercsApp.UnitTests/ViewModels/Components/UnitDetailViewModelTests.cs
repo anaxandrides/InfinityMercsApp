@@ -18,7 +18,7 @@ public sealed class UnitDetailViewModelTests
     }
 
     [Fact]
-    public void LoadsTheStatLineSummariesAndConfigurations()
+    public void Load_Unit_ShowsStatsSummariesAndConfigurations()
     {
         var detail = Load();
 
@@ -33,14 +33,14 @@ public sealed class UnitDetailViewModelTests
     }
 
     [Fact]
-    public void LieutenantOnlyListsLieutenantConfigurations()
+    public void Load_LieutenantOnly_ListsOnlyLieutenantConfigurations()
     {
         var detail = Load(lieutenantOnly: true);
         Assert.All(detail.Profiles, p => Assert.True(p.IsLieutenant));
     }
 
     [Fact]
-    public void MercsOnlyHidesSwcConfigurations()
+    public void Load_MercsOnly_HidesSwcConfigurations()
     {
         var all = Load();
         var mercs = Load(mercsOnly: true);
@@ -51,7 +51,7 @@ public sealed class UnitDetailViewModelTests
     }
 
     [Fact]
-    public void MercsOnlyKeepsConfigurationsThatGiveSwc()
+    public void Load_MercsOnly_KeepsConfigurationsThatGiveSwc()
     {
         var joan = Army101Data.UnitNamed("JOAN OF ARC");
         var detail = new UnitDetailViewModel(Army101Data.Create());
@@ -62,7 +62,7 @@ public sealed class UnitDetailViewModelTests
     }
 
     [Fact]
-    public void ChoosingAConfigurationMergesItIntoTheSummaries()
+    public void ApplySelectedProfileTopSummaries_Configuration_MergesItIn()
     {
         var detail = Load();
         var profile = detail.Profiles.First(p => p.UniqueEquipment != "-");
@@ -73,7 +73,7 @@ public sealed class UnitDetailViewModelTests
     }
 
     [Fact]
-    public void ResetReturnsToNoUnit()
+    public void Reset_Loaded_ReturnsToNoUnit()
     {
         var detail = Load();
         detail.Reset();
@@ -85,7 +85,7 @@ public sealed class UnitDetailViewModelTests
     }
 
     [Fact]
-    public void ASavedTrooperOverlaysItsStats()
+    public void ApplySavedUnitSnapshot_SavedTrooper_OverlaysItsStats()
     {
         var detail = new UnitDetailViewModel(Army101Data.Create());
 
@@ -97,7 +97,7 @@ public sealed class UnitDetailViewModelTests
     }
 
     [Fact]
-    public void SwitchingToCentimetresReformatsMove()
+    public void ShowUnitsInCentimeters_Set_ReformatsMove()
     {
         var detail = new UnitDetailViewModel(Army101Data.Create());
         detail.ApplySavedUnitSnapshot("Hero", new UnitStatLine { Mov = "4-2" });

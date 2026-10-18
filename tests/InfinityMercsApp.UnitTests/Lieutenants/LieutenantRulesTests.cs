@@ -13,7 +13,7 @@ public sealed class LieutenantRulesTests
     [InlineData("Lt. Order", false, true)]
     [InlineData("Lightning", false, false)]
     [InlineData(null, false, false)]
-    public void RecognisesLieutenantSkills(string? skill, bool mentions, bool isSkill)
+    public void MentionsAndIsLieutenantSkill_Skill_RecogniseLieutenantSkills(string? skill, bool mentions, bool isSkill)
     {
         Assert.Equal(mentions, LieutenantRules.Mentions(skill));
         Assert.Equal(isSkill, LieutenantRules.IsLieutenantSkill(skill));
@@ -23,11 +23,11 @@ public sealed class LieutenantRulesTests
     [InlineData("+1 Lt Order", true)]
     [InlineData("Lieutenant Order", true)]
     [InlineData("Courage", false)]
-    public void MentionsLieutenantOrders(string line, bool expected) =>
+    public void MentionsLieutenantOrders_Line_RecognisesLieutenantOrders(string line, bool expected) =>
         Assert.Equal(expected, LieutenantRules.MentionsLieutenantOrders(line));
 
     [Fact]
-    public void AddSkillIfMissing_AddsOnlyWhenNoLieutenantSkillIsListed()
+    public void AddSkillIfMissing_NoLieutenantSkillListed_AddsIt()
     {
         var withoutLt = new List<string> { "Courage" };
         LieutenantRules.AddSkillIfMissing(withoutLt);
@@ -39,11 +39,11 @@ public sealed class LieutenantRulesTests
     }
 
     [Fact]
-    public void WithSkill_SortsDistinctAndAddsLieutenant() =>
+    public void WithSkill_Skills_SortsDistinctAndAddsLieutenant() =>
         Assert.Equal<string>(["Courage", "Lieutenant", "Sniper"], LieutenantRules.WithSkill(["Sniper", "Courage", "sniper", " "]));
 
     [Fact]
-    public void MoveLieutenantFirst_MovesTheFirstLieutenantSkill()
+    public void MoveLieutenantFirst_LieutenantSkillListed_MovesItFirst()
     {
         var skills = new List<string> { "Courage", "Lieutenant (+1 Order)", "Sniper" };
         LieutenantRules.MoveLieutenantFirst(skills);
@@ -54,18 +54,18 @@ public sealed class LieutenantRulesTests
     [InlineData("Lieutenant (+1 Order)", "+1 Order")]
     [InlineData("Lieutenant", null)]
     [InlineData("Courage", null)]
-    public void SkillDetail_ReturnsWhatTheSkillAdds(string skill, string? expected) =>
+    public void SkillDetail_Skill_ReturnsWhatItAdds(string skill, string? expected) =>
         Assert.Equal(expected, LieutenantRules.SkillDetail(skill));
 
     [Theory]
     [InlineData("Infinity Spec-Ops", true)]
     [InlineData("Lieutenant", true)]
     [InlineData("Courage", false)]
-    public void IsCommonSpecOpsSkill(string skill, bool expected) =>
+    public void IsCommonSpecOpsSkill_Skill_RecognisesCommonSpecOpsSkills(string skill, bool expected) =>
         Assert.Equal(expected, LieutenantRules.IsCommonSpecOpsSkill(skill));
 
     [Fact]
-    public void HighlightRuns_SplitOutEveryLieutenant()
+    public void HighlightRuns_Text_SplitsOutEveryLieutenant()
     {
         Assert.Equal(
             [TextRun.Lieutenant("Lieutenant"), TextRun.Plain(", "), TextRun.Lieutenant("LIEUTENANT"), TextRun.Plain(" (+1)")],
@@ -79,15 +79,15 @@ public sealed class LieutenantRulesTests
     [InlineData("+1 Lt Order", 1)]
     [InlineData("+2 Lieutenant Orders", 2)]
     [InlineData("Lieutenant (+1 Lt Order)", 1)]
-    public void CountBonusOrders_CountsStandaloneAndDetailedOrders(string skills, int expected) =>
+    public void CountBonusOrders_StandaloneAndDetailedOrders_CountsBoth(string skills, int expected) =>
         Assert.Equal(expected, LieutenantRules.CountBonusOrders(skills));
 
     [Fact]
-    public void CountBonusOrders_AddsAcrossLines() =>
+    public void CountBonusOrders_SeveralLines_AddsAcrossThem() =>
         Assert.Equal(3, LieutenantRules.CountBonusOrders($"+1 Lt Order{NewLine}Courage{NewLine}Lieutenant (+2 Orders)"));
 
     [Fact]
-    public void NormalizeOrderEntries_RewritesOrdersAndDropsRepeats()
+    public void NormalizeOrderEntries_OrdersAndRepeats_RewritesAndDropsThem()
     {
         Assert.Equal($"Courage{NewLine}+1 Lt Order", LieutenantRules.NormalizeOrderEntries($"Courage{NewLine}+1 Regular Order{NewLine}courage"));
         Assert.Equal("Lieutenant (+1 Lt Order)", LieutenantRules.NormalizeOrderEntries($"Lieutenant (+1 Lt Order){NewLine}+1 Order"));

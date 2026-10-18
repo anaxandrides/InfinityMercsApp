@@ -5,7 +5,7 @@ namespace InfinityMercsApp.UnitTests.Presentation.Season.Overview;
 public sealed class ProfileColumnsTests
 {
     [Fact]
-    public void FillsLeftThenRight()
+    public void From_Lines_FillsLeftThenRight()
     {
         var columns = ProfileColumns.From(["A", "B", "C"]);
 
@@ -14,7 +14,7 @@ public sealed class ProfileColumnsTests
     }
 
     [Fact]
-    public void AnEmptyListSaysNone()
+    public void From_NoLines_SaysNone()
     {
         var columns = ProfileColumns.From([]);
 

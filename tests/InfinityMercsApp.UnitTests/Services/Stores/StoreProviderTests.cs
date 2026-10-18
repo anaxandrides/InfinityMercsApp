@@ -18,7 +18,7 @@ public sealed class StoreProviderTests
     }
 
     [Fact]
-    public async Task StoresAreReadFromThePackagedJson()
+    public async Task GetStoreByNameAsync_KnownStore_ReadsThePackagedJson()
     {
         var store = await _provider.GetStoreByNameAsync("Jade Temu");
 
@@ -29,7 +29,7 @@ public sealed class StoreProviderTests
     }
 
     [Fact]
-    public async Task EachStoreIsReadOnce()
+    public async Task GetStoreByNameAsync_AskedTwice_ReadsTheFileOnce()
     {
         await _provider.GetStoreByNameAsync("Base Market");
         await _provider.GetStoreByNameAsync("base market");
@@ -38,14 +38,14 @@ public sealed class StoreProviderTests
     }
 
     [Fact]
-    public async Task UnknownStoresAreNull()
+    public async Task GetStoreByNameAsync_UnknownStore_ReturnsNull()
     {
         Assert.Null(await _provider.GetStoreByNameAsync("Corner Shop"));
         await _packageFiles.DidNotReceive().OpenAsync(Arg.Any<string>());
     }
 
     [Fact]
-    public async Task AvailableStoresAreTheNeutralOnesAndTheFactionsOwn()
+    public async Task GetAvailableStoresAsync_Factions_ReturnsNeutralAndTheirOwn()
     {
         var names = (await _provider.GetAvailableStoresAsync(["Yu Jing"])).Select(store => store.Name).ToList();
 

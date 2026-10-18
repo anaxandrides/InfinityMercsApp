@@ -24,7 +24,7 @@ public sealed class RankUpViewModelTests
     }
 
     [Fact]
-    public async Task ListsOnlyTroopersWithPointsAndShowsTheFirst()
+    public async Task InitializeAsyncCommand_PerkPointsOwed_ListsThoseTroopers()
     {
         GiveXp(1, "Bolt", 16);
 
@@ -39,7 +39,7 @@ public sealed class RankUpViewModelTests
     }
 
     [Fact]
-    public async Task NobodyRankedUpMeansEverythingIsSpent()
+    public async Task AllSpent_NobodyRankedUp_IsTrue()
     {
         var viewModel = await OpenAsync();
 
@@ -49,7 +49,7 @@ public sealed class RankUpViewModelTests
     }
 
     [Fact]
-    public async Task ChoosingOffersTheListsPerksUpToTheRank()
+    public async Task SelectedList_List_OffersPerksUpToTheRank()
     {
         GiveXp(1, "Bolt", 5);
         var viewModel = await OpenAsync();
@@ -61,7 +61,7 @@ public sealed class RankUpViewModelTests
     }
 
     [Fact]
-    public async Task TakingAPerkSavesItAndMovesOn()
+    public async Task TakePerkCommand_Perk_SavesItAndMovesOn()
     {
         GiveXp(1, "Bolt", 5);
         GiveXp(3, "Traktor Mul", 5);
@@ -77,7 +77,7 @@ public sealed class RankUpViewModelTests
     }
 
     [Fact]
-    public async Task RollingPicksTheListThenTheTrack()
+    public async Task RollListCommand_Rolled_PicksListThenTrack()
     {
         GiveXp(1, "Bolt", 5);
         _kit.Dice.RollD20().Returns(8, 4);
@@ -93,7 +93,7 @@ public sealed class RankUpViewModelTests
     }
 
     [Fact]
-    public async Task OverlappingListsAreOfferedToPickFrom()
+    public async Task RollListCommand_OverlappingLists_OffersAPick()
     {
         GiveXp(1, "Bolt", 5);
         _kit.Dice.RollD20().Returns(5, 1);
@@ -108,7 +108,7 @@ public sealed class RankUpViewModelTests
     }
 
     [Fact]
-    public async Task ChoosingAgainLeavesTheRoll()
+    public async Task ChooseCommand_AfterARoll_LeavesTheRoll()
     {
         GiveXp(1, "Bolt", 5);
         _kit.Dice.RollD20().Returns(8, 4);

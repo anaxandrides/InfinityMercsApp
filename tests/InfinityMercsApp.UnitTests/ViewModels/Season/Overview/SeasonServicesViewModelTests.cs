@@ -41,7 +41,7 @@ public sealed class SeasonServicesViewModelTests
     private SeasonTransaction LastTransaction => _kit.Season.Rounds[2].Marketplace.Transactions.Last();
 
     [Fact]
-    public void OffersEveryService()
+    public void Show_Season_OffersEveryService()
     {
         Show();
 
@@ -53,7 +53,7 @@ public sealed class SeasonServicesViewModelTests
     }
 
     [Fact]
-    public async Task AdvancedTherapyWritesOffTheChosenInjury()
+    public async Task BuyCommand_AdvancedTherapy_WritesOffTheChosenInjury()
     {
         Bolt.Injuries.AddRange([Injury.Arms, Injury.BodyInjury]);
         Show();
@@ -67,7 +67,7 @@ public sealed class SeasonServicesViewModelTests
     }
 
     [Fact]
-    public async Task FullTherapyWritesOffEveryInjury()
+    public async Task BuyCommand_FullTherapy_WritesOffEveryInjury()
     {
         Bolt.Injuries.AddRange([Injury.Arms, Injury.BodyInjury]);
         Show();
@@ -79,7 +79,7 @@ public sealed class SeasonServicesViewModelTests
     }
 
     [Fact]
-    public async Task TherapyNeedsAnInjury()
+    public async Task BuyCommand_TherapyWithoutInjury_IsUnavailable()
     {
         Show();
 
@@ -91,7 +91,7 @@ public sealed class SeasonServicesViewModelTests
     }
 
     [Fact]
-    public async Task AngerManagementCalmsTheFrenzyOfBattleFury()
+    public async Task BuyCommand_AngerManagement_CalmsBattleFurysFrenzy()
     {
         Bolt.Injuries.Add(Injury.BattleFury);
         Show();
@@ -105,7 +105,7 @@ public sealed class SeasonServicesViewModelTests
     }
 
     [Fact]
-    public async Task RegularTrainingMakesAnIrregularTrooperRegular()
+    public async Task BuyCommand_RegularTraining_MakesTheTrooperRegular()
     {
         Bolt.CharacteristicsGained.Add("Irregular");
         Show();
@@ -119,7 +119,7 @@ public sealed class SeasonServicesViewModelTests
     }
 
     [Fact]
-    public async Task ForcedRetrainingSwapsAPerkForOneOfTheSameTier()
+    public async Task BuyCommand_ForcedRetraining_SwapsAPerkOfTheSameTier()
     {
         _kit.Season.Rounds[0].MissionResults.UnitResults.Add(new SeasonMissionUnitResult { EntryIndex = 1, UnitName = "Bolt", XpGained = 5 });
         Bolt.Perks.Add("body-track-1-tier-1");
@@ -135,7 +135,7 @@ public sealed class SeasonServicesViewModelTests
     }
 
     [Fact]
-    public void ForcedRetrainingNeedsARank()
+    public void UnavailableReason_ForcedRetrainingUnranked_NeedsARank()
     {
         Bolt.Perks.Add("body-track-1-tier-1");
         Show();
@@ -144,7 +144,7 @@ public sealed class SeasonServicesViewModelTests
     }
 
     [Fact]
-    public void AServiceTheCompanyCannotAffordSaysSo()
+    public void UnavailableReason_Unaffordable_SaysSo()
     {
         _kit.Season.Rounds = [new SeasonRound { RoundIndex = 1 }];
         Bolt.CharacteristicsGained.Add("Irregular");
@@ -154,7 +154,7 @@ public sealed class SeasonServicesViewModelTests
     }
 
     [Fact]
-    public async Task CancellingBuysNothing()
+    public async Task BuyCommand_Cancelled_BuysNothing()
     {
         Bolt.Injuries.Add(Injury.Arms);
         _kit.Dialogs.ConfirmAsync(Arg.Any<string>(), Arg.Any<string>(), "Buy", "Cancel").Returns(false);
@@ -167,7 +167,7 @@ public sealed class SeasonServicesViewModelTests
     }
 
     [Fact]
-    public async Task BuyingBeforeTheFirstContractRecordsTheInitialPurchases()
+    public async Task BuyCommand_BeforeFirstContract_RecordsInitialPurchases()
     {
         _kit.Season.Rounds.Clear();
         _kit.Season.StartingFunds = new SeasonStartingFunds { Credits = 10 };
@@ -183,7 +183,7 @@ public sealed class SeasonServicesViewModelTests
     }
 
     [Fact]
-    public async Task AFailedSaveSaysSo()
+    public async Task BuyCommand_SaveFails_SaysSo()
     {
         Bolt.Injuries.Add(Injury.Arms);
         Show();
@@ -196,7 +196,7 @@ public sealed class SeasonServicesViewModelTests
     }
 
     [Fact]
-    public void ShowingAgainKeepsTheTrooper()
+    public void Show_ShownAgain_KeepsTheTrooper()
     {
         Show("Traktor Mul");
 

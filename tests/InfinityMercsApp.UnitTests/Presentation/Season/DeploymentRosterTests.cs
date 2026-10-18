@@ -48,7 +48,7 @@ public sealed class DeploymentRosterTests : IDisposable
         _roster.LoadAsync(_records.WriteCompany("c.json", Company), SeasonPath, showUnitsInInches: true, deployed);
 
     [Fact]
-    public async Task RetiredTroopersAreNotDeployable()
+    public async Task LoadAsync_RetiredTroopers_LeavesThemOut()
     {
         _seasonFiles.LoadAsync(SeasonPath).Returns(new SeasonFile { Retired = [new RetiredTrooper { EntryIndex = 2 }] });
 
@@ -56,7 +56,7 @@ public sealed class DeploymentRosterTests : IDisposable
     }
 
     [Fact]
-    public async Task ListsTheLieutenantFirstAndLeavesOutPeripherals()
+    public async Task LoadAsync_Company_ListsLieutenantFirstWithoutServants()
     {
         var units = await LoadAsync();
 
@@ -68,7 +68,7 @@ public sealed class DeploymentRosterTests : IDisposable
     }
 
     [Fact]
-    public async Task OnlyTheDeployedEntriesWhenGiven()
+    public async Task LoadAsync_DeployedEntriesGiven_ListsOnlyThose()
     {
         var units = await LoadAsync(new HashSet<int> { 2 });
 
@@ -76,7 +76,7 @@ public sealed class DeploymentRosterTests : IDisposable
     }
 
     [Fact]
-    public async Task ResolvesProfileCodesFromTheArmyData()
+    public async Task LoadAsync_SavedCodes_ResolvesThemFromArmyData()
     {
         var fusilier = (await LoadAsync())[1];
 
@@ -91,7 +91,7 @@ public sealed class DeploymentRosterTests : IDisposable
     }
 
     [Fact]
-    public async Task TheLieutenantGetsCaptainUpgradesAndCodeExtras()
+    public async Task LoadAsync_Lieutenant_GetsCaptainUpgradesAndCodeExtras()
     {
         var lieutenant = (await LoadAsync())[0];
 
@@ -103,7 +103,7 @@ public sealed class DeploymentRosterTests : IDisposable
     }
 
     [Fact]
-    public async Task ATagCompanyTagTakesTwoSlots()
+    public async Task LoadAsync_TagCompanyTag_TakesTwoSlots()
     {
         var tag = (await LoadAsync())[2];
 
@@ -113,7 +113,7 @@ public sealed class DeploymentRosterTests : IDisposable
     }
 
     [Fact]
-    public async Task TheStatlineListsEveryStatInOrder()
+    public async Task LoadAsync_Trooper_ListsEveryStatInOrder()
     {
         var tag = (await LoadAsync())[2];
 
@@ -124,7 +124,7 @@ public sealed class DeploymentRosterTests : IDisposable
     }
 
     [Fact]
-    public async Task AppliesSeasonGear()
+    public async Task LoadAsync_SeasonGear_AppliesIt()
     {
         _seasonFiles.LoadAsync(SeasonPath).Returns(new SeasonFile
         {
@@ -150,7 +150,7 @@ public sealed class DeploymentRosterTests : IDisposable
     }
 
     [Fact]
-    public async Task AMissingCompanyHasNoUnits()
+    public async Task LoadAsync_MissingCompany_ReturnsNoUnits()
     {
         Assert.Empty(await _roster.LoadAsync("/nowhere/c.json", null, true));
     }
@@ -159,11 +159,11 @@ public sealed class DeploymentRosterTests : IDisposable
     [InlineData("(+2) - Pistol", "Pistol")]
     [InlineData("-", null)]
     [InlineData("  ", null)]
-    public void CaptainChoicesDropTheirCost(string choice, string? expected) =>
+    public void CaptainUpgradesChoices_Choice_DropsItsCost(string choice, string? expected) =>
         Assert.Equal(expected is null ? [] : [expected], DeploymentRoster.CaptainUpgrades.Choices(choice));
 
     [Fact]
-    public void RepurposedMiningTagsUseTheTagCompany()
+    public void SourceFactionId_RepurposedMiningTag_ReturnsTheTagCompany()
     {
         var entry = JsonSerializer.Deserialize<InfinityMercsApp.Services.CompanySelection.Models.Saved.SavedCompanyEntry>(
             """{"sourceFactionId":101,"baseUnitName":"Turtlemek"}""",
@@ -174,7 +174,7 @@ public sealed class DeploymentRosterTests : IDisposable
     }
 
     [Fact]
-    public async Task SeasonProgressChangesTheTrooperForTheGame()
+    public async Task LoadAsync_SeasonProgress_ChangesTheTrooper()
     {
         var season = new SeasonFile
         {
@@ -194,7 +194,7 @@ public sealed class DeploymentRosterTests : IDisposable
     }
 
     [Fact]
-    public async Task RenownCountsTheBaseCostOfSeasonGear()
+    public async Task LoadAsync_SeasonGear_CountsItsBaseCostInRenown()
     {
         _stores.GetAllStoreNames().Returns(["Number One"]);
         _stores.GetStoreByNameAsync("Number One", Arg.Any<CancellationToken>()).Returns(InventoryTestStores.NumberOne);
@@ -214,7 +214,7 @@ public sealed class DeploymentRosterTests : IDisposable
     }
 
     [Fact]
-    public async Task TroopersDeployInTheirArmour()
+    public async Task LoadAsync_ArmourWorn_DeploysInIt()
     {
         var superheavy = PackagedArmor.Named("Superheavy Armor");
         _stores.GetAllStoreNames().Returns(["Number One"]);
@@ -234,7 +234,7 @@ public sealed class DeploymentRosterTests : IDisposable
 
     // The Wetsuit's own Booty roll goes with it, and comes after the armour and everything else.
     [Fact]
-    public async Task RolledArmoursResultIsOnItsWearer()
+    public async Task LoadAsync_RolledArmourWorn_PutsItsResultOnTheWearer()
     {
         var data = Army101Data.Create();
         data.GetWeaponNames().Returns(["HMG"]);
@@ -261,7 +261,7 @@ public sealed class DeploymentRosterTests : IDisposable
         """;
 
     [Fact]
-    public async Task APeripheralThatIsntAServantDeploysAsATrooperOfItsOwn()
+    public async Task LoadAsync_NonServantPeripheral_DeploysAsItsOwnTrooper()
     {
         var units = await _roster.LoadAsync(_records.WriteCompany("d.json", Drummers), SeasonPath, showUnitsInInches: true);
 
@@ -272,7 +272,7 @@ public sealed class DeploymentRosterTests : IDisposable
     }
 
     [Fact]
-    public async Task AnExtraSlotsItemWorksAsItsOwnKind()
+    public async Task LoadAsync_ItemInExtraSlot_WorksAsItsOwnKind()
     {
         _stores.GetAllStoreNames().Returns(["Number One"]);
         _stores.GetStoreByNameAsync("Number One", Arg.Any<CancellationToken>()).Returns(InventoryTestStores.NumberOne);

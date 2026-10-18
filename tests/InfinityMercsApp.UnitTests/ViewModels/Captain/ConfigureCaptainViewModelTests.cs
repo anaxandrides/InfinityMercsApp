@@ -58,7 +58,7 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public void StartsWithNothingBoughtAndTheUnitsPointsUnderTheCapAsExperience()
+    public void Constructor_Unit_StartsWithNothingBoughtAndCostAsExperience()
     {
         var viewModel = new ConfigureCaptainViewModel(Context(unitCost: 20));
 
@@ -76,17 +76,17 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public void StatPickersAreLaidOutInOrder() =>
+    public void StatUpgrades_Constructed_AreInStatOrder() =>
         Assert.Equal(
             [Stat.Cc, Stat.Bs, Stat.Ph, Stat.Wip, Stat.Arm, Stat.Bts, Stat.Vita],
             new ConfigureCaptainViewModel(Context()).StatUpgrades.Select(upgrade => upgrade.Stat));
 
     [Fact]
-    public void ABaseExperienceOverrideReplacesTheUnitCostBudget() =>
+    public void ExperienceRemaining_BaseExperienceOverride_ReplacesTheCostBudget() =>
         Assert.Equal(3, new ConfigureCaptainViewModel(Context(unitCost: 10, baseExperienceOverride: 3)).ExperienceRemaining);
 
     [Fact]
-    public void BlankTextsFallBackToDefaults()
+    public void Constructor_BlankTexts_FallBackToDefaults()
     {
         var viewModel = new ConfigureCaptainViewModel(Context(popupTitle: " ", confirmText: "", defaultName: "  "));
 
@@ -96,7 +96,7 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public void TextsAreTrimmed()
+    public void Constructor_PaddedTexts_TrimsThem()
     {
         var viewModel = new ConfigureCaptainViewModel(Context(popupTitle: " TAG Spec Ops ", confirmText: " Finalize Tag ", defaultName: " TAG "));
 
@@ -106,11 +106,11 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public void TheLogoIsThePackagedOneWhenNothingIsCached() =>
+    public void LogoSource_NothingCached_IsThePackagedLogo() =>
         Assert.Equal("SVGCache/units/fusilier.svg", new ConfigureCaptainViewModel(Context()).LogoSource);
 
     [Fact]
-    public void TheStatlineShowsEveryStatUnmodifiedAtFirst()
+    public void StatCells_NothingBought_ShowsEveryStatUnmodified()
     {
         var viewModel = new ConfigureCaptainViewModel(Context());
 
@@ -122,7 +122,7 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public void AnUnreadableStatlineHasNoCells()
+    public void StatCells_UnreadableStatline_IsEmpty()
     {
         var viewModel = new ConfigureCaptainViewModel(Context(statline: "-"));
 
@@ -131,7 +131,7 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public void BuyingAStatTierRaisesItInTheStatlineAndSpendsItsCost()
+    public void SelectedOption_StatTier_RaisesTheStatAndSpendsItsCost()
     {
         var viewModel = new ConfigureCaptainViewModel(Context(unitCost: 20));
         var changed = new List<string?>();
@@ -149,7 +149,7 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public void VitalityIsUpgradedFromStrWhenTheUnitHasNoVita()
+    public void SelectedOption_VitalityWithStr_UpgradesStr()
     {
         var viewModel = new ConfigureCaptainViewModel(Context(statline: "CC 13 | STR 1"));
 
@@ -160,7 +160,7 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public void OverspendingTurnsTheBudgetNegativeAndBlocksConfirm()
+    public void ExperienceRemaining_Overspent_GoesNegativeAndBlocksConfirm()
     {
         var viewModel = new ConfigureCaptainViewModel(Context(unitCost: 26));
         var canExecuteChanges = 0;
@@ -176,13 +176,13 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public void ChoiceSlotsOfferNoneThenTrimmedDistinctOptions() =>
+    public void Options_ChoiceSlot_OffersNoneThenDistinctOptions() =>
         Assert.Equal(
             [CaptainChoiceLabel.None, "(2) - Sniper Rifle", "(1) - Grenades"],
             new ConfigureCaptainViewModel(Context()).Weapons.First.Options);
 
     [Fact]
-    public void ChosenWeaponsAreMarkedOnTheProfileOnceAndCostExperience()
+    public void RangedText_WeaponsChosen_MarksEachOnceAndCostsExperience()
     {
         var viewModel = new ConfigureCaptainViewModel(Context(unitCost: 20));
 
@@ -195,7 +195,7 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public void ChosenEquipmentReplacesTheEmptyPlaceholder()
+    public void EquipmentText_EquipmentChosen_ReplacesThePlaceholder()
     {
         var viewModel = new ConfigureCaptainViewModel(Context());
 
@@ -205,7 +205,7 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public void LieutenantSkillsAreHighlighted()
+    public void SkillRuns_LieutenantSkill_IsHighlighted()
     {
         var viewModel = new ConfigureCaptainViewModel(Context());
 
@@ -216,7 +216,7 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public void EditingTheNameCanBeRejected()
+    public void RejectNameCommand_Editing_KeepsTheName()
     {
         var viewModel = new ConfigureCaptainViewModel(Context());
 
@@ -235,7 +235,7 @@ public sealed class ConfigureCaptainViewModelTests
     [Theory]
     [InlineData("  Major Lunah ", "Major Lunah")]
     [InlineData("   ", "Captain")]
-    public void SavingTheNameTrimsItAndFallsBackWhenBlank(string typed, string expected)
+    public void SaveNameCommand_TypedName_TrimsOrFallsBackWhenBlank(string typed, string expected)
     {
         var viewModel = new ConfigureCaptainViewModel(Context(defaultName: "Lieutenant"));
 
@@ -249,7 +249,7 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public async Task ConfirmCompletesWithTheConfiguredCaptain()
+    public async Task ConfirmCommand_Configured_CompletesWithTheCaptain()
     {
         var viewModel = new ConfigureCaptainViewModel(Context(unitCost: 10));
         PickTier(viewModel, Stat.Cc, 1);
@@ -276,7 +276,7 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public async Task ConfirmKeepsANameStillBeingEdited()
+    public async Task ConfirmCommand_NameBeingEdited_KeepsIt()
     {
         var viewModel = new ConfigureCaptainViewModel(Context());
         viewModel.EditNameCommand.Execute(null);
@@ -291,7 +291,7 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public async Task CancelCompletesWithNothingAndLaterTapsAreIgnored()
+    public async Task CancelCommand_Executed_CompletesWithNothing()
     {
         var viewModel = new ConfigureCaptainViewModel(Context());
 
@@ -302,11 +302,11 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public void NothingCompletesUntilTheUserDecides() =>
+    public void Completion_Undecided_IsNotCompleted() =>
         Assert.False(new ConfigureCaptainViewModel(Context()).Completion.IsCompleted);
 
     [Fact]
-    public void TheSameWeaponInTwoSlotsCannotBeConfirmed()
+    public void IsValid_SameWeaponInTwoSlots_IsFalse()
     {
         var viewModel = new ConfigureCaptainViewModel(Context());
 
@@ -327,7 +327,7 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public void OverspendingIsListedAsAProblem()
+    public void Problems_Overspent_ListsIt()
     {
         var viewModel = new ConfigureCaptainViewModel(Context(unitCost: 27));
 
@@ -339,7 +339,7 @@ public sealed class ConfigureCaptainViewModelTests
     }
 
     [Fact]
-    public void TheBuildCarriesEveryPick()
+    public void Build_Picks_CarriesEveryOne()
     {
         var viewModel = new ConfigureCaptainViewModel(Context());
         PickTier(viewModel, Stat.Bs, 1);
@@ -363,6 +363,6 @@ public sealed class ConfigureCaptainViewModelTests
 
     [Theory]
     [MemberData(nameof(WipBonuses))]
-    public void TheWipPickerFollowsTheCaptainsChart(CaptainStatChart chart, IReadOnlyList<int> bonuses) =>
+    public void StatUpgrades_Chart_WipPickerFollowsIt(CaptainStatChart chart, IReadOnlyList<int> bonuses) =>
         Assert.Equal(bonuses, UpgradeOf(new ConfigureCaptainViewModel(Context(chart: chart)), Stat.Wip).Options.Select(option => option.Bonus));
 }

@@ -23,7 +23,7 @@ public sealed class TrooperProgressTests
         TrooperProgress.For(1, "Bolt", startingXp, startingPerks ?? [], isTag, season);
 
     [Fact]
-    public void ExperienceAddsTheSeasonToTheSavedValue()
+    public void TotalXp_SeasonXp_AddsToTheSavedValue()
     {
         var progress = Bolt(SeasonWith(12), startingXp: 4);
 
@@ -32,14 +32,14 @@ public sealed class TrooperProgressTests
     }
 
     [Fact]
-    public void HiredGunNeedsFifteen()
+    public void RankLevel_FifteenXp_IsHiredGun()
     {
         Assert.Equal(1, Bolt(SeasonWith(14)).RankLevel);
         Assert.Equal(2, Bolt(SeasonWith(15)).RankLevel);
     }
 
     [Fact]
-    public void EachRankOwesAPerkPoint()
+    public void PerkPointsOwed_Ranks_OwesOnePerRank()
     {
         var progress = Bolt(SeasonWith(31), startingPerks: ["body-track-1-tier-1"]);
 
@@ -49,7 +49,7 @@ public sealed class TrooperProgressTests
     }
 
     [Fact]
-    public void ATagAlsoOwesATagPerk()
+    public void TagPerkPointsOwed_Tag_OwesATagPerk()
     {
         var progress = Bolt(SeasonWith(5, new SeasonTrooper { Perks = ["body-track-1-tier-1"] }), isTag: true);
 
@@ -58,7 +58,7 @@ public sealed class TrooperProgressTests
     }
 
     [Fact]
-    public void NothingOwedWhenUnranked()
+    public void HasPerkPointsToSpend_Unranked_IsFalse()
     {
         var progress = Bolt(SeasonWith(4));
 
@@ -67,7 +67,7 @@ public sealed class TrooperProgressTests
     }
 
     [Fact]
-    public void TheChangeAddsInjuriesPerksRankSkillsAndServices()
+    public void Change_SeasonRecord_AddsInjuriesPerksRankSkillsAndServices()
     {
         var trooper = new SeasonTrooper
         {
@@ -88,7 +88,7 @@ public sealed class TrooperProgressTests
     }
 
     [Fact]
-    public void ATrooperWithoutARecordHasAnEmptyOne()
+    public void Record_NoSeasonRecord_IsEmpty()
     {
         Assert.Empty(Bolt(SeasonWith(0)).Record.Injuries);
         Assert.Equal(0, TrooperProgress.For(1, "Bolt", -5, [], false, null).TotalXp);

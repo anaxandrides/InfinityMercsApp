@@ -32,17 +32,17 @@ public sealed class DowntimeRulesTests
     [InlineData(3, 23, PassFailOutcome.CritPass)]
     [InlineData(4, 23, PassFailOutcome.Pass)]
     [InlineData(20, 23, PassFailOutcome.CritPass)]
-    public void ClassifyReadsARollAgainstItsTarget(int roll, int target, PassFailOutcome expected) =>
+    public void Classify_RollAndTarget_ReadsTheOutcome(int roll, int target, PassFailOutcome expected) =>
         Assert.Equal(expected, DowntimeRules.Classify(roll, target));
 
     [Theory]
     [InlineData(13, "13")]
     [InlineData(22, "22  (crit on 20 and 1–2)")]
-    public void TargetTextSpellsOutTheExtraCriticalRange(int target, string expected) =>
+    public void TargetText_TargetAbove20_SpellsOutTheExtraCriticalRange(int target, string expected) =>
         Assert.Equal(expected, DowntimeRules.TargetText(target));
 
     [Fact]
-    public void TestTargetsComeFromTheParticipantsStats()
+    public void TestTarget_Participant_ComesFromTheirStats()
     {
         var unit = Unit("Alpha");
 
@@ -56,15 +56,15 @@ public sealed class DowntimeRulesTests
     }
 
     [Fact]
-    public void ANonNumericStatHasNoTarget() =>
+    public void TestTarget_NonNumericStat_ReturnsNull() =>
         Assert.Null(DowntimeRules.TestTarget(DowntimeTest.For(Stat.Ph), new ExperienceUnitResult { UnitPh = "-" }));
 
     [Fact]
-    public void ANonNumericArmCountsAsZero() =>
+    public void TestTarget_NonNumericArm_CountsAsZero() =>
         Assert.Equal(10, DowntimeRules.TestTarget(DowntimeTest.Ps10PlusArm, new ExperienceUnitResult { UnitArm = "-" }));
 
     [Fact]
-    public void TheEventsParticipantWinsOverTheChoices()
+    public void RequiredParticipant_EventAndChoiceBothSay_EventWins()
     {
         var captainChoice = Choice(null, new DowntimeTrait(TraitKind.Captain));
 
@@ -74,7 +74,7 @@ public sealed class DowntimeRulesTests
     }
 
     [Fact]
-    public void CandidatesAreFilteredByWhoMustTakePart()
+    public void Candidates_RequiredParticipant_FiltersByWhoMustTakePart()
     {
         IReadOnlyList<ExperienceUnitResult> units =
         [
@@ -91,7 +91,7 @@ public sealed class DowntimeRulesTests
     }
 
     [Fact]
-    public void MissingRequirementsAreThoseNotInSkillsOrEquipment()
+    public void MissingRequirements_Participant_ListsThoseNotInSkillsOrEquipment()
     {
         var choice = Choice(null, new DowntimeTrait(TraitKind.Requirement, "Hacker"), new DowntimeTrait(TraitKind.Requirement, "Trinity Program"));
         var hacker = Unit("Alpha", skills: "Hacker (Killer)");
@@ -101,7 +101,7 @@ public sealed class DowntimeRulesTests
     }
 
     [Fact]
-    public void ConsequencesDescribeEachTraitForTheOutcome()
+    public void ConsequenceLines_Outcome_DescribesEachTrait()
     {
         var choice = Choice(
             DowntimeTest.Ps10,
@@ -121,7 +121,7 @@ public sealed class DowntimeRulesTests
     }
 
     [Fact]
-    public void ANegatedTraitOnlyCountsOnAFail()
+    public void ConsequenceLinesAndTotals_NegatedTrait_CountsOnlyOnAFail()
     {
         var choice = Choice(DowntimeTest.Ps10, new DowntimeTrait(TraitKind.Xp), new DowntimeTrait(TraitKind.Cr, Negated: true));
 
@@ -135,11 +135,11 @@ public sealed class DowntimeRulesTests
     [InlineData(PassFailOutcome.Fail, 4)]
     [InlineData(PassFailOutcome.Pass, 4)]
     [InlineData(PassFailOutcome.CritPass, 0)]
-    public void CrSpentOnAP2PTestIsKeptOnlyOnACritical(PassFailOutcome outcome, int spent) =>
+    public void Totals_P2PTest_KeepsSpentCrOnlyOnACritical(PassFailOutcome outcome, int spent) =>
         Assert.Equal(spent, DowntimeRules.Totals(Choice(DowntimeTest.Ps10, new DowntimeTrait(TraitKind.P2P)), outcome, 4).SpentCr);
 
     [Fact]
-    public void TotalsAddUpEveryTrait()
+    public void Totals_EveryTrait_AddsThemUp()
     {
         var choice = Choice(
             DowntimeTest.Ps10,
@@ -158,7 +158,7 @@ public sealed class DowntimeRulesTests
     }
 
     [Fact]
-    public void ThePistolIsOnlyWonOnAPass()
+    public void WinsPistol_WeaponTrait_OnlyOnAPass()
     {
         var choice = Choice(DowntimeTest.Ps10, new DowntimeTrait(TraitKind.Weapon));
 
@@ -169,7 +169,7 @@ public sealed class DowntimeRulesTests
     }
 
     [Fact]
-    public void TheParticipantGainsXpOrAnInjury()
+    public void ApplyToParticipant_PassOrFail_GivesXpOrAnInjury()
     {
         var choice = Choice(DowntimeTest.Ps10, new DowntimeTrait(TraitKind.Xp), new DowntimeTrait(TraitKind.Attack));
         var winner = Unit("Alpha");

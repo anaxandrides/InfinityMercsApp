@@ -34,7 +34,7 @@ public sealed class CaptainSetupTests
     [Theory]
     [InlineData(false, CaptainStatChart.Mercenaries)]
     [InlineData(true, CaptainStatChart.SpecOps)]
-    public async Task OnlyASpecOpsCaptainUsesTheSpecOpsChart(bool isSpecOps, CaptainStatChart chart)
+    public async Task ConfigureCaptainAsync_SpecOpsOrNot_UsesThatStatChart(bool isSpecOps, CaptainStatChart chart)
     {
         await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), PanOceania, isSpecOps, showUnitsInInches: true);
 
@@ -42,7 +42,7 @@ public sealed class CaptainSetupTests
     }
 
     [Fact]
-    public async Task TheCaptainPopupIsShownThroughTheDialog()
+    public async Task ConfigureCaptainAsync_Captain_ShowsThePopupAndReturnsTheChoice()
     {
         var chosen = new SavedImprovedCaptainStats { IsEnabled = true, CaptainName = "Kestrel" };
         _dialog.ShowAsync(Arg.Any<CaptainUpgradePopupContext>()).Returns(chosen);
@@ -55,7 +55,7 @@ public sealed class CaptainSetupTests
     }
 
     [Fact]
-    public async Task ATagGetsItsOwnSpecOpsPopup()
+    public async Task ConfigureTagSpecOpsAsync_Tag_ShowsTheTagPopup()
     {
         await _setup.ConfigureTagSpecOpsAsync(Unit("Squalo", 60), PanOceania, isLieutenant: false, baseExperience: 20, showUnitsInInches: true);
 
@@ -68,7 +68,7 @@ public sealed class CaptainSetupTests
     }
 
     [Fact]
-    public async Task TheOptionFactionIsNamedFromTheMetadataWhenTheScreenDoesNotKnowIt()
+    public async Task ConfigureCaptainAsync_UnknownFaction_NamesItByIdWhenNothingKnowsIt()
     {
         await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), new CaptainFactions(4242, null, []), isSpecOps: false, showUnitsInInches: true);
 

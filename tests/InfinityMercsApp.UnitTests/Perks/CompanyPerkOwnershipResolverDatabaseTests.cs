@@ -7,7 +7,7 @@ namespace InfinityMercsApp.UnitTests.Perks;
 public sealed class CompanyPerkOwnershipResolverDatabaseTests
 {
     [Fact]
-    public void ResolveOwnedPerkNodeIds_GhulamDoctor_FromDatabase_ReturnsDoctorPerkNodes()
+    public void ResolveOwnedPerkNodeIds_GhulamDoctorFromDatabase_ReturnsDoctorPerkNodes()
     {
         var dbPath = ResolveRepoFilePath("InfinityMercsApp/ReferenceData/infinitymercs.db3");
         using var connection = new SqliteConnection($"Data Source={dbPath};Mode=ReadOnly");

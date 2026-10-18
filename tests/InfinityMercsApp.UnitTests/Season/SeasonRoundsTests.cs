@@ -9,19 +9,19 @@ public sealed class SeasonRoundsTests
         new() { RoundIndex = index, Downtime = new SeasonDowntimeEntry { NotorietyGain = notoriety } };
 
     [Fact]
-    public void TheCurrentRoundIsTheHighestIndex()
+    public void Current_SeveralRounds_ReturnsTheHighestIndex()
     {
         Assert.Equal(3, SeasonRounds.Current(new SeasonFile { Rounds = [Round(1), Round(3), Round(2)] }));
     }
 
     [Fact]
-    public void UnindexedRoundsAreCounted()
+    public void Current_UnindexedRounds_CountsThem()
     {
         Assert.Equal(2, SeasonRounds.Current(new SeasonFile { Rounds = [Round(0), Round(0)] }));
     }
 
     [Fact]
-    public void BeforeAnyRoundItIsRoundZero()
+    public void CurrentAndLatest_NoRounds_AreRoundZero()
     {
         Assert.Equal(0, SeasonRounds.Current(new SeasonFile()));
         Assert.Equal(0, SeasonRounds.Current(null));
@@ -29,7 +29,7 @@ public sealed class SeasonRoundsTests
     }
 
     [Fact]
-    public void TheLatestRoundHasTheHighestIndex()
+    public void Latest_SeveralRounds_ReturnsTheHighestIndex()
     {
         var latest = Round(4);
 
@@ -37,14 +37,14 @@ public sealed class SeasonRoundsTests
     }
 
     [Fact]
-    public void NotorietyAddsUpOverTheRounds()
+    public void CompanyNotoriety_SeveralRounds_AddsThemUp()
     {
         Assert.Equal(3, SeasonRounds.CompanyNotoriety(new SeasonFile { Rounds = [Round(1, 2), Round(2, -1), Round(3, 2)] }));
         Assert.Equal(0, SeasonRounds.CompanyNotoriety(null));
     }
 
     [Fact]
-    public void ShoppingBeforeTheFirstContractIsTheInitialPurchases()
+    public void CurrentMarketplace_NoRounds_ReturnsTheInitialPurchases()
     {
         var season = new SeasonFile();
 
@@ -52,7 +52,7 @@ public sealed class SeasonRoundsTests
     }
 
     [Fact]
-    public void ShoppingAfterAContractIsTheLatestRoundsMarketplace()
+    public void CurrentMarketplace_AfterAContract_ReturnsTheLatestRounds()
     {
         var season = new SeasonFile { Rounds = [Round(2), Round(1)] };
 

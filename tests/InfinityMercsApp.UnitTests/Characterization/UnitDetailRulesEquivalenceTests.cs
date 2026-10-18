@@ -40,14 +40,14 @@ public sealed class UnitDetailRulesEquivalenceTests
     [InlineData("12.5cm", true)]
     [InlineData("no number", true)]
     [InlineData("", true)]
-    public void DistanceText_MatchesLegacyConversion(string text, bool inches)
+    public void DistanceTextConvert_Text_MatchesLegacyConversion(string text, bool inches)
     {
         Assert.Equal(LegacyUnitDetailRules.ConvertDistanceText(text, inches), DistanceText.Convert(text, inches));
     }
 
     [Theory]
     [MemberData(nameof(CorpusSources))]
-    public void EntryDisplayNames_MatchLegacyDisplayNameContext(string source, bool inches)
+    public void ProfileEntryNames_EveryCorpusEntry_MatchLegacyDisplayNames(string source, bool inches)
     {
         var reader = new ArmyJsonReader();
         var mismatches = new List<string>();
@@ -99,7 +99,7 @@ public sealed class UnitDetailRulesEquivalenceTests
 
     [Theory]
     [MemberData(nameof(CorpusSources))]
-    public void TraitsStatlinesAndPeripherals_MatchLegacyRules(string source, bool forceLieutenant)
+    public void UnitRules_EveryCorpusUnit_MatchLegacyTraitsStatlinesAndPeripherals(string source, bool forceLieutenant)
     {
         var reader = new ArmyJsonReader();
         var mismatches = new List<string>();
@@ -175,7 +175,7 @@ public sealed class UnitDetailRulesEquivalenceTests
     [InlineData("""{"str":4,"w":2,"ava":255}""")]
     [InlineData("""{"str":true,"vita":"3","ava":"-1"}""")]
     [InlineData("""{"stats":{"w":1},"AVA":2}""")]
-    public void SyntheticStatlines_MatchLegacyRules(string profileJson)
+    public void Statline_SyntheticProfile_MatchesLegacyRules(string profileJson)
     {
         using var doc = JsonDocument.Parse(profileJson);
         var groups = new ArmyJsonReader().ReadProfileGroups($$"""[{"id":1,"profiles":[{{profileJson}}],"options":[]}]""");

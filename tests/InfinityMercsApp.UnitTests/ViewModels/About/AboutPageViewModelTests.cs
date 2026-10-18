@@ -16,7 +16,7 @@ public sealed class AboutPageViewModelTests
     [InlineData(500, -1)]
     [InlineData(664, 300)]
     [InlineData(50, -1)]
-    public void FitsTwoAttributionColumnsOnScreensWiderThan500(double pageWidth, double entryWidth)
+    public void FitAttributionColumnsCommand_Width_FitsTwoColumnsOver500(double pageWidth, double entryWidth)
     {
         var viewModel = Create();
 
@@ -26,10 +26,10 @@ public sealed class AboutPageViewModelTests
     }
 
     [Fact]
-    public void StartsWithEntriesAtTheirOwnWidth() => Assert.Equal(-1, Create().AttributionEntryWidth);
+    public void AttributionEntryWidth_New_IsTheEntriesOwnWidth() => Assert.Equal(-1, Create().AttributionEntryWidth);
 
     [Fact]
-    public async Task OpensTheAuthorEmail()
+    public async Task OpenEmailCommand_Executed_OpensTheAuthorEmail()
     {
         await Create().OpenEmailCommand.ExecuteAsync(null);
 
@@ -37,7 +37,7 @@ public sealed class AboutPageViewModelTests
     }
 
     [Fact]
-    public async Task FallsBackToDiscordOnTheWeb()
+    public async Task OpenDiscordCommand_NoDiscordApp_FallsBackToTheWeb()
     {
         _launcher.OpenAsync(Arg.Is<Uri>(uri => uri.Scheme == "discord")).ThrowsAsync(new InvalidOperationException());
 
@@ -47,7 +47,7 @@ public sealed class AboutPageViewModelTests
     }
 
     [Fact]
-    public async Task IgnoresABlankLink()
+    public async Task OpenLinkCommand_BlankLink_IgnoresIt()
     {
         await Create().OpenLinkCommand.ExecuteAsync(" ");
 

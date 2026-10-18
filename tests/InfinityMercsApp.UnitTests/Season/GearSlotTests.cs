@@ -5,14 +5,14 @@ namespace InfinityMercsApp.UnitTests.Season;
 public sealed class GearSlotTests
 {
     [Fact]
-    public void WeaponSlotsHoldWeapons()
+    public void HoldsWeapon_Slot_TrueForWeaponSlots()
     {
         Assert.True(GearSlot.Sidearm.HoldsWeapon());
         Assert.False(GearSlot.Augments.HoldsWeapon());
     }
 
     [Fact]
-    public void SlotNamesReadIgnoringCase()
+    public void TryParse_SlotName_ReadsIgnoringCase()
     {
         Assert.True(GearSlots.TryParse(" sidearm ", out var slot));
         Assert.Equal(GearSlot.Sidearm, slot);
@@ -20,7 +20,7 @@ public sealed class GearSlotTests
     }
 
     [Fact]
-    public void ALoadoutKeepsOneItemPerSlotAndSavesInSlotOrder()
+    public void ToSeasonGear_Loadout_KeepsOneItemPerSlotInSlotOrder()
     {
         var loadout = new UnitLoadout { [GearSlot.Augments] = "WIP=12", [GearSlot.Primary] = "Spitfire" };
         loadout[GearSlot.Primary] = "Combi Rifle";
@@ -33,7 +33,7 @@ public sealed class GearSlotTests
     }
 
     [Fact]
-    public void LoadingIgnoresUnknownSlots()
+    public void From_UnknownSlot_IgnoresIt()
     {
         var loadout = UnitLoadout.From([new SeasonUnitGear { Slot = "Armor", ItemName = "Kevlar" }, new SeasonUnitGear { Slot = "Hat", ItemName = "Beret" }]);
 
@@ -43,7 +43,7 @@ public sealed class GearSlotTests
 
     // A pistol in one trooper's extra slot is the same pistol another would carry as a sidearm.
     [Fact]
-    public void ACopyMovesBetweenItsOwnKindsSlotAndAnExtraOne()
+    public void Assign_BetweenOwnSlotAndExtra_MovesTheCopy()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Sidearm, "Pistol");
@@ -56,7 +56,7 @@ public sealed class GearSlotTests
     }
 
     [Fact]
-    public void OnlyTheExtraSlotSharesItemsWithOtherSlots()
+    public void SharesItemsWith_Slots_OnlyExtraSharesWithOthers()
     {
         Assert.True(GearSlot.Sidearm.SharesItemsWith(GearSlot.Extra));
         Assert.True(GearSlot.Sidearm.SharesItemsWith(GearSlot.Sidearm));
@@ -70,9 +70,9 @@ public sealed class GearSlotTests
     [InlineData("Tools", 50)]
     [InlineData("General", 99)]
     [InlineData("primary", 50)]
-    public void InventoryCategoriesListSlotsFirstAndGeneralLast(string category, int order) =>
+    public void Order_Category_ListsSlotsFirstAndGeneralLast(string category, int order) =>
         Assert.Equal(order, InventoryCategories.Order(category));
 
     [Fact]
-    public void BlankCategoriesAreGeneral() => Assert.Equal("General", InventoryCategories.Normalize("  "));
+    public void Normalize_BlankCategory_ReturnsGeneral() => Assert.Equal("General", InventoryCategories.Normalize("  "));
 }

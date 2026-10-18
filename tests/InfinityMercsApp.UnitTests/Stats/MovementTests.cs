@@ -11,7 +11,7 @@ public sealed class MovementTests
     [InlineData("6\"-2\"", 15, 5)]
     [InlineData("15cm-5cm", 15, 5)]
     [InlineData(" 10 / 5 ", 10, 5)]
-    public void SavedMoveIsReadInCentimetres(string text, int first, int second)
+    public void TryParse_SavedMove_ReadsCentimetres(string text, int first, int second)
     {
         Assert.True(Movement.TryParse(text, out var movement));
         Assert.Equal(new Movement(first, second), movement);
@@ -21,16 +21,16 @@ public sealed class MovementTests
     [InlineData("-")]
     [InlineData("fast")]
     [InlineData(null)]
-    public void UnreadableMoveIsRejected(string? text) => Assert.False(Movement.TryParse(text, out _));
+    public void TryParse_UnreadableMove_ReturnsFalse(string? text) => Assert.False(Movement.TryParse(text, out _));
 
     [Theory]
     [InlineData(false, "10-5")]
     [InlineData(true, "4-2")]
-    public void FormatsInTheChosenUnits(bool inInches, string expected) =>
+    public void Format_Units_FormatsInThoseUnits(bool inInches, string expected) =>
         Assert.Equal(expected, new Movement(10, 5).Format(inInches));
 
     [Fact]
-    public void NoMovementShowsADash()
+    public void FormatAndFrom_NoMovement_ShowDash()
     {
         Assert.Equal("-", Movement.Format(null, inInches: true));
         Assert.Equal("-", new Movement(0, 5).Format(inInches: false));
@@ -38,7 +38,7 @@ public sealed class MovementTests
     }
 
     [Fact]
-    public void AProfileMovesByItsFirstTwoValues()
+    public void Movement_Profile_IsItsFirstTwoValues()
     {
         Assert.Equal(new Movement(15, 10), new UnitProfile { MoveCm = [15, 10, 5] }.Movement);
         Assert.Null(new UnitProfile { MoveCm = [15] }.Movement);

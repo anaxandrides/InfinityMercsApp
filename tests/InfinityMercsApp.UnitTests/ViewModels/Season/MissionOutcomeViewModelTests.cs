@@ -32,7 +32,7 @@ public sealed class MissionOutcomeViewModelTests
     }
 
     [Fact]
-    public async Task ShowsTheLatestRoundAndItsMissionCredits()
+    public async Task InitializeAsyncCommand_Season_ShowsLatestRoundAndItsCredits()
     {
         var viewModel = await OpenAsync(1, 2, 3);
 
@@ -43,7 +43,7 @@ public sealed class MissionOutcomeViewModelTests
     }
 
     [Fact]
-    public async Task WithoutASeasonFileScoresAsRoundOne()
+    public async Task InitializeAsyncCommand_NoSeasonFile_ScoresAsRoundOne()
     {
         var viewModel = new MissionOutcomeViewModel(_navigation, _seasonFiles);
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
@@ -53,7 +53,7 @@ public sealed class MissionOutcomeViewModelTests
     }
 
     [Fact]
-    public async Task VictoryAndObjectivesAddToTheTotal()
+    public async Task CreditsTotal_VictoryAndObjectives_AddToIt()
     {
         var viewModel = await OpenAsync(2);
 
@@ -74,7 +74,7 @@ public sealed class MissionOutcomeViewModelTests
     }
 
     [Fact]
-    public async Task ContinuingNeedsAResultAndAScore()
+    public async Task GoToExperienceCommand_ResultOrScoreMissing_CannotExecute()
     {
         var viewModel = await OpenAsync(1);
         Assert.False(viewModel.GoToExperienceCommand.CanExecute(null));
@@ -87,7 +87,7 @@ public sealed class MissionOutcomeViewModelTests
     }
 
     [Fact]
-    public async Task ContinuingSavesTheResultToTheLatestRoundAndOpensExperience()
+    public async Task GoToExperienceCommand_ResultAndScore_SavesAndOpensExperience()
     {
         var viewModel = await OpenAsync(1, 2);
         viewModel.SelectVictoryCommand.Execute(null);

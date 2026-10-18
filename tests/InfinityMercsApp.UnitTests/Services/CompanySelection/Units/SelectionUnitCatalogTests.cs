@@ -16,7 +16,7 @@ public sealed class SelectionUnitCatalogTests
         new() { UnitId = unitId, Name = name, Slug = name.ToLowerInvariant(), Type = 1, Category = 10 };
 
     [Fact]
-    public void AUnitNamedAlikeInTwoFactionsIsListedOnceFromTheFirst()
+    public void Merge_SameNameInTwoFactions_ListsItOnceFromTheFirst()
     {
         var merged = SelectionUnitCatalog.Merge([Faction(101, [Resume(5, "Fusilier")]), Faction(102, [Resume(5, " Fusilier ")])]);
 
@@ -27,7 +27,7 @@ public sealed class SelectionUnitCatalogTests
     }
 
     [Fact]
-    public void SpecOpsUnitsFollowNamedAfterTheirUnit()
+    public void Merge_SpecOpsUnits_FollowNamedAfterTheirUnit()
     {
         var merged = SelectionUnitCatalog.Merge([Faction(101, [Resume(5, "Fusilier")], [new SpecopsUnit { UnitId = 5 }, new SpecopsUnit { UnitId = 9 }])]);
 

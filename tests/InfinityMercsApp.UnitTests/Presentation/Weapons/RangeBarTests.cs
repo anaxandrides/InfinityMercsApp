@@ -18,7 +18,7 @@ public sealed class RangeBarTests
     };
 
     [Fact]
-    public void BandsSpanTheBarInOrder()
+    public void From_Weapon_BandsSpanTheBarInOrder()
     {
         var bar = RangeBar.From(CombiRifle(), xVisor: false, inInches: true);
 
@@ -33,7 +33,7 @@ public sealed class RangeBarTests
     }
 
     [Fact]
-    public void EveryBandEdgeIsMarked()
+    public void Marks_InchesOrCentimetres_MarksEveryBandEdge()
     {
         Assert.Equal(
             ["0\"", "8\"", "16\"", "24\"", "32\""],
@@ -44,7 +44,7 @@ public sealed class RangeBarTests
     }
 
     [Fact]
-    public void AnXVisorLessensPenalties() =>
+    public void From_XVisor_LessensPenalties() =>
         Assert.Equal(
             ["3", "0", "0", "-3"],
             RangeBar.From(CombiRifle(), xVisor: true, inInches: true).Bands.Select(band => band.Modifier));
@@ -54,10 +54,10 @@ public sealed class RangeBarTests
     [InlineData("-6", "-3")]
     [InlineData("2", "2")]
     [InlineData("PH", "PH")]
-    public void XVisorModifiers(string modifier, string expected) => Assert.Equal(expected, RangeBar.WithXVisor(modifier));
+    public void WithXVisor_Modifier_LessensPenalties(string modifier, string expected) => Assert.Equal(expected, RangeBar.WithXVisor(modifier));
 
     [Fact]
-    public void NoDistanceShowsNothing()
+    public void From_NoDistance_ReturnsEmpty()
     {
         Assert.Same(RangeBar.Empty, RangeBar.From(null, false, true));
         Assert.Same(RangeBar.Empty, RangeBar.From(new WeaponDistance(), false, true));

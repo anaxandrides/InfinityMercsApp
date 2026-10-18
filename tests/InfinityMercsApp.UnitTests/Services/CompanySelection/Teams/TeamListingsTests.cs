@@ -21,7 +21,7 @@ public sealed class TeamListingsTests
     }
 
     [Fact]
-    public void ATeamListsItsNamedSlotsWithoutCharacters()
+    public void Build_TeamWithCharacter_ListsNamedSlotsWithoutIt()
     {
         var team = Team("Fusilier Team", "Fusilier", "Hero");
 
@@ -34,7 +34,7 @@ public sealed class TeamListingsTests
     }
 
     [Fact]
-    public void WildcardSlotsOfEveryTeamGoToOneBucketAtTheEnd()
+    public void Build_WildcardSlots_GoToOneBucketAtTheEnd()
     {
         var listed = Team("Fusilier Team", "Fusilier", "Wildcard");
         var unlisted = Team("Other Team", "Wild Trooper");
@@ -47,11 +47,11 @@ public sealed class TeamListingsTests
     }
 
     [Fact]
-    public void ATeamWithOnlyCharactersIsLeftOut() =>
+    public void Build_TeamOfCharactersOnly_LeavesItOut() =>
         Assert.Empty(TeamListings.Build(Units, [Team("Hero Team", "Hero")], []));
 
     [Fact]
-    public void ASlotStandsForTheUnitItWasMatchedToElseItsSlugElseItsName()
+    public void UnitFor_Slot_MatchesResolvedThenSlugThenName()
     {
         var slot = new SlotFor("Somebody", "fusilier");
 
@@ -61,7 +61,7 @@ public sealed class TeamListingsTests
     }
 
     [Fact]
-    public void ASlotShowsWhileItsUnitDoes()
+    public void Shows_Slot_WhileItsUnitIsVisible()
     {
         var slot = new SlotFor("Fusilier", "fusilier");
 

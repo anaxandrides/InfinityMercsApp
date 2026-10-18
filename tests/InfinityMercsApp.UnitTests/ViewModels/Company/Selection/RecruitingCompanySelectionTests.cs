@@ -74,7 +74,7 @@ public sealed class RecruitingCompanySelectionTests
     }
 
     [Fact]
-    public async Task TheCompanysFactionAndTroopersAreInPlace()
+    public async Task PrepareRecruitment_Company_PutsItsFactionAndTroopersInPlace()
     {
         var viewModel = await OpenAsync(Company());
 
@@ -91,7 +91,7 @@ public sealed class RecruitingCompanySelectionTests
     }
 
     [Fact]
-    public async Task TheBudgetIsTheCrLeft()
+    public async Task CreditsLeftText_Recruiting_IsTheCrLeft()
     {
         var viewModel = await OpenAsync(Company());
 
@@ -101,7 +101,7 @@ public sealed class RecruitingCompanySelectionTests
     }
 
     [Fact]
-    public async Task TheFactionsCannotBeChanged()
+    public async Task SelectFactionCommand_Recruiting_ChangesNothing()
     {
         var viewModel = await OpenAsync(Company());
 
@@ -114,7 +114,7 @@ public sealed class RecruitingCompanySelectionTests
     }
 
     [Fact]
-    public async Task TroopersOnTheRosterCannotBeRemoved()
+    public async Task RemoveMercsCompanyEntryCommand_OnRoster_KeepsTheTrooper()
     {
         var viewModel = await OpenAsync(Company());
 
@@ -124,7 +124,7 @@ public sealed class RecruitingCompanySelectionTests
     }
 
     [Fact]
-    public async Task TheCaptainLeadsSoNoRecruitCanBeLieutenant()
+    public async Task Profiles_Recruiting_BlocksEveryLieutenant()
     {
         var viewModel = await OpenAsync(Company());
         var lieutenantsSeen = 0;
@@ -141,7 +141,7 @@ public sealed class RecruitingCompanySelectionTests
     }
 
     [Fact]
-    public async Task NothingOverTheCrLeftCanBeHired()
+    public async Task Profiles_OverTheCrLeft_AreHidden()
     {
         var viewModel = await OpenAsync(Company());
         var tooDearSeen = 0;
@@ -158,7 +158,7 @@ public sealed class RecruitingCompanySelectionTests
     }
 
     [Fact]
-    public async Task AvaCountsTheTroopersAlreadyHired()
+    public async Task Profiles_AvaReachedByTheRoster_AreBlocked()
     {
         var first = await OpenAsync(Company());
         await HireableProfileAsync(first);
@@ -175,7 +175,7 @@ public sealed class RecruitingCompanySelectionTests
     }
 
     [Fact]
-    public async Task HiringSavesTheRecruitChargesItAndGoesBack()
+    public async Task StartCompanyCommand_Recruit_SavesChargesAndGoesBack()
     {
         var viewModel = await OpenAsync(Company());
         var profile = await HireableProfileAsync(viewModel);
@@ -196,7 +196,7 @@ public sealed class RecruitingCompanySelectionTests
     }
 
     [Fact]
-    public async Task ARecruitCanBeTakenOutAgain()
+    public async Task RemoveMercsCompanyEntryCommand_Recruit_TakesItOut()
     {
         var viewModel = await OpenAsync(Company());
         await viewModel.AddProfileToMercsCompanyCommand.ExecuteAsync(await HireableProfileAsync(viewModel));
@@ -208,7 +208,7 @@ public sealed class RecruitingCompanySelectionTests
     }
 
     [Fact]
-    public async Task AFailedHireSaysSoAndStays()
+    public async Task StartCompanyCommand_HireFails_SaysSoAndStays()
     {
         _kit.SeasonFiles.UpdateAsync(SeasonPath, Arg.Any<Action<SeasonFile>>()).Returns(false);
         var viewModel = await OpenAsync(Company());
@@ -221,7 +221,7 @@ public sealed class RecruitingCompanySelectionTests
     }
 
     [Fact]
-    public async Task FoundingACompanyStillUsesThePickedStartingPoints()
+    public async Task StartPointsChoice_Founding_SetsTheStartingPoints()
     {
         var viewModel = await SelectionTestKit.OpenAsync(new StandardCompanySelectionViewModel(_kit.Services, ArmySourceSelectionMode.VanillaFactions));
 

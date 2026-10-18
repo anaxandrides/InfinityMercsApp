@@ -25,22 +25,22 @@ public sealed class AugmentRequirementTests
 
     [Theory]
     [MemberData(nameof(Requirements))]
-    public void ARequirementIsMetByWhatTheTrooperHolds(string requirement, IReadOnlyList<string> held, bool met) =>
+    public void IsMetBy_HeldItems_MeetsTheRequirement(string requirement, IReadOnlyList<string> held, bool met) =>
         Assert.Equal(met, AugmentRequirement.From(requirement)?.IsMetBy(held));
 
     [Theory]
     [InlineData(null)]
     [InlineData("-")]
     [InlineData(" ")]
-    public void NoRequirementIsNone(string? text) => Assert.Null(AugmentRequirement.From(text));
+    public void From_NoRequirement_ReturnsNull(string? text) => Assert.Null(AugmentRequirement.From(text));
 
     [Theory]
     [InlineData("Engineer", "Needs Engineer")]
     [InlineData("Cannot have the BS Attack (+#) skill", "Cannot have the BS Attack (+#) skill")]
-    public void AnUnmetRequirementSaysWhat(string requirement, string unmet) => Assert.Equal(unmet, new AugmentRequirement(requirement).Unmet);
+    public void Unmet_Requirement_SaysWhatIsNeeded(string requirement, string unmet) => Assert.Equal(unmet, new AugmentRequirement(requirement).Unmet);
 
     [Fact]
-    public void TheCatalogKnowsAnAugmentsRequirement()
+    public void Find_AugmentWithRequirement_ReturnsTheRequirement()
     {
         var catalog = InventoryCatalog.From([new Store
         {

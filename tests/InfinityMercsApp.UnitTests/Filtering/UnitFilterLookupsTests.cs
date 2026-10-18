@@ -12,7 +12,7 @@ public sealed class UnitFilterLookupsTests
         });
 
     [Fact]
-    public void ReadsEachLookupFromItsSection()
+    public void From_Catalog_ReadsEachLookupFromItsSection()
     {
         var lookups = UnitFilterLookups.From(Catalog(ArmyFilterSection.Ammunition, (2, "AP")));
 
@@ -21,10 +21,10 @@ public sealed class UnitFilterLookupsTests
     }
 
     [Fact]
-    public void MissingFiltersGiveEmptyLookups() => Assert.Empty(UnitFilterLookups.From(null).Skills);
+    public void From_NoFilters_ReturnsEmptyLookups() => Assert.Empty(UnitFilterLookups.From(null).Skills);
 
     [Fact]
-    public void MergingKeepsTheFirstNonBlankNameForEachId()
+    public void Merge_SeveralCatalogs_KeepsFirstNonBlankNamePerId()
     {
         var merged = UnitFilterLookups.Merge(
         [
@@ -36,7 +36,7 @@ public sealed class UnitFilterLookupsTests
     }
 
     [Fact]
-    public void OptionSetsIgnoreCaseAndSortAlphabetically()
+    public void Sorted_IgnoringCaseSets_DedupeAndSortAlphabetically()
     {
         var sets = UnitFilterOptionSets.IgnoringCase();
         sets.Weapons.Add("spitfire");

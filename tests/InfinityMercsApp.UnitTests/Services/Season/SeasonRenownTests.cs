@@ -26,7 +26,7 @@ public sealed class SeasonRenownTests
     private static readonly IReadOnlySet<int> Servants = new HashSet<int> { 3 };
 
     [Fact]
-    public void ATrooperCountsItsSeasonGearAndXp()
+    public void Of_Trooper_CountsItsSeasonGearAndXp()
     {
         var season = new SeasonFile
         {
@@ -40,7 +40,7 @@ public sealed class SeasonRenownTests
     }
 
     [Fact]
-    public void TheCompanyLeavesOutServantPeripheralsAndCountsWins()
+    public void OfCompany_ServantsAndWins_LeavesOutServantsAndCountsWins()
     {
         var season = new SeasonFile { Rounds = [new SeasonRound { RoundIndex = 1, MissionResults = new SeasonMissionResult { Won = true } }] };
 

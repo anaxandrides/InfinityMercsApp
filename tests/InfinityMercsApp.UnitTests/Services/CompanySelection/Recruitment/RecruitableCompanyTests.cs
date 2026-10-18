@@ -19,12 +19,12 @@ public sealed class RecruitableCompanyTests
 
     [Theory]
     [MemberData(nameof(CompanyTypes))]
-    public void EachSavedTypeRecruitsThroughItsOwnScreen(string companyType, CompanyKind kind, ArmySourceSelectionMode mode) =>
+    public void For_EachSavedType_RecruitsThroughItsOwnScreen(string companyType, CompanyKind kind, ArmySourceSelectionMode mode) =>
         Assert.Equal(new RecruitableCompany(kind, mode), RecruitableCompany.For(companyType));
 
     [Theory]
     [InlineData("Standard Company")]
     [InlineData("")]
     [InlineData(null)]
-    public void AnUnknownTypeHasNoScreen(string? companyType) => Assert.Null(RecruitableCompany.For(companyType));
+    public void For_UnknownType_ReturnsNull(string? companyType) => Assert.Null(RecruitableCompany.For(companyType));
 }

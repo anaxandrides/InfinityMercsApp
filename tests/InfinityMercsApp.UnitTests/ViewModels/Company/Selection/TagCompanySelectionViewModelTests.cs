@@ -16,7 +16,7 @@ public sealed class TagCompanySelectionViewModelTests
         SelectionTestKit.OpenAsync(new TagCompanySelectionViewModel(_kit.Services, ArmySourceSelectionMode.Sectorials));
 
     [Fact]
-    public async Task TheTagCompanyFillsTheRightSlot()
+    public async Task InitializeAsync_TagCompany_FillsTheRightSlot()
     {
         var viewModel = await OpenAsync();
 
@@ -26,7 +26,7 @@ public sealed class TagCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task FactionsAlwaysGoInTheLeftSlot()
+    public async Task SelectFactionCommand_RightSlotTapped_GoesInTheLeftSlot()
     {
         var viewModel = await OpenAsync();
 
@@ -40,7 +40,7 @@ public sealed class TagCompanySelectionViewModelTests
     }
 
     [Fact]
-    public void AFinalizedTagGainsItsSpecOps()
+    public void TagFinalizedEntryFrom_SpecOpsChosen_GainsThem()
     {
         var entry = new InfinityMercsApp.ViewModels.Company.Selection.Items.MercsCompanyEntry
         {
@@ -74,7 +74,7 @@ public sealed class TagCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task BackingOutOfATagsSpecOpsRemovesIt()
+    public async Task AddProfileToMercsCompanyCommand_TagSpecOpsCancelled_RemovesTheTag()
     {
         _kit.CaptainDialog.ShowAsync(Arg.Any<CaptainUpgradePopupContext>()).Returns((SavedImprovedCaptainStats?)null);
         var viewModel = await OpenAsync();

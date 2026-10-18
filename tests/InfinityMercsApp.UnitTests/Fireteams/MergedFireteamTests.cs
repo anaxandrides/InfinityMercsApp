@@ -6,7 +6,7 @@ namespace InfinityMercsApp.UnitTests.Fireteams;
 public sealed class MergedFireteamTests
 {
     [Fact]
-    public void MergeChart_AddsCountsAndWidensSlotLimitsAcrossCharts()
+    public void MergeChart_TwoCharts_AddsCountsAndWidensSlotLimits()
     {
         var first = new FireteamChart
         {

@@ -25,7 +25,7 @@ public sealed class GameWeaponCatalogTests
     private void Returns(string name, params IReadOnlyList<Weapon> weapons) => _metadata.SearchWeaponsByName(name).Returns(weapons);
 
     [Fact]
-    public void CardsAreBandedThenPlainThenUnknownThenCcThenStandardActions()
+    public void CardsFor_MixedWeapons_OrdersBandedPlainUnknownCcThenStandardActions()
     {
         var cards = new GameWeaponCatalog(_metadata).CardsFor("Pistol\nZap Gun\nCombi Rifle (+1B)", "Knife", AttackModifiers.None);
 
@@ -38,7 +38,7 @@ public sealed class GameWeaponCatalogTests
     }
 
     [Fact]
-    public void BsAttackModifiersReachRangedWeaponsButNotDiscover()
+    public void CardsFor_BsAttackModifiers_ApplyToRangedWeaponsButNotDiscover()
     {
         var modifiers = new AttackModifiers(true, 2, "Shock", 1, 0);
 
@@ -53,7 +53,7 @@ public sealed class GameWeaponCatalogTests
     }
 
     [Fact]
-    public void CcAttackReducesCcWeaponDamage()
+    public void CardsFor_CcAttack_ReducesCcWeaponDamage()
     {
         var cards = new GameWeaponCatalog(_metadata).CardsFor(null, "Knife", new AttackModifiers(false, 0, null, 0, 3));
 
@@ -63,7 +63,7 @@ public sealed class GameWeaponCatalogTests
     }
 
     [Fact]
-    public void WithoutMetadataEveryWeaponIsUnmatched()
+    public void CardsFor_NoMetadata_LeavesEveryWeaponUnmatched()
     {
         var cards = new GameWeaponCatalog(null).CardsFor("Combi Rifle", "Knife", AttackModifiers.None);
 

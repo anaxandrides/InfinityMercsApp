@@ -18,7 +18,7 @@ public sealed class UnitTestPerks
     }
 
     [Fact]
-    public void GetValidRollOptions_AllLists_AllRolls_ReturnsExpectedOptions()
+    public void GetValidRollOptions_EveryListAndRoll_ReturnsExpectedOptions()
     {
         foreach (var list in CompanyPerkCatalog.GetPerkListCatalogEntries())
         {

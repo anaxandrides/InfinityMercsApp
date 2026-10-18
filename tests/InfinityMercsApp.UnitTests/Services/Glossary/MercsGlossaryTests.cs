@@ -5,7 +5,7 @@ namespace InfinityMercsApp.UnitTests.Services.Glossary;
 public sealed class MercsGlossaryTests
 {
     [Fact]
-    public void ParseIndex_SectionsGiveHeadersThenEntries()
+    public void ParseIndex_Sections_GivesHeadersThenEntries()
     {
         var items = MercsGlossary.ParseIndex("""
             {"sections":[
@@ -27,7 +27,7 @@ public sealed class MercsGlossaryTests
     }
 
     [Fact]
-    public void ParseIndex_FlatEntriesStartAHeaderWhenTheSectionChanges()
+    public void ParseIndex_FlatEntries_StartsAHeaderWhenTheSectionChanges()
     {
         var items = MercsGlossary.ParseIndex("""
             {"entries":[
@@ -41,7 +41,7 @@ public sealed class MercsGlossaryTests
     }
 
     [Fact]
-    public void Pages_RenderMarkdownAndEncodePlainText()
+    public void MarkdownPageAndTextPage_Text_RenderMarkdownAndEncodePlainText()
     {
         Assert.Contains("<strong>bold</strong>", MercsGlossary.MarkdownPage("**bold**"));
         Assert.Contains("<p>a &lt;b&gt;<br />c</p>", MercsGlossary.TextPage("a <b>\nc"));

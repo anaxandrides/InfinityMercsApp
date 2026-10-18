@@ -28,7 +28,7 @@ public sealed class UnitFilterViewModelTests
         filter.ActiveCriterionOptions.Single(option => option.Value == value);
 
     [Fact]
-    public void ItOpensOnTheFirstCriterionWithItsValuesSorted()
+    public void Constructor_Options_OpensOnTheFirstCriterionSorted()
     {
         var filter = Open();
 
@@ -41,7 +41,7 @@ public sealed class UnitFilterViewModelTests
     }
 
     [Fact]
-    public void TheExistingFilterIsShown()
+    public void Constructor_ExistingFilter_ShowsIt()
     {
         var existing = new UnitFilterCriteria
         {
@@ -66,7 +66,7 @@ public sealed class UnitFilterViewModelTests
     }
 
     [Fact]
-    public void TogglingAValueCommitsItAtOnce()
+    public void ToggleOptionCommand_Value_CommitsItAtOnce()
     {
         var filter = Open();
         var classification = filter.CriteriaItems[0];
@@ -82,7 +82,7 @@ public sealed class UnitFilterViewModelTests
     }
 
     [Fact]
-    public void SwitchingCriteriaKeepsTheChoices()
+    public void SelectCriterionCommand_Switched_KeepsTheChoices()
     {
         var filter = Open();
         Option(filter, "Elite Troops").IsSelected = true;
@@ -96,7 +96,7 @@ public sealed class UnitFilterViewModelTests
     }
 
     [Fact]
-    public void ClearingEmptiesTheOpenCriterion()
+    public void ClearCriterionCommand_Executed_EmptiesTheOpenCriterion()
     {
         var filter = Open();
         filter.ToggleOptionCommand.Execute(Option(filter, "Line Troops"));
@@ -108,7 +108,7 @@ public sealed class UnitFilterViewModelTests
     }
 
     [Fact]
-    public void ResetClearsEverything()
+    public void ResetCommand_Executed_ClearsEverything()
     {
         var existing = new UnitFilterCriteria
         {
@@ -129,7 +129,7 @@ public sealed class UnitFilterViewModelTests
     }
 
     [Fact]
-    public void ApplyHandsOverTheFilterThenCloses()
+    public void ApplyCommand_Executed_HandsOverTheFilterThenCloses()
     {
         var filter = Open();
         filter.ToggleOptionCommand.Execute(Option(filter, "Line Troops"));
@@ -158,7 +158,7 @@ public sealed class UnitFilterViewModelTests
     }
 
     [Fact]
-    public void BackClosesWithoutApplying()
+    public void CloseCommand_Executed_ClosesWithoutApplying()
     {
         var filter = Open();
 

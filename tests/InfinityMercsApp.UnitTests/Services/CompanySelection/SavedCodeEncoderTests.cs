@@ -12,7 +12,7 @@ public sealed class SavedCodeEncoderTests
         _encoder.Encode(names, ProfileEntryKind.Weapons, [0, Army101Data.PanOceania]);
 
     [Fact]
-    public void CodesKnownNamesIgnoringCaseAndSpacing()
+    public void Encode_KnownNames_CodesThemIgnoringCaseAndSpacing()
     {
         var coded = Encode("Combi Rifle", " combi   RIFLE ");
 
@@ -22,7 +22,7 @@ public sealed class SavedCodeEncoderTests
     }
 
     [Fact]
-    public void CodesBracketedExtrasInIdOrder()
+    public void Encode_BracketedExtras_CodesThemInIdOrder()
     {
         var code = Assert.Single(Encode("Combi Rifle (+1, -3)").Codes);
 
@@ -31,7 +31,7 @@ public sealed class SavedCodeEncoderTests
     }
 
     [Fact]
-    public void KeepsUncodedNamesAsCustomText()
+    public void Encode_UncodedNames_KeepsThemAsCustomText()
     {
         var coded = Encode("Laser Spoon", "Combi Rifle (+1, Glitter)");
 
@@ -40,7 +40,7 @@ public sealed class SavedCodeEncoderTests
     }
 
     [Fact]
-    public void RoundTripsThroughSavedCodeNames()
+    public void Encode_Names_RoundTripThroughSavedCodeNames()
     {
         var names = new List<string> { "Combi Rifle (+1)", "AP CC Weapon" };
 

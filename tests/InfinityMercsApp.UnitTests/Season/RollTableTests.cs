@@ -9,17 +9,17 @@ public sealed class RollTableTests
     [InlineData(4, "MULTI Pistol")]
     [InlineData(5, "AP Heavy Pistol")]
     [InlineData(20, "Viral Pistol")]
-    public void PistolsCoverEveryRoll(int roll, string pistol) => Assert.Equal(pistol, SeasonRollTables.Pistols.Lookup(roll));
+    public void PistolsLookup_EveryRoll_ReturnsAPistol(int roll, string pistol) => Assert.Equal(pistol, SeasonRollTables.Pistols.Lookup(roll));
 
     [Theory]
     [InlineData(2, "Number One")]
     [InlineData(18, "Exrah Surplus")]
     [InlineData(19, null)]
     [InlineData(20, null)]
-    public void HighRollsFindNoTemporaryStore(int roll, string? store) => Assert.Equal(store, SeasonRollTables.WarMarkets.Lookup(roll));
+    public void WarMarketsLookup_Roll_FindsStoreOrNoneForHighRolls(int roll, string? store) => Assert.Equal(store, SeasonRollTables.WarMarkets.Lookup(roll));
 
     [Fact]
-    public void TheTablesHaveNoGapsOrOverlaps()
+    public void Ranges_EveryTable_HaveNoGapsOrOverlaps()
     {
         foreach (var table in new List<RollTable> { SeasonRollTables.Pistols, SeasonRollTables.WarMarkets })
         {

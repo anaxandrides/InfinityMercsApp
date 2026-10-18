@@ -5,7 +5,7 @@ namespace InfinityMercsApp.UnitTests.Perks;
 public sealed class CompanyPerkCatalogPerkNodeTests
 {
     [Fact]
-    public void GetPerkNodeLists_BuildsRootsForEveryPerkList()
+    public void GetPerkNodeLists_Catalog_BuildsRootsForEveryPerkList()
     {
         var lists = CompanyPerkCatalog.GetPerkNodeLists();
         var catalogLists = CompanyPerkCatalog.GetPerkListCatalogEntries();

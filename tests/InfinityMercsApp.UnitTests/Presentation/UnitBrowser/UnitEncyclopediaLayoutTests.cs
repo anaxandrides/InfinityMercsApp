@@ -6,7 +6,7 @@ namespace InfinityMercsApp.UnitTests.Presentation.UnitBrowser;
 public sealed class UnitEncyclopediaLayoutTests
 {
     [Fact]
-    public void CompactShowsOnlyTheCurrentStep()
+    public void For_Compact_ShowsOnlyTheCurrentStep()
     {
         var layout = UnitEncyclopediaLayout.For(AdaptiveLayoutMode.Compact);
 
@@ -17,7 +17,7 @@ public sealed class UnitEncyclopediaLayoutTests
     }
 
     [Fact]
-    public void MediumStacksFactionsAboveUnitsBesideTheDetail()
+    public void For_Medium_StacksFactionsAboveUnitsBesideDetail()
     {
         var layout = UnitEncyclopediaLayout.For(AdaptiveLayoutMode.Medium);
 
@@ -32,7 +32,7 @@ public sealed class UnitEncyclopediaLayoutTests
     [Theory]
     [InlineData(AdaptiveLayoutMode.Expanded, "260,0.7*,1.3*")]
     [InlineData(AdaptiveLayoutMode.Wide, "280,340,*")]
-    public void WiderScreensShowThreeColumns(AdaptiveLayoutMode mode, string columns)
+    public void For_WiderModes_ShowsThreeColumns(AdaptiveLayoutMode mode, string columns)
     {
         var layout = UnitEncyclopediaLayout.For(mode);
 

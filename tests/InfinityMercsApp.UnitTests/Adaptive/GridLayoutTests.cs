@@ -6,7 +6,7 @@ namespace InfinityMercsApp.UnitTests.Adaptive;
 public sealed class GridLayoutTests
 {
     [Fact]
-    public void ColumnsAndRowsTakeXamlDefinitions()
+    public void SetColumnsAndSetRows_XamlDefinitions_AddsMatchingDefinitions()
     {
         var grid = new Grid();
 
@@ -18,7 +18,7 @@ public sealed class GridLayoutTests
     }
 
     [Fact]
-    public void ACellPlacesTheView()
+    public void SetCell_Cell_PlacesTheViewInItsRowColumnAndSpans()
     {
         var label = new Label();
 

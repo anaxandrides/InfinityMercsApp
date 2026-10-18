@@ -10,7 +10,7 @@ public sealed class CompanyRecordCatalogTests : IDisposable
     public void Dispose() => _records.Dispose();
 
     [Fact]
-    public async Task ListsCompaniesNewestFirstAndSkipsMalformedFiles()
+    public async Task ListAsync_SeveralFiles_ListsNewestFirstSkippingMalformed()
     {
         _records.WriteCompany("old.json", """{"companyName":"Old","companyType":"TAG Company","createdUtc":"2026-01-02T03:04:05Z"}""");
         _records.WriteCompany("new.json", """{"companyName":"New","createdUtc":"2026-03-04T05:06:07Z"}""");
@@ -25,7 +25,7 @@ public sealed class CompanyRecordCatalogTests : IDisposable
     }
 
     [Fact]
-    public async Task AnUnnamedCompanyTakesItsFileName()
+    public async Task ListAsync_UnnamedCompany_TakesItsFileName()
     {
         _records.WriteCompany("Kestrel.json", "{}");
 
@@ -35,7 +35,7 @@ public sealed class CompanyRecordCatalogTests : IDisposable
     }
 
     [Fact]
-    public async Task ShowsUpToTwoSourceFactionLogos()
+    public async Task ListAsync_SeveralSourceFactions_ShowsUpToTwoLogos()
     {
         var paths = _records.Paths with { FactionLogoDirectory = "/logos" };
         _records.WriteCompany("c.json", """{"sourceFactions":[{"factionId":101},{"factionId":101},{"factionId":0},{"factionId":102},{"factionId":103}]}""");
@@ -47,7 +47,7 @@ public sealed class CompanyRecordCatalogTests : IDisposable
     }
 
     [Fact]
-    public async Task FallsBackToTheEntriesFactionsWithoutSourceFactions()
+    public async Task ListAsync_NoSourceFactions_FallsBackToTheEntriesFactions()
     {
         _records.WriteCompany("c.json", """{"entries":[{"sourceFactionId":102},{"sourceFactionId":102}]}""");
 
@@ -58,7 +58,7 @@ public sealed class CompanyRecordCatalogTests : IDisposable
     }
 
     [Fact]
-    public async Task DeleteRemovesTheFile()
+    public async Task Delete_Record_RemovesTheFile()
     {
         var path = _records.WriteCompany("c.json", "{}");
         var catalog = new CompanyRecordCatalog(_records.Paths);

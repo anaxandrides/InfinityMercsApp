@@ -23,7 +23,7 @@ public sealed class SettingsViewModelTests
     }
 
     [Fact]
-    public async Task LoadsTheStoredUnitsWithoutSavingThemBack()
+    public async Task InitializeAsync_StoredUnits_LoadsWithoutSavingBack()
     {
         var viewModel = await OpenAsync(storedInches: false);
 
@@ -33,7 +33,7 @@ public sealed class SettingsViewModelTests
     }
 
     [Fact]
-    public async Task ChoosingCentimetersSavesTheSetting()
+    public async Task ShowUnitsInCentimeters_Set_SavesTheSetting()
     {
         var viewModel = await OpenAsync(storedInches: true);
         var changed = new List<string?>();
@@ -47,7 +47,7 @@ public sealed class SettingsViewModelTests
     }
 
     [Fact]
-    public async Task UpToDateData_IsReportedWithoutAsking()
+    public async Task UpdateAllDataCommand_UpToDate_ReportsWithoutAsking()
     {
         Checks(ArmyDataChecks.UpToDate());
         var viewModel = await OpenAsync(storedInches: true);
@@ -62,7 +62,7 @@ public sealed class SettingsViewModelTests
     }
 
     [Fact]
-    public async Task AcceptedUpdate_IsStored()
+    public async Task UpdateAllDataCommand_UpdateAccepted_StoresIt()
     {
         var check = ArmyDataChecks.WithUpdate();
         Checks(check);
@@ -77,7 +77,7 @@ public sealed class SettingsViewModelTests
     }
 
     [Fact]
-    public async Task DeclinedUpdate_KeepsTheStoredData()
+    public async Task UpdateAllDataCommand_UpdateDeclined_KeepsTheStoredData()
     {
         Checks(ArmyDataChecks.WithUpdate());
         _dialogs.ConfirmAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(false);
@@ -90,7 +90,7 @@ public sealed class SettingsViewModelTests
     }
 
     [Fact]
-    public async Task UnavailableArmies_AreNamed()
+    public async Task UpdateAllDataCommand_ArmiesUnavailable_NamesThem()
     {
         Checks(ArmyDataChecks.WithUnavailable("Ariadna", "Tohaa"));
         var viewModel = await OpenAsync(storedInches: true);
@@ -101,7 +101,7 @@ public sealed class SettingsViewModelTests
     }
 
     [Fact]
-    public async Task FailedDownload_IsShown()
+    public async Task UpdateAllDataCommand_DownloadFails_ShowsIt()
     {
         Checks(ArmyDataChecks.Failed());
         var viewModel = await OpenAsync(storedInches: true);
@@ -113,7 +113,7 @@ public sealed class SettingsViewModelTests
     }
 
     [Fact]
-    public async Task UpdateThatThrows_IsShown()
+    public async Task UpdateAllDataCommand_UpdateThrows_ShowsIt()
     {
         _updater.CheckAsync(Arg.Any<IProgress<ArmyDataProgress>>(), Arg.Any<CancellationToken>()).Returns<ArmyDataCheck>(_ => throw new InvalidOperationException("disk full"));
         var viewModel = await OpenAsync(storedInches: true);

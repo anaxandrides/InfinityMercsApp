@@ -54,7 +54,7 @@ public sealed class ArmyImportSpecopsTests : IDisposable
     }
 
     [Fact]
-    public void ReferenceArmy_HasSpecopsToKeep()
+    public void Import_ReferenceArmy_StoresSpecops()
     {
         _import.Import(PanOceania, _army);
 
@@ -65,7 +65,7 @@ public sealed class ArmyImportSpecopsTests : IDisposable
     }
 
     [Fact]
-    public void ImportWithoutSpecops_KeepsTheStoredSpecops()
+    public void Import_WithoutSpecops_KeepsTheStoredSpecops()
     {
         _import.Import(PanOceania, _army);
         var before = StoredSpecops();
@@ -76,7 +76,7 @@ public sealed class ArmyImportSpecopsTests : IDisposable
     }
 
     [Fact]
-    public void ImportWithoutSpecops_KeepsTheSpecopsUnitProfiles()
+    public void Import_WithoutSpecops_KeepsTheSpecopsUnitProfiles()
     {
         _import.Import(PanOceania, _army);
         var before = _specops.GetSpecopsUnitsByFaction(PanOceania).Select(unit => ModelDump.Of(unit.ProfileGroups)).ToList();
@@ -89,7 +89,7 @@ public sealed class ArmyImportSpecopsTests : IDisposable
     }
 
     [Fact]
-    public void ImportWithSpecops_ReplacesTheStoredSpecops()
+    public void Import_WithSpecops_ReplacesTheStoredSpecops()
     {
         _import.Import(PanOceania, _army);
         var firstSkill = _army.Specops.Skills?.First() ?? throw new InvalidOperationException("The reference army has no spec-ops skills.");
@@ -102,7 +102,7 @@ public sealed class ArmyImportSpecopsTests : IDisposable
     }
 
     [Fact]
-    public void ImportWithoutSpecops_StillReplacesTheUnits()
+    public void Import_WithoutSpecops_StillReplacesTheUnits()
     {
         _import.Import(PanOceania, _army);
         var oneUnit = new ArmyDefinition

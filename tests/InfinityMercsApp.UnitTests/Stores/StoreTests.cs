@@ -8,7 +8,7 @@ public sealed class StoreTests
     [InlineData("Lawful", true, false)]
     [InlineData("chaotic", false, true)]
     [InlineData("Neutral", false, false)]
-    public void AlignmentIsReadIgnoringCase(string alignment, bool lawful, bool chaotic)
+    public void IsLawfulAndIsChaotic_Alignment_ReadIgnoringCase(string alignment, bool lawful, bool chaotic)
     {
         var store = new Store { Alignment = alignment };
 
@@ -17,7 +17,7 @@ public sealed class StoreTests
     }
 
     [Fact]
-    public void AlwaysAvailableIsItsOwnAlignment()
+    public void IsAlwaysAvailable_Alignment_IsItsOwnAlignment()
     {
         Assert.True(new Store { Alignment = "Always Available" }.IsAlwaysAvailable);
         Assert.False(new Store { Alignment = "Neutral" }.IsAlwaysAvailable);
@@ -27,6 +27,6 @@ public sealed class StoreTests
     [InlineData("Medical Services", true)]
     [InlineData("additional recruitment", true)]
     [InlineData("Base Market", false)]
-    public void ServiceStoresAreRecognisedByName(string name, bool isService) =>
+    public void IsServiceStore_Name_RecognisesServiceStores(string name, bool isService) =>
         Assert.Equal(isService, new Store { Name = name }.IsServiceStore);
 }

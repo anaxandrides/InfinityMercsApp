@@ -16,7 +16,7 @@ public sealed class RosterEntriesTests
     };
 
     [Fact]
-    public void TheTroopersGoOnTheRosterLieutenantFirstWithoutPeripherals()
+    public void From_Company_PutsTroopersOnTheRosterLieutenantFirst()
     {
         var entries = RosterEntries.From(Company(), []);
 
@@ -27,7 +27,7 @@ public sealed class RosterEntriesTests
     }
 
     [Fact]
-    public void EachKeepsWhatAvaAndThePointsNeed()
+    public void From_Entry_KeepsWhatAvaAndThePointsNeed()
     {
         var kestrel = RosterEntries.From(Company(), [])[0];
 
@@ -37,7 +37,7 @@ public sealed class RosterEntriesTests
     }
 
     [Fact]
-    public void RetiredTroopersStayForAvaNamedAsRetired()
+    public void From_RetiredTrooper_StaysNamedAsRetired()
     {
         var entries = RosterEntries.From(Company(), [0]);
 

@@ -9,15 +9,15 @@ public sealed class ProfileAvailabilityTests
     private static readonly RosterRoom Room = new(PointsRemaining: 30, AvaReached: false, HasLieutenant: false);
 
     [Fact]
-    public void AProfileThatFitsIsListedAndAddable() =>
+    public void Of_ProfileFits_IsListedAndAddable() =>
         Assert.Equal(new ProfileAvailability(true, false), ProfileAvailability.Of(20, false, Room, UnitFilterCriteria.None, lieutenantOnly: false));
 
     [Fact]
-    public void AProfileOverThePointsLeftIsHiddenAndBlocked() =>
+    public void Of_OverThePointsLeft_IsHiddenAndBlocked() =>
         Assert.Equal(new ProfileAvailability(false, true), ProfileAvailability.Of(31, false, Room, UnitFilterCriteria.None, lieutenantOnly: false));
 
     [Fact]
-    public void LieutenantsOnlyHidesTheRest()
+    public void Of_LieutenantsOnly_HidesTheRest()
     {
         Assert.False(ProfileAvailability.Of(20, false, Room, UnitFilterCriteria.None, lieutenantOnly: true).IsVisible);
         Assert.True(ProfileAvailability.Of(20, true, Room, UnitFilterCriteria.None, lieutenantOnly: true).IsVisible);
@@ -27,11 +27,11 @@ public sealed class ProfileAvailabilityTests
     [InlineData(9, false)]
     [InlineData(10, true)]
     [InlineData(25, false)]
-    public void TheFiltersPointsHideProfilesOutsideThem(int cost, bool visible) =>
+    public void Of_OutsideTheFiltersPoints_IsHidden(int cost, bool visible) =>
         Assert.Equal(visible, ProfileAvailability.Of(cost, false, Room, UnitFilterCriteria.None with { MinPoints = 10, MaxPoints = 20 }, false).IsVisible);
 
     [Fact]
-    public void ASecondLieutenantIsBlocked()
+    public void Of_SecondLieutenant_IsBlocked()
     {
         var room = Room with { HasLieutenant = true };
 
@@ -40,7 +40,7 @@ public sealed class ProfileAvailabilityTests
     }
 
     [Fact]
-    public void EveryProfileIsBlockedOnceTheUnitsAvaIsReached() =>
+    public void Of_AvaReached_IsBlocked() =>
         Assert.True(ProfileAvailability.Of(20, false, Room with { AvaReached = true }, UnitFilterCriteria.None, false).IsBlocked);
 
     [Theory]
@@ -48,7 +48,7 @@ public sealed class ProfileAvailabilityTests
     [InlineData("3", false)]
     [InlineData("T", false)]
     [InlineData("-", false)]
-    public void TheRoomCountsTheUnitAgainstItsAva(string ava, bool reached)
+    public void RosterRoomFor_UnitInCompany_CountsItAgainstItsAva(string ava, bool reached)
     {
         List<MercsCompanyEntry> entries =
         [

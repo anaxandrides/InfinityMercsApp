@@ -26,7 +26,7 @@ public sealed class DataFolderMoveTests : IDisposable
     }
 
     [Fact]
-    public void TheOldFoldersDataIsCopiedIntoANewOne()
+    public void CopyIfNew_OldFolderWithData_CopiesIntoTheNewOne()
     {
         Write(Path.Combine(Old, "infinitymercs.db3"), "db");
         Write(Path.Combine(Old, "Companies", "blue.json"), "company");
@@ -39,7 +39,7 @@ public sealed class DataFolderMoveTests : IDisposable
     }
 
     [Fact]
-    public void ANewFolderWithDataIsNeverOverwritten()
+    public void CopyIfNew_NewFolderHasData_NeverOverwritesIt()
     {
         Write(Path.Combine(Old, "infinitymercs.db3"), "old");
         Write(Path.Combine(New, "infinitymercs.db3"), "new");
@@ -49,7 +49,7 @@ public sealed class DataFolderMoveTests : IDisposable
     }
 
     [Fact]
-    public void NothingHappensWithoutAnOldFolder()
+    public void CopyIfNew_NoOldFolder_DoesNothing()
     {
         Assert.False(DataFolderMove.CopyIfNew(Old, New));
         Assert.False(Directory.Exists(New));

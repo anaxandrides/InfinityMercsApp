@@ -21,7 +21,7 @@ public sealed class ArmoryViewModelTests
     }
 
     [Fact]
-    public void GroupByName_MergesModesOfTheSameWeapon()
+    public void GroupByName_ModesOfOneWeapon_MergesThem()
     {
         var groups = ArmoryViewModel.GroupByName(
             [W("Rifle", "Burst"), W("adhesive launcher"), W("rifle ", "Anti-materiel"), W("Rifle")]);
@@ -31,7 +31,7 @@ public sealed class ArmoryViewModelTests
     }
 
     [Fact]
-    public async Task OpensWithEveryWeaponAndSearchNarrowsTheList()
+    public async Task SearchText_Typed_NarrowsTheList()
     {
         _metadata.GetAllWeapons().Returns([W("Rifle"), W("Pistol")]);
         _metadata.SearchWeaponsByName("pis").Returns([W("Pistol")]);
@@ -47,7 +47,7 @@ public sealed class ArmoryViewModelTests
     }
 
     [Fact]
-    public async Task ReappearingKeepsTheList()
+    public async Task InitializeAsyncCommand_Reappearing_KeepsTheList()
     {
         _metadata.GetAllWeapons().Returns([W("Rifle")]);
         var viewModel = await OpenAsync();
@@ -57,7 +57,7 @@ public sealed class ArmoryViewModelTests
     }
 
     [Fact]
-    public async Task SelectingAWeaponShowsItsDetailUntilClosed()
+    public async Task SelectedWeaponGroup_Weapon_ShowsItsDetailUntilClosed()
     {
         _metadata.GetAllWeapons().Returns([W("Rifle")]);
         var viewModel = await OpenAsync();
@@ -76,7 +76,7 @@ public sealed class ArmoryViewModelTests
     }
 
     [Fact]
-    public async Task OnAPhoneTheDetailReplacesTheList()
+    public async Task SelectedWeaponGroup_Compact_ReplacesTheList()
     {
         _metadata.GetAllWeapons().Returns([W("Rifle")]);
         var viewModel = await OpenAsync();
@@ -91,7 +91,7 @@ public sealed class ArmoryViewModelTests
     }
 
     [Fact]
-    public async Task WiderScreensShowBothPanes()
+    public async Task ApplyLayoutCommand_Wide_ShowsBothPanes()
     {
         var viewModel = await OpenAsync();
         var changed = new List<string?>();

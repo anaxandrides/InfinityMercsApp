@@ -11,15 +11,15 @@ public sealed class CompanyRenownTests
     private static readonly InventoryCatalog Catalog = InventoryCatalog.From([InventoryTestStores.NumberOne]);
 
     [Fact]
-    public void ATroopersRenownIsItsCostGearAndXp() =>
+    public void Total_Trooper_IsCostGearAndXp() =>
         Assert.Equal(28 + 15 + 9, new TrooperRenown(InitialCost: 28, GearCost: 15, Experience: 9).Total);
 
     [Fact]
-    public void ARetiringTrooperKeepsItsCostAndXpButNotItsGear() =>
+    public void WithoutGear_RetiringTrooper_KeepsCostAndXp() =>
         Assert.Equal(28 + 9, new TrooperRenown(InitialCost: 28, GearCost: 15, Experience: 9).WithoutGear);
 
     [Fact]
-    public void RetiredTroopersStillCountTowardTheCompany()
+    public void Of_RetiredTroopers_StillCount()
     {
         var season = new SeasonFile { Retired = [new RetiredTrooper { EntryIndex = 4, Renown = 31 }] };
 
@@ -27,11 +27,11 @@ public sealed class CompanyRenownTests
     }
 
     [Fact]
-    public void NothingNegativeIsCounted() =>
+    public void Total_NegativeParts_AreNotCounted() =>
         Assert.Equal(5, new TrooperRenown(InitialCost: -3, GearCost: 0, Experience: 5).Total);
 
     [Fact]
-    public void GearIsCountedAtItsBaseCost()
+    public void GearCost_Gear_CountsItsBaseCost()
     {
         List<SeasonUnitGear> gear =
         [
@@ -45,7 +45,7 @@ public sealed class CompanyRenownTests
     }
 
     [Fact]
-    public void EveryWinAddsTenButAByeIsNoWin()
+    public void Of_WinsAndBye_AddsTenPerWinNoneForTheBye()
     {
         var season = new SeasonFile
         {
@@ -64,6 +64,6 @@ public sealed class CompanyRenownTests
     }
 
     [Fact]
-    public void WithoutASeasonOnlyTheTroopersCount() =>
+    public void Of_NoSeason_CountsOnlyTheTroopers() =>
         Assert.Equal(40, CompanyRenown.Of([new TrooperRenown(30, 0, 10)], null));
 }

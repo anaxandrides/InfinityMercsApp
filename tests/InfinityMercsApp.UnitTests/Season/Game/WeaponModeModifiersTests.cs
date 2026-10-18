@@ -11,7 +11,7 @@ public sealed class WeaponModeModifiersTests
         new() { Name = "Combi Rifle", Mode = mode, Burst = "3", Damage = "13", Properties = properties };
 
     [Fact]
-    public void AnOrdinaryModeGetsEverything()
+    public void For_OrdinaryMode_GetsEveryModifier()
     {
         var weapon = Weapon();
 
@@ -19,7 +19,7 @@ public sealed class WeaponModeModifiersTests
     }
 
     [Fact]
-    public void DeployedAndWipModesGetNothing()
+    public void For_DeployableOrWipMode_GetsNothing()
     {
         var deployable = Weapon("Deployable Mode");
         var wip = Weapon(null, "BS Weapon (WIP)");
@@ -29,7 +29,7 @@ public sealed class WeaponModeModifiersTests
     }
 
     [Fact]
-    public void TheOtherModesOfADeployableWeaponOnlyGetTheBurstBonus()
+    public void For_OtherModeOfDeployableWeapon_GetsOnlyTheBurstBonus()
     {
         var thrown = Weapon("BS Mode");
         var deployable = Weapon("Deployable Mode");
@@ -38,7 +38,7 @@ public sealed class WeaponModeModifiersTests
     }
 
     [Fact]
-    public void SuppressiveFireOnlyKeepsTheDamageReduction()
+    public void For_SuppressiveFire_KeepsOnlyTheDamageReduction()
     {
         var weapon = Weapon();
 
@@ -49,14 +49,14 @@ public sealed class WeaponModeModifiersTests
     [InlineData("3", 1, "4")]
     [InlineData("-", 1, "-")]
     [InlineData("3", 0, "3")]
-    public void BurstGetsTheBonus(string burst, int bonus, string expected) =>
+    public void Burst_Bonus_AddsIt(string burst, int bonus, string expected) =>
         Assert.Equal(expected, (WeaponModeModifiers.None with { BurstBonus = bonus }).Burst(burst));
 
     [Theory]
     [InlineData("13", 2, "11")]
     [InlineData("2", 5, "1")]
     [InlineData("PH", 2, "PH")]
-    public void DamageIsReducedButNeverBelowOne(string damage, int reduction, string expected) =>
+    public void Damage_Reduction_NeverBelowOne(string damage, int reduction, string expected) =>
         Assert.Equal(expected, (WeaponModeModifiers.None with { DamageReduction = reduction }).Damage(damage));
 
     [Theory]
@@ -64,9 +64,9 @@ public sealed class WeaponModeModifiersTests
     [InlineData("N", "Shock")]
     [InlineData("DA", "DA+Shock")]
     [InlineData("Shock", "Shock")]
-    public void AmmoCombinesWithTheModifier(string? baseAmmo, string expected) =>
+    public void Ammo_Modifier_CombinesWithTheAmmo(string? baseAmmo, string expected) =>
         Assert.Equal(expected, (WeaponModeModifiers.None with { AmmoModifier = "Shock" }).Ammo(baseAmmo));
 
     [Fact]
-    public void AmmoWithoutAModifierIsUnchanged() => Assert.Equal("AP", WeaponModeModifiers.None.Ammo("AP"));
+    public void Ammo_NoModifier_IsUnchanged() => Assert.Equal("AP", WeaponModeModifiers.None.Ammo("AP"));
 }

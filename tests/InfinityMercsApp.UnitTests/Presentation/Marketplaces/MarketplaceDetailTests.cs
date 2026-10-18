@@ -9,7 +9,7 @@ namespace InfinityMercsApp.UnitTests.Presentation.Marketplaces;
 public sealed class MarketplaceDetailTests
 {
     [Fact]
-    public void AnItemShowsItsCostCategoryWeaponsAndWikiPage()
+    public void For_StoreItem_ShowsCostCategoryWeaponsAndWikiPage()
     {
         var weapon = new Weapon { Name = "Pistol" };
         var detail = MarketplaceDetail.For(
@@ -25,11 +25,11 @@ public sealed class MarketplaceDetailTests
     }
 
     [Fact]
-    public void ABlankWikiLinkIsNoWikiPage() =>
+    public void For_BlankWikiLink_HasNoWikiPage() =>
         Assert.Null(MarketplaceDetail.For(new StoreItemRow(new StoreItem { Name = "Kit", WikiUrl = " " }), []).WikiUrl);
 
     [Fact]
-    public void ATroopTypeShowsItsArmourAndAbilities()
+    public void For_TroopType_ShowsArmourAndAbilities()
     {
         var links = SkillWikiLinks.From([new Skill { Name = "Mimetism", Wiki = "https://wiki/mimetism" }]);
 
@@ -45,7 +45,7 @@ public sealed class MarketplaceDetailTests
     }
 
     [Fact]
-    public void AnAugmentShowsItsRequirementAndNoteWhenItHasThem()
+    public void For_Augment_ShowsRequirementAndNoteWhenItHasThem()
     {
         Assert.Equal<DetailRow>(
             [new("Cost", "4cr"), new("Requires", "Doctor"), new("Note", "Per trooper")],

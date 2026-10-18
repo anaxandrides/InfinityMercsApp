@@ -11,7 +11,7 @@ public sealed class SeasonRecordCatalogTests : IDisposable
     public void Dispose() => _records.Dispose();
 
     [Fact]
-    public async Task ListsSeasonsNewestFirstAndSkipsMalformedFiles()
+    public async Task ListAsync_SeveralFiles_ListsNewestFirstSkippingMalformed()
     {
         _records.WriteSeason("old.json", """{"companyName":"Old","companyFilePath":"/c/old.json","createdDate":"2026-01-02"}""");
         _records.WriteSeason("new.json", """{"companyName":"New","companyFilePath":"/c/new.json","createdDate":"2026-03-04"}""");
@@ -25,7 +25,7 @@ public sealed class SeasonRecordCatalogTests : IDisposable
     }
 
     [Fact]
-    public async Task FindsTheCompanyByIdentifierWhenThePathIsMissing()
+    public async Task ListAsync_CompanyPathMissing_FindsTheCompanyByIdentifier()
     {
         _records.WriteCompany("other.json", """{"companyIdentifier":"zzz"}""");
         var company = _records.WriteCompany("mine.json", """{"companyIdentifier":"ABC"}""");
@@ -39,7 +39,7 @@ public sealed class SeasonRecordCatalogTests : IDisposable
     }
 
     [Fact]
-    public async Task NoSeasonsFolderMeansNoSeasons()
+    public async Task ListAsync_NoSeasonsFolder_ReturnsNone()
     {
         var records = await new SeasonRecordCatalog(new RecordPaths(Path.Combine(_records.Paths.CompaniesDirectory, "missing"))).ListAsync();
         Assert.Empty(records);

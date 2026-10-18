@@ -38,7 +38,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task AVanillaCompanyListsVanillaFactionsInOneSlot()
+    public async Task InitializeAsync_Vanilla_ListsVanillaFactionsInOneSlot()
     {
         var viewModel = await OpenAsync();
 
@@ -51,7 +51,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task ASectorialCompanyHasTwoSlots()
+    public async Task InitializeAsync_Sectorials_HasTwoSlots()
     {
         var viewModel = await OpenAsync(ArmySourceSelectionMode.Sectorials);
 
@@ -65,7 +65,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task PickingAFactionLoadsItsUnitsAndShowsTheFirst()
+    public async Task SelectFactionCommand_Faction_LoadsItsUnitsAndShowsTheFirst()
     {
         var viewModel = await OpenWithFactionAsync();
 
@@ -87,7 +87,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task SelectingAnotherUnitMovesTheSelection()
+    public async Task SelectUnitFromListCommand_AnotherUnit_MovesTheSelection()
     {
         var viewModel = await OpenWithFactionAsync();
         var first = viewModel.SelectedUnit;
@@ -101,7 +101,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task TheLieutenantFilterShowsOnlyUnitsThatCanLead()
+    public async Task ApplyUnitFilterCommand_LieutenantsOnly_ShowsOnlyUnitsThatCanLead()
     {
         var viewModel = await OpenWithFactionAsync();
         var visibleBefore = viewModel.Units.Count(unit => unit.IsVisible);
@@ -114,7 +114,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task ApplyingThePopupFiltersTheUnitsAndClosesIt()
+    public async Task UnitFilterApplyCommand_Criteria_FiltersAndCloses()
     {
         var viewModel = await OpenWithFactionAsync();
         viewModel.OpenUnitFilterCommand.Execute(null);
@@ -129,7 +129,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task TheFilterPopupOpensWithTheCurrentCriteria()
+    public async Task OpenUnitFilterCommand_CriteriaApplied_OpensWithThem()
     {
         var viewModel = await OpenWithFactionAsync();
 
@@ -146,7 +146,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task AddingALieutenantMakesTheCompanyValid()
+    public async Task AddProfileToMercsCompanyCommand_Lieutenant_MakesTheCompanyValid()
     {
         var viewModel = await OpenWithFactionAsync();
         var profile = await SelectLieutenantAsync(viewModel);
@@ -162,7 +162,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task TroopersWithoutALieutenantLeaveTheCompanyInvalid()
+    public async Task AddProfileToMercsCompanyCommand_NoLieutenant_LeavesTheCompanyInvalid()
     {
         var viewModel = await OpenWithFactionAsync();
         var trooper = viewModel.Profiles.First(profile => !profile.IsLieutenant && profile.IsVisible);
@@ -175,7 +175,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task ABlockedProfileIsNotAdded()
+    public async Task AddProfileToMercsCompanyCommand_BlockedProfile_AddsNothing()
     {
         var viewModel = await OpenWithFactionAsync();
         var profile = await SelectLieutenantAsync(viewModel);
@@ -187,7 +187,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task GoingOverThePointsLimitInvalidatesTheCompany()
+    public async Task SelectedStartSeasonPoints_BelowTheCompanysCost_InvalidatesIt()
     {
         var viewModel = await OpenWithFactionAsync();
         await viewModel.AddProfileToMercsCompanyCommand.ExecuteAsync(await SelectLieutenantAsync(viewModel));
@@ -198,7 +198,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task RemovingATrooperRecountsThePoints()
+    public async Task RemoveMercsCompanyEntryCommand_Trooper_RecountsThePoints()
     {
         var viewModel = await OpenWithFactionAsync();
         await viewModel.AddProfileToMercsCompanyCommand.ExecuteAsync(await SelectLieutenantAsync(viewModel));
@@ -211,7 +211,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task SelectingACompanyTrooperShowsItsUnit()
+    public async Task SelectMercsCompanyEntryCommand_Trooper_ShowsItsUnit()
     {
         var viewModel = await OpenWithFactionAsync();
         var profile = await SelectLieutenantAsync(viewModel);
@@ -225,7 +225,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task ChangingTheFactionEmptiesTheCompany()
+    public async Task SelectFactionCommand_FactionChanged_EmptiesTheCompany()
     {
         var viewModel = await OpenAsync(ArmySourceSelectionMode.Sectorials);
         await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Factions[0]);
@@ -244,7 +244,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task StartingNeedsACompanyName()
+    public async Task StartCompanyCommand_NoName_FlagsTheName()
     {
         var viewModel = await OpenWithFactionAsync();
         await viewModel.AddProfileToMercsCompanyCommand.ExecuteAsync(await SelectLieutenantAsync(viewModel));
@@ -261,7 +261,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task BackingOutOfTheCaptainPopupStaysOnTheScreen()
+    public async Task StartCompanyCommand_CaptainPopupCancelled_StaysOnTheScreen()
     {
         _kit.CaptainDialog.ShowAsync(Arg.Any<CaptainUpgradePopupContext>()).Returns((SavedImprovedCaptainStats?)null);
         var viewModel = await OpenWithFactionAsync();
@@ -275,7 +275,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task CompactScreensShowOneWorkspaceAtATime()
+    public async Task ShowPaneCommand_Compact_ShowsOneWorkspaceAtATime()
     {
         var viewModel = await OpenWithFactionAsync();
         viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Compact);
@@ -297,7 +297,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task WideScreensGiveTheCompanyAllTheHeightUntilAUnitIsSelected()
+    public async Task RightPaneRows_NoUnitSelected_GiveTheCompanyAllTheHeight()
     {
         var viewModel = await OpenAsync();
         viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Medium);
@@ -314,7 +314,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task TappingAFactionSlotOpensThePickerAndTappingItAgainClosesIt()
+    public async Task SelectSlotCommand_TappedTwice_OpensThenClosesThePicker()
     {
         var viewModel = await OpenWithFactionAsync();
         viewModel.CloseFactionStripCommand.Execute(null);
@@ -330,7 +330,7 @@ public sealed class StandardCompanySelectionViewModelTests
     }
 
     [Fact]
-    public async Task TheFactionOverlayOnlyOpensOnCompactScreens()
+    public async Task IsFactionOverlayOpen_Compact_OnlyThen()
     {
         var viewModel = await OpenAsync();
         Assert.False(viewModel.IsFactionOverlayOpen);

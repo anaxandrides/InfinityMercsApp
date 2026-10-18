@@ -105,7 +105,7 @@ public sealed class SeasonTeamViewModelTests
 
     // An army sheet lists what the captain's Spec-Ops XP bought among its perks.
     [Fact]
-    public async Task TheCaptainsSpecOpsBuysAreListedWithItsPerks()
+    public async Task LoadAsync_CaptainWithSpecOps_ListsBuysWithItsPerks()
     {
         var company = new SavedCompanyFile
         {
@@ -122,7 +122,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task ATrooperOwedABootyRollCanRollItAndRollsAreListedWithItsPerks()
+    public async Task LoadAsync_RollsOwedOrMade_OffersRollAndListsResults()
     {
         var company = SeasonTestKit.Company();
         company.Entries[0].CustomSkills.Add("Booty");
@@ -141,7 +141,7 @@ public sealed class SeasonTeamViewModelTests
 
     // The Armed Turret needs an Engineer: Bolt can't take it until the Engineer role is equipped.
     [Fact]
-    public async Task AnAugmentNeedsItsRequirementMet()
+    public async Task SelectedOption_AugmentRequirementUnmet_IsRefused()
     {
         _alsoBought = [SeasonTestKit.Bought("Armoury", "Armed Turret (MMR)"), SeasonTestKit.Bought("Armoury", "Engineer (+Gizmokit)")];
         await LoadAsync();
@@ -163,7 +163,7 @@ public sealed class SeasonTeamViewModelTests
 
     // A TAG company TAG: its Spec-Ops buys are listed with its perks, and it has no armour slot.
     [Fact]
-    public async Task ATagListsItsSpecOpsBuysAndWearsNoArmour()
+    public async Task LoadAsync_Tag_ListsSpecOpsAndWearsNoArmour()
     {
         var company = SeasonTestKit.Company();
         company.Entries[0].UnitTypeCode = "TAG";
@@ -183,7 +183,7 @@ public sealed class SeasonTeamViewModelTests
         Picker(GearSlot.Augments).Options.Single(option => option.ItemName == TohaaPeripherals.AugmentName);
 
     [Fact]
-    public async Task EquippingThePeripheralControllerAugmentPicksItsPeripheral()
+    public async Task SelectedOption_ControllerAugment_PicksItsPeripheral()
     {
         _alsoBought = [SeasonTestKit.Bought("Armoury", TohaaPeripherals.AugmentName)];
         _changes.ChangePeripheralsAsync(Arg.Any<PeripheralChange>()).Returns(true);
@@ -198,7 +198,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task CancellingThePeripheralPickLeavesTheAugmentOff()
+    public async Task SelectedOption_PeripheralPickCancelled_LeavesTheAugmentOff()
     {
         _alsoBought = [SeasonTestKit.Bought("Armoury", TohaaPeripherals.AugmentName)];
         await LoadAsync();
@@ -210,7 +210,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task TakingTheAugmentOffLeavesItsPeripheralUncontrolled()
+    public async Task SelectedOption_ControllerAugmentRemoved_LeavesThePeripheralUncontrolled()
     {
         _alsoBought = [SeasonTestKit.Bought("Armoury", TohaaPeripherals.AugmentName)];
         _changes.ChangePeripheralsAsync(Arg.Any<PeripheralChange>()).Returns(true);
@@ -228,7 +228,7 @@ public sealed class SeasonTeamViewModelTests
 
     // The Traktor Mul is a Servant, part of its trooper; a Synchronized peripheral is a trooper of its own.
     [Fact]
-    public async Task APeripheralTrooperCanRetireButAServantCant()
+    public async Task CanRetireSelected_PeripheralTrooperOrServant_OnlyTheTrooper()
     {
         var company = SeasonTestKit.Company();
         company.Entries.Add(CompanyRosterTests.Entry(8, "Drumbot", isPeripheral: true, skills: ["Peripheral (Synchronized)"], characteristics: ["Regular"]));
@@ -242,7 +242,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task AnUncontrolledPeripheralCanBeSold()
+    public async Task SellPeripheralCommand_UncontrolledPeripheral_SellsIt()
     {
         var company = SeasonTestKit.Company();
         company.Entries.Add(new SavedCompanyEntry
@@ -274,7 +274,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task TakingOffWhatAnAugmentNeedsTakesItOffOnceConfirmed()
+    public async Task SelectedOption_RequirementRemovedAndConfirmed_TakesTheAugmentOff()
     {
         await LoadTurretEngineerAsync();
         _kit.Dialogs.ConfirmAsync("Augments Come Off", Arg.Any<string>(), "Continue", "Cancel").Returns(true);
@@ -287,7 +287,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task NotConfirmingKeepsTheGear()
+    public async Task SelectedOption_RequirementRemovalNotConfirmed_KeepsTheGear()
     {
         await LoadTurretEngineerAsync();
 
@@ -299,7 +299,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task LoadingSelectsTheLieutenantFirst()
+    public async Task LoadAsync_Company_SelectsTheLieutenant()
     {
         await LoadAsync();
 
@@ -313,7 +313,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task LoadingWorksOutEachTroopersLogo()
+    public async Task LoadAsync_Troopers_WorksOutEachLogo()
     {
         _kit.PackageFiles.ExistsAsync("SVGCache/units/101-11.svg").Returns(true);
 
@@ -324,7 +324,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task TheUnitPickerOpensAndClosesOnSelection()
+    public async Task ToggleUnitPickerCommand_UnitSelected_Closes()
     {
         await LoadAsync();
 
@@ -341,7 +341,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task TappingOutsideClosesTheUnitPicker()
+    public async Task CloseUnitPickerCommand_PickerOpen_ClosesIt()
     {
         await LoadAsync();
         _team.ToggleUnitPickerCommand.Execute(null);
@@ -352,7 +352,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task EachSlotOffersTheOwnedGearThatFitsIt()
+    public async Task GearSlots_OwnedGear_OffersWhatFitsEachSlot()
     {
         await LoadAsync();
 
@@ -364,7 +364,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task PickingAWeaponAddsItToTheWeaponsAndSavesIt()
+    public async Task SelectedOption_Weapon_AddsAndSavesIt()
     {
         await LoadAsync();
 
@@ -378,7 +378,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task GearCarriedByAnotherTrooperIsMarkedAndMovesWhenPicked()
+    public async Task SelectedOption_GearCarriedByAnother_MarksAndMovesIt()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Armor, "Light Armour (LI)");
@@ -397,7 +397,7 @@ public sealed class SeasonTeamViewModelTests
 
     // With a second pistol bought and one carried by Bolt, the captain can take the other.
     [Fact]
-    public async Task ASpareCopyCanBeEquippedWithoutTakingAnyonesElse()
+    public async Task SelectedOption_SpareCopy_TakesNoOnesElse()
     {
         _alsoBought = [SeasonTestKit.Bought("Number One", "Pistol")];
         var loadouts = new CompanyLoadouts();
@@ -423,7 +423,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task ChoosingNothingEmptiesTheSlot()
+    public async Task SelectedOption_None_EmptiesTheSlot()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(2, GearSlot.Primary, "Spitfire");
@@ -437,7 +437,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task TheTabShowsTheEquippedSwcAgainstTheCompanys()
+    public async Task SwcText_GearEquipped_ShowsItAgainstTheCompanys()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Primary, "Spitfire");
@@ -447,7 +447,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task GearOverTheCompanysSwcIsRefused()
+    public async Task SelectedOption_OverCompanySwc_IsRefused()
     {
         await LoadAsync(companySwc: 0.5);
 
@@ -460,7 +460,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task GearUpToTheCompanysSwcIsAllowed()
+    public async Task SelectedOption_UpToCompanySwc_IsAllowed()
     {
         await LoadAsync(companySwc: 1);
 
@@ -472,7 +472,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task MovingGearBetweenTroopersTakesNoMoreSwc()
+    public async Task SelectedOption_MovedBetweenTroopers_TakesNoMoreSwc()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Primary, "Spitfire");
@@ -485,7 +485,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task ACompanyAlreadyOverItsSwcCanStillTakeGearOff()
+    public async Task SelectedOption_NoneWhileOverSwc_TakesTheGearOff()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(2, GearSlot.Primary, "Spitfire");
@@ -498,7 +498,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task AStatAugmentChangesTheStatLine()
+    public async Task SelectedOption_StatAugment_ChangesTheStatLine()
     {
         await LoadAsync();
 
@@ -509,7 +509,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task ArmourChangesTheTroopersLine()
+    public async Task SelectedOption_Armour_ChangesTheTroopersLine()
     {
         _alsoBought = [SeasonTestKit.Bought(Armoury.Name, "Heavy Armour (HI)")];
         await LoadAsync();
@@ -528,7 +528,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task BeltsAndPouchesGivesAnExtraSlotForAnyGearButArmour()
+    public async Task SelectedOption_BeltsAndPouches_OpensTheExtraSlot()
     {
         _alsoBought = [SeasonTestKit.Bought(Armoury.Name, "Belts and Pouches")];
         await LoadAsync();
@@ -551,7 +551,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task ASkillAugmentJoinsTheSkills()
+    public async Task SelectedOption_SkillAugment_JoinsTheSkills()
     {
         await LoadAsync();
 
@@ -561,7 +561,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task APickerClearingItselfIsNotAChoice()
+    public async Task SelectedOption_Null_SavesNothing()
     {
         await LoadAsync();
 
@@ -571,7 +571,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task TappingAWeaponShowsItsProfiles()
+    public async Task ShowWeaponCommand_Weapon_ShowsItsProfiles()
     {
         _kit.Metadata.SearchWeaponsByName("Combi Rifle").Returns([new Weapon { Name = "Combi Rifle" }]);
         await LoadAsync();
@@ -584,7 +584,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task ThePlaceholderIsNotAWeapon()
+    public async Task ShowWeaponCommand_Placeholder_ShowsNothing()
     {
         await LoadAsync();
 
@@ -594,7 +594,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task ChangingDisplayUnitsRedrawsTheTrooper()
+    public async Task RefreshDisplayUnits_UnitsChanged_RedrawsTheTrooper()
     {
         await LoadAsync();
         _kit.Settings.GetShowUnitsInInches().Returns(false);
@@ -606,7 +606,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task ClearingEmptiesTheTab()
+    public async Task Clear_Loaded_EmptiesTheTab()
     {
         await LoadAsync();
 
@@ -617,7 +617,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task ATrooperShowsItsRankPerksAndInjuries()
+    public async Task SelectUnitCommand_Trooper_ShowsRankPerksAndInjuries()
     {
         _kit.Season.Rounds[0].MissionResults.UnitResults.Add(new SeasonMissionUnitResult { EntryIndex = 1, UnitName = "Bolt", XpGained = 16 });
         _kit.Season.TrooperFor(1).Perks.Add("reflex-track-8-tier-2");
@@ -634,7 +634,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task InjuriesChangeTheStatLine()
+    public async Task LoadAsync_InjuredTrooper_ChangesTheStatLine()
     {
         _kit.Season.TrooperFor(2).Injuries.Add(Injury.BrainInjury);
 
@@ -644,7 +644,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task ReloadingKeepsTheTrooperShown()
+    public async Task LoadAsync_Reloaded_KeepsTheTrooperShown()
     {
         await LoadAsync();
         _team.SelectUnitCommand.Execute(Unit("Bolt"));
@@ -658,7 +658,7 @@ public sealed class SeasonTeamViewModelTests
     [InlineData("Captain", false)]
     [InlineData("Traktor Mul", false)]
     [InlineData("Bolt", true)]
-    public async Task AnyoneButTheCaptainCanBeRetired(string name, bool canRetire)
+    public async Task RetireCommand_Trooper_AnyoneButTheCaptain(string name, bool canRetire)
     {
         await LoadAsync();
 
@@ -669,7 +669,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task RetiringReturnsTheGearAndKeepsTheRenown()
+    public async Task RetireCommand_Confirmed_ReturnsGearAndKeepsRenown()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Sidearm, "Pistol");
@@ -686,7 +686,7 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
-    public async Task BackingOutKeepsTheTrooper()
+    public async Task RetireCommand_Cancelled_KeepsTheTrooper()
     {
         await LoadAsync();
         _team.SelectUnitCommand.Execute(Unit("Bolt"));

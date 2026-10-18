@@ -6,7 +6,7 @@ namespace InfinityMercsApp.UnitTests.ViewModels.Captain.Items;
 public sealed class CaptainChoiceGroupTests
 {
     [Fact]
-    public void ChangingAnySlotNotifiesTheOwner()
+    public void SelectedChoice_AnySlot_NotifiesTheOwner()
     {
         var changes = 0;
         var group = CaptainChoiceGroup.For("Skills", ["(2) - Courage"], () => changes++);
@@ -20,7 +20,7 @@ public sealed class CaptainChoiceGroupTests
     }
 
     [Fact]
-    public void AClearedSlotCostsNothing()
+    public void SelectedChoice_Cleared_CostsNothing()
     {
         var group = CaptainChoiceGroup.For("Weapons", ["(2) - Sniper Rifle"], () => { });
 
@@ -32,14 +32,14 @@ public sealed class CaptainChoiceGroupTests
     }
 
     [Fact]
-    public void EverySlotStartsEmpty() =>
+    public void For_NoOptions_EverySlotStartsEmpty() =>
         Assert.All(
             CaptainChoiceGroup.For("Equipment", [], () => { }).Slots,
             slot => Assert.Equal([CaptainChoiceLabel.None], slot.Options));
 
     // A fresh database has no Spec-Ops lists since the API stopped sending them; the popup says so.
     [Fact]
-    public void AGroupWithNothingToOfferSaysSo()
+    public void NoOptionsText_NothingToOffer_SaysSo()
     {
         var empty = CaptainChoiceGroup.For("Weapons", [], () => { });
         var offered = CaptainChoiceGroup.For("Skills", ["(+2) - Courage"], () => { });

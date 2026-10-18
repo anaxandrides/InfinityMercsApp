@@ -5,7 +5,7 @@ namespace InfinityMercsApp.UnitTests.Season;
 public sealed class CompanyLoadoutsTests
 {
     [Fact]
-    public void ACopyTakenFromAnotherTrooperLeavesThem()
+    public void Assign_TakenFromAnotherTrooper_RemovesItFromThem()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Primary, "Spitfire");
@@ -18,7 +18,7 @@ public sealed class CompanyLoadoutsTests
 
     // A company with two Hacking Devices can give one to each of two troopers.
     [Fact]
-    public void ASpareCopyLeavesTheOthersWhereTheyAre()
+    public void Assign_SpareCopy_LeavesOtherCopiesInPlace()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Accessories, "Hacking Device");
@@ -29,7 +29,7 @@ public sealed class CompanyLoadoutsTests
     }
 
     [Fact]
-    public void TheSameNameInAnotherSlotIsLeftAlone()
+    public void Assign_SameNameInAnotherSlot_LeavesItAlone()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Secondary, "Pistol");
@@ -40,7 +40,7 @@ public sealed class CompanyLoadoutsTests
     }
 
     [Fact]
-    public void AssigningNothingEmptiesTheSlot()
+    public void Assign_Null_EmptiesTheSlot()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(1, GearSlot.Armor, "Kevlar");
@@ -51,7 +51,7 @@ public sealed class CompanyLoadoutsTests
     }
 
     [Fact]
-    public void FindsEveryCopyCarried()
+    public void Holding_SeveralCopies_FindsEveryOneCarried()
     {
         var loadouts = new CompanyLoadouts();
         loadouts.Assign(4, GearSlot.Roles, "Medic");
@@ -62,7 +62,7 @@ public sealed class CompanyLoadoutsTests
     }
 
     [Fact]
-    public void RoundTripsThroughTheSeasonFile()
+    public void ToSeasonGear_LoadedAndChanged_RoundTripsThroughTheSeasonFile()
     {
         var loadouts = CompanyLoadouts.From(new Dictionary<int, List<SeasonUnitGear>>
         {

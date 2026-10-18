@@ -46,7 +46,7 @@ public sealed class TypedStorageRoundTripTests : IDisposable
     }
 
     [Fact]
-    public void UnitContent_RoundTripsThroughTheTables()
+    public void UnitContent_ReferenceUnits_RoundTripThroughTheTables()
     {
         var expected = new Dictionary<string, UnitContent>(StringComparer.Ordinal);
         var rows = new UnitContentRows();
@@ -81,7 +81,7 @@ public sealed class TypedStorageRoundTripTests : IDisposable
     }
 
     [Fact]
-    public void ArmyContent_RoundTripsThroughTheTables()
+    public void ArmyContent_ReferenceArmies_RoundTripThroughTheTables()
     {
         var expected = new Dictionary<int, ArmyContent>();
         var rows = new ArmyContentRows();
@@ -118,7 +118,7 @@ public sealed class TypedStorageRoundTripTests : IDisposable
     }
 
     [Fact]
-    public void SpecopsChoiceLinks_RoundTripThroughTheTables()
+    public void SpecopsChoiceLinks_ReferenceArmies_RoundTripThroughTheTables()
     {
         var expected = new Dictionary<string, SpecopsChoiceLinks>(StringComparer.Ordinal);
         var rows = new SpecopsLinkRows();

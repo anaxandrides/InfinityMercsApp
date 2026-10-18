@@ -56,7 +56,7 @@ public sealed class SeasonMarketplaceViewModelTests
         _kit.Season.Rounds = [new SeasonRound { RoundIndex = 1 }, new SeasonRound { RoundIndex = 2 }, new SeasonRound { RoundIndex = 3 }];
 
     [Fact]
-    public async Task ListsTheBaseMarketThenTheWarMarketThenServices()
+    public async Task LoadStoresAsync_WarMarketChosen_ListsBaseThenWarMarketThenServices()
     {
         _kit.Season.Rounds[0].Marketplace.WarMarket = "Number One";
 
@@ -71,7 +71,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task UntilAWarMarketIsChosenOnlyTheBaseMarketAndServicesAreOpen()
+    public async Task LoadStoresAsync_NoWarMarket_OpensOnlyBaseMarketAndServices()
     {
         await OpenAsync(warMarket: null);
 
@@ -79,7 +79,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task TheCompanysFactionMarketsAreKnownForChoosingOne()
+    public async Task FactionMarketNames_NoWarMarket_ListsTheCompanysFactionMarkets()
     {
         await OpenAsync(warMarket: null);
 
@@ -87,7 +87,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task ARolledWarMarketFromAnotherFactionIsOpen()
+    public async Task LoadStoresAsync_RolledForeignWarMarket_OpensIt()
     {
         await OpenAsync("Jade Temu");
 
@@ -95,7 +95,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task AnOlderSeasonsTemporaryStoreIsTheRoundsWarMarket()
+    public async Task LoadStoresAsync_OlderTemporaryStore_IsTheRoundsWarMarket()
     {
         _kit.Season.Rounds[0].TemporaryStore = "Jade Temu";
 
@@ -106,7 +106,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task ShowsTheStoresStockByCategory()
+    public async Task LoadStoresAsync_Store_ShowsItsStockByCategory()
     {
         await OpenAsync();
 
@@ -118,7 +118,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task NotorietyRaisesPricesAtALawfulMarket()
+    public async Task CostCr_NotorietyAtLawfulMarket_RaisesPrices()
     {
         _kit.Season.Rounds[0].Downtime.NotorietyGain = 2;
         await OpenAsync();
@@ -128,7 +128,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task NotorietyLowersPricesAtAChaoticMarket()
+    public async Task CostCr_NotorietyAtChaoticMarket_LowersPrices()
     {
         _kit.Season.Rounds[0].Downtime.NotorietyGain = 2;
         await OpenAsync("Jade Temu");
@@ -138,7 +138,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task TheCartComesOutOfTheCreditsButNotTheSwc()
+    public async Task ResourcesText_CartFilled_TakesCreditsButNotSwc()
     {
         GiveThreeRounds();
         await OpenAsync();
@@ -155,7 +155,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task GearCostingSwcCanBeBoughtWithoutSwc()
+    public async Task IsAffordable_GearCostingSwcWithoutSwc_IsTrue()
     {
         _kit.Season = new SeasonFile { StartingFunds = new SeasonStartingFunds { Credits = 25 } };
         await OpenAsync();
@@ -165,7 +165,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task WhatNoLongerFitsCannotBeAdded()
+    public async Task IncrementCommand_Unaffordable_AddsNothing()
     {
         await OpenAsync();
         var rifle = Item("Combi Rifle");
@@ -180,7 +180,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task RemovingFromTheCartGivesTheMoneyBack()
+    public async Task DecrementCommand_InCart_GivesTheMoneyBack()
     {
         await OpenAsync();
         var pistol = Item("Pistol");
@@ -195,7 +195,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task TheCartIsKeptAcrossStores()
+    public async Task IncrementCommand_AcrossStores_KeepsTheCart()
     {
         GiveThreeRounds();
         await OpenAsync();
@@ -210,7 +210,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task BuyingRecordsTheCartInTheLatestRound()
+    public async Task BuyCommand_Cart_RecordsItInTheLatestRound()
     {
         GiveThreeRounds();
         await OpenAsync();
@@ -250,7 +250,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task EachCopyOfRolledArmourKeepsItsOwnRoll()
+    public async Task BuyCommand_RolledArmourCopies_KeepEachRoll()
     {
         SellChemtanks();
         GiveThreeRounds();
@@ -266,7 +266,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task PuttingOffArmoursRollBuysNothing()
+    public async Task BuyCommand_ArmourRollPutOff_BuysNothing()
     {
         SellChemtanks();
         GiveThreeRounds();
@@ -281,7 +281,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task ItemsCostingSwcRecordIt()
+    public async Task BuyCommand_ItemCostingSwc_RecordsTheSwc()
     {
         GiveThreeRounds();
         await OpenAsync();
@@ -293,7 +293,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task BuyingBeforeTheFirstContractRecordsTheInitialPurchases()
+    public async Task BuyCommand_BeforeFirstContract_RecordsInitialPurchases()
     {
         _kit.Season = new SeasonFile { StartingFunds = new SeasonStartingFunds { Credits = 20 } };
         await OpenAsync();
@@ -307,7 +307,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task AFailedSaveSaysSoAndKeepsTheCart()
+    public async Task BuyCommand_SaveFails_SaysSoAndKeepsTheCart()
     {
         GiveThreeRounds();
         await OpenAsync();
@@ -322,7 +322,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task ALaterPickWinsOverASlowerStore()
+    public async Task SelectedStore_SlowStoreThenLaterPick_LaterPickWins()
     {
         var slow = new TaskCompletionSource<Store?>();
         await OpenAsync("Jade Temu");
@@ -336,7 +336,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task TappingARowShowsItsDetail()
+    public async Task ShowDetailCommand_Row_ShowsItsDetail()
     {
         await OpenAsync();
 
@@ -346,7 +346,7 @@ public sealed class SeasonMarketplaceViewModelTests
     }
 
     [Fact]
-    public async Task ChangingStoreClosesTheDetail()
+    public async Task SelectedStore_DetailOpen_ClosesIt()
     {
         await OpenAsync();
         await _market.ShowDetailCommand.ExecuteAsync(_market.AugmentRows[0]);

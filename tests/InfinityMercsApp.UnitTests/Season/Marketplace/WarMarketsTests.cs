@@ -12,7 +12,7 @@ public sealed class WarMarketsTests
     private static readonly Store JadeTemu = new() { Name = "Jade Temu", AssociatedFactions = ["Yu Jing"] };
 
     [Fact]
-    public void AMarketWithFactionsIsAWarMarket()
+    public void IsWarMarket_MarketWithFactions_IsTrue()
     {
         Assert.True(NumberOne.IsWarMarket);
         Assert.False(BaseMarket.IsWarMarket);
@@ -20,7 +20,7 @@ public sealed class WarMarketsTests
     }
 
     [Fact]
-    public void TheFactionMarketsAreTheWarMarketsOfTheCompanysFactions()
+    public void FactionMarkets_CompanyFactions_ReturnsTheirWarMarkets()
     {
         var factions = new HashSet<string>(["White Company"], StringComparer.OrdinalIgnoreCase);
 
@@ -28,14 +28,14 @@ public sealed class WarMarketsTests
     }
 
     [Fact]
-    public void NoneIsChosenAtFirst()
+    public void Current_NewSeason_ReturnsNull()
     {
         Assert.Null(WarMarkets.Current(new SeasonFile()));
         Assert.Null(WarMarkets.Current(null));
     }
 
     [Fact]
-    public void BeforeTheFirstContractItIsKeptWithTheInitialPurchases()
+    public void Current_BeforeFirstContract_ReadsTheInitialPurchases()
     {
         var season = new SeasonFile { InitialPurchases = new SeasonMarketplace { WarMarket = "Number One" } };
 
@@ -43,7 +43,7 @@ public sealed class WarMarketsTests
     }
 
     [Fact]
-    public void AfterAContractItIsTheLatestRounds()
+    public void Current_AfterAContract_ReadsTheLatestRound()
     {
         var season = new SeasonFile
         {
@@ -55,7 +55,7 @@ public sealed class WarMarketsTests
     }
 
     [Fact]
-    public void EachRoundChoosesAgain()
+    public void Current_NewRoundWithoutChoice_ReturnsNull()
     {
         var season = new SeasonFile
         {
@@ -70,7 +70,7 @@ public sealed class WarMarketsTests
     }
 
     [Fact]
-    public void AnOlderSeasonsTemporaryStoreCounts()
+    public void Current_OlderSeasonTemporaryStore_CountsAsTheMarket()
     {
         var season = new SeasonFile { Rounds = [new SeasonRound { RoundIndex = 1, TemporaryStore = "Jade Temu" }] };
 
@@ -78,7 +78,7 @@ public sealed class WarMarketsTests
     }
 
     [Fact]
-    public void RollingOpensAfterTheFirstContract()
+    public void CanRoll_Season_TrueAfterTheFirstContract()
     {
         Assert.False(WarMarkets.CanRoll(new SeasonFile()));
         Assert.False(WarMarkets.CanRoll(null));

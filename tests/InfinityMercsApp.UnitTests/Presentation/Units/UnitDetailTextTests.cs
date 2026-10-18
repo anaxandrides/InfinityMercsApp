@@ -7,7 +7,7 @@ namespace InfinityMercsApp.UnitTests.Presentation.Units;
 public sealed class UnitDetailTextTests
 {
     [Fact]
-    public void Summaries()
+    public void NamedSummaryAndJoinOrDash_Values_DedupeSortAndDash()
     {
         Assert.Equal("Equipment: a, B", UnitDetailText.NamedSummary("Equipment", ["B", "a", "b", " "]));
         Assert.Equal("Skills: -", UnitDetailText.NamedSummary("Skills", []));
@@ -21,10 +21,10 @@ public sealed class UnitDetailTextTests
     [InlineData("Breaker Pistol", true)]
     [InlineData("Combi Rifle", false)]
     [InlineData("Spitfire", false)]
-    public void MeleeWeapons(string weapon, bool melee) => Assert.Equal(melee, UnitDetailText.IsMeleeWeaponName(weapon));
+    public void IsMeleeWeaponName_Weapon_RecognisesMeleeWeapons(string weapon, bool melee) => Assert.Equal(melee, UnitDetailText.IsMeleeWeaponName(weapon));
 
     [Fact]
-    public void ConfigurationSkillsKeepWhatALieutenantSkillAdds()
+    public void ConfigurationSkillEntries_LieutenantSkill_KeepsWhatItAdds()
     {
         var entries = UnitDetailText.ConfigurationSkillEntries(
             [new(1, "Sniper"), new(2, "Lieutenant (+1 Order)"), new(3, "Lieutenant"), new(4, "sniper"), new(5, " ")]);
@@ -33,7 +33,7 @@ public sealed class UnitDetailTextTests
     }
 
     [Fact]
-    public void LinkedLinesMergeRepeatsAndKeepTheFirstLinkFound()
+    public void LinkedLines_Repeats_MergesThemKeepingTheFirstLink()
     {
         var links = new Dictionary<int, string> { [2] = "wiki/mimetism" };
 
@@ -43,7 +43,7 @@ public sealed class UnitDetailTextTests
     }
 
     [Fact]
-    public void LinksMatchTheWholeNameOrTheNameBeforeItsDetail()
+    public void LinkForDisplayName_NameWithDetail_MatchesWholeNameOrNameBeforeDetail()
     {
         var names = new Dictionary<int, string> { [1] = "Mimetism", [2] = "Hacker" };
         var links = new Dictionary<int, string> { [1] = "wiki/mimetism" };
@@ -53,15 +53,15 @@ public sealed class UnitDetailTextTests
     }
 
     [Fact]
-    public void MergingDropsAStandaloneLtOrderTheLieutenantSkillAlreadyGives() =>
+    public void MergeSummaryAndUnique_LtOrderAndLieutenantSkill_DropsTheStandaloneOrder() =>
         Assert.Equal(
             "Courage, Lieutenant (+1 Lt Order)",
             UnitDetailText.MergeSummaryAndUnique("Special Skills: Courage, +1 Lt Order", "Lieutenant (+1 Order)"));
 
     [Fact]
-    public void MergingNothingIsADash() => Assert.Equal("-", UnitDetailText.MergeSummaryAndUnique("Equipment: -", "-"));
+    public void MergeSummaryAndUnique_Nothing_ReturnsADash() => Assert.Equal("-", UnitDetailText.MergeSummaryAndUnique("Equipment: -", "-"));
 
     [Fact]
-    public void SubtitleFallsBackToIds() =>
+    public void UnitSubtitle_UnknownIds_FallsBackToIds() =>
         Assert.Equal("Line Infantry - 7", UnitDetailText.UnitSubtitle(1, 7, new Dictionary<int, string> { [1] = "Line Infantry" }, new Dictionary<int, string>()));
 }

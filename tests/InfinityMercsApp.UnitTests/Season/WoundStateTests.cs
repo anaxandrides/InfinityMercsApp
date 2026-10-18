@@ -12,7 +12,7 @@ public sealed class WoundStateTests
     [InlineData(3, false, true, WoundState.KnockedOutBody2)]
     [InlineData(3, false, false, WoundState.Dead)]
     [InlineData(4, false, true, WoundState.Dead)]
-    public void WoundsAgainstTwoVitality(int wounds, bool nwi, bool remotePresence, WoundState expected) =>
+    public void For_WoundsAgainstTwoVitality_ReturnsTheState(int wounds, bool nwi, bool remotePresence, WoundState expected) =>
         Assert.Equal(expected, WoundStates.For(wounds, startingVitality: 2, nwi, remotePresence));
 
     [Theory]
@@ -21,5 +21,5 @@ public sealed class WoundStateTests
     [InlineData(WoundState.KnockedOut, false)]
     [InlineData(WoundState.KnockedOutBody2, false)]
     [InlineData(WoundState.Dead, false)]
-    public void OnlyTroopersStillUpAreConscious(WoundState state, bool conscious) => Assert.Equal(conscious, state.IsConscious());
+    public void IsConscious_State_TrueOnlyWhileStillUp(WoundState state, bool conscious) => Assert.Equal(conscious, state.IsConscious());
 }

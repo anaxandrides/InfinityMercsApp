@@ -59,7 +59,7 @@ public sealed class CompanyRecruiterTests
             recruits.ToList());
 
     [Fact]
-    public async Task RecruitsJoinAfterTheLastTrooper()
+    public async Task HireAsync_Recruits_JoinAfterTheLastTrooper()
     {
         var outcome = await HireAsync(Recruit("Alpha", 10), Recruit("Bravo", 12));
 
@@ -73,7 +73,7 @@ public sealed class CompanyRecruiterTests
     }
 
     [Fact]
-    public async Task ATagsSpecOpsBuysAreSavedWithIt()
+    public async Task HireAsync_TagWithSpecOps_SavesTheBuys()
     {
         var tag = new MercsCompanyEntry
         {
@@ -90,7 +90,7 @@ public sealed class CompanyRecruiterTests
 
     // A Drummer's Drumbot is a REM in the army data, so it keeps STR rather than being a typeless peripheral.
     [Fact]
-    public async Task APeripheralIsSavedWithItsOwnTroopType()
+    public async Task HireAsync_TrooperWithPeripheral_SavesItsOwnTroopType()
     {
         var drummer = new MercsCompanyEntry
         {
@@ -108,7 +108,7 @@ public sealed class CompanyRecruiterTests
     }
 
     [Fact]
-    public async Task TheirCostIsChargedThroughAdditionalRecruitment()
+    public async Task HireAsync_Recruits_ChargesThroughAdditionalRecruitment()
     {
         await HireAsync(Recruit("Alpha", 10));
 
@@ -119,7 +119,7 @@ public sealed class CompanyRecruiterTests
     }
 
     [Fact]
-    public async Task BeforeTheFirstContractTheyAreInitialPurchases()
+    public async Task HireAsync_BeforeFirstContract_ChargesAsInitialPurchases()
     {
         _season.Rounds.Clear();
 
@@ -129,7 +129,7 @@ public sealed class CompanyRecruiterTests
     }
 
     [Fact]
-    public async Task NobodyToHireChangesNothing()
+    public async Task HireAsync_NobodyToHire_ChangesNothing()
     {
         Assert.Equal(RecruitmentOutcome.NothingToHire, await HireAsync());
 
@@ -137,7 +137,7 @@ public sealed class CompanyRecruiterTests
     }
 
     [Fact]
-    public async Task WhenTheSeasonIsNotSavedTheCompanyIsPutBack()
+    public async Task HireAsync_SeasonNotSaved_PutsTheCompanyBack()
     {
         _seasonFiles.UpdateAsync(SeasonPath, Arg.Any<Action<SeasonFile>>()).Returns(false);
 
@@ -150,7 +150,7 @@ public sealed class CompanyRecruiterTests
     }
 
     [Fact]
-    public async Task WhenTheCompanyIsNotSavedNothingIsCharged()
+    public async Task HireAsync_CompanyNotSaved_ChargesNothing()
     {
         _companyFiles.SaveAsync(CompanyPath, Arg.Any<SavedCompanyFile>()).Returns(Task.FromException(new IOException("disk full")));
 

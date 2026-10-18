@@ -16,7 +16,7 @@ public sealed class WeaponCardTests
     };
 
     [Fact]
-    public void StatsSplitIntoOffenceAndSaving()
+    public void From_Weapon_SplitsStatsIntoOffenceAndSaving()
     {
         var card = WeaponCard.From(Rifle(), ammo: "AP");
 
@@ -27,7 +27,7 @@ public sealed class WeaponCardTests
     }
 
     [Fact]
-    public void BurstBonusAndDamageReductionAdjustTheNumbers()
+    public void From_BurstBonusAndDamageReduction_AdjustsTheNumbers()
     {
         var card = WeaponCard.From(Rifle(), damageReduction: 20, burstBonus: 1);
 
@@ -35,7 +35,7 @@ public sealed class WeaponCardTests
     }
 
     [Fact]
-    public void ValuesThatAreNotNumbersAreLeftAlone()
+    public void From_NonNumericValues_LeavesThemAlone()
     {
         var weapon = Rifle();
         weapon.Burst = "2+1";
@@ -47,7 +47,7 @@ public sealed class WeaponCardTests
     }
 
     [Fact]
-    public void DashesAreLeftOff()
+    public void From_Dashes_LeavesThemOff()
     {
         var card = WeaponCard.From(new Weapon { Burst = "-", Damage = " ", Saving = "-" });
 
@@ -56,7 +56,7 @@ public sealed class WeaponCardTests
     }
 
     [Fact]
-    public void RulesPairUpWithWikiLinksAndSkipPlaceholders()
+    public void From_SpecialRules_PairsThemWithWikiLinksSkippingPlaceholders()
     {
         var card = WeaponCard.From(Rifle());
 
@@ -67,6 +67,6 @@ public sealed class WeaponCardTests
     }
 
     [Fact]
-    public void TheFiringModeHeadsTheCard() =>
+    public void From_FiringMode_HeadsTheCard() =>
         Assert.Equal("Anti-materiel Mode", WeaponCard.From(new Weapon { Mode = " Anti-materiel Mode " }).Mode);
 }

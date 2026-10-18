@@ -6,7 +6,7 @@ namespace InfinityMercsApp.UnitTests.Presentation.Season;
 public sealed class MercsSeasonLayoutTests
 {
     [Fact]
-    public void CompactAnchorsFullWidthActionsBelowTheBrand()
+    public void For_Compact_AnchorsFullWidthActionsBelowTheBrand()
     {
         var layout = MercsSeasonLayout.For(AdaptiveLayoutMode.Compact);
 
@@ -20,7 +20,7 @@ public sealed class MercsSeasonLayoutTests
     }
 
     [Fact]
-    public void MediumCentresTheActionsAtAReadableWidth()
+    public void For_Medium_CentresActionsAtAReadableWidth()
     {
         var layout = MercsSeasonLayout.For(AdaptiveLayoutMode.Medium);
 
@@ -32,7 +32,7 @@ public sealed class MercsSeasonLayoutTests
     [Theory]
     [InlineData(AdaptiveLayoutMode.Expanded)]
     [InlineData(AdaptiveLayoutMode.Wide)]
-    public void WiderScreensPutTheActionsBesideTheBrand(AdaptiveLayoutMode mode)
+    public void For_WiderModes_PutsActionsBesideTheBrand(AdaptiveLayoutMode mode)
     {
         var layout = MercsSeasonLayout.For(mode);
 

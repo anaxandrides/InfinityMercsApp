@@ -8,14 +8,14 @@ public sealed class UnitHeaderIconsTests
     private const string Folder = "SVGCache/CBIcons/";
 
     [Fact]
-    public void NoIconsShowNothing()
+    public void Sources_NoIcons_ShowsNothing()
     {
         Assert.Empty(UnitHeaderIcons.None.Sources);
         Assert.False(UnitHeaderIcons.None.HasAny);
     }
 
     [Fact]
-    public void IconsAreInColumnOrder()
+    public void Sources_SeveralIcons_AreInColumnOrder()
     {
         var icons = new UnitHeaderIcons { Hackable = true, Cube = true, Regular = true, Peripheral = true, Lieutenants = 1 };
 
@@ -26,15 +26,15 @@ public sealed class UnitHeaderIconsTests
     }
 
     [Fact]
-    public void IrregularReplacesRegular() =>
+    public void Sources_RegularAndIrregular_ShowsOnlyIrregular() =>
         Assert.Equal([Folder + "irregular.svg"], new UnitHeaderIcons { Regular = true, Irregular = true }.Sources);
 
     [Fact]
-    public void EachLieutenantOrderHasAnIcon() =>
+    public void Sources_SeveralLieutenantOrders_ShowsAnIconEach() =>
         Assert.Equal(3, new UnitHeaderIcons { Lieutenants = 3 }.Sources.Count(source => source.EndsWith("lieutenant.svg")));
 
     [Fact]
-    public void TheColumnHoldsSixIcons()
+    public void Sources_EveryIcon_ShowsAtMostSix()
     {
         var icons = new UnitHeaderIcons
         {
@@ -47,7 +47,7 @@ public sealed class UnitHeaderIconsTests
     }
 
     [Fact]
-    public void ASavedTroopersTraitsAndLieutenantOrdersBecomeIcons()
+    public void From_SavedTraitsAndLieutenantOrders_BecomeIcons()
     {
         var icons = UnitHeaderIcons.From(new UnitTraitIcons(true, false, true, false, true, true, true), lieutenants: 2);
 
@@ -60,7 +60,7 @@ public sealed class UnitHeaderIconsTests
     }
 
     [Fact]
-    public void TheTooltipSaysWhatEachIconMeansInColumnOrder()
+    public void Meanings_SeveralIcons_ExplainsEachInColumnOrder()
     {
         var icons = new UnitHeaderIcons { Regular = true, Lieutenants = 1, Hackable = true };
 

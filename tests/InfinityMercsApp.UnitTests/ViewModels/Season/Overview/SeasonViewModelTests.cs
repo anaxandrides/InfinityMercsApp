@@ -23,7 +23,7 @@ public sealed class SeasonViewModelTests
     private readonly SeasonTestKit _kit = new();
 
     [Fact]
-    public async Task OpeningASeasonShowsTheCompanyAndItsRound()
+    public async Task InitializeAsyncCommand_Season_ShowsTheCompanyAndRound()
     {
         _kit.Season.Rounds[0].TemporaryStore = "Jade Temu";
 
@@ -40,7 +40,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task TheCompanysRenownCountsGearXpAndWins()
+    public async Task Renown_Season_CountsGearXpAndWins()
     {
         _kit.Season.Rounds[0].MissionResults = new SeasonMissionResult { Won = true, UnitResults = [new() { EntryIndex = 1, XpGained = 5 }] };
         _kit.Season.UnitGear[1] = [new SeasonUnitGear { ItemName = "Knife", Slot = GearSlot.Sidearm.Key() }];
@@ -52,7 +52,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task ACompanyWithoutASeasonStartsOne()
+    public async Task InitializeAsyncCommand_NoSeason_StartsOne()
     {
         _kit.Season = new SeasonFile();
 
@@ -76,7 +76,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task AFoundedCompanyRollsForBootyAndKeepsTheResult()
+    public async Task InitializeAsyncCommand_NewCompanyWithBooty_RollsAndKeepsTheResult()
     {
         _kit.Season = new SeasonFile();
         var company = BoltWithBooty();
@@ -90,7 +90,7 @@ public sealed class SeasonViewModelTests
 
     // A company opened again is not asked; the Team tab offers the roll instead.
     [Fact]
-    public async Task OpeningASeasonDoesNotAskForRollsOwedFromBefore()
+    public async Task InitializeAsyncCommand_RollsOwedFromBefore_DoesNotAsk()
     {
         BoltWithBooty();
 
@@ -101,7 +101,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task ANewRecruitRollsWhenThePageIsBack()
+    public async Task InitializeAsyncCommand_NewRecruitWithBooty_Rolls()
     {
         var viewModel = await _kit.OpenAsync();
         var company = BoltWithBooty();
@@ -115,7 +115,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task PuttingARollOffSavesNothing()
+    public async Task InitializeAsyncCommand_RollPutOff_SavesNothing()
     {
         _kit.Season = new SeasonFile();
         var company = BoltWithBooty();
@@ -142,7 +142,7 @@ public sealed class SeasonViewModelTests
     private static PeripheralChange BoltGainsControl(params IEnumerable<int> losing) => new([.. losing], 1, "Bolt");
 
     [Fact]
-    public async Task BuyingAPeripheralAddsItToTheRosterAndChargesItsCost()
+    public async Task ChangePeripheralsAsync_NewPeripheral_AddsAndChargesIt()
     {
         var (viewModel, company) = await PickingAPeripheralAsync("Chaksa Peripheral B: Combi Rifle (Gorgos Squad), 4 CR");
 
@@ -156,7 +156,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task AnOwnedPeripheralIsOfferedAgainForFree()
+    public async Task ChangePeripheralsAsync_OwnedPeripheral_MovesItForFree()
     {
         var (viewModel, company) = await PickingAPeripheralAsync("Chaksa Peripheral B (owned, #7)");
         company.Entries.Add(new SavedCompanyEntry { EntryIndex = 7, Name = "Chaksa Peripheral B", IsPeripheralUnit = true, FromControllerAugment = true, ParentEntryIndex = 2 });
@@ -169,7 +169,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task APeripheralTheCompanyCantAffordIsNotBought()
+    public async Task ChangePeripheralsAsync_Unaffordable_BuysNothing()
     {
         var (viewModel, company) = await PickingAPeripheralAsync("Chaksa Peripheral A: Combi Rifle (Gorgos Squad), 7 CR");
         // Before the first contract, with only the 5 CR left from recruiting.
@@ -183,7 +183,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task CancellingThePickChangesNothing()
+    public async Task ChangePeripheralsAsync_PickCancelled_ChangesNothing()
     {
         var (viewModel, company) = await PickingAPeripheralAsync(null);
         company.Entries.Add(new SavedCompanyEntry { EntryIndex = 7, Name = "Chaksa Peripheral B", IsPeripheralUnit = true, FromControllerAugment = true, ParentEntryIndex = 2 });
@@ -194,7 +194,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task SellingAPeripheralRemovesItForHalfItsCost()
+    public async Task SellPeripheralAsync_Confirmed_RemovesItForHalfItsCost()
     {
         var (viewModel, company) = await PickingAPeripheralAsync(null);
         company.Entries.Add(new SavedCompanyEntry { EntryIndex = 7, Name = "Chaksa Peripheral A", IsPeripheralUnit = true, FromControllerAugment = true, Cost = 7 });
@@ -209,7 +209,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task AMissingCompanyShowsAnEmptySeason()
+    public async Task InitializeAsyncCommand_MissingCompany_ShowsAnEmptySeason()
     {
         _kit.CompanyFiles.Exists(SeasonTestKit.CompanyPath).Returns(false);
 
@@ -220,7 +220,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task AnUnreadableCompanyShowsAnEmptySeason()
+    public async Task InitializeAsyncCommand_UnreadableCompany_ShowsAnEmptySeason()
     {
         _kit.CompanyFiles.LoadAsync(SeasonTestKit.CompanyPath).ThrowsAsync(new IOException("corrupt"));
 
@@ -231,7 +231,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task TheCompanyAndSeasonAreReadAgainOnEachAppearance()
+    public async Task InitializeAsyncCommand_EachAppearance_RereadsCompanyAndSeason()
     {
         var viewModel = await _kit.OpenAsync();
         _kit.Season.Rounds.Add(new SeasonRound { RoundIndex = 2 });
@@ -247,7 +247,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task ARoundWithoutAWarMarketAsksForOneOnTheMarketTab()
+    public async Task ShowTabCommand_MarketWithoutWarMarket_AsksForOne()
     {
         var panOceania = new Faction { Id = 101, ParentId = 101, Name = "PanOceania" };
         _kit.ArmyData.GetMetadataFactionById(101).Returns(panOceania);
@@ -264,7 +264,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task TheMarketTabDoesNotAskOnceAWarMarketIsChosen()
+    public async Task ShowTabCommand_WarMarketChosen_DoesNotAsk()
     {
         _kit.Season.Rounds[0].Marketplace.WarMarket = "Number One";
         var viewModel = await _kit.OpenAsync();
@@ -276,7 +276,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task ChoosingAWarMarketAddsItToTheMarkets()
+    public async Task WarMarketChoiceConfirmCommand_Rolled_AddsItToTheMarkets()
     {
         var viewModel = await _kit.OpenAsync();
         await viewModel.ShowTabCommand.ExecuteAsync(SeasonTab.Marketplace);
@@ -291,7 +291,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task ASeasonWithoutStartingFundsTakesThemFromTheCompany()
+    public async Task InitializeAsyncCommand_NoStartingFunds_TakesThemFromTheCompany()
     {
         _kit.CompanyFiles.LoadAsync(SeasonTestKit.CompanyPath).Returns(new SavedCompanyFile
         {
@@ -308,7 +308,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task StartingFundsAreOnlyWorkedOutOnce()
+    public async Task InitializeAsyncCommand_StartingFundsSet_KeepsThem()
     {
         // Before the first contract, with only the 5 CR left from recruiting.
         _kit.Season.Rounds.Clear();
@@ -321,7 +321,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task TheTeamTabKnowsTheCompanysSwc()
+    public async Task InitializeAsyncCommand_Season_GivesTheTeamTabTheCompanysSwc()
     {
         var viewModel = await _kit.OpenAsync();
 
@@ -329,7 +329,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task TheBalanceShowsWhatIsLeftToSpend()
+    public async Task InitializeAsyncCommand_Season_ShowsWhatIsLeftToSpend()
     {
         var viewModel = await _kit.OpenAsync();
 
@@ -337,7 +337,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task OwnedGearReachesTheInventoryAndTheGearPickers()
+    public async Task InitializeAsyncCommand_OwnedGear_ReachesInventoryAndPickers()
     {
         _kit.Season.Rounds[0].Marketplace.Transactions.Add(SeasonTestKit.Bought("Number One", "Pistol"));
 
@@ -350,7 +350,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task SellingRefreshesTheInventory()
+    public async Task InventorySellCommand_Sold_RefreshesTheInventory()
     {
         _kit.Season.Rounds[0].Marketplace.Transactions.Add(SeasonTestKit.Bought("Number One", "Pistol"));
         _kit.Dialogs.ConfirmAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(true);
@@ -363,7 +363,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task BuyingRefreshesTheInventory()
+    public async Task MarketplaceBuyCommand_Bought_RefreshesTheInventory()
     {
         var viewModel = await _kit.OpenAsync();
         var pistol = viewModel.Marketplace.ItemGroups.Single(group => group.Category == "SIDEARM").Items[0];
@@ -375,7 +375,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task TabsSwitch()
+    public async Task ShowTabCommand_Tab_SwitchesToIt()
     {
         var viewModel = await _kit.OpenAsync();
         Assert.True(viewModel.IsTeamTab);
@@ -386,7 +386,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task PlayingARoundOpensPlayModeWithTheCompanyAndSeason()
+    public async Task PlayRoundCommand_Season_OpensPlayMode()
     {
         var viewModel = await _kit.OpenAsync();
 
@@ -398,7 +398,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task TakingAByeOpensTheByeRoundPage()
+    public async Task TakeByeCommand_Season_OpensTheByeRoundPage()
     {
         var viewModel = await _kit.OpenAsync();
 
@@ -410,7 +410,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task NavigatingWithoutACompanyChangesNothing()
+    public async Task InitializeAsyncCommand_NoCompanyGiven_ChangesNothing()
     {
         var viewModel = _kit.SeasonViewModel();
         viewModel.ApplyQueryAttributes(new Dictionary<string, object>());
@@ -423,7 +423,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task SpendingPerkPointsOpensRankUp()
+    public async Task RankUpCommand_Season_OpensRankUp()
     {
         var viewModel = await _kit.OpenAsync();
 
@@ -433,7 +433,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task MedicalServicesShowsTheServices()
+    public async Task SelectedStore_MedicalServices_ShowsTheServices()
     {
         var viewModel = await _kit.OpenAsync();
         Assert.True(viewModel.Marketplace.ShowsStock);
@@ -446,7 +446,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task AdditionalRecruitmentOffersRecruitingInsteadOfStock()
+    public async Task SelectedStore_AdditionalRecruitment_OffersRecruiting()
     {
         var viewModel = await _kit.OpenAsync();
 
@@ -458,7 +458,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task RecruitingOpensTheCompanysScreenWithTheCrLeft()
+    public async Task RecruitCommand_Recruitable_OpensTheScreenWithTheCrLeft()
     {
         _kit.CompanySelection.OpenRecruitmentAsync(Arg.Any<CompanyRecruitment>()).Returns(true);
         var viewModel = await _kit.OpenAsync();
@@ -475,7 +475,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task ACompanyTypeWithoutARecruitmentScreenSaysSo()
+    public async Task RecruitCommand_NoRecruitmentScreen_SaysSo()
     {
         _kit.CompanySelection.OpenRecruitmentAsync(Arg.Any<CompanyRecruitment>()).Returns(false);
         var viewModel = await _kit.OpenAsync();
@@ -486,7 +486,7 @@ public sealed class SeasonViewModelTests
     }
 
     [Fact]
-    public async Task ATherapyRefreshesTheTeam()
+    public async Task ServicesBuyCommand_Therapy_RefreshesTheTeam()
     {
         _kit.Season.TrooperFor(1).Injuries.Add(Injury.Arms);
         _kit.Dialogs.ConfirmAsync(Arg.Any<string>(), Arg.Any<string>(), "Buy", "Cancel").Returns(true);

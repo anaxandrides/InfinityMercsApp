@@ -6,7 +6,7 @@ namespace InfinityMercsApp.UnitTests.ViewModels.Season.Game.Items;
 public sealed class XpSheetTests
 {
     [Fact]
-    public void NumberedBoxesTickInOrder()
+    public void IsChecked_NumberedBoxes_TickInOrder()
     {
         var sheet = new XpSheet("Alpha", new UnitXpData());
 
@@ -20,7 +20,7 @@ public sealed class XpSheetTests
     }
 
     [Fact]
-    public void TicksAreWrittenToTheXpAndTotalled()
+    public void IsChecked_Ticked_WritesTheXpAndTotal()
     {
         var xp = new UnitXpData();
         var sheet = new XpSheet("Alpha", xp);
@@ -38,7 +38,7 @@ public sealed class XpSheetTests
     }
 
     [Fact]
-    public void SucceedingNeedsAnAttempt()
+    public void SucceededChecked_NoAttempt_ChecksTheAttempt()
     {
         var xp = new UnitXpData();
         var sheet = new XpSheet("Alpha", xp);
@@ -53,7 +53,7 @@ public sealed class XpSheetTests
     }
 
     [Fact]
-    public void ScanningWithAForwardObserverNeedsAScan()
+    public void ScannedWithFoChecked_NoScan_ChecksTheScan()
     {
         var xp = new UnitXpData();
         var sheet = new XpSheet("Alpha", xp);
@@ -68,7 +68,7 @@ public sealed class XpSheetTests
 
     // As with the numbered rows, only the last ticked box can be unticked: Attempted waits until Succeeded is clear.
     [Fact]
-    public void TheFirstBoxOfAPairIsGreyedOutWhileTheSecondIsTicked()
+    public void IsEnabled_SecondOfPairTicked_GreysOutTheFirst()
     {
         var sheet = new XpSheet("Alpha", new UnitXpData { AttemptButton = true, SucceedButton = true });
         Assert.False(sheet.Attempted.IsEnabled);
@@ -84,7 +84,7 @@ public sealed class XpSheetTests
     }
 
     [Fact]
-    public void TheSheetStartsFromTheSavedXp()
+    public void Constructor_SavedXp_StartsFromIt()
     {
         var xp = new UnitXpData { AttemptButton = true };
         xp.Assist[0] = true;

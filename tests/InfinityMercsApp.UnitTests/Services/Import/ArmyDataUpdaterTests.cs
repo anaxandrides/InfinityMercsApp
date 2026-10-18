@@ -67,7 +67,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     [InlineData(true, true, true)]
     [InlineData(false, true, false)]
     [InlineData(true, false, false)]
-    public void HasStoredData_NeedsMetadataAndArmies(bool hasMetadata, bool hasArmies, bool expected)
+    public void HasStoredData_MetadataAndArmies_NeedsBoth(bool hasMetadata, bool hasArmies, bool expected)
     {
         _metadata.HasMetadata().Returns(hasMetadata);
         _factions.HasAnyFactionData().Returns(hasArmies);
@@ -76,7 +76,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     }
 
     [Fact]
-    public async Task Check_FailsWhenTheMetadataCannotBeDownloaded()
+    public async Task CheckAsync_MetadataDownloadFails_Fails()
     {
         _api.GetMetaDataAsync(Arg.Any<CancellationToken>()).ThrowsAsync(new HttpRequestException("Status=403"));
 
@@ -88,7 +88,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     }
 
     [Fact]
-    public async Task Check_FailsWhenTheMetadataHasNoFactions()
+    public async Task CheckAsync_MetadataWithoutFactions_Fails()
     {
         _api.GetMetaDataAsync(Arg.Any<CancellationToken>()).Returns(new MetadataDocument());
 
@@ -98,7 +98,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     }
 
     [Fact]
-    public async Task Check_FailsWhenNoArmyCanBeDownloaded()
+    public async Task CheckAsync_NoArmyDownloads_Fails()
     {
         Download(PanOceania, YuJing);
         _api.GetArmyDataAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).ThrowsAsync(new HttpRequestException("offline"));
@@ -109,7 +109,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     }
 
     [Fact]
-    public async Task Check_NamesTheArmiesThatCouldNotBeDownloaded()
+    public async Task CheckAsync_SomeArmiesFail_NamesThem()
     {
         Download(PanOceania, YuJing);
         Serve(PanOceania, "7.1");
@@ -123,7 +123,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     }
 
     [Fact]
-    public async Task Check_CountsAnArmyWithoutAVersionAsNotDownloaded()
+    public async Task CheckAsync_ArmyWithoutVersion_CountsAsNotDownloaded()
     {
         Download(PanOceania);
         Serve(PanOceania, string.Empty);
@@ -134,7 +134,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     }
 
     [Fact]
-    public async Task Check_SkipsTheSuppressedFaction()
+    public async Task CheckAsync_SuppressedFaction_SkipsIt()
     {
         Download(PanOceania, 901);
         Serve(PanOceania, "7.1");
@@ -150,7 +150,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     [InlineData("7.1", "7.1", true, false)]
     [InlineData("7.1", "7.2", true, false)]
     [InlineData("7.1", "7.1", false, true)]
-    public async Task Check_ComparesEachArmyWithTheStoredVersion(string downloaded, string stored, bool hasUnits, bool isUpdate)
+    public async Task CheckAsync_StoredArmy_ComparesWithTheStoredVersion(string downloaded, string stored, bool hasUnits, bool isUpdate)
     {
         Download(PanOceania);
         Serve(PanOceania, downloaded);
@@ -164,7 +164,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     }
 
     [Fact]
-    public async Task Check_TreatsAnArmyNotStoredAsAnUpdate()
+    public async Task CheckAsync_ArmyNotStored_TreatsItAsAnUpdate()
     {
         Download(PanOceania);
         Serve(PanOceania, "7.1");
@@ -179,7 +179,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     [InlineData(StoredFingerprint, true, false)]
     [InlineData("metadata-v2", true, true)]
     [InlineData(StoredFingerprint, false, true)]
-    public async Task Check_ComparesTheMetadataWithTheStoredFingerprint(string downloaded, bool hasMetadata, bool changed)
+    public async Task CheckAsync_Metadata_ComparesWithTheStoredFingerprint(string downloaded, bool hasMetadata, bool changed)
     {
         Download(downloaded, PanOceania);
         Serve(PanOceania, "7.1");
@@ -193,7 +193,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     }
 
     [Fact]
-    public async Task Check_StoresNothing()
+    public async Task CheckAsync_Updates_StoresNothing()
     {
         Download("metadata-v2", PanOceania);
         Serve(PanOceania, "7.2");
@@ -206,7 +206,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     }
 
     [Fact]
-    public async Task Apply_StoresChangedMetadataAndItsFingerprint()
+    public async Task ApplyAsync_ChangedMetadata_StoresItAndItsFingerprint()
     {
         var metadata = Download("metadata-v2", PanOceania);
         Serve(PanOceania, "7.1");
@@ -220,7 +220,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     }
 
     [Fact]
-    public async Task Apply_LeavesUnchangedMetadataAlone()
+    public async Task ApplyAsync_UnchangedMetadata_LeavesItAlone()
     {
         Download(PanOceania);
         Serve(PanOceania, "7.2");
@@ -232,7 +232,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     }
 
     [Fact]
-    public async Task Apply_StoresOnlyTheArmiesThatChanged()
+    public async Task ApplyAsync_SomeArmiesChanged_StoresOnlyThose()
     {
         Download(PanOceania, YuJing);
         var panOceania = Serve(PanOceania, "7.2");
@@ -262,7 +262,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     }
 
     [Fact]
-    public async Task Apply_RebuildsTheGeneratedCompanies()
+    public async Task ApplyAsync_Updates_RebuildsTheGeneratedCompanies()
     {
         Download(PanOceania);
         Serve(PanOceania, "7.1");
@@ -276,7 +276,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     }
 
     [Fact]
-    public async Task Apply_DoesNothingForAFailedCheck()
+    public async Task ApplyAsync_FailedCheck_DoesNothing()
     {
         var notStored = await _updater.ApplyAsync(ArmyDataCheck.Failed("offline"));
 

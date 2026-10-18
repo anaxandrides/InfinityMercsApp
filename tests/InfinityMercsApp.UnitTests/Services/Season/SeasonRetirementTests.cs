@@ -32,12 +32,12 @@ public sealed class SeasonRetirementTests
     [InlineData(3, false)]
     [InlineData(4, true)]
     [InlineData(5, true)]
-    public void AnyoneButTheCaptainAndServantPeripheralsCanRetire(int entryIndex, bool canRetire) =>
+    public void For_Trooper_AnyoneButCaptainAndServantsCanRetire(int entryIndex, bool canRetire) =>
         Assert.Equal(canRetire, Retiring(entryIndex) is not null);
 
     // The drumbot is a trooper of its own, so it stays.
     [Fact]
-    public void OnlyServantPeripheralsLeaveWithTheirTrooper()
+    public void For_TrooperWithOwnPeripheral_LeavesItBehind()
     {
         var drummer = Retiring(4);
 
@@ -46,7 +46,7 @@ public sealed class SeasonRetirementTests
     }
 
     [Fact]
-    public void ATrooperRetiresWithItsCostAndXpAndItsPeripherals()
+    public void For_TrooperWithServant_RetiresWithCostXpAndServant()
     {
         var trooper = Retiring(2);
 
@@ -56,7 +56,7 @@ public sealed class SeasonRetirementTests
     }
 
     [Fact]
-    public void ARetiredTrooperCantRetireAgain()
+    public void For_AlreadyRetired_ReturnsNull()
     {
         var season = new SeasonFile { Retired = [new RetiredTrooper { EntryIndex = 4 }] };
 
@@ -64,7 +64,7 @@ public sealed class SeasonRetirementTests
     }
 
     [Fact]
-    public void CompanyRenownSwapsARetiredTroopersRenownForWhatItKept()
+    public void OfCompany_RetiredTrooper_CountsTheRenownItKept()
     {
         var season = new SeasonFile { Retired = [new RetiredTrooper { EntryIndex = 4, Renown = 15 }] };
 

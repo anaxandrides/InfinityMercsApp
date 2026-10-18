@@ -11,11 +11,11 @@ public sealed class SeasonEconomyTests
     [InlineData(3, 30)]
     [InlineData(4, 40)]
     [InlineData(9, 40)]
-    public void MissionCredits_Are10PerRoundUpTo40(int round, int expected) =>
+    public void MissionCredits_Round_Are10PerRoundUpTo40(int round, int expected) =>
         Assert.Equal(expected, SeasonEconomy.MissionCredits(round));
 
     [Fact]
-    public void ObjectiveAndVictoryCredits()
+    public void ObjectiveVictoryAndByeCredits_Results_FollowTheRules()
     {
         Assert.Equal(12, SeasonEconomy.ObjectiveCredits(3));
         Assert.Equal(10, SeasonEconomy.VictoryBonus(true));
@@ -25,7 +25,7 @@ public sealed class SeasonEconomyTests
     }
 
     [Fact]
-    public void Ledger_AByeEarnsTheRoundsRewardsAnd12Cr()
+    public void Ledger_Bye_EarnsTheRoundsRewardsAnd12Cr()
     {
         var season = new SeasonFile
         {
@@ -39,7 +39,7 @@ public sealed class SeasonEconomyTests
     }
 
     [Fact]
-    public void Ledger_TalliesMissionsDowntimeAndMarketplace()
+    public void Ledger_PlayedRounds_TalliesMissionsDowntimeAndMarketplace()
     {
         var season = new SeasonFile
         {
@@ -72,7 +72,7 @@ public sealed class SeasonEconomyTests
     }
 
     [Fact]
-    public void Ledger_StartsWithTheStartingFundsAndInitialPurchases()
+    public void Ledger_NewSeason_StartsWithFundsAndInitialPurchases()
     {
         var season = new SeasonFile
         {
@@ -95,25 +95,25 @@ public sealed class SeasonEconomyTests
     }
 
     [Fact]
-    public void Ledger_OfNoSeasonIsEmpty() => Assert.Equal(default, SeasonEconomy.Ledger(null));
+    public void Ledger_NoSeason_IsEmpty() => Assert.Equal(default, SeasonEconomy.Ledger(null));
 
     [Theory]
     [InlineData("SWC +1", "1")]
     [InlineData("swc+0.5 exchange", "0.5")]
     [InlineData("+1.5 SWC", "1.5")]
     [InlineData("Credits for SWC", null)]
-    public void SwcGrantFromItemName(string name, string? expected) =>
+    public void SwcGrantFromItemName_ItemName_ReadsTheGrant(string name, string? expected) =>
         Assert.Equal(expected is null ? null : decimal.Parse(expected, System.Globalization.CultureInfo.InvariantCulture),
             SeasonEconomy.SwcGrantFromItemName(name));
 
     [Theory]
     [InlineData(12, 2.0, "12 CR - 2 SWC")]
     [InlineData(-3, 1.5, "-3 CR - 1.5 SWC")]
-    public void BalanceText(int credits, double swc, string expected) =>
+    public void BalanceText_CreditsAndSwc_FormatsTheBalance(int credits, double swc, string expected) =>
         Assert.Equal(expected, SeasonEconomy.BalanceText(credits, swc));
 
     [Fact]
-    public void PriceText_ShowsSwcOnlyWhenPriced()
+    public void PriceText_WithOrWithoutSwc_ShowsSwcOnlyWhenPriced()
     {
         Assert.Equal("12cr", SeasonEconomy.PriceText(12, null));
         Assert.Equal("12cr / 0.5swc", SeasonEconomy.PriceText(12, 0.5m));

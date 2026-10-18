@@ -7,13 +7,13 @@ public sealed class WarMarketRollTests
     private static readonly IReadOnlySet<string> NumberOneIsOurs = new HashSet<string>(["Number One"], StringComparer.OrdinalIgnoreCase);
 
     [Fact]
-    public void ARollNamesItsMarket()
+    public void For_Roll_NamesItsMarket()
     {
         Assert.Equal(new WarMarketRoll(3, WarMarketRollKind.Found, "Jade Temu"), WarMarketRoll.For(3, NumberOneIsOurs));
     }
 
     [Fact]
-    public void TheCompanysOwnMarketNeedsAnother()
+    public void For_CompanysOwnMarket_IsAFactionMarket()
     {
         Assert.Equal(new WarMarketRoll(1, WarMarketRollKind.FactionMarket, "Number One"), WarMarketRoll.For(1, NumberOneIsOurs));
     }
@@ -21,19 +21,19 @@ public sealed class WarMarketRollTests
     [Theory]
     [InlineData(19)]
     [InlineData(20)]
-    public void NineteenOrTwentyChoosesAnyMarket(int roll)
+    public void For_19Or20_ChoosesAnyMarket(int roll)
     {
         Assert.Equal(WarMarketRollKind.ChooseAny, WarMarketRoll.For(roll, NumberOneIsOurs).Kind);
     }
 
     [Fact]
-    public void ARollOffTheTableIsInvalid()
+    public void For_OffTableRoll_IsInvalid()
     {
         Assert.Equal(WarMarketRollKind.Invalid, WarMarketRoll.For(0, NumberOneIsOurs).Kind);
     }
 
     [Fact]
-    public void SearchingRerollsTheCompanysOwnMarkets()
+    public void Search_CompanysOwnMarket_Rerolls()
     {
         var rolls = new Queue<int>([1, 2, 5]);
 
@@ -43,7 +43,7 @@ public sealed class WarMarketRollTests
     }
 
     [Fact]
-    public void SearchingStopsOnAFreeChoice()
+    public void Search_FreeChoiceRolled_Stops()
     {
         var rolls = new Queue<int>([1, 20]);
 
@@ -51,7 +51,7 @@ public sealed class WarMarketRollTests
     }
 
     [Fact]
-    public void SearchingGivesUpAfterTooManyRerolls()
+    public void Search_TooManyRerolls_GivesUp()
     {
         var attempts = 0;
 

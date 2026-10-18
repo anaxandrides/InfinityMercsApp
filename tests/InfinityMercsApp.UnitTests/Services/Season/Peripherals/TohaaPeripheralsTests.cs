@@ -9,7 +9,7 @@ public sealed class TohaaPeripheralsTests
 
     // Servants and mercenaries' peripherals are left out.
     [Fact]
-    public void OffersEachSynchronizedPeripheralAtItsOptionsCost()
+    public void Offers_TohaaArmy_OffersEachPeripheralAtItsOptionsCost()
     {
         Assert.Equal(
         [
@@ -20,7 +20,7 @@ public sealed class TohaaPeripheralsTests
     }
 
     [Fact]
-    public void ABoughtPeripheralJoinsTheRosterConnectedToItsController()
+    public void EntryFor_Offer_JoinsTheRosterConnectedToItsController()
     {
         var entry = _peripherals.EntryFor(_peripherals.Offers()[1], entryIndex: 9, controllerEntryIndex: 2);
 
@@ -36,6 +36,6 @@ public sealed class TohaaPeripheralsTests
     }
 
     [Fact]
-    public void APeripheralNoLongerInTheDataGivesNoEntry() =>
+    public void EntryFor_OfferGoneFromTheData_ReturnsNull() =>
         Assert.Null(_peripherals.EntryFor(new PeripheralOffer(1, "Gone", 2, 1, "Gone", 3), 9, 2));
 }

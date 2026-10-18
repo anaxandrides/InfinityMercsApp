@@ -5,11 +5,11 @@ namespace InfinityMercsApp.UnitTests.Company;
 public sealed class UnitTraitIconsTests
 {
     [Fact]
-    public void NothingSaysNothing() =>
+    public void From_NoText_ShowsNoIcons() =>
         Assert.Equal(new UnitTraitIcons(false, false, false, false, false, false, false), UnitTraitIcons.From(null, null, null, false));
 
     [Fact]
-    public void IconsAreReadFromEveryText()
+    public void From_EveryText_ReadsIconsFromEach()
     {
         var icons = UnitTraitIcons.From("Regular, Cube", "Tactical Awareness", "Hacking Device", isPeripheralUnit: false);
 
@@ -21,7 +21,7 @@ public sealed class UnitTraitIconsTests
     [InlineData("Cube2", false, true)]
     [InlineData("No Cube", false, false)]
     [InlineData("Cube", true, false)]
-    public void Cube2AndNoCubeHideThePlainCube(string characteristics, bool cube, bool cube2)
+    public void From_Cube2OrNoCube_HidesThePlainCube(string characteristics, bool cube, bool cube2)
     {
         var icons = UnitTraitIcons.From(characteristics, null, null, false);
 
@@ -33,7 +33,7 @@ public sealed class UnitTraitIconsTests
     [InlineData("Killer Hacking Device")]
     [InlineData("KHD")]
     [InlineData("EVO HD")]
-    public void HackingKitMakesAUnitHackable(string equipment) =>
+    public void From_HackingKit_IsHackable(string equipment) =>
         Assert.True(UnitTraitIcons.From(null, null, equipment, false).Hackable);
 
     [Theory]
@@ -41,11 +41,11 @@ public sealed class UnitTraitIconsTests
     [InlineData("Ancillary", false, true)]
     [InlineData("Irregular", true, true)]
     [InlineData("Irregular", false, false)]
-    public void PeripheralsAreServantsAncillariesOrSavedAsPeripherals(string characteristics, bool isPeripheralUnit, bool expected) =>
+    public void From_ServantAncillaryOrSavedPeripheral_ShowsPeripheral(string characteristics, bool isPeripheralUnit, bool expected) =>
         Assert.Equal(expected, UnitTraitIcons.From(characteristics, null, null, isPeripheralUnit).Peripheral);
 
     [Fact]
-    public void IrregularIsNotReadAsRegular()
+    public void From_Irregular_IsNotReadAsRegular()
     {
         var icons = UnitTraitIcons.From("Irregular", null, null, false);
 
