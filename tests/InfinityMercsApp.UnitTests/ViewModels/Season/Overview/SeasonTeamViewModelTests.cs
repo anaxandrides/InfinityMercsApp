@@ -179,6 +179,19 @@ public sealed class SeasonTeamViewModelTests
         Assert.True(Picker(GearSlot.Armor).IsAvailable);
     }
 
+    [Fact]
+    public async Task SelectUnitCommand_RolePerk_ShowsTheRolesSlotFilled()
+    {
+        _kit.Season.TrooperFor(1).Perks.Add("intelligence-track-4-tier-1");
+        await LoadAsync();
+
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        Assert.Equal("Filled by the Hacker (Role) No device perk", Picker(GearSlot.Roles).FilledByPerkText);
+        Assert.True(Picker(GearSlot.Roles).IsFilledByPerk);
+        Assert.False(Picker(GearSlot.Accessories).IsFilledByPerk);
+    }
+
     private GearOption ControllerAugment() =>
         Picker(GearSlot.Augments).Options.Single(option => option.ItemName == TohaaPeripherals.AugmentName);
 

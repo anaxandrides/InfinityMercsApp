@@ -399,8 +399,10 @@ public partial class SeasonTeamViewModel : ObservableObject
 
         SwcText = $"SWC EQUIPPED {SeasonEconomy.SwcText((decimal)EquippedSwc.Of(_loadouts, _catalog))} / {SeasonEconomy.SwcText((decimal)_companySwc)}";
         var loadout = _loadouts.For(item.EntryIndex);
+        var perkSlots = PerkSlots.Filled(item.Progress?.Perks ?? []);
         foreach (var picker in GearSlots)
         {
+            picker.FilledByPerk = perkSlots.GetValueOrDefault(picker.Slot) ?? string.Empty;
             picker.IsAvailable = picker.Slot switch
             {
                 GearSlot.Extra => HasExtraSlot(loadout),

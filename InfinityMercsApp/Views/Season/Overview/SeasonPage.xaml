@@ -447,7 +447,11 @@
                                     <DataTemplate x:DataType="overviewItems:GearSlotPicker">
                                         <VerticalStackLayout Spacing="6" IsVisible="{Binding IsAvailable}">
                                             <Label Text="{Binding Title}" Style="{StaticResource SlotHeading}" />
-                                            <Picker ItemsSource="{Binding Options}"
+                                            <Label Text="{Binding FilledByPerkText}"
+                                                   IsVisible="{Binding IsFilledByPerk}"
+                                                   TextColor="{StaticResource TextMuted}" />
+                                            <Picker IsVisible="{Binding IsFilledByPerk, Converter={StaticResource InvertedBoolConverter}}"
+                                                    ItemsSource="{Binding Options}"
                                                     ItemDisplayBinding="{Binding Display, x:DataType=overviewPresentation:GearOption}"
                                                     SelectedItem="{Binding SelectedOption}"
                                                     TextColor="{StaticResource TextPrimary}"

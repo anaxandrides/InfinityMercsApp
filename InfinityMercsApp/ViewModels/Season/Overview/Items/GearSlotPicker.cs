@@ -21,6 +21,15 @@ public sealed partial class GearSlotPicker(GearSlot slot, Action<GearSlot, GearO
     [ObservableProperty]
     public partial bool IsAvailable { get; set; } = true;
 
+    /// <summary>The perk filling the slot, e.g. "Holomask", which leaves no room for gear; empty when none does.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsFilledByPerk), nameof(FilledByPerkText))]
+    public partial string FilledByPerk { get; set; } = string.Empty;
+
+    public bool IsFilledByPerk => FilledByPerk.Length > 0;
+
+    public string FilledByPerkText => $"Filled by the {FilledByPerk} perk";
+
     [ObservableProperty]
     public partial IReadOnlyList<GearOption> Options { get; set; } = [GearOption.None];
 

@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Presentation.Company.Viewer;
 using InfinityMercsApp.Services.Navigation;
@@ -17,7 +18,7 @@ public sealed class RankUpViewModelTests
 
     private async Task<RankUpViewModel> OpenAsync()
     {
-        var viewModel = new RankUpViewModel(_kit.Navigation, _kit.SeasonFiles, _kit.CompanyFiles, new CompanyRoster(_kit.ArmyData), _kit.Dice);
+        var viewModel = new RankUpViewModel(_kit.Navigation, _kit.SeasonFiles, _kit.CompanyFiles, new CompanyRoster(_kit.ArmyData), _kit.Dice, _kit.Dialogs);
         viewModel.ApplyQueryAttributes(NavigationParameters.ForCompany(SeasonTestKit.CompanyPath, SeasonTestKit.SeasonPath));
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         return viewModel;
@@ -74,6 +75,41 @@ public sealed class RankUpViewModelTests
         Assert.Equal(["body-track-1-tier-1"], _kit.Season.Troopers[1].Perks);
         Assert.Equal(["Traktor Mul"], viewModel.Troopers.Select(trooper => trooper.Name));
         Assert.Equal("Traktor Mul", viewModel.Trooper?.Name);
+    }
+
+    private async Task<RankUpViewModel> OfferHackerWithDoctorEquippedAsync()
+    {
+        GiveXp(1, "Bolt", 5);
+        _kit.Season.UnitGear[1] = [new SeasonUnitGear { Slot = GearSlot.Roles.Key(), ItemName = "Doctor (+Medikit)" }];
+        var viewModel = await OpenAsync();
+        viewModel.SelectedList = viewModel.Lists.Single(list => list.Name == "Intelligence");
+        return viewModel;
+    }
+
+    // Rule 4: a perk filling a used slot overrides its gear, which is lost.
+    [Fact]
+    public async Task TakePerkCommand_RoleOverGear_LosesTheGearOnceAgreed()
+    {
+        _kit.Dialogs.ConfirmAsync("Override Gear", Arg.Any<string>(), "Take Perk", "Cancel").Returns(true);
+        var viewModel = await OfferHackerWithDoctorEquippedAsync();
+
+        await viewModel.TakePerkCommand.ExecuteAsync(viewModel.Options.Single(option => option.Pick.NodeId == "intelligence-track-4-tier-1"));
+
+        Assert.Equal(["intelligence-track-4-tier-1"], _kit.Season.Troopers[1].Perks);
+        Assert.Empty(_kit.Season.UnitGear[1]);
+        var lost = Assert.Single(_kit.Season.Rounds[0].Marketplace.Transactions);
+        Assert.Equal((PerkSlots.LostToPerk, "Doctor (+Medikit)", true, 0), (lost.OriginStore, lost.ItemName, lost.IsSale, lost.CostCr));
+    }
+
+    [Fact]
+    public async Task TakePerkCommand_OverrideDeclined_TakesNothing()
+    {
+        var viewModel = await OfferHackerWithDoctorEquippedAsync();
+
+        await viewModel.TakePerkCommand.ExecuteAsync(viewModel.Options.Single(option => option.Pick.NodeId == "intelligence-track-4-tier-1"));
+
+        Assert.Empty(_kit.Season.TrooperFor(1).Perks);
+        Assert.Single(_kit.Season.UnitGear[1]);
     }
 
     [Fact]

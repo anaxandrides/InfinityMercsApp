@@ -1,9 +1,12 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Presentation.Company.Viewer;
 using InfinityMercsApp.Presentation.Season.RankUp;
+using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Rolls;
@@ -17,13 +20,15 @@ namespace InfinityMercsApp.ViewModels.Season.RankUp;
 /// Spends the perk points troopers earned by ranking up, one at a time. A perk is chosen from a list (tier
 /// up to the trooper's rank, following on from what it owns) or rolled for: a d20 for the list, then a d20
 /// for the track, which may land one tier higher. A TAG's TAG perk comes from the Mecha tree and is never rolled.
+/// A perk that fills a gear slot the trooper already uses overrides that gear, which is lost, once the player agrees.
 /// </summary>
 public partial class RankUpViewModel(
     INavigationService navigationService,
     ISeasonFileService seasonFiles,
     ICompanyFileService companyFiles,
     CompanyRoster roster,
-    IDice dice) : ViewModelBase(navigationService)
+    IDice dice,
+    IDialogService dialogs) : ViewModelBase(navigationService)
 {
     /// <summary>Track rolls tried before giving up on a list that offers nothing.</summary>
     public const int MaxTrackRolls = 100;
@@ -229,7 +234,35 @@ public partial class RankUpViewModel(
             return;
         }
 
-        await seasonFiles.UpdateAsync(_seasonFilePath, season => season.TrooperFor(trooper.EntryIndex).Perks.Add(option.Pick.NodeId));
+        var slot = PerkSlots.SlotOf(option.Pick.Name);
+        var gear = (await seasonFiles.LoadAsync(_seasonFilePath))?.UnitGear.GetValueOrDefault(trooper.EntryIndex) ?? [];
+        var overridden = slot is { } filled ? UnitLoadout.From(gear)[filled] : null;
+        if (slot is { } gearSlot && overridden is not null &&
+            !await dialogs.ConfirmAsync(
+                "Override Gear",
+                $"{option.Pick.Name} fills the {gearSlot.Key()} slot, so {overridden} comes off and is lost, with no CR back.",
+                "Take Perk",
+                "Cancel"))
+        {
+            return;
+        }
+
+        await seasonFiles.UpdateAsync(_seasonFilePath, season =>
+        {
+            season.TrooperFor(trooper.EntryIndex).Perks.Add(option.Pick.NodeId);
+            if (slot is { } lostSlot && overridden is not null && season.UnitGear.GetValueOrDefault(trooper.EntryIndex) is { } saved)
+            {
+                var loadout = UnitLoadout.From(saved);
+                loadout[lostSlot] = null;
+                season.UnitGear[trooper.EntryIndex] = loadout.ToSeasonGear();
+                SeasonRounds.CurrentMarketplace(season).Transactions.Add(new SeasonTransaction
+                {
+                    OriginStore = PerkSlots.LostToPerk,
+                    ItemName = overridden,
+                    IsSale = true
+                });
+            }
+        });
         await ReloadAsync(trooper.EntryIndex);
     }
 
