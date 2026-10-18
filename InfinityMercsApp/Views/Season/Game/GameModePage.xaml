@@ -188,12 +188,17 @@
                                         </DataTrigger>
                                     </Label.Triggers>
                                 </Label>
-                                <Label Grid.Column="1"
-                                       Text="{Binding Name}"
-                                       TextColor="#E6EBF2"
-                                       FontAttributes="Bold"
-                                       VerticalTextAlignment="Center"
-                                       LineBreakMode="TailTruncation" />
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="{Binding Name}"
+                                           TextColor="#E6EBF2"
+                                           FontAttributes="Bold"
+                                           LineBreakMode="TailTruncation" />
+                                    <Label Text="{Binding LoneWolfRole}"
+                                           IsVisible="{Binding IsPartOfLoneWolf}"
+                                           TextColor="#34D399"
+                                           FontSize="{DynamicResource FontSizeMicro}"
+                                           FontAttributes="Bold" />
+                                </VerticalStackLayout>
                                 <controls:SvgIcon Grid.Column="2"
                                                   Source="SVGCache/CBIcons/tactical.svg"
                                                   IsGreyscale="{Binding IsTacticalTokenSpent}"
@@ -228,6 +233,13 @@
                                             Command="{Binding ViewModel.ShowXpCommand, Source={x:Reference GameModePageRoot}, x:DataType=view:GameModePage}"
                                             CommandParameter="{Binding .}" />
                                 </Grid>
+
+                                <Button Text="TRANSFER CONSCIOUSNESS HERE"
+                                        Style="{StaticResource RowButton}"
+                                        TextColor="#34D399"
+                                        IsVisible="{Binding CanReceiveLoneWolf}"
+                                        Command="{Binding ViewModel.TransferConsciousnessCommand, Source={x:Reference GameModePageRoot}, x:DataType=view:GameModePage}"
+                                        CommandParameter="{Binding .}" />
 
                                 <FlexLayout BindableLayout.ItemsSource="{Binding Statline}">
                                     <BindableLayout.ItemTemplate>

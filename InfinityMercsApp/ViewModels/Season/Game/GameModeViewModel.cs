@@ -146,6 +146,22 @@ public partial class GameModeViewModel(
         }
     }
 
+    /// <summary>
+    /// Transfer Consciousness: the Lone Wolf moves into a standing Aspect, which takes its profile; where it was, an
+    /// Aspect is left with the wounds and states. The player checks the skill's requirements.
+    /// </summary>
+    [RelayCommand]
+    private void TransferConsciousness(GameUnitItem target)
+    {
+        if (!target.CanReceiveLoneWolf || Units.FirstOrDefault(unit => unit.HostsLoneWolf) is not { } current)
+        {
+            return;
+        }
+
+        current.HostsLoneWolf = false;
+        target.HostsLoneWolf = true;
+    }
+
     // ── Accordion and pop-ups ───────────────────────────────────────────────
 
     /// <summary>Opens a trooper's row and closes the others, or closes it when it is already open.</summary>
@@ -212,13 +228,17 @@ public partial class GameModeViewModel(
 
         debrief.Units = Units.Select(unit => unit.Unit.ToResult(missionNumber, IsEliteDeployment, wasDeployed: true)).ToList();
         debrief.Troopers = await CompanyTroopersAsync(debrief.Units);
+        // Only the Lone Wolf checks for injury, wherever it ended; its Aspects never do.
         debrief.PendingInjuries = Units
+            .Where(unit => unit.ChecksForInjury)
             .Select(unit => unit.Unit)
             .Where(unit => unit.WoundState == WoundState.Dead)
             .Select(unit => new PendingInjury
             {
-                EntryIndex = unit.EntryIndex,
-                Name = unit.Name,
+                EntryIndex = unit.AspectOf ?? unit.EntryIndex,
+                Name = unit.AspectOf is { } wolf && Units.FirstOrDefault(other => other.Unit.EntryIndex == wolf) is { } loneWolf
+                    ? loneWolf.Name
+                    : unit.Name,
                 PhValue = unit.UnitPh,
                 CachedLogoPath = unit.CachedLogoPath,
                 PackagedLogoPath = unit.PackagedLogoPath

@@ -9,7 +9,11 @@ using InfinityMercsApp.ViewModels.Season.Items;
 
 namespace InfinityMercsApp.ViewModels.Season.Game.Items;
 
-/// <summary>A deployed trooper's row on the game tracker: wounds, XP, its Tactical Awareness token and its weapons.</summary>
+/// <summary>
+/// A deployed trooper's row on the game tracker: wounds, XP, its Tactical Awareness token and its weapons. A Lone
+/// Wolf's loadouts each have a row; the one the Lone Wolf is in shows its profile, and the rest show the Aspect of the
+/// Wolf's until the Lone Wolf transfers into them.
+/// </summary>
 public sealed partial class GameUnitItem : ObservableObject
 {
     [ObservableProperty]
@@ -18,11 +22,14 @@ public sealed partial class GameUnitItem : ObservableObject
     [ObservableProperty]
     public partial bool IsTacticalTokenSpent { get; set; }
 
+    private readonly IReadOnlyList<GameWeaponCard> _weaponCards;
+
     public GameUnitItem(DeploymentUnitItem unit, bool hasTacticalToken, IReadOnlyList<GameWeaponCard> weaponCards)
     {
         Unit = unit;
         HasTacticalToken = hasTacticalToken;
-        WeaponCards = weaponCards;
+        _weaponCards = weaponCards;
+        HostsLoneWolf = unit.IsLoneWolf;
         Skills = AttackModifiers.NormalizeSkills(unit.Skills);
         XpButtonText = XpText(unit.XpData.TotalXp);
         ShowWoundState(unit.WoundState);
@@ -33,16 +40,36 @@ public sealed partial class GameUnitItem : ObservableObject
 
     public string Name => Unit.Name;
 
-    public IReadOnlyList<StatValue> Statline => Unit.Statline;
+    /// <summary>One of a Proxy Pack's loadouts: the Lone Wolf's own or an Aspect's.</summary>
+    public bool IsPartOfLoneWolf => Unit.IsLoneWolf || Unit.AspectOf is not null;
+
+    /// <summary>The Lone Wolf is in this loadout's position.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(
+        nameof(ShowsAspect), nameof(LoneWolfRole), nameof(CanReceiveLoneWolf), nameof(Statline),
+        nameof(EquipmentItems), nameof(SkillItems), nameof(WeaponCards), nameof(OrderSource))]
+    public partial bool HostsLoneWolf { get; set; }
+
+    /// <summary>An Aspect the Lone Wolf isn't in, showing the Aspect of the Wolf profile.</summary>
+    public bool ShowsAspect => IsPartOfLoneWolf && !HostsLoneWolf;
+
+    /// <summary>"LONE WOLF" or "ASPECT" on a Proxy Pack's rows; nothing on anyone else's.</summary>
+    public string LoneWolfRole => !IsPartOfLoneWolf ? string.Empty : HostsLoneWolf ? "LONE WOLF" : "ASPECT";
+
+    /// <summary>The Lone Wolf can transfer here: an Aspect still standing.</summary>
+    public bool CanReceiveLoneWolf => ShowsAspect && IsConscious;
+
+    public IReadOnlyList<StatValue> Statline => ShowsAspect ? AspectOfTheWolf.Statline(Unit.UnitVitality) : Unit.Statline;
 
     /// <summary>The skills with BS Attack written the canonical way.</summary>
     public string Skills { get; }
 
-    public IReadOnlyList<string> EquipmentItems => SortedItems(Unit.Equipment);
+    public IReadOnlyList<string> EquipmentItems => ShowsAspect ? [] : SortedItems(Unit.Equipment);
 
-    public IReadOnlyList<string> SkillItems => SortedItems(Skills);
+    public IReadOnlyList<string> SkillItems => ShowsAspect ? AspectOfTheWolf.Skills : SortedItems(Skills);
 
-    public IReadOnlyList<GameWeaponCard> WeaponCards { get; }
+    /// <summary>The loadout's weapons; an Aspect the Lone Wolf isn't in can't use them.</summary>
+    public IReadOnlyList<GameWeaponCard> WeaponCards => ShowsAspect ? [] : _weaponCards;
 
     /// <summary>An Elite Deployment gives troopers (and a lieutenant with Tactical Awareness) a token to spend.</summary>
     public bool HasTacticalToken { get; }
@@ -51,6 +78,7 @@ public sealed partial class GameUnitItem : ObservableObject
     public partial WoundState WoundState { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanReceiveLoneWolf))]
     public partial bool IsConscious { get; set; }
 
     [ObservableProperty]
@@ -64,7 +92,15 @@ public sealed partial class GameUnitItem : ObservableObject
     [ObservableProperty]
     public partial string XpButtonText { get; set; }
 
-    public OrderSource OrderSource => new(Unit.IsLieutenant, Unit.IsImpetuous, Unit.IsIrregular, IsConscious);
+    /// <summary>The orders it gives; the Lone Wolf's Lieutenant order goes where the Lone Wolf is.</summary>
+    public OrderSource OrderSource => new(
+        IsPartOfLoneWolf ? HostsLoneWolf : Unit.IsLieutenant,
+        !ShowsAspect && Unit.IsImpetuous,
+        !ShowsAspect && Unit.IsIrregular,
+        IsConscious);
+
+    /// <summary>Whether this row takes the injury check when it dies: anyone but an Aspect the Lone Wolf isn't in.</summary>
+    public bool ChecksForInjury => !ShowsAspect;
 
     [RelayCommand]
     private void TakeWound() => Unit.TakeWound();

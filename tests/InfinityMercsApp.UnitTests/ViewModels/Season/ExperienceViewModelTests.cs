@@ -71,6 +71,23 @@ public sealed class ExperienceViewModelTests
     }
 
     [Fact]
+    public async Task ConfirmCommand_LoneWolfAndAspect_SavesAllTheXpToTheLoneWolf()
+    {
+        var viewModel = await OpenAsync(
+            new() { EntryIndex = 0, Name = "Kestrel", DeploymentXp = 3, IsConsciousAtEnd = true },
+            new() { EntryIndex = 1, Name = "Kestrel (Aspect 2)", DeploymentXp = 3, AspectOf = 0 });
+        viewModel.Units[1].IsMvp = true;
+
+        await viewModel.ConfirmCommand.ExecuteAsync(null);
+
+        var round = new SeasonRound();
+        Assert.NotNull(_roundUpdate);
+        _roundUpdate(round);
+        Assert.All(round.MissionResults.UnitResults, result => Assert.Equal(0, result.EntryIndex));
+        Assert.Equal(2, round.MissionResults.UnitResults.Count);
+    }
+
+    [Fact]
     public async Task ConfirmCommand_NoTroopers_CanExecute()
     {
         var viewModel = await OpenAsync();
