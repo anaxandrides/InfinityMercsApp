@@ -19,12 +19,19 @@ public static class SeasonRenown
         InventoryCatalog catalog,
         IReadOnlySet<int> servants)
     {
+        var gear = CompanyRenown.GearCost(season?.UnitGear.GetValueOrDefault(entry.EntryIndex) ?? [], catalog);
+        if (entry.AspectOf is not null)
+        {
+            // An Aspect adds its loadout; its cost, XP and ranks are the Lone Wolf's, counted once.
+            return new(0, gear, 0);
+        }
+
         var progress = SeasonTroopers.ProgressOf(entry, season);
         return new(
             entry.Cost + company.Entries
                 .Where(servant => servant.ParentEntryIndex == entry.EntryIndex && servants.Contains(servant.EntryIndex))
                 .Sum(servant => servant.Cost),
-            CompanyRenown.GearCost(season?.UnitGear.GetValueOrDefault(entry.EntryIndex) ?? [], catalog),
+            gear,
             progress.TotalXp,
             progress.RankRenown);
     }

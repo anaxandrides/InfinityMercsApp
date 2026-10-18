@@ -103,7 +103,7 @@ public partial class RankUpViewModel(
             if (companyFiles.Exists(_companyFilePath) && await companyFiles.LoadAsync(_companyFilePath) is { } company)
             {
                 var season = await seasonFiles.LoadAsync(_seasonFilePath);
-                foreach (var unit in roster.UnitsOf(company, season).Where(unit => unit.Progress?.HasPerkPointsToSpend == true))
+                foreach (var unit in roster.UnitsOf(company, season).Where(unit => unit.AspectOf is null && unit.Progress?.HasPerkPointsToSpend == true))
                 {
                     Troopers.Add(unit);
                 }

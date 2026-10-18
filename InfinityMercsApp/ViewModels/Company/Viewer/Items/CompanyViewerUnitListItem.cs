@@ -33,6 +33,9 @@ public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewe
     public int PeripheralSellPrice { get; init; }
     public bool IsLieutenant { get; init; }
 
+    /// <summary>For a Lone Wolf's Aspect, the Lone Wolf's entry; null for every other trooper.</summary>
+    public int? AspectOf { get; init; }
+
     /// <summary>The founding Captain, who carries the captain upgrades even after the role passes on.</summary>
     public bool CarriesCaptainUpgrades { get; init; }
     public int Cost { get; init; }

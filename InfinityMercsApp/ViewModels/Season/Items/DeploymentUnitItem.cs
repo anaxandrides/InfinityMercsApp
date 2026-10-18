@@ -22,6 +22,12 @@ public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListIt
     public int EntryIndex { get; init; }
     public string BaseUnitDisplayName { get; init; } = string.Empty;
     public bool IsLieutenant { get; init; }
+
+    /// <summary>A Proxy Pack's Lone Wolf.</summary>
+    public bool IsLoneWolf { get; init; }
+
+    /// <summary>For one of the Lone Wolf's Aspects, the Lone Wolf's entry; null for every other trooper.</summary>
+    public int? AspectOf { get; init; }
     public bool IsIrregular { get; init; }
     public bool IsImpetuous { get; init; }
     public bool IsTagFromTagCompany { get; init; }
@@ -117,6 +123,7 @@ public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListIt
         IsEliteDeployment = isEliteDeployment,
         IsConsciousAtEnd = WoundState.IsConscious(),
         WasDeployed = wasDeployed,
+        AspectOf = AspectOf,
         GainedInjury = false,
         XpData = XpData,
         IsCaptain = IsLieutenant,

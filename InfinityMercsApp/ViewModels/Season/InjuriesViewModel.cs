@@ -70,7 +70,8 @@ public partial class InjuriesViewModel(
 
         var isElite = debrief.Units.Any(unit => unit.IsEliteDeployment);
         var healable = new List<RecoveryRecipient>();
-        foreach (var unit in await CompanyUnitsAsync(seasonFile))
+        // A Lone Wolf's Aspects share its injuries, so only the Lone Wolf recovers.
+        foreach (var unit in (await CompanyUnitsAsync(seasonFile)).Where(unit => unit.AspectOf is null))
         {
             var carried = Carried(unit.EntryIndex);
             var deployed = debrief.Units.Any(deployedUnit => deployedUnit.EntryIndex == unit.EntryIndex);

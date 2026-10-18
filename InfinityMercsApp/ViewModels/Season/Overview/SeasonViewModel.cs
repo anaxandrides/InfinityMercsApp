@@ -300,6 +300,12 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
         var catalog = await _stores.CatalogAsync();
         if (_company is { } company)
         {
+            // A Lone Wolf that ranked up gains its next Aspect.
+            if (LoneWolfAspects.Sync(company, seasonFile))
+            {
+                await _companyFiles.SaveAsync(_companyFilePath, company);
+            }
+
             await Team.LoadAsync(company, _seasonFilePath, seasonFile, catalog);
         }
 

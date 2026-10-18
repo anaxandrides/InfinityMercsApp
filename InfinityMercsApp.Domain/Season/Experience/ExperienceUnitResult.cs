@@ -13,6 +13,9 @@ public sealed class ExperienceUnitResult
 
     /// <summary>Played in the contract; troopers left behind can still take part in downtime.</summary>
     public bool WasDeployed { get; set; }
+
+    /// <summary>For one of a Lone Wolf's Aspects, the Lone Wolf's entry, which takes the XP it earns.</summary>
+    public int? AspectOf { get; set; }
     public bool GainedInjury { get; set; }
     public string? InjuryName { get; set; }
     public UnitXpData XpData { get; init; } = new();

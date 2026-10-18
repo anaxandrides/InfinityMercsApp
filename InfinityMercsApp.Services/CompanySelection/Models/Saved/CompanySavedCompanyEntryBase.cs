@@ -38,6 +38,12 @@ public abstract class CompanySavedCompanyEntryBase
     /// <summary>A Proxy Pack's Lone Wolf: two perks and 10 renown a rank, and up to four Aspects.</summary>
     public bool IsLoneWolf { get; init; }
 
+    /// <summary>
+    /// For one of the Lone Wolf's Aspects, the Lone Wolf's entry: the Aspect has a loadout of its own, but its stats,
+    /// perks, XP and injuries are the Lone Wolf's. Null for every other trooper.
+    /// </summary>
+    public int? AspectOf { get; init; }
+
     [JsonIgnore]
     public string SavedEquipment { get; init; } = "-";
     [JsonIgnore]

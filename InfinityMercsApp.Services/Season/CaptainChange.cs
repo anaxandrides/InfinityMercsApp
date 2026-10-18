@@ -15,7 +15,7 @@ public sealed class CaptainChange(IArmyDataService armyData)
     /// <summary>The troopers who can become Captain: active ones that aren't peripherals or the Captain already.</summary>
     public static IReadOnlyList<SavedCompanyEntry> CandidatesOf(SavedCompanyFile company, SeasonFile? season) =>
         company.Entries
-            .Where(entry => !entry.IsLieutenant && !entry.IsPeripheralUnit && season?.IsRetired(entry.EntryIndex) != true)
+            .Where(entry => !entry.IsLieutenant && !entry.IsPeripheralUnit && entry.AspectOf is null && season?.IsRetired(entry.EntryIndex) != true)
             .ToList();
 
     /// <summary>

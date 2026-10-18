@@ -23,7 +23,7 @@ public static class SeasonTroopers
     /// </summary>
     public static TrooperProgress ProgressOf(SavedCompanyEntry entry, SeasonFile? season) =>
         TrooperProgress.For(
-            entry.EntryIndex,
+            entry.AspectOf ?? entry.EntryIndex,
             NameOf(entry),
             entry.ExperiencePoints,
             entry.Perks.Select(perk => perk.Id).ToList(),

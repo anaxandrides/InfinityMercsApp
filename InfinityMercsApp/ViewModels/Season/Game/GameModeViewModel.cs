@@ -230,11 +230,13 @@ public partial class GameModeViewModel(
             NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath));
     }
 
-    // Every active trooper, for downtime: the deployed ones as they finished the game, the rest as they stand.
+    // Every active trooper, for downtime: the deployed ones as they finished the game, the rest as they stand. A Lone
+    // Wolf's Aspects are the Lone Wolf, so they don't take part on their own.
     private async Task<List<ExperienceUnitResult>> CompanyTroopersAsync(IReadOnlyList<ExperienceUnitResult> deployed)
     {
         var company = await roster.LoadAsync(_companyFilePath, _seasonFilePath, ShowUnitsInInches);
         return company
+            .Where(trooper => trooper.AspectOf is null)
             .Select(trooper => deployed.FirstOrDefault(result => result.EntryIndex == trooper.EntryIndex)
                                ?? trooper.ToResult(deploymentXp: 0, isEliteDeployment: false, wasDeployed: false))
             .ToList();

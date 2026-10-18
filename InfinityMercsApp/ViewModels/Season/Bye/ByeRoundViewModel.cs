@@ -85,7 +85,8 @@ public partial class ByeRoundViewModel(
         Troopers.Clear();
         InjuryOptions.Clear();
         var units = await roster.LoadAsync(_companyFilePath, _seasonFilePath, SeasonDisplayUnitFormatter.GetShowUnitsInInches(settings));
-        foreach (var unit in units)
+        // A Lone Wolf's Aspects are the Lone Wolf: XP and injuries are its alone.
+        foreach (var unit in units.Where(unit => unit.AspectOf is null))
         {
             Troopers.Add(new ByeTrooperItem(unit));
             foreach (var injury in season?.Troopers.GetValueOrDefault(unit.EntryIndex)?.Injuries ?? [])

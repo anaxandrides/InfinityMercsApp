@@ -322,7 +322,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         var baseName = string.IsNullOrWhiteSpace(item.BaseUnitName) ? profile.Name : item.BaseUnitName;
         SelectedBaseName = string.Equals(baseName.Trim(), item.Name.Trim(), StringComparison.OrdinalIgnoreCase) ? string.Empty : baseName;
         SelectedUnitType = item.UnitTypeCode;
-        CanRetireSelected = !item.IsLieutenant && (!item.IsPeripheralUnit || item.IsPeripheralTrooper);
+        CanRetireSelected = !item.IsLieutenant && item.AspectOf is null && (!item.IsPeripheralUnit || item.IsPeripheralTrooper);
         CanSellSelected = item.IsUncontrolledPeripheral;
         SellText = item.IsUncontrolledPeripheral ? $"SELL PERIPHERAL · {item.PeripheralSellPrice} CR" : string.Empty;
         ShowProgress(item);

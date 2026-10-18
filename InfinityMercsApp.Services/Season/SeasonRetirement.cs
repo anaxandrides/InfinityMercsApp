@@ -10,10 +10,11 @@ public static class SeasonRetirement
 {
     /// <summary>
     /// Whether the trooper can retire: anyone still active but the captain. A Servant peripheral leaves with its
-    /// trooper rather than on its own; any other peripheral is a trooper of its own.
+    /// trooper rather than on its own; any other peripheral is a trooper of its own. A Lone Wolf's Aspect is the
+    /// Lone Wolf, so never leaves on its own.
     /// </summary>
     public static bool CanRetire(SavedCompanyEntry entry, SeasonFile? season, IReadOnlySet<int> servants) =>
-        !entry.IsLieutenant && !servants.Contains(entry.EntryIndex) && season?.IsRetired(entry.EntryIndex) != true;
+        !entry.IsLieutenant && entry.AspectOf is null && !servants.Contains(entry.EntryIndex) && season?.IsRetired(entry.EntryIndex) != true;
 
     /// <summary>
     /// The trooper retiring, with the renown it keeps (its cost and XP; its gear goes back to the inventory) and

@@ -142,6 +142,7 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             IsUncontrolledPeripheral = entry.FromControllerAugment && SeasonTroopers.ControllerOf(entry, season) is null,
             PeripheralSellPrice = entry.FromControllerAugment ? (int)Math.Ceiling(entry.Cost / 2.0) : 0,
             IsLieutenant = entry.IsLieutenant,
+            AspectOf = entry.AspectOf,
             CarriesCaptainUpgrades = entry.CarriesCaptainUpgrades,
             Cost = entry.Cost,
             SavedEquipment = equipment,
