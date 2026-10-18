@@ -49,4 +49,13 @@ public interface ICompanyMercsEntry
     int? PeripheralMoveSecondCm { get; }
     string? CachedLogoPath { get; }
     string? PackagedLogoPath { get; }
+
+    /// <summary>
+    /// The Doctor or Engineer a Servant recruited on its own belongs to: it is saved as that trooper's peripheral,
+    /// taking no slot. Null for every other trooper.
+    /// </summary>
+    ICompanyMercsEntry? ServantOwner { get; }
+
+    /// <summary>Where the trooper is in the saved company, for one already on a recruiting company's roster.</summary>
+    int? SavedEntryIndex { get; }
 }

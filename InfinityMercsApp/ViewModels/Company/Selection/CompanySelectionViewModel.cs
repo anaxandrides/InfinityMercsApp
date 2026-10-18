@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Utilities;
 using InfinityMercsApp.Presentation.Company.Selection;
@@ -15,6 +16,7 @@ using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.Services.Season.Peripherals;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Collections;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
@@ -275,7 +277,8 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         try
         {
             MercsCompanyEntries.Clear();
-            foreach (var entry in RosterEntries.From(recruitment.Company, recruitment.RetiredEntries))
+            var servants = new ServantPeripherals(Services.ArmyData).For(recruitment.Company);
+            foreach (var entry in RosterEntries.From(recruitment.Company, recruitment.RetiredEntries, servants))
             {
                 MercsCompanyEntries.Add(entry);
             }
@@ -1046,12 +1049,27 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             form = TransmutationForms.Of(chosen, Detail.Filters, Detail.ShowUnitsInInches);
         }
 
-        var entry = NewTrooperEntry.From(unit, profile, Detail, commonSkills, PeripheralStatsOf(profile), form);
+        MercsCompanyEntry? servantOwner = null;
+        if (PeripheralKinds.IsServant(commonSkills.Concat(CompanyProfileText.SplitDisplayLine(profile.UniqueSkills))))
+        {
+            if (await ChooseServantOwnerAsync(profile.Name) is not { } owner)
+            {
+                return;
+            }
+
+            servantOwner = owner;
+        }
+
+        var entry = NewTrooperEntry.From(unit, profile, Detail, commonSkills, PeripheralStatsOf(profile), form, servantOwner);
         OnEntryBuilt(entry);
 
         if (entry.IsLieutenant)
         {
             MercsCompanyEntries.Insert(0, entry);
+        }
+        else if (servantOwner is not null)
+        {
+            MercsCompanyEntries.Insert(MercsCompanyEntries.IndexOf(servantOwner) + 1, entry);
         }
         else
         {
@@ -1071,6 +1089,30 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         return index >= 0 ? forms[index] : null;
     }
 
+    // A Servant recruited on its own belongs to a Doctor or Engineer in the company: the only one, or the one the
+    // player picks; null when there is none or they back out.
+    private async Task<MercsCompanyEntry?> ChooseServantOwnerAsync(string servantName)
+    {
+        var owners = MercsCompanyEntries.Where(entry => entry.CanOwnServant).ToList();
+        switch (owners.Count)
+        {
+            case 0:
+                await Services.Dialogs.ShowAlertAsync(
+                    "Needs a Doctor or Engineer",
+                    $"{servantName} must belong to a Doctor or Engineer in the company. Add one first.");
+                return null;
+            case 1:
+                return owners[0];
+        }
+
+        var labels = owners
+            .Select((owner, index) => owners.Count(other => other.Name == owner.Name) > 1 ? $"{owner.Name} ({index + 1})" : owner.Name)
+            .ToList();
+        var choice = await Services.Dialogs.ChooseAsync($"Who does {servantName} belong to?", "Cancel", labels);
+        var chosen = choice is null ? -1 : labels.IndexOf(choice);
+        return chosen >= 0 ? owners[chosen] : null;
+    }
+
     /// <summary>Whether the selected unit can join the company at all.</summary>
     protected virtual bool CanAddProfile(ArmyUnitSelectionItem unit) => true;
 
@@ -1085,14 +1127,24 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     protected virtual Task AfterEntryAddedAsync(ArmyUnitSelectionItem unit, ViewerProfileItem profile, MercsCompanyEntry entry) =>
         Task.CompletedTask;
 
-    /// <summary>Takes a trooper out of the company; one already on a recruiting company's roster stays.</summary>
+    /// <summary>
+    /// Takes a trooper out of the company, with any Servant that belongs to it; one already on a recruiting
+    /// company's roster stays.
+    /// </summary>
     [RelayCommand]
     private void RemoveMercsCompanyEntry(MercsCompanyEntry? entry)
     {
-        if (entry is { IsOnRoster: false } && MercsCompanyEntries.Remove(entry))
+        if (entry is not { IsOnRoster: false } || !MercsCompanyEntries.Remove(entry))
         {
-            OnRosterChanged();
+            return;
         }
+
+        foreach (var servant in MercsCompanyEntries.Where(candidate => candidate.ServantOwner == entry).ToList())
+        {
+            MercsCompanyEntries.Remove(servant);
+        }
+
+        OnRosterChanged();
     }
 
     /// <summary>Swaps an entry for its finished version (a TAG after its Spec Ops are chosen).</summary>

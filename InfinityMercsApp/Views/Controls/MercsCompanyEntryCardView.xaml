@@ -61,83 +61,92 @@
                 Grid.Row="1"
                 Grid.Column="1"
                 Grid.ColumnSpan="2"
-                Spacing="6"
-                IsVisible="{Binding IsDetailsExpanded}">
-                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="6" RowSpacing="6">
-                    <Border Grid.Row="0" Grid.Column="0" BackgroundColor="Transparent" StrokeThickness="0" Padding="6,4">
-                        <Label Text="{Binding SavedEquipmentDisplay}" TextColor="{StaticResource TextSecondary}" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="Fill" />
-                    </Border>
-                    <Border Grid.Row="0" Grid.Column="1" BackgroundColor="Transparent" StrokeThickness="0" Padding="6,4">
-                        <Label Text="{Binding SavedSkillsDisplay}" TextColor="#F59E0B" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="Fill" />
-                    </Border>
-                    <Border Grid.Row="1" Grid.Column="0" BackgroundColor="Transparent" StrokeThickness="0" Padding="6,4">
-                        <Label Text="{Binding SavedRangedWeaponsDisplay}" TextColor="{StaticResource Danger}" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="Fill" />
-                    </Border>
-                    <Border Grid.Row="1" Grid.Column="1" BackgroundColor="Transparent" StrokeThickness="0" Padding="6,4">
-                        <Label Text="{Binding SavedCcWeaponsDisplay}" TextColor="{StaticResource Signal}" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="Fill" />
-                    </Border>
-                </Grid>
-
-                <Border BackgroundColor="{StaticResource Void}" Stroke="{StaticResource HairlineBright}" StrokeThickness="1" Padding="6,4" IsVisible="{Binding HasPeripheralStatBlock}">
-                    <VerticalStackLayout Spacing="4">
-                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
-                            <controls:SvgIcon
-                                Grid.Column="0"
-                                Source="SVGCache/CBIcons/peripheral.svg"
-                                WidthRequest="18"
-                                HeightRequest="18"
-                                VerticalOptions="Center" />
-                            <Label Grid.Column="1" Text="{Binding PeripheralNameHeading}" FontSize="{DynamicResource FontSizeCaption}" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" VerticalOptions="Center" />
-                        </Grid>
-                        <Label Text="{Binding PeripheralSubtitle}" FontSize="{DynamicResource FontSizeCaption}" TextColor="{StaticResource TextMuted}" LineBreakMode="WordWrap" />
-                        <Label
-                            FormattedText="{Binding PeripheralEquipmentLineFormatted}"
-                            TextColor="{StaticResource TextPrimary}"
-                            FontSize="{DynamicResource FontSizeCaption}"
-                            LineBreakMode="WordWrap"
-                            HorizontalOptions="Fill"
-                            IsVisible="{Binding HasPeripheralEquipmentLine}" />
-                        <Label
-                            FormattedText="{Binding PeripheralSkillsLineFormatted}"
-                            TextColor="{StaticResource TextPrimary}"
-                            FontSize="{DynamicResource FontSizeCaption}"
-                            LineBreakMode="WordWrap"
-                            HorizontalOptions="Fill"
-                            IsVisible="{Binding HasPeripheralSkillsLine}" />
-                    </VerticalStackLayout>
-                </Border>
+                Spacing="6">
+                <Label
+                    Text="{Binding ServantOfText}"
+                    FontSize="{DynamicResource FontSizeCaption}"
+                    TextColor="{StaticResource TextMuted}"
+                    IsVisible="{Binding IsServant}" />
 
                 <VerticalStackLayout
-                    Spacing="2"
-                    IsVisible="{Binding Source={x:Reference MercsEntryCardRoot}, Path=ShowOrderModifierBadges, x:DataType=controls:MercsCompanyEntryCardView}">
-                    <HorizontalStackLayout
-                        Spacing="4"
-                        IsVisible="{Binding IsIrregular}">
-                        <controls:SvgIcon
-                                Source="SVGCache/CBIcons/irregular.svg"
-                                WidthRequest="16"
-                                HeightRequest="16"
+                    Spacing="6"
+                    IsVisible="{Binding IsDetailsExpanded}">
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="6" RowSpacing="6">
+                        <Border Grid.Row="0" Grid.Column="0" BackgroundColor="Transparent" StrokeThickness="0" Padding="6,4">
+                            <Label Text="{Binding SavedEquipmentDisplay}" TextColor="{StaticResource TextSecondary}" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="Fill" />
+                        </Border>
+                        <Border Grid.Row="0" Grid.Column="1" BackgroundColor="Transparent" StrokeThickness="0" Padding="6,4">
+                            <Label Text="{Binding SavedSkillsDisplay}" TextColor="#F59E0B" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="Fill" />
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="0" BackgroundColor="Transparent" StrokeThickness="0" Padding="6,4">
+                            <Label Text="{Binding SavedRangedWeaponsDisplay}" TextColor="{StaticResource Danger}" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="Fill" />
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="1" BackgroundColor="Transparent" StrokeThickness="0" Padding="6,4">
+                            <Label Text="{Binding SavedCcWeaponsDisplay}" TextColor="{StaticResource Signal}" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap" HorizontalOptions="Fill" />
+                        </Border>
+                    </Grid>
+
+                    <Border BackgroundColor="{StaticResource Void}" Stroke="{StaticResource HairlineBright}" StrokeThickness="1" Padding="6,4" IsVisible="{Binding HasPeripheralStatBlock}">
+                        <VerticalStackLayout Spacing="4">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                                <controls:SvgIcon
+                                    Grid.Column="0"
+                                    Source="SVGCache/CBIcons/peripheral.svg"
+                                    WidthRequest="18"
+                                    HeightRequest="18"
+                                    VerticalOptions="Center" />
+                                <Label Grid.Column="1" Text="{Binding PeripheralNameHeading}" FontSize="{DynamicResource FontSizeCaption}" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" VerticalOptions="Center" />
+                            </Grid>
+                            <Label Text="{Binding PeripheralSubtitle}" FontSize="{DynamicResource FontSizeCaption}" TextColor="{StaticResource TextMuted}" LineBreakMode="WordWrap" />
+                            <Label
+                                FormattedText="{Binding PeripheralEquipmentLineFormatted}"
+                                TextColor="{StaticResource TextPrimary}"
+                                FontSize="{DynamicResource FontSizeCaption}"
+                                LineBreakMode="WordWrap"
+                                HorizontalOptions="Fill"
+                                IsVisible="{Binding HasPeripheralEquipmentLine}" />
+                            <Label
+                                FormattedText="{Binding PeripheralSkillsLineFormatted}"
+                                TextColor="{StaticResource TextPrimary}"
+                                FontSize="{DynamicResource FontSizeCaption}"
+                                LineBreakMode="WordWrap"
+                                HorizontalOptions="Fill"
+                                IsVisible="{Binding HasPeripheralSkillsLine}" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <VerticalStackLayout
+                        Spacing="2"
+                        IsVisible="{Binding Source={x:Reference MercsEntryCardRoot}, Path=ShowOrderModifierBadges, x:DataType=controls:MercsCompanyEntryCardView}">
+                        <HorizontalStackLayout
+                            Spacing="4"
+                            IsVisible="{Binding IsIrregular}">
+                            <controls:SvgIcon
+                                    Source="SVGCache/CBIcons/irregular.svg"
+                                    WidthRequest="16"
+                                    HeightRequest="16"
+                                    VerticalOptions="Center" />
+                            <Label
+                                Text="Irregular"
+                                FontSize="{DynamicResource FontSizeCaption}"
+                                TextColor="{StaticResource Danger}"
                                 VerticalOptions="Center" />
-                        <Label
-                            Text="Irregular"
-                            FontSize="{DynamicResource FontSizeCaption}"
-                            TextColor="{StaticResource Danger}"
-                            VerticalOptions="Center" />
-                    </HorizontalStackLayout>
-                    <HorizontalStackLayout
-                        Spacing="4"
-                        IsVisible="{Binding ShowRegularModifier}">
-                        <controls:SvgIcon
-                                Source="SVGCache/CBIcons/regular.svg"
-                                WidthRequest="16"
-                                HeightRequest="16"
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout
+                            Spacing="4"
+                            IsVisible="{Binding ShowRegularModifier}">
+                            <controls:SvgIcon
+                                    Source="SVGCache/CBIcons/regular.svg"
+                                    WidthRequest="16"
+                                    HeightRequest="16"
+                                    VerticalOptions="Center" />
+                            <Label
+                                Text="Regular"
+                                FontSize="{DynamicResource FontSizeCaption}"
+                                TextColor="{StaticResource Signal}"
                                 VerticalOptions="Center" />
-                        <Label
-                            Text="Regular"
-                            FontSize="{DynamicResource FontSizeCaption}"
-                            TextColor="{StaticResource Signal}"
-                            VerticalOptions="Center" />
-                    </HorizontalStackLayout>
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
                 </VerticalStackLayout>
             </VerticalStackLayout>
         </Grid>

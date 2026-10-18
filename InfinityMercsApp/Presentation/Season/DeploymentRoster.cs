@@ -90,7 +90,7 @@ public sealed partial class DeploymentRoster(
                 SeasonTroopers.CaptainBonusesOf(entry, company.ImprovedCaptainStats),
                 SeasonTroopers.ProgressOf(entry, season),
                 new RolledResults(SeasonTroopers.RollResultsOf(entry, season), kinds),
-                SeasonRenown.Of(entry, season, catalog).Total,
+                SeasonRenown.Of(entry, company, season, catalog, servants).Total,
                 controllers.Contains(entry.EntryIndex),
                 showUnitsInInches))
             .ToList();

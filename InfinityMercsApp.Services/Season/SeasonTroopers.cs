@@ -78,10 +78,6 @@ public static class SeasonTroopers
         peripheral.ParentEntryIndex is { } controller && season?.IsRetired(controller) != true ? controller : null;
 
     /// <summary>
-    /// Whether the entry is a Servant or Ancillary peripheral, which stays equipment of its trooper; any other
-    /// peripheral is a trooper of its own.
-    /// </summary>
-    /// <summary>
     /// The faction a trooper's profiles come from: its source faction, except that TAG Company units (its own
     /// TAGs and the repurposed mining TAGs) keep the TAG Company, even when saved under another faction.
     /// </summary>
@@ -99,6 +95,10 @@ public static class SeasonTroopers
             : entry.SourceFactionId;
     }
 
+    /// <summary>
+    /// Whether the entry is a Servant or Ancillary peripheral, which stays equipment of its trooper; any other
+    /// peripheral is a trooper of its own.
+    /// </summary>
     public static bool IsServantPeripheral(SavedCompanyEntry entry, ArmyFilterCatalog? filters) =>
         entry.IsPeripheralUnit &&
         PeripheralKinds.IsServant([

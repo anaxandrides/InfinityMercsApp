@@ -34,7 +34,7 @@ public sealed class SeasonRenownTests
         };
         season.UnitGear[1] = [new SeasonUnitGear { ItemName = "Pistol", Slot = GearSlot.Sidearm.Key() }];
 
-        var renown = SeasonRenown.Of(Company().Entries[0], season, Catalog);
+        var renown = SeasonRenown.Of(Company().Entries[0], Company(), season, Catalog, Servants);
 
         Assert.Equal(new(InitialCost: 10, GearCost: 3, Experience: 4 + 6), renown);
     }
@@ -45,5 +45,31 @@ public sealed class SeasonRenownTests
         var season = new SeasonFile { Rounds = [new SeasonRound { RoundIndex = 1, MissionResults = new SeasonMissionResult { Won = true } }] };
 
         Assert.Equal(14 + 20 + 5 + 10, SeasonRenown.OfCompany(Company(), season, Catalog, Servants));
+    }
+
+    [Fact]
+    public void Of_OwnerOfARecruitedServant_CountsTheServantsCost()
+    {
+        var company = WithRecruitedPalbot();
+
+        var renown = SeasonRenown.Of(company.Entries[0], company, null, Catalog, new HashSet<int> { 3, 5 });
+
+        Assert.Equal(10 + 4, renown.InitialCost);
+    }
+
+    [Fact]
+    public void OfCompany_RecruitedServant_CountsOnceThroughItsOwner()
+    {
+        var company = WithRecruitedPalbot();
+
+        Assert.Equal(14 + 4 + 20 + 5, SeasonRenown.OfCompany(company, null, Catalog, new HashSet<int> { 3, 5 }));
+    }
+
+    // The Fusilier is a Doctor who bought a Palbot on its own.
+    private static SavedCompanyFile WithRecruitedPalbot()
+    {
+        var company = Company();
+        company.Entries.Add(new SavedCompanyEntry { EntryIndex = 5, Name = "Palbot", Cost = 4, IsPeripheralUnit = true, ParentEntryIndex = 1 });
+        return company;
     }
 }

@@ -25,6 +25,22 @@ public partial class MercsCompanyEntry : ObservableObject, IViewerListItem, ICom
     public bool IsOnRoster { get; init; }
 
     public bool CanRemove => !IsOnRoster;
+
+    /// <inheritdoc/>
+    public int? SavedEntryIndex { get; init; }
+
+    /// <summary>A Doctor or Engineer, who can own a Servant recruited on its own.</summary>
+    public bool CanOwnServant { get; init; }
+
+    /// <summary>The Doctor or Engineer this Servant belongs to; null for every other trooper.</summary>
+    public MercsCompanyEntry? ServantOwner { get; init; }
+
+    ICompanyMercsEntry? ICompanyMercsEntry.ServantOwner => ServantOwner;
+
+    public bool IsServant => ServantOwner is not null;
+
+    /// <summary>Who the Servant belongs to, e.g. "Servant of Hakim".</summary>
+    public string ServantOfText => ServantOwner is { } owner ? $"Servant of {owner.Name}" : string.Empty;
     public int SourceUnitId { get; init; }
     public int SourceFactionId { get; init; }
     public int LogoSourceFactionId { get; init; }

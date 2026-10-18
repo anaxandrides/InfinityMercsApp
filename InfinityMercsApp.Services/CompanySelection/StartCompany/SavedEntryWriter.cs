@@ -30,7 +30,8 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
 
     /// <summary>
     /// The troopers as saved entries numbered from <paramref name="firstEntryIndex"/>, each followed by its
-    /// peripheral; the lieutenant gets <paramref name="improvedCaptainStats"/>.
+    /// peripheral; the lieutenant gets <paramref name="improvedCaptainStats"/>. A Servant recruited on its own is
+    /// saved as its owner's peripheral, at its own cost.
     /// </summary>
     internal List<SerializedCompanyEntry> Build<TEntry>(
         IList<TEntry> entries,
@@ -41,6 +42,7 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
     {
         var result = new List<SerializedCompanyEntry>(entries.Count * 2);
         var encoder = new SavedCodeEncoder(armyData);
+        var indexes = EntryIndexes(entries, firstEntryIndex);
         var entryIndex = firstEntryIndex;
 
         foreach (var entry in entries)
@@ -49,6 +51,7 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
             result.Add(CreatePrimaryEntry(
                 entry,
                 primaryEntryIndex,
+                ServantOwnerIndex(entry, indexes),
                 normalizedCaptainName,
                 improvedCaptainStats,
                 encoder));
@@ -68,9 +71,31 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
         return result;
     }
 
+    // Where each trooper will be saved, so a Servant can point at its owner wherever the owner is in the list.
+    private static Dictionary<ICompanyMercsEntry, int> EntryIndexes<TEntry>(IList<TEntry> entries, int firstEntryIndex)
+        where TEntry : class, ICompanyMercsEntry
+    {
+        var indexes = new Dictionary<ICompanyMercsEntry, int>(ReferenceEqualityComparer.Instance);
+        var entryIndex = firstEntryIndex;
+        foreach (var entry in entries)
+        {
+            indexes[entry] = entryIndex;
+            entryIndex += entry.HasPeripheralStatBlock ? 2 : 1;
+        }
+
+        return indexes;
+    }
+
+    // A Servant's owner: one saved alongside it, or one already in the company.
+    private static int? ServantOwnerIndex(ICompanyMercsEntry entry, Dictionary<ICompanyMercsEntry, int> indexes) =>
+        entry.ServantOwner is not { } owner ? null
+        : indexes.TryGetValue(owner, out var index) ? index
+        : owner.SavedEntryIndex;
+
     private SerializedCompanyEntry CreatePrimaryEntry<TEntry>(
         TEntry entry,
         int entryIndex,
+        int? servantOwnerIndex,
         string normalizedCaptainName,
         SavedImprovedCaptainStats improvedCaptainStats,
         SavedCodeEncoder encoder)
@@ -181,8 +206,8 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
             SourceUnitId = entry.SourceUnitId,
             LogoSourceFactionId = entry.LogoSourceFactionId,
             LogoSourceUnitId = entry.LogoSourceUnitId,
-            IsPeripheralUnit = false,
-            ParentEntryIndex = null,
+            IsPeripheralUnit = servantOwnerIndex is not null,
+            ParentEntryIndex = servantOwnerIndex,
             Cost = entry.CostValue,
             IsLieutenant = entry.IsLieutenant,
             // Persist peripherals as dedicated child entries only.

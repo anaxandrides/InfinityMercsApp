@@ -39,7 +39,7 @@ public static class SeasonRetirement
         return new RetiringTrooper(
             entryIndex,
             SeasonTroopers.NameOf(entry),
-            SeasonRenown.Of(entry, season, catalog).WithoutGear,
+            SeasonRenown.Of(entry, company, season, catalog, servants).WithoutGear,
             peripherals);
     }
 }

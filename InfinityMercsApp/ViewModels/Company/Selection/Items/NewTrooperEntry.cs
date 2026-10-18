@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Presentation.Company.Selection;
 using InfinityMercsApp.Presentation.Units;
@@ -15,7 +16,8 @@ public static class NewTrooperEntry
     /// A profile of the picked unit as a new company trooper: the unit's shared equipment and skills merged with
     /// the profile's own, its statline, and its peripheral's. A controlled peripheral makes its controller an
     /// FT Master and is Irregular. A Transmutation (Auto) trooper recruited in one <paramref name="form"/> takes that
-    /// form's statline, skills, equipment and characteristics, and loses Transmutation (Auto).
+    /// form's statline, skills, equipment and characteristics, and loses Transmutation (Auto). A Servant recruited on
+    /// its own goes to its <paramref name="servantOwner"/>, a Doctor or Engineer in the company.
     /// </summary>
     public static MercsCompanyEntry From(
         ArmyUnitSelectionItem selectedUnit,
@@ -23,7 +25,8 @@ public static class NewTrooperEntry
         CompanyUnitDetail detail,
         IReadOnlyCollection<string> commonSkills,
         PeripheralMercsCompanyStats? peripheralStats,
-        TrooperForm? form = null)
+        TrooperForm? form = null,
+        MercsCompanyEntry? servantOwner = null)
     {
         string Move(int? firstCm, int? secondCm) => Movement.Format(Movement.From(firstCm, secondCm), detail.ShowUnitsInInches);
 
@@ -126,6 +129,8 @@ public static class NewTrooperEntry
             HasEquipmentLine = combinedEquipment.Count > 0,
             SkillsLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Skills", combinedSkillsText, Color.FromArgb("#F59E0B")),
             HasSkillsLine = combinedSkills.Count > 0,
+            CanOwnServant = PeripheralKinds.CanOwnServant(combinedSkills),
+            ServantOwner = servantOwner,
             RangedLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Ranged Weapons", profile.RangedWeapons, Color.FromArgb("#EF4444")),
             CcLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("CC Weapons", profile.MeleeWeapons, Color.FromArgb("#22C55E")),
             HasPeripheralStatBlock = hasPeripheralData,
