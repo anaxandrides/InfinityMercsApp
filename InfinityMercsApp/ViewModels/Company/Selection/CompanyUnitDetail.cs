@@ -127,21 +127,7 @@ public sealed partial class CompanyUnitDetail : ObservableObject, IUnitDisplay
     {
         UnitMoveFirstCm = profile.Movement?.FirstCm;
         UnitMoveSecondCm = profile.Movement?.SecondCm;
-        var vitality = profile.Vitality;
-        Stats = new UnitStatLine
-        {
-            Mov = Movement.Format(profile.Movement, ShowUnitsInInches),
-            Cc = UnitProfile.StatText(profile.Cc),
-            Bs = UnitProfile.StatText(profile.Bs),
-            Ph = UnitProfile.StatText(profile.Ph),
-            Wip = UnitProfile.StatText(profile.Wip),
-            Arm = UnitProfile.StatText(profile.Arm),
-            Bts = UnitProfile.StatText(profile.Bts),
-            S = UnitProfile.StatText(profile.S),
-            Ava = profile.AvaText,
-            VitalityHeader = vitality.Stat.Key(),
-            Vitality = vitality.Value
-        };
+        Stats = UnitStatLine.From(profile, ShowUnitsInInches);
     }
 
     /// <summary>Shows the first profile's statline, or none when the unit has no profiles.</summary>

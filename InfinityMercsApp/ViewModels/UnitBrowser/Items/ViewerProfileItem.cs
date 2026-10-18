@@ -10,6 +10,9 @@ public partial class ViewerProfileItem : ObservableObject
 {
     public string GroupName { get; init; } = string.Empty;
 
+    /// <summary>The profile group the configuration's option belongs to; null for a saved trooper's profile.</summary>
+    public int? GroupId { get; init; }
+
     public string Name { get; init; } = string.Empty;
 
     public string ProfileKey { get; init; } = string.Empty;
@@ -87,6 +90,7 @@ public partial class ViewerProfileItem : ObservableObject
         return new ViewerProfileItem
         {
             GroupName = configuration.GroupName,
+            GroupId = configuration.GroupId,
             Name = configuration.Name,
             ProfileKey = configuration.ProfileKey,
             IsLieutenant = configuration.IsLieutenant,

@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Presentation.Company.Selection;
+using InfinityMercsApp.Presentation.Units;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Profiles;
@@ -13,23 +14,33 @@ public static class NewTrooperEntry
     /// <summary>
     /// A profile of the picked unit as a new company trooper: the unit's shared equipment and skills merged with
     /// the profile's own, its statline, and its peripheral's. A controlled peripheral makes its controller an
-    /// FT Master and is Irregular.
+    /// FT Master and is Irregular. A Transmutation (Auto) trooper recruited in one <paramref name="form"/> takes that
+    /// form's statline, skills, equipment and characteristics, and loses Transmutation (Auto).
     /// </summary>
     public static MercsCompanyEntry From(
         ArmyUnitSelectionItem selectedUnit,
         ViewerProfileItem profile,
         CompanyUnitDetail detail,
         IReadOnlyCollection<string> commonSkills,
-        PeripheralMercsCompanyStats? peripheralStats)
+        PeripheralMercsCompanyStats? peripheralStats,
+        TrooperForm? form = null)
     {
         string Move(int? firstCm, int? secondCm) => Movement.Format(Movement.From(firstCm, secondCm), detail.ShowUnitsInInches);
 
-        var stats = detail.Stats;
-        var unitMoveFirstCm = detail.UnitMoveFirstCm;
-        var unitMoveSecondCm = detail.UnitMoveSecondCm;
+        var stats = form is null ? detail.Stats : UnitStatLine.From(form.Profile, detail.ShowUnitsInInches);
+        var unitMoveFirstCm = form is null ? detail.UnitMoveFirstCm : form.Profile.Movement?.FirstCm;
+        var unitMoveSecondCm = form is null ? detail.UnitMoveSecondCm : form.Profile.Movement?.SecondCm;
         var combinedEquipment = CompanyProfileText.MergeCommonAndUnique(detail.CommonEquipment.ToList(), profile.UniqueEquipment);
         var combinedSkills = CompanyProfileText.MergeCommonAndUnique(commonSkills, profile.UniqueSkills);
         var combinedCharacteristics = CompanyProfileText.SplitDisplayLine(profile.Characteristics).ToList();
+        if (form is not null)
+        {
+            combinedSkills.RemoveAll(TransmutationForms.IsAuto);
+            AddMissing(combinedSkills, form.Skills);
+            AddMissing(combinedEquipment, form.Equipment);
+            AddMissing(combinedCharacteristics, form.Characteristics);
+        }
+
         var inferredPeripheralName = PeripheralNames.FirstOf(profile.Peripherals);
         var peripheralHasControlModifier = ProfileHasPeripheralControlModifier(profile, inferredPeripheralName);
         if (peripheralHasControlModifier && !string.IsNullOrWhiteSpace(inferredPeripheralName))
@@ -150,6 +161,9 @@ public static class NewTrooperEntry
             PeripheralMoveSecondCm = peripheralStats?.MoveSecondCm
         };
     }
+
+    private static void AddMissing(List<string> names, IEnumerable<string> more) =>
+        names.AddRange(more.Where(name => !names.Contains(name, StringComparer.OrdinalIgnoreCase)).ToList());
 
     private static void EnsureSkill(ICollection<string> skills, string skill)
     {

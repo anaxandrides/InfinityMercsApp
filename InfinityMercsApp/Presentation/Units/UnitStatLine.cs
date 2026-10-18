@@ -17,6 +17,26 @@ public sealed record UnitStatLine
     public string VitalityHeader { get; init; } = Stat.Vita.Key();
 
     public string Vitality { get; init; } = "-";
+
+    /// <summary>A profile's statline, its MOV in inches or centimetres.</summary>
+    public static UnitStatLine From(UnitProfile profile, bool showUnitsInInches)
+    {
+        var vitality = profile.Vitality;
+        return new UnitStatLine
+        {
+            Mov = Movement.Format(profile.Movement, showUnitsInInches),
+            Cc = UnitProfile.StatText(profile.Cc),
+            Bs = UnitProfile.StatText(profile.Bs),
+            Ph = UnitProfile.StatText(profile.Ph),
+            Wip = UnitProfile.StatText(profile.Wip),
+            Arm = UnitProfile.StatText(profile.Arm),
+            Bts = UnitProfile.StatText(profile.Bts),
+            S = UnitProfile.StatText(profile.S),
+            Ava = profile.AvaText,
+            VitalityHeader = vitality.Stat.Key(),
+            Vitality = vitality.Value
+        };
+    }
     public string S { get; init; } = "-";
     public string Ava { get; init; } = "-";
 

@@ -13,6 +13,7 @@ namespace InfinityMercsApp.Services.CompanySelection.Profiles;
 /// <param name="PeripheralIsControlled">The peripheral is a synchronized, control or cyberplug one: it is Irregular and gives its controller FT Master.</param>
 /// <param name="PeripheralUnitName">The peripheral's name without its count or control tag, e.g. "Traktor Mul".</param>
 /// <param name="HasTacticalAwareness">The configuration has Tactical Awareness, as an order or a skill.</param>
+/// <param name="GroupId">The profile group the option belongs to, whose profiles are the trooper's forms.</param>
 public sealed record ProfileConfiguration(
     string GroupName,
     string Name,
@@ -32,4 +33,5 @@ public sealed record ProfileConfiguration(
     string PeripheralUnitName,
     string Swc,
     string Cost,
-    bool HasTacticalAwareness);
+    bool HasTacticalAwareness,
+    int? GroupId);

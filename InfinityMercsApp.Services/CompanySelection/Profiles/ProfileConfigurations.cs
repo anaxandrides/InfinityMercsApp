@@ -235,7 +235,8 @@ public static class ProfileConfigurations
                     ftMasterPeripheralName,
                     swc,
                     displayCost,
-                    hasTacticalAwareness || optionSkillNames.Any(x => x.Contains("tactical awareness", StringComparison.OrdinalIgnoreCase)));
+                    hasTacticalAwareness || optionSkillNames.Any(x => x.Contains("tactical awareness", StringComparison.OrdinalIgnoreCase)),
+                    group.Id);
 
                 if (existingConfiguration is not null)
                 {

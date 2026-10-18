@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Utilities;
 using InfinityMercsApp.Presentation.Company.Selection;
+using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Profiles;
@@ -1032,8 +1033,20 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             return;
         }
 
-        var entry = NewTrooperEntry.From(
-            unit, profile, Detail, CommonSkillsFor(unit, profile, Detail.CommonSkills), PeripheralStatsOf(profile));
+        var commonSkills = CommonSkillsFor(unit, profile, Detail.CommonSkills);
+        TrooperForm? form = null;
+        var forms = TransmutationForms.FormsOf(Detail.ProfileGroups, profile.GroupId);
+        if (forms.Count > 1 && commonSkills.Concat(CompanyProfileText.SplitDisplayLine(profile.UniqueSkills)).Any(TransmutationForms.IsAuto))
+        {
+            if (await ChooseFormAsync(profile.Name, forms) is not { } chosen)
+            {
+                return;
+            }
+
+            form = TransmutationForms.Of(chosen, Detail.Filters, Detail.ShowUnitsInInches);
+        }
+
+        var entry = NewTrooperEntry.From(unit, profile, Detail, commonSkills, PeripheralStatsOf(profile), form);
         OnEntryBuilt(entry);
 
         if (entry.IsLieutenant)
@@ -1047,6 +1060,15 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
         OnRosterChanged();
         await AfterEntryAddedAsync(unit, profile, entry);
+    }
+
+    // Transmutation (Auto) is banned: the trooper is recruited in the one form the player picks; null when they back out.
+    private async Task<UnitProfile?> ChooseFormAsync(string profileName, IReadOnlyList<UnitProfile> forms)
+    {
+        var labels = forms.Select((form, index) => string.IsNullOrWhiteSpace(form.Name) ? $"Form {index + 1}" : form.Name).ToList();
+        var choice = await Services.Dialogs.ChooseAsync($"Choose {profileName}'s form", "Cancel", labels);
+        var index = choice is null ? -1 : labels.IndexOf(choice);
+        return index >= 0 ? forms[index] : null;
     }
 
     /// <summary>Whether the selected unit can join the company at all.</summary>
