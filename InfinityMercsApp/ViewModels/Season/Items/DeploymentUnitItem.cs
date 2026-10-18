@@ -107,7 +107,7 @@ public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListIt
 
     /// <summary>The trooper's part in the contract, for the post-game pages.</summary>
     /// <param name="deploymentXp">The XP for being deployed: the round number, or 0 when it was not deployed.</param>
-    public ExperienceUnitResult ToResult(int deploymentXp, bool isEliteDeployment) => new()
+    public ExperienceUnitResult ToResult(int deploymentXp, bool isEliteDeployment, bool wasDeployed) => new()
     {
         EntryIndex = EntryIndex,
         Name = Name,
@@ -116,6 +116,7 @@ public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListIt
         DeploymentXp = deploymentXp,
         IsEliteDeployment = isEliteDeployment,
         IsConsciousAtEnd = WoundState.IsConscious(),
+        WasDeployed = wasDeployed,
         GainedInjury = false,
         XpData = XpData,
         IsCaptain = IsLieutenant,

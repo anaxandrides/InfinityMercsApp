@@ -26,7 +26,14 @@ public abstract class CompanySavedCompanyEntryBase
     /// </summary>
     public bool FromControllerAugment { get; init; }
     public int Cost { get; init; }
-    public bool IsLieutenant { get; init; }
+    /// <summary>The Captain; a downtime change of leadership can pass the role to another trooper.</summary>
+    public bool IsLieutenant { get; set; }
+
+    /// <summary>
+    /// Carries the captain upgrades bought when the company was founded: the founding Captain, who keeps them when
+    /// another trooper becomes Captain.
+    /// </summary>
+    public bool CarriesCaptainUpgrades { get; init; }
 
     [JsonIgnore]
     public string SavedEquipment { get; init; } = "-";

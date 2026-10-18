@@ -76,14 +76,14 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         var baseUnitName = !string.IsNullOrWhiteSpace(entry.BaseUnitName) ? entry.BaseUnitName
             : !string.IsNullOrWhiteSpace(entry.Name) ? entry.Name
             : $"Unit {position + 1}";
-        var defaultName = entry.IsLieutenant ? captainName : baseUnitName;
+        var defaultName = entry.CarriesCaptainUpgrades ? captainName : baseUnitName;
 
         var filters = sourceFactionId > 0 ? armyData.GetFactionSnapshot(sourceFactionId)?.Filters : null;
         var weapons = SavedCodeNames.Weapons(filters, entry);
         var ranged = SavedCodeNames.JoinOrDash(weapons.Ranged);
         var skills = SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Skills));
         var equipment = SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Equip));
-        if (entry.IsLieutenant && captain.IsEnabled)
+        if (entry.CarriesCaptainUpgrades && captain.IsEnabled)
         {
             ranged = ProfileText.AppendDistinct(ranged, SavedUnitText.CaptainChoiceNames(captain.WeaponChoice1, captain.WeaponChoice2, captain.WeaponChoice3));
             skills = ProfileText.AppendDistinct(skills, SavedUnitText.CaptainChoiceNames(captain.SkillChoice1, captain.SkillChoice2, captain.SkillChoice3));
@@ -142,6 +142,7 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             IsUncontrolledPeripheral = entry.FromControllerAugment && SeasonTroopers.ControllerOf(entry, season) is null,
             PeripheralSellPrice = entry.FromControllerAugment ? (int)Math.Ceiling(entry.Cost / 2.0) : 0,
             IsLieutenant = entry.IsLieutenant,
+            CarriesCaptainUpgrades = entry.CarriesCaptainUpgrades,
             Cost = entry.Cost,
             SavedEquipment = equipment,
             SavedSkills = ProfileText.JoinOrDash(profile.Skills),

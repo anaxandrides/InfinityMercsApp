@@ -48,20 +48,22 @@ public sealed class DowntimeViewModelTests
         [
             new ExperienceUnitResult
             {
-                EntryIndex = 1, Name = "Alpha", IsLieutenant = true, Renown = 30, Skills = "Hacker",
+                EntryIndex = 1, Name = "Alpha", IsLieutenant = true, Renown = 30, Skills = "Hacker", WasDeployed = true, IsConsciousAtEnd = true,
                 UnitCc = "14", UnitBs = "11", UnitPh = "10", UnitWip = "13", UnitArm = "1"
             },
             new ExperienceUnitResult
             {
-                EntryIndex = 2, Name = "Bravo", IsMvp = true, Renown = 20,
+                EntryIndex = 2, Name = "Bravo", IsMvp = true, Renown = 20, WasDeployed = true,
                 UnitCc = "12", UnitBs = "12", UnitPh = "11", UnitWip = "12", UnitArm = "2"
             }
         ];
+        _debrief.Troopers = _debrief.Units;
     }
 
     private DowntimeViewModel Create()
     {
-        var viewModel = new DowntimeViewModel(_navigation, _seasonFiles, _debrief, _dice, _dialogs, _companyFiles, new CompanyRoster(_armyData));
+        var viewModel = new DowntimeViewModel(
+            _navigation, _seasonFiles, _debrief, _dice, _dialogs, _companyFiles, new CompanyRoster(_armyData), new CaptainChange(_armyData));
         viewModel.ApplyQueryAttributes(NavigationParameters.ForCompany(CompanyPath, SeasonPath));
         return viewModel;
     }
@@ -295,7 +297,7 @@ public sealed class DowntimeViewModelTests
     [Fact]
     public async Task PickChoiceCommand_NobodyEligible_BlocksTheFlow()
     {
-        _debrief.Units = [];
+        _debrief.Troopers = [];
         var viewModel = Create();
         await EnterRollAsync(viewModel, 1);
 
@@ -374,6 +376,117 @@ public sealed class DowntimeViewModelTests
         await EnterRollAsync(viewModel, 15);
 
         Assert.Equal([Injury.BrainInjury, Injury.ShellShocked], _season.Troopers[1].Injuries);
+    }
+
+    [Fact]
+    public async Task PickChoiceCommand_TrooperLeftBehind_CanTakePart()
+    {
+        _debrief.Troopers = [.. _debrief.Units, new ExperienceUnitResult { EntryIndex = 3, Name = "Charlie", IsConsciousAtEnd = true, UnitPh = "12" }];
+        var viewModel = Create();
+        await EnterRollAsync(viewModel, 1);
+
+        await viewModel.PickChoiceCommand.ExecuteAsync(viewModel.ChoiceCards[1]);
+
+        Assert.Equal(["Alpha", "Bravo", "Charlie"], viewModel.Participants.Select(p => p.DisplayName));
+    }
+
+    [Fact]
+    public async Task PickChoiceCommand_HostageEvent_ListsOnlyTroopersKnockedOutInTheContract()
+    {
+        _debrief.Troopers = [.. _debrief.Units, new ExperienceUnitResult { EntryIndex = 3, Name = "Charlie" }];
+        var viewModel = Create();
+        await EnterRollAsync(viewModel, 9);
+
+        await viewModel.PickChoiceCommand.ExecuteAsync(viewModel.ChoiceCards[0]);
+
+        Assert.Equal("Select a Merc that went unconscious this contract:", viewModel.ParticipantPrompt);
+        Assert.Equal(["Bravo"], viewModel.Participants.Select(p => p.DisplayName));
+    }
+
+    [Fact]
+    public async Task PickChoiceCommand_RomanceEvent_ListsOnlyTheMvp()
+    {
+        var viewModel = Create();
+        await EnterRollAsync(viewModel, 5);
+
+        await viewModel.PickChoiceCommand.ExecuteAsync(viewModel.ChoiceCards[1]);
+
+        Assert.Equal(["Bravo"], viewModel.Participants.Select(p => p.DisplayName));
+    }
+
+    [Fact]
+    public async Task ConsequenceLines_OpponentEventFailed_ListWhatTheOpponentGains()
+    {
+        var viewModel = Create();
+        await EnterRollAsync(viewModel, 7);
+        await viewModel.PickChoiceCommand.ExecuteAsync(viewModel.ChoiceCards[0]);
+        await viewModel.PickParticipantCommand.ExecuteAsync(ParticipantNamed(viewModel, "Alpha"));
+        _dice.RollD20().Returns(5);
+
+        await EnterRollAsync(viewModel, 20);
+
+        Assert.Contains("Opponent: A trooper of your opponent's choice gains 2 XP", viewModel.ConsequenceLines);
+        Assert.Contains("Opponent: A trooper of your opponent's choice gains 2 XP", _round.Downtime.OtherEffects);
+        Assert.Equal(-1, _round.Downtime.NotorietyGain);
+    }
+
+    [Fact]
+    public async Task ConsequenceLines_MutualEventCriticallyPassed_GiveTheOpponentsMvpTheSame()
+    {
+        var viewModel = Create();
+        await EnterRollAsync(viewModel, 5);
+        await viewModel.PickChoiceCommand.ExecuteAsync(viewModel.ChoiceCards[0]);
+        await viewModel.PickParticipantCommand.ExecuteAsync(ParticipantNamed(viewModel, "Bravo"));
+
+        await EnterRollAsync(viewModel, 10);
+
+        Assert.Equal(["Bravo gains 3 XP", "Opponent: Your opponent's MVP gains 3 XP"], viewModel.ConsequenceLines);
+    }
+
+    [Fact]
+    public async Task ShowOutcome_LeadershipChangeAllowed_MakesTheChosenTrooperCaptain()
+    {
+        var company = new SavedCompanyFile
+        {
+            Entries =
+            [
+                new SavedCompanyEntry { EntryIndex = 1, BaseUnitName = "Alpha", IsLieutenant = true, CarriesCaptainUpgrades = true, CustomSkills = ["Lieutenant"] },
+                new SavedCompanyEntry { EntryIndex = 2, BaseUnitName = "Bravo" }
+            ]
+        };
+        _companyFiles.Exists(CompanyPath).Returns(true);
+        _companyFiles.LoadAsync(CompanyPath).Returns(company);
+        _dialogs.ChooseAsync("Choose the new Captain", "Keep Captain", Arg.Any<IReadOnlyList<string>>()).Returns("Bravo");
+        var viewModel = Create();
+        await EnterRollAsync(viewModel, 11);
+        await viewModel.PickChoiceCommand.ExecuteAsync(viewModel.ChoiceCards[0]);
+        await viewModel.PickParticipantCommand.ExecuteAsync(ParticipantNamed(viewModel, "Alpha"));
+
+        await EnterRollAsync(viewModel, 3);
+
+        Assert.Contains("Bravo is the new Captain", viewModel.ConsequenceLines);
+        Assert.True(company.Entries[1].IsLieutenant);
+        Assert.False(company.Entries[0].IsLieutenant);
+        Assert.True(company.Entries[0].CarriesCaptainUpgrades);
+        await _companyFiles.Received(1).SaveAsync(CompanyPath, company);
+    }
+
+    [Fact]
+    public async Task ShowOutcome_CaptainKept_SavesNothing()
+    {
+        _companyFiles.Exists(CompanyPath).Returns(true);
+        _companyFiles.LoadAsync(CompanyPath).Returns(new SavedCompanyFile
+        {
+            Entries = [new SavedCompanyEntry { EntryIndex = 1, IsLieutenant = true, CarriesCaptainUpgrades = true }, new SavedCompanyEntry { EntryIndex = 2, BaseUnitName = "Bravo" }]
+        });
+        var viewModel = Create();
+        await EnterRollAsync(viewModel, 11);
+        await viewModel.PickChoiceCommand.ExecuteAsync(viewModel.ChoiceCards[0]);
+        await viewModel.PickParticipantCommand.ExecuteAsync(ParticipantNamed(viewModel, "Alpha"));
+
+        await EnterRollAsync(viewModel, 3);
+
+        await _companyFiles.DidNotReceive().SaveAsync(Arg.Any<string>(), Arg.Any<SavedCompanyFile>());
     }
 
     [Fact]

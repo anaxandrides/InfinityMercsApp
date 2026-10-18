@@ -36,7 +36,7 @@ public sealed class InjuriesViewModelTests
         {
             Entries =
             [
-                new SavedCompanyEntry { EntryIndex = 0, BaseUnitName = "Trooper 0", IsLieutenant = true },
+                new SavedCompanyEntry { EntryIndex = 0, BaseUnitName = "Trooper 0", IsLieutenant = true, CarriesCaptainUpgrades = true },
                 new SavedCompanyEntry { EntryIndex = 1, BaseUnitName = "Trooper 1" },
                 new SavedCompanyEntry { EntryIndex = 7, BaseUnitName = "Resting" }
             ]

@@ -26,10 +26,14 @@ public static class DowntimeRules
         ParticipantKind.Mvp => "MVP (from last contract)",
         ParticipantKind.Captain => "the Captain",
         ParticipantKind.Renowned => "the Most Renowned merc",
+        ParticipantKind.KnockedOut => "a Merc that went unconscious this contract",
         _ => "a Merc"
     };
 
-    /// <summary>The troopers who can be <paramref name="kind"/>; for Renowned, everyone tied for the most renown.</summary>
+    /// <summary>
+    /// The troopers who can be <paramref name="kind"/>; for Renowned, everyone tied for the most renown. Any merc
+    /// can be one that sat the contract out.
+    /// </summary>
     public static IReadOnlyList<ExperienceUnitResult> Candidates(IReadOnlyList<ExperienceUnitResult> units, ParticipantKind kind)
     {
         switch (kind)
@@ -38,6 +42,8 @@ public static class DowntimeRules
                 return units.Where(unit => unit.IsMvp).ToList();
             case ParticipantKind.Captain:
                 return units.Where(unit => unit.IsLieutenant).ToList();
+            case ParticipantKind.KnockedOut:
+                return units.Where(unit => unit is { WasDeployed: true, IsConsciousAtEnd: false }).ToList();
             case ParticipantKind.Renowned:
                 if (units.Count == 0)
                 {
@@ -258,6 +264,63 @@ public static class DowntimeRules
         }
 
         return lines.Where(line => !string.IsNullOrWhiteSpace(line)).ToList();
+    }
+
+    /// <summary>Whether <paramref name="choice"/> lets the player pick a new Captain on <paramref name="outcome"/>.</summary>
+    public static bool ChangesCaptain(DowntimeChoice choice, PassFailOutcome outcome) =>
+        IsPass(outcome) && ActiveTraits(choice, outcome).Any(trait => trait.Kind == TraitKind.Lt);
+
+    /// <summary>
+    /// What the opponent of the last contract gains, for them to record: with Opponent, the pass benefits when the
+    /// test fails; with Opponent (Mutual), the same benefits when it passes. Never Notoriety. Any CR lost on a P2P
+    /// test goes to them as well.
+    /// </summary>
+    public static IReadOnlyList<string> OpponentLines(
+        DowntimeEvent downtimeEvent, DowntimeChoice choice, PassFailOutcome outcome, int crSpent)
+    {
+        if (downtimeEvent.Opponent == OpponentKind.None)
+        {
+            return [];
+        }
+
+        var lines = new List<string>();
+        var theirs = downtimeEvent.Opponent switch
+        {
+            OpponentKind.Opponent when outcome == PassFailOutcome.Fail => PassFailOutcome.Pass,
+            OpponentKind.Mutual when IsPass(outcome) => outcome,
+            _ => PassFailOutcome.None
+        };
+        if (theirs != PassFailOutcome.None)
+        {
+            var who = downtimeEvent.RequiredParticipant == ParticipantKind.Mvp
+                ? "Your opponent's MVP"
+                : "A trooper of your opponent's choice";
+            foreach (var trait in ActiveTraits(choice, theirs))
+            {
+                var line = trait.Kind switch
+                {
+                    TraitKind.Cr => $"Your opponent gains {(theirs == PassFailOutcome.CritPass ? 6 : 5)} CR",
+                    TraitKind.Xp => $"{who} gains {XpFor(theirs)} XP",
+                    TraitKind.Weapon => theirs == PassFailOutcome.CritPass
+                        ? "Your opponent rolls a random pistol (+1 SD)"
+                        : "Your opponent rolls a random pistol",
+                    TraitKind.Swc => "Your opponent gains 0.5 SWC",
+                    TraitKind.Skill when !string.IsNullOrWhiteSpace(trait.Detail) => $"{who} gains skill: {trait.Detail}",
+                    _ => null
+                };
+                if (line is not null)
+                {
+                    lines.Add(line);
+                }
+            }
+        }
+
+        if (HasP2P(choice) && crSpent > 0 && outcome != PassFailOutcome.CritPass)
+        {
+            lines.Add($"Your opponent gains the {crSpent} CR you spent");
+        }
+
+        return lines.Select(line => $"Opponent: {line}").ToList();
     }
 
     /// <summary>The gains and losses to record; CR spent on a P2P test is kept on a critical pass.</summary>

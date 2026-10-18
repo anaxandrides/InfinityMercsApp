@@ -38,6 +38,7 @@ public sealed class CompanyRosterTests
         SourceFactionId = sourceFactionId,
         SourceUnitId = 10 + index,
         IsLieutenant = isLieutenant,
+        CarriesCaptainUpgrades = isLieutenant,
         IsPeripheralUnit = isPeripheral,
         Cost = 20,
         ExperiencePoints = 0,
@@ -151,6 +152,24 @@ public sealed class CompanyRosterTests
     }
 
     [Fact]
+    public void UnitsOf_CaptainReplacedInDowntime_OldCaptainKeepsTheUpgrades()
+    {
+        var founder = new SavedCompanyEntry { EntryIndex = 1, BaseUnitName = "Fusilier", CarriesCaptainUpgrades = true, CustomWeapons = ["Combi Rifle"] };
+        var captain = new SavedCompanyEntry { EntryIndex = 2, BaseUnitName = "Bolt", IsLieutenant = true, CustomWeapons = ["Combi Rifle"] };
+        var company = new SavedCompanyFile
+        {
+            ImprovedCaptainStats = new SavedImprovedCaptainStats { IsEnabled = true, WeaponChoice1 = "(2) - Sniper Rifle" },
+            Entries = [founder, captain]
+        };
+
+        var units = Create().UnitsOf(company);
+
+        Assert.Equal(["Bolt", "Fusilier"], units.Select(unit => unit.BaseUnitName));
+        Assert.Equal("Combi Rifle", units[0].SavedRangedWeapons);
+        Assert.Equal(string.Join(Environment.NewLine, "Combi Rifle", "Sniper Rifle"), units[1].SavedRangedWeapons);
+    }
+
+    [Fact]
     public void UnitsOf_DisabledCaptain_AddsNothing()
     {
         var company = new SavedCompanyFile
@@ -202,6 +221,7 @@ public sealed class CompanyRosterTests
         {
             Name = "Captain",
             IsLieutenant = true,
+            CarriesCaptainUpgrades = true,
             Cost = 18,
             SavedSkills = string.Join(Environment.NewLine, "Lieutenant (+1 Order)", "Dodge", "Courage"),
             SavedRangedWeapons = "Combi Rifle",
@@ -226,6 +246,7 @@ public sealed class CompanyRosterTests
         {
             Name = "Captain",
             IsLieutenant = true,
+            CarriesCaptainUpgrades = true,
             UnitCc = "14",
             UnitPh = "10",
             UnitVitality = "1",

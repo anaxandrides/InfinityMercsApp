@@ -112,7 +112,7 @@ public sealed class GeneratedFactionCompanySelectionViewModelTests
             CompanyName = "Sky Team",
             CompanyType = "Airborne Company",
             SourceFactions = [new SavedCompanyFaction { FactionId = SelectionTestKit.Sectorial, FactionName = "Military Orders" }],
-            Entries = [new SavedCompanyEntry { EntryIndex = 0, Name = "Captain", IsLieutenant = true, SourceFactionId = SelectionTestKit.Sectorial, SourceUnitId = 1, Cost = 20 }]
+            Entries = [new SavedCompanyEntry { EntryIndex = 0, Name = "Captain", IsLieutenant = true, CarriesCaptainUpgrades = true, SourceFactionId = SelectionTestKit.Sectorial, SourceUnitId = 1, Cost = 20 }]
         };
         var viewModel = new AirborneCompanySelectionViewModel(_kit.Services);
         viewModel.PrepareRecruitment(new CompanyRecruitment("/records/sky.json", "/records/sky-season.json", company, Credits: 30, RetiredEntries: []));

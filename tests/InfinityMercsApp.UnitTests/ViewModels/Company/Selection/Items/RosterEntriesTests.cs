@@ -11,7 +11,7 @@ public sealed class RosterEntriesTests
         Entries =
         [
             new SavedCompanyEntry { EntryIndex = 0, Name = "Fusilier", BaseUnitName = "Fusilier", SourceFactionId = 101, SourceUnitId = 5, Cost = 10, ExperiencePoints = 4 },
-            new SavedCompanyEntry { EntryIndex = 1, Name = "Trooper", CustomName = " Kestrel ", IsLieutenant = true, SourceFactionId = 101, SourceUnitId = 7, Cost = 20, CurrentBs = "13" },
+            new SavedCompanyEntry { EntryIndex = 1, Name = "Trooper", CustomName = " Kestrel ", IsLieutenant = true, CarriesCaptainUpgrades = true, SourceFactionId = 101, SourceUnitId = 7, Cost = 20, CurrentBs = "13" },
             new SavedCompanyEntry { EntryIndex = 2, Name = "Traktor Mul", IsPeripheralUnit = true, SourceFactionId = 101, SourceUnitId = 7 }
         ]
     };

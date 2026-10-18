@@ -160,6 +160,7 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<CompanyRoster>()
                 .AddSingleton<DeploymentRoster>()
                 .AddSingleton<MissionDebrief>()
+                .AddSingleton<CaptainChange>()
                 .AddSingleton<IDice, Dice>()
                 .AddSingleton<IAppPackageFiles, AppPackageFiles>();
 

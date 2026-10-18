@@ -181,4 +181,51 @@ public sealed class DowntimeRulesTests
         Assert.Equal((3, false), (winner.XpData.DowntimeBonusXp, winner.GainedInjury));
         Assert.Equal((0, true), (loser.XpData.DowntimeBonusXp, loser.GainedInjury));
     }
+    public static TheoryData<OpponentKind, PassFailOutcome, IReadOnlyList<string>> OpponentGains => new()
+    {
+        { OpponentKind.Opponent, PassFailOutcome.Fail, ["Opponent: Your opponent gains 5 CR", "Opponent: A trooper of your opponent's choice gains 2 XP"] },
+        { OpponentKind.Opponent, PassFailOutcome.Pass, [] },
+        { OpponentKind.Mutual, PassFailOutcome.CritPass, ["Opponent: Your opponent gains 6 CR", "Opponent: A trooper of your opponent's choice gains 3 XP"] },
+        { OpponentKind.Mutual, PassFailOutcome.Fail, [] },
+        { OpponentKind.None, PassFailOutcome.Fail, [] }
+    };
+
+    [Theory]
+    [MemberData(nameof(OpponentGains))]
+    public void OpponentLines_Outcome_GivesTheOpponentPassBenefitsButNoNotoriety(OpponentKind kind, PassFailOutcome outcome, IReadOnlyList<string> expected)
+    {
+        var choice = Choice(DowntimeTest.Ps10, new DowntimeTrait(TraitKind.Cr), new DowntimeTrait(TraitKind.Xp), new DowntimeTrait(TraitKind.Chaotic));
+
+        Assert.Equal(expected, DowntimeRules.OpponentLines(new DowntimeEvent { Opponent = kind }, choice, outcome, crSpent: 0));
+    }
+
+    [Theory]
+    [InlineData(PassFailOutcome.Fail, true)]
+    [InlineData(PassFailOutcome.Pass, true)]
+    [InlineData(PassFailOutcome.CritPass, false)]
+    public void OpponentLines_CrSpentOnP2P_GoesToTheOpponentUnlessKept(PassFailOutcome outcome, bool gains)
+    {
+        var lines = DowntimeRules.OpponentLines(
+            new DowntimeEvent { Opponent = OpponentKind.Opponent }, Choice(DowntimeTest.Ps10, new DowntimeTrait(TraitKind.P2P)), outcome, crSpent: 4);
+
+        Assert.Equal(gains, lines.Contains("Opponent: Your opponent gains the 4 CR you spent"));
+    }
+
+    [Theory]
+    [InlineData(PassFailOutcome.Pass, true)]
+    [InlineData(PassFailOutcome.Fail, false)]
+    public void ChangesCaptain_LtChoice_OnlyWhenPassed(PassFailOutcome outcome, bool changes) =>
+        Assert.Equal(changes, DowntimeRules.ChangesCaptain(Choice(DowntimeTest.Ps10, new DowntimeTrait(TraitKind.Lt)), outcome));
+
+    [Fact]
+    public void Candidates_KnockedOut_OnlyDeployedTroopersUnconsciousAtTheEnd()
+    {
+        var down = Unit("Down");
+        down.WasDeployed = true;
+        var standing = Unit("Standing");
+        standing.WasDeployed = true;
+        standing.IsConsciousAtEnd = true;
+
+        Assert.Equal(["Down"], DowntimeRules.Candidates([down, standing, Unit("Home")], ParticipantKind.KnockedOut).Select(u => u.Name));
+    }
 }

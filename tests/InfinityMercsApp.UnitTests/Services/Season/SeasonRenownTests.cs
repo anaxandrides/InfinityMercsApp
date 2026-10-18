@@ -16,7 +16,7 @@ public sealed class SeasonRenownTests
         Entries =
         [
             new SavedCompanyEntry { EntryIndex = 1, Name = "Fusilier", Cost = 10, ExperiencePoints = 4 },
-            new SavedCompanyEntry { EntryIndex = 2, Name = "Bolt", Cost = 20, IsLieutenant = true },
+            new SavedCompanyEntry { EntryIndex = 2, Name = "Bolt", Cost = 20, IsLieutenant = true, CarriesCaptainUpgrades = true },
             new SavedCompanyEntry { EntryIndex = 3, Name = "Traktor Mul", Cost = 0, IsPeripheralUnit = true, ExperiencePoints = 7 },
             new SavedCompanyEntry { EntryIndex = 4, Name = "Drumbot", Cost = 0, IsPeripheralUnit = true, ExperiencePoints = 5 }
         ]

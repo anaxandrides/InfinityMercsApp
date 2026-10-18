@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Domain.Season.Experience;
 using InfinityMercsApp.Domain.Season.Game;
 using InfinityMercsApp.Domain.Season.Injuries;
 using InfinityMercsApp.Infrastructure.Providers;
@@ -209,7 +210,8 @@ public partial class GameModeViewModel(
             await seasonFiles.SaveAsync(_seasonFilePath, seasonFile);
         }
 
-        debrief.Units = Units.Select(unit => unit.Unit.ToResult(missionNumber, IsEliteDeployment)).ToList();
+        debrief.Units = Units.Select(unit => unit.Unit.ToResult(missionNumber, IsEliteDeployment, wasDeployed: true)).ToList();
+        debrief.Troopers = await CompanyTroopersAsync(debrief.Units);
         debrief.PendingInjuries = Units
             .Select(unit => unit.Unit)
             .Where(unit => unit.WoundState == WoundState.Dead)
@@ -226,6 +228,16 @@ public partial class GameModeViewModel(
         await NavigationService.PushAsync(
             debrief.PendingInjuries.Count > 0 || SomeoneRecovers(seasonFile) ? "InjuriesPage" : "MissionOutcomePage",
             NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath));
+    }
+
+    // Every active trooper, for downtime: the deployed ones as they finished the game, the rest as they stand.
+    private async Task<List<ExperienceUnitResult>> CompanyTroopersAsync(IReadOnlyList<ExperienceUnitResult> deployed)
+    {
+        var company = await roster.LoadAsync(_companyFilePath, _seasonFilePath, ShowUnitsInInches);
+        return company
+            .Select(trooper => deployed.FirstOrDefault(result => result.EntryIndex == trooper.EntryIndex)
+                               ?? trooper.ToResult(deploymentXp: 0, isEliteDeployment: false, wasDeployed: false))
+            .ToList();
     }
 
     // An injured trooper that sat this contract out, or an injured captain, sheds an injury on the injuries page.

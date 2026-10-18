@@ -133,7 +133,8 @@ public partial class ByeRoundViewModel(
             return;
         }
 
-        debrief.Units = Troopers.Select(trooper => trooper.Unit.ToResult(deploymentXp: 0, isEliteDeployment: false)).ToList();
+        debrief.Units = Troopers.Select(trooper => trooper.Unit.ToResult(deploymentXp: 0, isEliteDeployment: false, wasDeployed: false)).ToList();
+        debrief.Troopers = debrief.Units;
         debrief.PendingInjuries.Clear();
         await NavigationService.PushAsync(
             "DowntimePage",

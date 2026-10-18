@@ -13,7 +13,7 @@ public sealed class SeasonRetirementTests
     {
         Entries =
         [
-            new SavedCompanyEntry { EntryIndex = 1, Name = "Fusilier", IsLieutenant = true, Cost = 10 },
+            new SavedCompanyEntry { EntryIndex = 1, Name = "Fusilier", IsLieutenant = true, CarriesCaptainUpgrades = true, Cost = 10 },
             new SavedCompanyEntry { EntryIndex = 2, Name = "Doctor", CustomName = " Doc ", Cost = 18, ExperiencePoints = 6 },
             new SavedCompanyEntry { EntryIndex = 3, Name = "Servant", IsPeripheralUnit = true, ParentEntryIndex = 2 },
             new SavedCompanyEntry { EntryIndex = 4, Name = "Drummer", Cost = 12 },

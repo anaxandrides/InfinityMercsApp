@@ -32,6 +32,9 @@ public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewe
     /// <summary>What a peripheral from the Peripheral (Controller) augment sells for: half its cost, rounded up.</summary>
     public int PeripheralSellPrice { get; init; }
     public bool IsLieutenant { get; init; }
+
+    /// <summary>The founding Captain, who carries the captain upgrades even after the role passes on.</summary>
+    public bool CarriesCaptainUpgrades { get; init; }
     public int Cost { get; init; }
     public string SavedEquipment { get; init; } = "-";
     public string SavedSkills { get; init; } = "-";

@@ -137,6 +137,7 @@ internal sealed class SerializedCompanyEntry
     public int? ParentEntryIndex { get; init; }
     public int Cost { get; init; }
     public bool IsLieutenant { get; init; }
+    public bool CarriesCaptainUpgrades { get; init; }
     [JsonIgnore]
     public bool HasPeripheralStatBlock { get; init; }
     [JsonIgnore]

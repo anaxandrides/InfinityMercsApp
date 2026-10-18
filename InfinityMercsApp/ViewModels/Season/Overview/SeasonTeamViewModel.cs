@@ -343,7 +343,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         RankText = progress is null ? string.Empty : $"{progress.RankName} · {progress.TotalXp} XP";
         Perks =
         [
-            .. item.IsLieutenant ? _captain.SpecOpsPurchases(StatKeys.VitalityFor(item.UnitTypeCode)) : [],
+            .. item.CarriesCaptainUpgrades ? _captain.SpecOpsPurchases(StatKeys.VitalityFor(item.UnitTypeCode)) : [],
             .. item.SpecOpsPurchases,
             .. item.RollLines,
             .. progress?.Perks.Select(perk => CompanyPerkCatalog.FindById(perk)?.Description ?? perk) ?? []

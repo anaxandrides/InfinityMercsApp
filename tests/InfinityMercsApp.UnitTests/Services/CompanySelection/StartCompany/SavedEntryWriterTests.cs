@@ -33,6 +33,16 @@ public sealed class SavedEntryWriterTests
     }
 
     [Fact]
+    public void Build_Lieutenant_CarriesTheCaptainUpgrades()
+    {
+        var captain = new MercsCompanyEntry { Name = "Kaplan", IsLieutenant = true, SourceFactionId = Army101Data.PanOceania };
+
+        var entries = _writer.Build([captain, Trooper("Fusilier", 10)], "Captain", new SavedImprovedCaptainStats());
+
+        Assert.Equal([true, false], entries.Select(entry => entry.CarriesCaptainUpgrades));
+    }
+
+    [Fact]
     public void Build_ServantBeforeItsOwner_PointsAtWhereTheOwnerIsSaved()
     {
         var drummer = Trooper("Drummer", 20, hasPeripheral: true);

@@ -24,7 +24,7 @@ public sealed class CompanyRecruiterTests
         CompanyName = "Blue Team",
         Entries =
         [
-            new SavedCompanyEntry { EntryIndex = 0, Name = "Captain", IsLieutenant = true, SourceFactionId = 101, Cost = 20 },
+            new SavedCompanyEntry { EntryIndex = 0, Name = "Captain", IsLieutenant = true, CarriesCaptainUpgrades = true, SourceFactionId = 101, Cost = 20 },
             new SavedCompanyEntry { EntryIndex = 3, Name = "Fusilier", SourceFactionId = 101, Cost = 10 },
             new SavedCompanyEntry { EntryIndex = 4, Name = "Peripheral", IsPeripheralUnit = true, SourceFactionId = 101 }
         ]

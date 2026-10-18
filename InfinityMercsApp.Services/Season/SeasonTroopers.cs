@@ -122,9 +122,9 @@ public static class SeasonTroopers
             .OfType<int>()
             .ToHashSet();
 
-    /// <summary>The stat bonuses bought for the captain, which only the lieutenant's saved line holds.</summary>
+    /// <summary>The stat bonuses bought for the captain, which only the founding Captain's saved line holds.</summary>
     public static CaptainStatBonuses CaptainBonusesOf(SavedCompanyEntry entry, SavedImprovedCaptainStats? captain) =>
-        entry.IsLieutenant && captain is { IsEnabled: true } ? captain.Bonuses : CaptainStatBonuses.None;
+        entry.CarriesCaptainUpgrades && captain is { IsEnabled: true } ? captain.Bonuses : CaptainStatBonuses.None;
 
     /// <summary>The name the season screens show: the custom name, else the unit's.</summary>
     public static string NameOf(SavedCompanyEntry entry)

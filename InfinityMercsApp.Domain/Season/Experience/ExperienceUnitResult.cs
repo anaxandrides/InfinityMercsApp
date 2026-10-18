@@ -10,6 +10,9 @@ public sealed class ExperienceUnitResult
     public int DeploymentXp { get; set; }
     public bool IsEliteDeployment { get; set; }
     public bool IsConsciousAtEnd { get; set; }
+
+    /// <summary>Played in the contract; troopers left behind can still take part in downtime.</summary>
+    public bool WasDeployed { get; set; }
     public bool GainedInjury { get; set; }
     public string? InjuryName { get; set; }
     public UnitXpData XpData { get; init; } = new();

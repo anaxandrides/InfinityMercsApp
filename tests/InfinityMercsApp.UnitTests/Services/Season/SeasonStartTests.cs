@@ -9,7 +9,7 @@ public sealed class SeasonStartTests
         new() { StartSeasonPoints = startingCredits, CurrentPoints = spent, Entries = entries };
 
     private static SavedCompanyEntry Captain(string swc) =>
-        new() { EntryIndex = 0, IsLieutenant = true, ProfileKey = $"Joan|JOAN OF ARC|47|{swc}|lt:1" };
+        new() { EntryIndex = 0, IsLieutenant = true, CarriesCaptainUpgrades = true, ProfileKey = $"Joan|JOAN OF ARC|47|{swc}|lt:1" };
 
     [Fact]
     public void FundsFor_CreditsLeftFromRecruiting_CarryOver()
@@ -47,7 +47,7 @@ public sealed class SeasonStartTests
     [Fact]
     public void FundsFor_OddProfileKey_GivesNoSwc()
     {
-        var captain = new SavedCompanyEntry { IsLieutenant = true, ProfileKey = "Joan" };
+        var captain = new SavedCompanyEntry { IsLieutenant = true, CarriesCaptainUpgrades = true, ProfileKey = "Joan" };
 
         Assert.Equal(0, SeasonStart.FundsFor(Company(75, 75, captain)).Swc);
     }

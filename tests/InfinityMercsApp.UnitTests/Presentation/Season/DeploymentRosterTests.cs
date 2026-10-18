@@ -36,7 +36,7 @@ public sealed class DeploymentRosterTests : IDisposable
             { "entryIndex": 2, "name": "Fusilier (Hacker)", "baseUnitName": "Fusilier (Hacker)", "sourceFactionId": 101, "cost": 10, "experiencePoints": 5,
               "CurrentWeaponCodes": [ { "id": 33 }, { "id": 6 } ], "CurrentCharacteristicCodes": [ { "id": 4 } ],
               "Current BS": "12", "Current VITA/STR": "1" },
-            { "entryIndex": 1, "name": "Trooper", "customName": " Kestrel ", "isLieutenant": true, "sourceFactionId": 101,
+            { "entryIndex": 1, "name": "Trooper", "customName": " Kestrel ", "isLieutenant": true, "carriesCaptainUpgrades": true, "sourceFactionId": 101,
               "CurrentSkillCodes": [ { "id": 86 } ], "CurrentWeaponCodes": [ { "id": 33, "extra": [ 298 ] } ], "Current VITA/STR": "2" },
             { "entryIndex": 3, "isPeripheralUnit": true, "sourceFactionId": 101, "Custom Characteristics": [ "Peripheral (Servant)" ] },
             { "entryIndex": 4, "name": "Tag", "unitTypeCode": "TAG", "sourceFactionId": 2003 }

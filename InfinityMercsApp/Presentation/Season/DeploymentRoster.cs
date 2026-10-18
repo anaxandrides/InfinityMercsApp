@@ -125,7 +125,7 @@ public sealed partial class DeploymentRoster(
             profile.Skills = ProfileText.AppendDistinct(profile.Skills, [PeripheralKinds.ControllerSkill]);
         }
 
-        if (entry.IsLieutenant)
+        if (entry.CarriesCaptainUpgrades)
         {
             captain.ApplyTo(profile);
         }

@@ -37,7 +37,7 @@ public sealed class RecruitingCompanySelectionTests
         SourceFactions = [new SavedCompanyFaction { FactionId = Army101Data.PanOceania, FactionName = "PanOceania" }],
         Entries =
         [
-            new SavedCompanyEntry { EntryIndex = 0, Name = "Captain", IsLieutenant = true, SourceFactionId = Army101Data.PanOceania, SourceUnitId = 1, Cost = 20 },
+            new SavedCompanyEntry { EntryIndex = 0, Name = "Captain", IsLieutenant = true, CarriesCaptainUpgrades = true, SourceFactionId = Army101Data.PanOceania, SourceUnitId = 1, Cost = 20 },
             .. Enumerable.Range(1, extraCount).Select(index => new SavedCompanyEntry
             {
                 EntryIndex = index,

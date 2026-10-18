@@ -20,8 +20,9 @@ using InfinityMercsApp.ViewModels.Season.Downtime.Items;
 namespace InfinityMercsApp.ViewModels.Season.Downtime;
 
 /// <summary>
-/// The downtime event after a mission: roll the event, pick a choice and the merc who performs it,
-/// optionally spend CR, roll the test, and record the outcome on the latest season round.
+/// The downtime event after a mission: roll the event, pick a choice and the merc who performs it (any trooper,
+/// deployed or not), optionally spend CR, roll the test, and record the outcome on the latest season round. A
+/// change of leadership picks the new Captain; what the opponent gains is listed for them to record.
 /// </summary>
 public partial class DowntimeViewModel(
     INavigationService navigationService,
@@ -30,7 +31,8 @@ public partial class DowntimeViewModel(
     IDice dice,
     IDialogService dialogs,
     ICompanyFileService companyFiles,
-    CompanyRoster roster) : ViewModelBase(navigationService)
+    CompanyRoster roster,
+    CaptainChange captains) : ViewModelBase(navigationService)
 {
     public const string EventRollPrompt = "Press ROLL for a random event, or REAL to enter a roll made with real dice.";
 
@@ -255,7 +257,7 @@ public partial class DowntimeViewModel(
         var kind = DowntimeRules.RequiredParticipant(downtimeEvent, card.Choice);
         ParticipantPrompt = $"Select {DowntimeRules.ParticipantLabel(kind)}:";
         Participants.Clear();
-        foreach (var unit in DowntimeRules.Candidates(debrief.Units, kind))
+        foreach (var unit in DowntimeRules.Candidates(debrief.Troopers, kind))
         {
             Participants.Add(DowntimeParticipantItem.For(unit, card.Choice, kind));
         }
@@ -368,6 +370,10 @@ public partial class DowntimeViewModel(
         Stage = DowntimeStage.Resolved;
 
         var totals = DowntimeRules.Totals(choice, outcome, _crSpent);
+        var opponentLines = CurrentEvent is { } downtimeEvent
+            ? DowntimeRules.OpponentLines(downtimeEvent, choice, outcome, _crSpent)
+            : [];
+        ConsequenceLines = [.. ConsequenceLines, .. opponentLines];
         var participantName = participant?.Name;
         var skills = DowntimeRules.SkillsAwarded(choice, outcome);
         var injures = DowntimeRules.InjuresParticipant(choice, outcome);
@@ -386,7 +392,7 @@ public partial class DowntimeViewModel(
                 round.Downtime.XpGain = totals.XpGain;
                 round.Downtime.SpentCr = totals.SpentCr;
                 round.Downtime.SwcGain = totals.SwcGain;
-                round.Downtime.OtherEffects = string.Join("; ", totals.OtherEffects);
+                round.Downtime.OtherEffects = string.Join("; ", totals.OtherEffects.Concat(opponentLines));
                 round.Downtime.WonItems = wonItems;
             }
 
@@ -413,6 +419,51 @@ public partial class DowntimeViewModel(
         {
             participant.InjuryName = taken.Label();
             ConsequenceLines = [.. ConsequenceLines, $"{participant.Name} suffers {taken.Label()}: {taken.EffectText()}"];
+        }
+
+        if (DowntimeRules.ChangesCaptain(choice, outcome) && await ChooseNewCaptainAsync() is { } captain)
+        {
+            ConsequenceLines = [.. ConsequenceLines, $"{captain} is the new Captain"];
+        }
+    }
+
+    // The LT trait: the player may make any trooper the Captain, or keep the one they have. Returns the new
+    // Captain's name, or null when nothing changed.
+    private async Task<string?> ChooseNewCaptainAsync()
+    {
+        try
+        {
+            if (!companyFiles.Exists(_companyFilePath) || await companyFiles.LoadAsync(_companyFilePath) is not { } company)
+            {
+                return null;
+            }
+
+            var season = await seasonFiles.LoadAsync(_seasonFilePath);
+            var candidates = CaptainChange.CandidatesOf(company, season);
+            if (candidates.Count == 0)
+            {
+                return null;
+            }
+
+            var names = candidates.Select(SeasonTroopers.NameOf).ToList();
+            var labels = names
+                .Select((name, index) => names.Count(other => other == name) > 1 ? $"{name} ({index + 1})" : name)
+                .ToList();
+            var choice = await dialogs.ChooseAsync("Choose the new Captain", "Keep Captain", labels);
+            var chosen = choice is null ? -1 : labels.IndexOf(choice);
+            if (chosen < 0 || !captains.Apply(company, candidates[chosen].EntryIndex, season))
+            {
+                return null;
+            }
+
+            await companyFiles.SaveAsync(_companyFilePath, company);
+            return names[chosen];
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Changing the Captain failed: {ex.Message}");
+            await dialogs.ShowAlertAsync("Captain Not Changed", "The company file could not be saved.");
+            return null;
         }
     }
 

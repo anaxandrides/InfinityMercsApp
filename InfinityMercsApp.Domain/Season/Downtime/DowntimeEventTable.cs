@@ -77,19 +77,19 @@ public static class DowntimeEventTable
             {
                 Test = DowntimeTest.For(Stat.Bs),
                 Description = "...you attack the dealer's crew",
-                Traits = [T(TraitKind.Attack), T(TraitKind.Chaotic), T(TraitKind.Xp)]
+                Traits = [T(TraitKind.Attack), T(TraitKind.Chaotic), T(TraitKind.Xp), T(TraitKind.Swc)]
             },
             new DowntimeChoice
             {
                 Test = DowntimeTest.Ps10PlusArm,
                 Description = "...you let him shoot you to prove your point",
-                Traits = [T(TraitKind.Attack)]
+                Traits = [T(TraitKind.Attack), T(TraitKind.Swc)]
             },
             new DowntimeChoice
             {
                 Test = DowntimeTest.For(Stat.Wip),
                 Description = "...intimidate the dealer in giving you an honest refund",
-                Traits = [T(TraitKind.Cr)]
+                Traits = [T(TraitKind.Cr), T(TraitKind.Swc)]
             }
         ]
     };
@@ -100,6 +100,8 @@ public static class DowntimeEventTable
         RepresentativeRoll = 5,
         Description = "You catch one of your Mercs in romantic cahoots with a rival Merc team member after they met in the most recent contract...",
         EventTraits = ["MVP", "Opponent (Mutual)"],
+        RequiredParticipant = ParticipantKind.Mvp,
+        Opponent = OpponentKind.Mutual,
         Choices =
         [
             new DowntimeChoice
@@ -129,6 +131,7 @@ public static class DowntimeEventTable
         RepresentativeRoll = 7,
         Description = "You get wind that a Rival Mercs team is planning an ambush on your team after some unfinished business from the most recent contract...",
         EventTraits = ["Opponent"],
+        Opponent = OpponentKind.Opponent,
         Choices =
         [
             new DowntimeChoice
@@ -158,6 +161,8 @@ public static class DowntimeEventTable
         RepresentativeRoll = 9,
         Description = "Select a Merc that went unconscious this contract. A rival Mercs team has taken them hostage after the most recent contract...",
         EventTraits = ["Opponent"],
+        RequiredParticipant = ParticipantKind.KnockedOut,
+        Opponent = OpponentKind.Opponent,
         Choices =
         [
             new DowntimeChoice
