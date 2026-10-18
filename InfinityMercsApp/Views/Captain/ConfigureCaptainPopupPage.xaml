@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage
+<layout:AdaptiveContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
@@ -9,10 +9,22 @@
     xmlns:captainServices="clr-namespace:InfinityMercsApp.Services.CompanySelection.Captain;assembly=InfinityMercsApp.Services"
     xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
     xmlns:converters="clr-namespace:InfinityMercsApp.Converters"
+    xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     x:Class="InfinityMercsApp.Views.Captain.ConfigureCaptainPopupPage"
+    x:Name="Root"
     x:DataType="captain:ConfigureCaptainViewModel"
     Title="{Binding Title}"
     BackgroundColor="#B4000000">
+
+    <ContentPage.Behaviors>
+        <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference Root}, x:DataType=ContentPage}"
+                                        x:DataType="captain:ConfigureCaptainViewModel"
+                                        EventName="LayoutModeChanged"
+                                        Command="{Binding ApplyLayoutCommand}"
+                                        CommandParameter="{Binding LayoutMode, Source={x:Reference Root}, x:DataType=layout:AdaptiveContentPage}" />
+    </ContentPage.Behaviors>
 
     <ContentPage.Resources>
         <converters:LieutenantRunsConverter x:Key="SkillRunsConverter" TextColor="#F59E0B" HighlightColor="#34D399" />
@@ -41,7 +53,11 @@
                 MaximumWidthRequest="1012"
                 HorizontalOptions="Center">
             <Grid RowDefinitions="*,Auto" RowSpacing="14">
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="18">
+                <!-- Side by side, or stacked on a narrow screen; each pane scrolls on its own. -->
+                <Grid layout:GridLayout.Columns="{Binding Layout.Columns}"
+                      layout:GridLayout.Rows="{Binding Layout.Rows}"
+                      ColumnSpacing="{Binding Layout.ColumnSpacing}"
+                      RowSpacing="{Binding Layout.RowSpacing}">
 
                     <!-- The captain as currently configured. -->
                     <ScrollView>
@@ -146,7 +162,7 @@
                     </ScrollView>
 
                     <!-- What can be bought, and what is left to spend. -->
-                    <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto,*" RowSpacing="6">
+                    <Grid layout:GridLayout.Cell="{Binding Layout.UpgradesCell}" RowDefinitions="Auto,Auto,Auto,*" RowSpacing="6">
                         <Label Text="{Binding UpgradeOptionsHeader}"
                                FontAttributes="Bold"
                                Style="{StaticResource LabelSubHeadline}"
@@ -223,8 +239,8 @@
                     </Grid>
                 </Grid>
 
-                <!-- Actions sit under the left column. -->
-                <Grid Grid.Row="1" ColumnDefinitions="*,*">
+                <!-- Actions sit under the captain: the left column, or the full width when stacked. -->
+                <Grid Grid.Row="1" layout:GridLayout.Columns="{Binding Layout.ActionColumns}">
                     <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
                         <Button Text="BACK"
                                 BackgroundColor="#3A4554"
@@ -246,4 +262,4 @@
             </Grid>
         </Border>
     </Grid>
-</ContentPage>
+</layout:AdaptiveContentPage>

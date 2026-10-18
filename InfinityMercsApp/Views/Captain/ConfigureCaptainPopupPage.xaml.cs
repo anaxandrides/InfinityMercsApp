@@ -1,11 +1,12 @@
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.ViewModels.Captain;
+using InfinityMercsApp.Views.Adaptive;
 
 namespace InfinityMercsApp.Views.Captain;
 
 /// <summary>Modal popup for configuring a company captain. Use <see cref="ShowAsync"/> to show it and await the result.</summary>
-public partial class ConfigureCaptainPopupPage : ContentPage
+public partial class ConfigureCaptainPopupPage : AdaptiveContentPage
 {
     private readonly ConfigureCaptainViewModel _viewModel;
 

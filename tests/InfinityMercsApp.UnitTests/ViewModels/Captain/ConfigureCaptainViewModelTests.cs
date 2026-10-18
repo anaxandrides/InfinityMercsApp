@@ -3,6 +3,7 @@ using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Presentation.Captain;
+using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.ViewModels.Captain;
 using InfinityMercsApp.ViewModels.Captain.Items;
@@ -378,5 +379,16 @@ public sealed class ConfigureCaptainViewModelTests
             viewModel.StatUpgrades.Where(upgrade => upgrade.Stat is Stat.Arm or Stat.Bts or Stat.Vita),
             upgrade => Assert.Equal([0], upgrade.Options.Select(option => option.Tier)));
         Assert.True(UpgradeOf(viewModel, Stat.Cc).Options.Count > 1);
+    }
+
+    [Fact]
+    public void ApplyLayoutCommand_WiderScreen_PutsThePanesSideBySide()
+    {
+        var viewModel = new ConfigureCaptainViewModel(Context());
+        Assert.Equal(CaptainPopupLayout.For(AdaptiveLayoutMode.Compact), viewModel.Layout);
+
+        viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Expanded);
+
+        Assert.Equal(CaptainPopupLayout.For(AdaptiveLayoutMode.Expanded), viewModel.Layout);
     }
 }

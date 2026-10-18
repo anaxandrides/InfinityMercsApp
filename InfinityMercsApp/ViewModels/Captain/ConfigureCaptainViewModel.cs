@@ -4,6 +4,7 @@ using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Presentation.Captain;
+using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
@@ -32,6 +33,10 @@ public sealed partial class ConfigureCaptainViewModel : ObservableObject
     private readonly CaptainStatUpgrade _arm;
     private readonly CaptainStatUpgrade _bts;
     private readonly CaptainStatUpgrade _vitality;
+
+    /// <summary>The panes side by side, or stacked on a narrow screen; compact until the page knows its width.</summary>
+    [ObservableProperty]
+    public partial CaptainPopupLayout Layout { get; set; } = CaptainPopupLayout.For(AdaptiveLayoutMode.Compact);
 
     [ObservableProperty]
     public partial string CaptainName { get; set; }
@@ -141,6 +146,10 @@ public sealed partial class ConfigureCaptainViewModel : ObservableObject
 
     /// <summary>Completes once with the chosen upgrades on confirm, or null on back.</summary>
     public Task<SavedImprovedCaptainStats?> Completion => _completion.Task;
+
+    /// <summary>Lays the popup out for the page's width, as the page reports it.</summary>
+    [RelayCommand]
+    private void ApplyLayout(AdaptiveLayoutMode mode) => Layout = CaptainPopupLayout.For(mode);
 
     [RelayCommand]
     private void EditName()
