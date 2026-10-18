@@ -2,6 +2,7 @@ using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
+using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.UnitTests.Support;
@@ -10,7 +11,7 @@ using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.Services.CompanySelection.Recruitment;
 
-public sealed class CompanyRecruitmentWorkflowTests
+public sealed class CompanyRecruiterTests
 {
     private const string CompanyPath = "/records/c.json";
     private const string SeasonPath = "/records/s.json";
@@ -31,7 +32,7 @@ public sealed class CompanyRecruitmentWorkflowTests
 
     private SavedCompanyFile? _saved;
 
-    public CompanyRecruitmentWorkflowTests()
+    public CompanyRecruiterTests()
     {
         _companyFiles.LoadAsync(CompanyPath).Returns(_company);
         _companyFiles.SaveAsync(CompanyPath, Arg.Do<SavedCompanyFile>(company => _saved = company)).Returns(Task.CompletedTask);
@@ -53,12 +54,9 @@ public sealed class CompanyRecruitmentWorkflowTests
     };
 
     private Task<RecruitmentOutcome> HireAsync(params IEnumerable<MercsCompanyEntry> recruits) =>
-        CompanyRecruitmentWorkflow.HireAsync(
+        new CompanyRecruiter(new SavedEntryWriter(Army101Data.Create()), _companyFiles, _seasonFiles).HireAsync(
             new CompanyRecruitment(CompanyPath, SeasonPath, _company, Credits: 50, RetiredEntries: []),
-            recruits.ToList(),
-            Army101Data.Create(),
-            _companyFiles,
-            _seasonFiles);
+            recruits.ToList());
 
     [Fact]
     public async Task RecruitsJoinAfterTheLastTrooper()

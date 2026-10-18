@@ -2,6 +2,11 @@ using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Presentation.Company.Viewer;
 using InfinityMercsApp.Presentation.Season;
 using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.CompanySelection.Captain;
+using InfinityMercsApp.Services.CompanySelection.Factions;
+using InfinityMercsApp.Services.CompanySelection.Recruitment;
+using InfinityMercsApp.Services.CompanySelection.StartCompany;
+using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Feedback;
 using InfinityMercsApp.Services.Import;
@@ -139,6 +144,13 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<SeasonRecordCatalog>()
                 .AddSingleton<CompanyRecordCatalog>()
                 .AddSingleton<ICompanyFileService, CompanyFileStore>()
+                .AddSingleton<CompanyFactionCatalog>()
+                .AddSingleton<UnitDetailsLoader>()
+                .AddSingleton<CaptainOptionCatalog>()
+                .AddSingleton<CaptainSetup>()
+                .AddSingleton<SavedEntryWriter>()
+                .AddSingleton<CompanyFounder>()
+                .AddSingleton<CompanyRecruiter>()
                 .AddSingleton<CompanyRoster>()
                 .AddSingleton<DeploymentRoster>()
                 .AddSingleton<MissionDebrief>()

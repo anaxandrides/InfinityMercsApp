@@ -4,6 +4,11 @@ using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.CompanySelection.Captain;
+using InfinityMercsApp.Services.CompanySelection.Factions;
+using InfinityMercsApp.Services.CompanySelection.Recruitment;
+using InfinityMercsApp.Services.CompanySelection.StartCompany;
+using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
@@ -85,7 +90,22 @@ internal sealed class SelectionTestKit
             .ToList()
     };
 
-    public CompanySelectionServices Services => new(Navigation, Dialogs, CaptainDialog, ArmyData, SpecOps, PackageFiles, CompanyFiles, SeasonFiles, Paths, Settings);
+    public CompanySelectionServices Services
+    {
+        get
+        {
+            var captains = new CaptainSetup(CaptainDialog, new CaptainOptionCatalog(ArmyData, SpecOps), ArmyData);
+            var entries = new SavedEntryWriter(ArmyData);
+            return new(
+                Navigation, Dialogs, CaptainDialog, ArmyData, SpecOps, PackageFiles, CompanyFiles, SeasonFiles, Paths,
+                new CompanyFactionCatalog(ArmyData),
+                new UnitDetailsLoader(ArmyData, SpecOps),
+                captains,
+                new CompanyFounder(captains, entries, Paths),
+                new CompanyRecruiter(entries, CompanyFiles, SeasonFiles),
+                Settings);
+        }
+    }
 
     private static IReadOnlyList<Resume> Resumes(int factionId) =>
         Army101Data.Definition.Resume

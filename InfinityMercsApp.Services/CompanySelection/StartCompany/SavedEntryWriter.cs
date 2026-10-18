@@ -16,215 +16,39 @@ using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagComp
 
 namespace InfinityMercsApp.Services.CompanySelection.StartCompany;
 
-internal static class CompanyStartSaveWorkflow
+/// <summary>
+/// Turns the troopers picked on a selection screen into saved company entries: their stats, their names coded
+/// against the army data, the captain's upgrades, and a peripheral entry after any trooper that has one.
+/// </summary>
+public sealed class SavedEntryWriter(IArmyDataService armyData)
 {
-    internal static async Task RunAsync<TFaction, TEntry>(CompanyStartSaveRequest<TFaction, TEntry> request)
-        where TFaction : class, ICompanySourceFaction
-        where TEntry : class, ICompanyMercsEntry
-    {
-        var entries = request.MercsCompanyEntries as IList<TEntry> ?? request.MercsCompanyEntries.ToList();
-        var factions = request.Factions as IList<TFaction> ?? request.Factions.ToList();
-        var captainEntry = entries.FirstOrDefault(x => x.IsLieutenant) ?? entries.FirstOrDefault();
-        if (captainEntry is null)
-        {
-            await request.DisplayAlertAsync("Save Failed", "Add at least one unit before starting a company.", "OK");
-            return;
-        }
-
-        var captainDialog = request.CaptainDialog
-            ?? throw new InvalidOperationException("Starting a company needs a dialog for the captain popup.");
-        var sourceFactions = CompanyUnitDetailsShared.BuildUnitSourceFactions(
-            request.ShowRightSelectionBox,
-            request.LeftSlotFaction,
-            request.RightSlotFaction,
-            faction => faction.Id);
-        var firstSourceFactionId = sourceFactions.FirstOrDefault()?.Id;
-        var captainPopupSkillLines = SplitCodes(captainEntry.SavedSkills);
-        if (captainEntry.IsLieutenant)
-        {
-            LieutenantRules.AddSkillIfMissing(captainPopupSkillLines);
-        }
-
-        var captainPopupSkills = captainPopupSkillLines.Count == 0
-            ? "-"
-            : string.Join(Environment.NewLine, captainPopupSkillLines);
-
-        var isTagCompanyWorkflow =
-            string.Equals(request.CompanyType, "TAG Company", StringComparison.OrdinalIgnoreCase);
-        Func<int, int?> resolveParentFactionId = factionId =>
-            factions.FirstOrDefault(x => x.Id == factionId)?.ParentId
-            ?? request.ArmyDataService.GetMetadataFactionById(factionId)?.ParentId;
-
-        SavedImprovedCaptainStats? improvedCaptainStats;
-        if (isTagCompanyWorkflow)
-        {
-            var preferredOtherFactionId = sourceFactions
-                .Select(x => x.Id)
-                .FirstOrDefault(id => id != TagGen.TagCompanyFactionId);
-
-            improvedCaptainStats = await CompanySpecOpsWorkflowService.ShowTagSpecOpsConfigurationAsync(
-                new CompanySpecOpsWorkflowRequest
-                {
-                    CaptainDialog = captainDialog,
-                    PreferredOtherFactionId = preferredOtherFactionId > 0 ? preferredOtherFactionId : null,
-                    FallbackSourceFactionId = captainEntry.SourceFactionId,
-                    FirstSourceFactionId = firstSourceFactionId,
-                    UnitName = captainEntry.Name,
-                    UnitCost = captainEntry.CostValue,
-                    UnitStatline = captainEntry.Subtitle ?? "-",
-                    UnitRangedWeapons = captainEntry.SavedRangedWeapons,
-                    UnitCcWeapons = captainEntry.SavedCcWeapons,
-                    UnitSkills = captainPopupSkills,
-                    UnitEquipment = captainEntry.SavedEquipment,
-                    UnitCachedLogoPath = captainEntry.CachedLogoPath,
-                    UnitPackagedLogoPath = captainEntry.PackagedLogoPath,
-                    TryGetParentFactionId = resolveParentFactionId,
-                    TryGetFactionName = factionId => factions.FirstOrDefault(x => x.Id == factionId)?.Name,
-                    TryGetMetadataFactionName = request.TryGetMetadataFactionName,
-                    ArmyDataService = request.ArmyDataService,
-                    SpecOpsProvider = request.SpecOpsProvider,
-                    ShowUnitsInInches = request.ShowUnitsInInches,
-                    IsLieutenant = captainEntry.IsLieutenant,
-                    BaseExperience = 20
-                });
-        }
-        else
-        {
-            improvedCaptainStats = await CompanyCaptainWorkflowService.ShowCaptainConfigurationAsync(
-                new CompanyCaptainWorkflowRequest
-                {
-                    CaptainDialog = captainDialog,
-                    FallbackSourceFactionId = captainEntry.SourceFactionId,
-                    FirstSourceFactionId = firstSourceFactionId,
-                    UnitName = captainEntry.Name,
-                    IsSpecOps = captainEntry.IsSpecOps,
-                    UnitCost = captainEntry.CostValue,
-                    UnitStatline = captainEntry.Subtitle ?? "-",
-                    UnitRangedWeapons = captainEntry.SavedRangedWeapons,
-                    UnitCcWeapons = captainEntry.SavedCcWeapons,
-                    UnitSkills = captainPopupSkills,
-                    UnitEquipment = captainEntry.SavedEquipment,
-                    UnitCachedLogoPath = captainEntry.CachedLogoPath,
-                    UnitPackagedLogoPath = captainEntry.PackagedLogoPath,
-                    TryGetParentFactionId = resolveParentFactionId,
-                    TryGetFactionName = factionId => factions.FirstOrDefault(x => x.Id == factionId)?.Name,
-                    TryGetMetadataFactionName = request.TryGetMetadataFactionName,
-                    ArmyDataService = request.ArmyDataService,
-                    SpecOpsProvider = request.SpecOpsProvider,
-                    ShowUnitsInInches = request.ShowUnitsInInches
-                });
-        }
-        if (improvedCaptainStats is null)
-        {
-            return;
-        }
-
-        var saveDir = request.CompaniesDirectory;
-        var filePath = Path.Combine(saveDir, NextCompanyFileName(saveDir, request.CompanyName));
-        await WriteCompanyFileAsync(request, improvedCaptainStats, filePath);
-        await request.NavigateToCompanyViewerAsync(filePath);
-    }
-
-    /// <summary>The next free <c>{name}-{index:D4}.json</c> file name for a company in <paramref name="saveDir"/>.</summary>
-    internal static string NextCompanyFileName(string saveDir, string companyName)
-    {
-        var trimmedName = companyName.Trim();
-        var safeFileName = Regex.Replace(trimmedName.ToLowerInvariant(), @"[^a-z0-9]+", "-").Trim('-');
-        if (string.IsNullOrWhiteSpace(safeFileName))
-        {
-            safeFileName = "company";
-        }
-
-        Directory.CreateDirectory(saveDir);
-        var companyIndex = CompanySelectionSharedUtilities.GetNextCompanyIndex(saveDir, trimmedName, safeFileName);
-        return $"{safeFileName}-{companyIndex:D4}.json";
-    }
-
-    /// <summary>Writes the company to <paramref name="filePath"/> with the captain stats already chosen.</summary>
-    internal static async Task WriteCompanyFileAsync<TFaction, TEntry>(
-        CompanyStartSaveRequest<TFaction, TEntry> request,
-        SavedImprovedCaptainStats improvedCaptainStats,
-        string filePath)
-        where TFaction : class, ICompanySourceFaction
-        where TEntry : class, ICompanyMercsEntry
-    {
-        var entries = request.MercsCompanyEntries as IList<TEntry> ?? request.MercsCompanyEntries.ToList();
-        if (entries.Count == 0)
-        {
-            throw new InvalidOperationException("Add at least one unit before starting a company.");
-        }
-
-        var sourceFactions = CompanyUnitDetailsShared.BuildUnitSourceFactions(
-            request.ShowRightSelectionBox,
-            request.LeftSlotFaction,
-            request.RightSlotFaction,
-            faction => faction.Id);
-        var outputDir = Path.GetDirectoryName(filePath);
-        if (!string.IsNullOrWhiteSpace(outputDir))
-        {
-            Directory.CreateDirectory(outputDir);
-        }
-
-        var fileName = Path.GetFileName(filePath);
-        var captainName = improvedCaptainStats.CaptainName;
-        var normalizedCaptainName = string.IsNullOrWhiteSpace(captainName) ? "Captain" : captainName.Trim();
-        var startSeasonPoints = int.TryParse(request.SelectedStartSeasonPoints, out var parsedStartSeasonPoints)
-            ? parsedStartSeasonPoints
-            : 0;
-        var payload = new
-        {
-            CompanyName = request.CompanyName.Trim(),
-            CompanyType = request.CompanyType,
-            CompanyIdentifier = CompanySelectionSharedUtilities.ComputeCompanyIdentifier(fileName),
-            CompanyIndex = ParseCompanyIndexFromFileName(filePath),
-            CreatedUtc = DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture),
-            StartSeasonPoints = startSeasonPoints,
-            PointsLimit = startSeasonPoints,
-            CurrentPoints = int.TryParse(request.SeasonPointsCapText, out var currentPoints) ? currentPoints : 0,
-            SourceFactions = sourceFactions
-                .Select(faction => new
-                {
-                    FactionId = faction.Id,
-                    FactionName = faction.Name
-                })
-                .ToList(),
-            Entries = BuildSerializedEntries(entries, normalizedCaptainName, improvedCaptainStats, request.ArmyDataService)
-        };
-
-        await File.WriteAllTextAsync(
-            filePath,
-            JsonSerializer.Serialize(payload, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            }));
-    }
-
     /// <summary>
     /// New recruits as saved entries, numbered from <paramref name="firstEntryIndex"/>, each followed by its
     /// peripheral. They are written exactly as a founded company's troopers are.
     /// </summary>
-    internal static IReadOnlyList<SavedCompanyEntry> RecruitEntries<TEntry>(
+    public IReadOnlyList<SavedCompanyEntry> RecruitEntries<TEntry>(
         IList<TEntry> recruits,
-        int firstEntryIndex,
-        IArmyDataService armyDataService)
+        int firstEntryIndex)
         where TEntry : class, ICompanyMercsEntry
     {
-        var serialized = BuildSerializedEntries(recruits, "Captain", new SavedImprovedCaptainStats(), armyDataService, firstEntryIndex);
+        var serialized = Build(recruits, "Captain", new SavedImprovedCaptainStats(), firstEntryIndex);
         var json = JsonSerializer.Serialize(serialized);
         return JsonSerializer.Deserialize<List<SavedCompanyEntry>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
     }
 
-    private static List<SerializedCompanyEntry> BuildSerializedEntries<TEntry>(
+    /// <summary>
+    /// The troopers as saved entries numbered from <paramref name="firstEntryIndex"/>, each followed by its
+    /// peripheral; the lieutenant gets <paramref name="improvedCaptainStats"/>.
+    /// </summary>
+    internal List<SerializedCompanyEntry> Build<TEntry>(
         IList<TEntry> entries,
         string normalizedCaptainName,
         SavedImprovedCaptainStats improvedCaptainStats,
-        IArmyDataService armyDataService,
         int firstEntryIndex = 0)
         where TEntry : class, ICompanyMercsEntry
     {
         var result = new List<SerializedCompanyEntry>(entries.Count * 2);
-        var encoder = new SavedCodeEncoder(armyDataService);
+        var encoder = new SavedCodeEncoder(armyData);
         var entryIndex = firstEntryIndex;
 
         foreach (var entry in entries)
@@ -235,7 +59,6 @@ internal static class CompanyStartSaveWorkflow
                 primaryEntryIndex,
                 normalizedCaptainName,
                 improvedCaptainStats,
-                armyDataService,
                 encoder));
 
             if (!entry.HasPeripheralStatBlock)
@@ -247,19 +70,17 @@ internal static class CompanyStartSaveWorkflow
                 entry,
                 entryIndex++,
                 primaryEntryIndex,
-                armyDataService,
                 encoder));
         }
 
         return result;
     }
 
-    private static SerializedCompanyEntry CreatePrimaryEntry<TEntry>(
+    private SerializedCompanyEntry CreatePrimaryEntry<TEntry>(
         TEntry entry,
         int entryIndex,
         string normalizedCaptainName,
         SavedImprovedCaptainStats improvedCaptainStats,
-        IArmyDataService armyDataService,
         SavedCodeEncoder encoder)
         where TEntry : class, ICompanyMercsEntry
     {
@@ -337,7 +158,7 @@ internal static class CompanyStartSaveWorkflow
         var currentEquipmentResolution = encoder.Encode(currentEquipmentNames, ProfileEntryKind.Equip, currentLookupFactions);
         var baseWeaponResolution = encoder.Encode(baseWeaponNames, ProfileEntryKind.Weapons, baseLookupFactions);
         var currentWeaponResolution = encoder.Encode(currentWeaponNames, ProfileEntryKind.Weapons, currentLookupFactions);
-        var resolvedUnitTypeCode = ResolveUnitTypeCode(entry, armyDataService);
+        var resolvedUnitTypeCode = ResolveUnitTypeCode(entry);
 
         var customSkills = baseSkillResolution.CustomNames
             .Concat(currentSkillResolution.CustomNames)
@@ -434,11 +255,10 @@ internal static class CompanyStartSaveWorkflow
         };
     }
 
-    private static SerializedCompanyEntry CreatePeripheralEntry<TEntry>(
+    private SerializedCompanyEntry CreatePeripheralEntry<TEntry>(
         TEntry entry,
         int entryIndex,
         int parentEntryIndex,
-        IArmyDataService armyDataService,
         SavedCodeEncoder encoder)
         where TEntry : class, ICompanyMercsEntry
     {
@@ -469,7 +289,7 @@ internal static class CompanyStartSaveWorkflow
             Name = peripheralName,
             BaseUnitName = peripheralName,
             CustomName = peripheralName,
-            UnitTypeCode = PeripheralTypeCode(peripheralName, entry, armyDataService),
+            UnitTypeCode = PeripheralTypeCode(peripheralName, entry),
             ProfileKey = $"{entry.ProfileKey}|peripheral",
             SourceFactionId = entry.SourceFactionId,
             SourceUnitId = entry.SourceUnitId,
@@ -604,7 +424,7 @@ internal static class CompanyStartSaveWorkflow
         return value.Trim();
     }
 
-    private static List<string> SplitCodes(string? line)
+    internal static List<string> SplitCodes(string? line)
     {
         if (string.IsNullOrWhiteSpace(line))
         {
@@ -621,17 +441,17 @@ internal static class CompanyStartSaveWorkflow
 
     // The peripheral's own troop type from its profile in the army data ("REM", "LI"), so it shows VITA or STR as
     // the profile does; PERIPHERAL when the army data doesn't say.
-    private static string PeripheralTypeCode<TEntry>(string peripheralName, TEntry entry, IArmyDataService armyDataService)
+    private string PeripheralTypeCode<TEntry>(string peripheralName, TEntry entry)
         where TEntry : class, ICompanyMercsEntry
     {
-        var profile = armyDataService.GetUnit(entry.SourceFactionId, entry.SourceUnitId)?.ProfileGroups.FindPeripheralProfile(peripheralName);
-        var types = CompanyUnitDetailsShared.BuildIdNameLookup(armyDataService.GetFactionSnapshot(entry.SourceFactionId)?.Filters, ArmyFilterSection.Type);
+        var profile = armyData.GetUnit(entry.SourceFactionId, entry.SourceUnitId)?.ProfileGroups.FindPeripheralProfile(peripheralName);
+        var types = CompanyUnitDetailsShared.BuildIdNameLookup(armyData.GetFactionSnapshot(entry.SourceFactionId)?.Filters, ArmyFilterSection.Type);
         return profile?.Type is { } type && types.TryGetValue(type, out var typeName) && !string.IsNullOrWhiteSpace(typeName)
             ? typeName.Trim().ToUpperInvariant()
             : UnitTypeCodes.Peripheral;
     }
 
-    private static string ResolveUnitTypeCode<TEntry>(TEntry entry, IArmyDataService armyDataService)
+    private string ResolveUnitTypeCode<TEntry>(TEntry entry)
         where TEntry : class, ICompanyMercsEntry
     {
         if (!string.IsNullOrWhiteSpace(entry.UnitTypeCode))
@@ -650,7 +470,7 @@ internal static class CompanyStartSaveWorkflow
             return string.Empty;
         }
 
-        var resume = armyDataService
+        var resume = armyData
             .GetResumeByFactionMercsOnly(entry.SourceFactionId)
             .FirstOrDefault(x => x.UnitId == entry.SourceUnitId);
         if (resume?.Type is not int resumeType)
@@ -658,7 +478,7 @@ internal static class CompanyStartSaveWorkflow
             return string.Empty;
         }
 
-        var snapshot = armyDataService.GetFactionSnapshot(entry.SourceFactionId);
+        var snapshot = armyData.GetFactionSnapshot(entry.SourceFactionId);
         var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Type);
         if (!typeLookup.TryGetValue(resumeType, out var typeName) || string.IsNullOrWhiteSpace(typeName))
         {
@@ -666,184 +486,5 @@ internal static class CompanyStartSaveWorkflow
         }
 
         return typeName.Trim().ToUpperInvariant();
-    }
-
-    private static int ParseCompanyIndexFromFileName(string filePath)
-    {
-        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
-        if (string.IsNullOrWhiteSpace(fileNameWithoutExtension))
-        {
-            return 1;
-        }
-
-        var match = Regex.Match(fileNameWithoutExtension, @"-(\d+)$");
-        return match.Success && int.TryParse(match.Groups[1].Value, out var parsed) && parsed > 0
-            ? parsed
-            : 1;
-    }
-
-    private sealed class SerializedCompanyEntry
-    {
-        public int EntryIndex { get; init; }
-        [JsonPropertyName("Name")]
-        public string Name { get; init; } = string.Empty;
-        [JsonPropertyName("Base Profile (Human Readable)")]
-        public string BaseProfileHumanReadable { get; init; } = string.Empty;
-        [JsonPropertyName("IsCaptain")]
-        public bool IsCaptain { get; init; }
-        [JsonPropertyName("FactionId")]
-        public int FactionId { get; init; }
-        [JsonPropertyName("ProfileId")]
-        public int ProfileId { get; init; }
-        [JsonPropertyName("Renown")]
-        public int Renown { get; init; }
-        [JsonPropertyName("Base CR")]
-        public int BaseCr { get; init; }
-        [JsonPropertyName("Calculated CR")]
-        public int CalculatedCr { get; init; }
-        [JsonPropertyName("Base MOV")]
-        public string BaseMov { get; init; } = "-";
-        [JsonPropertyName("Base CC")]
-        public string BaseCc { get; init; } = "-";
-        [JsonPropertyName("Base BS")]
-        public string BaseBs { get; init; } = "-";
-        [JsonPropertyName("Base PH")]
-        public string BasePh { get; init; } = "-";
-        [JsonPropertyName("Base WIP")]
-        public string BaseWip { get; init; } = "-";
-        [JsonPropertyName("Base ARM")]
-        public string BaseArm { get; init; } = "-";
-        [JsonPropertyName("Base BTS")]
-        public string BaseBts { get; init; } = "-";
-        [JsonPropertyName("Base VITA/STR")]
-        public string BaseVitaOrStr { get; init; } = "-";
-        [JsonPropertyName("Base S")]
-        public string BaseS { get; init; } = "-";
-        [JsonPropertyName("Current MOV")]
-        public string CurrentMov { get; init; } = "-";
-        [JsonPropertyName("CurrentMoveFirstCm")]
-        public int? CurrentMoveFirstCm { get; init; }
-        [JsonPropertyName("CurrentMoveSecondCm")]
-        public int? CurrentMoveSecondCm { get; init; }
-        [JsonPropertyName("Current CC")]
-        public string CurrentCc { get; init; } = "-";
-        [JsonPropertyName("Current BS")]
-        public string CurrentBs { get; init; } = "-";
-        [JsonPropertyName("Current PH")]
-        public string CurrentPh { get; init; } = "-";
-        [JsonPropertyName("Current WIP")]
-        public string CurrentWip { get; init; } = "-";
-        [JsonPropertyName("Current ARM")]
-        public string CurrentArm { get; init; } = "-";
-        [JsonPropertyName("Current BTS")]
-        public string CurrentBts { get; init; } = "-";
-        [JsonPropertyName("Current VITA/STR")]
-        public string CurrentVitaOrStr { get; init; } = "-";
-        [JsonPropertyName("Current S")]
-        public string CurrentS { get; init; } = "-";
-        [JsonPropertyName("Perks")]
-        public List<CompanyTrooperPerkState> Perks { get; init; } = [];
-        [JsonPropertyName("XP")]
-        public int Xp { get; init; }
-        [JsonPropertyName("BaseSkillCodes")]
-        public List<CompanySavedCodeRef> BaseSkillCodes { get; init; } = [];
-        [JsonPropertyName("CurrentSkillCodes")]
-        public List<CompanySavedCodeRef> CurrentSkillCodes { get; init; } = [];
-        [JsonPropertyName("BaseCharacteristicCodes")]
-        public List<CompanySavedCodeRef> BaseCharacteristicCodes { get; init; } = [];
-        [JsonPropertyName("CurrentCharacteristicCodes")]
-        public List<CompanySavedCodeRef> CurrentCharacteristicCodes { get; init; } = [];
-        [JsonPropertyName("BaseEquipmentCodes")]
-        public List<CompanySavedCodeRef> BaseEquipmentCodes { get; init; } = [];
-        [JsonPropertyName("CurrentEquipmentCodes")]
-        public List<CompanySavedCodeRef> CurrentEquipmentCodes { get; init; } = [];
-        [JsonPropertyName("BaseWeaponCodes")]
-        public List<CompanySavedCodeRef> BaseWeaponCodes { get; init; } = [];
-        [JsonPropertyName("CurrentWeaponCodes")]
-        public List<CompanySavedCodeRef> CurrentWeaponCodes { get; init; } = [];
-        [JsonPropertyName("Custom Weapons")]
-        public List<string> CustomWeapons { get; init; } = [];
-        [JsonPropertyName("SpecOpsPurchases")]
-        public List<string> SpecOpsPurchases { get; init; } = [];
-        [JsonPropertyName("Custom Skills")]
-        public List<string> CustomSkills { get; init; } = [];
-        [JsonPropertyName("Custom Characteristics")]
-        public List<string> CustomCharacteristics { get; init; } = [];
-        [JsonPropertyName("Custom Equipment")]
-        public List<string> CustomEquipment { get; init; } = [];
-        [JsonPropertyName("Rank1Skill")]
-        public string Rank1Skill { get; init; } = string.Empty;
-        [JsonPropertyName("Rank2Skill")]
-        public string Rank2Skill { get; init; } = string.Empty;
-        [JsonPropertyName("Rank3Skill")]
-        public string Rank3Skill { get; init; } = string.Empty;
-        [JsonPropertyName("Rank4Skill")]
-        public string Rank4Skill { get; init; } = string.Empty;
-        [JsonPropertyName("Rank5Skill")]
-        public string Rank5Skill { get; init; } = string.Empty;
-        [JsonPropertyName("Rank6Skill")]
-        public string Rank6Skill { get; init; } = string.Empty;
-        [JsonPropertyName("Rank7Skill")]
-        public string Rank7Skill { get; init; } = string.Empty;
-        [JsonPropertyName("EquippedPrimary")]
-        public string EquippedPrimary { get; init; } = string.Empty;
-        [JsonPropertyName("EquippedSecondary")]
-        public string EquippedSecondary { get; init; } = string.Empty;
-        [JsonPropertyName("EquippedSideArm")]
-        public string EquippedSideArm { get; init; } = string.Empty;
-        [JsonPropertyName("EquippedAccessories")]
-        public string EquippedAccessories { get; init; } = string.Empty;
-        [JsonPropertyName("EquippedRoles")]
-        public string EquippedRoles { get; init; } = string.Empty;
-        [JsonPropertyName("EquippedArmor")]
-        public string EquippedArmor { get; init; } = string.Empty;
-        [JsonPropertyName("EquippedAugment")]
-        public string EquippedAugment { get; init; } = string.Empty;
-        [JsonPropertyName("EquippedOther")]
-        public string EquippedOther { get; init; } = string.Empty;
-
-        public string BaseUnitName { get; init; } = string.Empty;
-        public string CustomName { get; init; } = string.Empty;
-        public string UnitTypeCode { get; init; } = string.Empty;
-        public string ProfileKey { get; init; } = string.Empty;
-        public int SourceFactionId { get; init; }
-        public int SourceUnitId { get; init; }
-        public int LogoSourceFactionId { get; init; }
-        public int LogoSourceUnitId { get; init; }
-        public bool IsPeripheralUnit { get; init; }
-        public int? ParentEntryIndex { get; init; }
-        public int Cost { get; init; }
-        public bool IsLieutenant { get; init; }
-        [JsonIgnore]
-        public bool HasPeripheralStatBlock { get; init; }
-        [JsonIgnore]
-        public string PeripheralNameHeading { get; init; } = string.Empty;
-        [JsonIgnore]
-        public string PeripheralMov { get; init; } = "-";
-        [JsonIgnore]
-        public string PeripheralCc { get; init; } = "-";
-        [JsonIgnore]
-        public string PeripheralBs { get; init; } = "-";
-        [JsonIgnore]
-        public string PeripheralPh { get; init; } = "-";
-        [JsonIgnore]
-        public string PeripheralWip { get; init; } = "-";
-        [JsonIgnore]
-        public string PeripheralArm { get; init; } = "-";
-        [JsonIgnore]
-        public string PeripheralBts { get; init; } = "-";
-        [JsonIgnore]
-        public string PeripheralVitalityHeader { get; init; } = Stat.Vita.Key();
-        [JsonIgnore]
-        public string PeripheralVitality { get; init; } = "-";
-        [JsonIgnore]
-        public string PeripheralS { get; init; } = "-";
-        [JsonIgnore]
-        public string PeripheralAva { get; init; } = "-";
-        [JsonIgnore]
-        public string SavedPeripheralEquipment { get; init; } = "-";
-        [JsonIgnore]
-        public string SavedPeripheralSkills { get; init; } = "-";
-        public int ExperiencePoints { get; init; }
     }
 }

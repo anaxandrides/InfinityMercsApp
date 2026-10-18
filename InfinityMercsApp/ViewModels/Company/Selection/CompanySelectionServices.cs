@@ -1,5 +1,10 @@
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.CompanySelection.Captain;
+using InfinityMercsApp.Services.CompanySelection.Factions;
+using InfinityMercsApp.Services.CompanySelection.Recruitment;
+using InfinityMercsApp.Services.CompanySelection.StartCompany;
+using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Navigation;
@@ -20,5 +25,10 @@ public sealed record CompanySelectionServices(
     ICompanyFileService CompanyFiles,
     ISeasonFileService SeasonFiles,
     RecordPaths Paths,
+    CompanyFactionCatalog FactionCatalog,
+    UnitDetailsLoader UnitDetails,
+    CaptainSetup Captains,
+    CompanyFounder Founder,
+    CompanyRecruiter Recruiter,
     IAppSettingsProvider? Settings = null,
     FactionLogoCacheService? Logos = null);

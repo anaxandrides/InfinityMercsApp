@@ -1,0 +1,77 @@
+using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Infrastructure.Providers;
+using InfinityMercsApp.Services.CompanySelection.Captain;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Services.Dialogs;
+using InfinityMercsApp.UnitTests.Support;
+using NSubstitute;
+
+namespace InfinityMercsApp.UnitTests.Services.CompanySelection.Captain;
+
+public sealed class CaptainSetupTests
+{
+    private readonly ICaptainConfigurationDialog _dialog = Substitute.For<ICaptainConfigurationDialog>();
+    private readonly CaptainSetup _setup;
+
+    public CaptainSetupTests()
+    {
+        var armyData = Army101Data.Create();
+        _setup = new CaptainSetup(_dialog, new CaptainOptionCatalog(armyData, Substitute.For<ISpecOpsProvider>()), armyData);
+    }
+
+    private static CaptainFactions PanOceania { get; } = new(Army101Data.PanOceania, Army101Data.PanOceania, []);
+
+    private static CaptainUnitPopupInfo Unit(string name, int cost) => new()
+    {
+        Name = name,
+        Cost = cost,
+        Statline = "CC 13 | BS 12",
+        RangedWeapons = "Combi Rifle",
+        CcWeapons = "Pistol",
+        Skills = "Lieutenant"
+    };
+
+    [Theory]
+    [InlineData(false, CaptainStatChart.Mercenaries)]
+    [InlineData(true, CaptainStatChart.SpecOps)]
+    public async Task OnlyASpecOpsCaptainUsesTheSpecOpsChart(bool isSpecOps, CaptainStatChart chart)
+    {
+        await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), PanOceania, isSpecOps, showUnitsInInches: true);
+
+        await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context => context.StatChart == chart));
+    }
+
+    [Fact]
+    public async Task TheCaptainPopupIsShownThroughTheDialog()
+    {
+        var chosen = new SavedImprovedCaptainStats { IsEnabled = true, CaptainName = "Kestrel" };
+        _dialog.ShowAsync(Arg.Any<CaptainUpgradePopupContext>()).Returns(chosen);
+
+        var result = await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), PanOceania, isSpecOps: false, showUnitsInInches: true);
+
+        Assert.Same(chosen, result);
+        await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context =>
+            context.Unit.Name == "Fusilier" && context.Unit.Cost == 10));
+    }
+
+    [Fact]
+    public async Task ATagGetsItsOwnSpecOpsPopup()
+    {
+        await _setup.ConfigureTagSpecOpsAsync(Unit("Squalo", 60), PanOceania, isLieutenant: false, baseExperience: 20, showUnitsInInches: true);
+
+        await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context =>
+            context.PopupTitle == "TAG Spec Ops" &&
+            context.ConfirmButtonText == "Finalize Tag" &&
+            context.DefaultUnitCustomName == "TAG" &&
+            context.BaseExperienceOverride == 20 &&
+            context.StatChart == CaptainStatChart.SpecOps));
+    }
+
+    [Fact]
+    public async Task TheOptionFactionIsNamedFromTheMetadataWhenTheScreenDoesNotKnowIt()
+    {
+        await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), new CaptainFactions(4242, null, []), isSpecOps: false, showUnitsInInches: true);
+
+        await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context => context.OptionFactionName == "Faction 4242"));
+    }
+}

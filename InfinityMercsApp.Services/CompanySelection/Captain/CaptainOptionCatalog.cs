@@ -8,70 +8,13 @@ using InfinityMercsApp.Services.CompanySelection.Common;
 
 namespace InfinityMercsApp.Services.CompanySelection.Captain;
 
-internal static class CaptainPopupInputBuilder
+/// <summary>The weapons, skills and equipment a faction's Spec-Ops offer a captain, labelled with their XP cost.</summary>
+public sealed class CaptainOptionCatalog(IArmyDataService armyData, ISpecOpsProvider specOps)
 {
     private const int TagCompanyFactionId = 2003;
 
-    internal static int ResolveSourceFactionId(int fallbackSourceFactionId, int? firstSelectedSourceFactionId)
-    {
-        if (fallbackSourceFactionId > 0)
-        {
-            return fallbackSourceFactionId;
-        }
-
-        return firstSelectedSourceFactionId ?? fallbackSourceFactionId;
-    }
-
-    internal static int ResolveOptionFactionId(int sourceFactionId, int? sourceFactionParentId)
-    {
-        if (sourceFactionId <= 0)
-        {
-            return sourceFactionId;
-        }
-
-        return sourceFactionParentId.GetValueOrDefault() > 0
-            ? sourceFactionParentId.GetValueOrDefault()
-            : sourceFactionId;
-    }
-
-    internal static string ResolveOptionFactionName(
-        int sourceFactionId,
-        int optionFactionId,
-        string? sourceFactionName,
-        string? optionFactionName,
-        string? metadataSourceFactionName,
-        string? metadataOptionFactionName)
-    {
-        if (!string.IsNullOrWhiteSpace(sourceFactionName))
-        {
-            return sourceFactionName;
-        }
-
-        if (!string.IsNullOrWhiteSpace(optionFactionName))
-        {
-            return optionFactionName;
-        }
-
-        if (!string.IsNullOrWhiteSpace(metadataSourceFactionName))
-        {
-            return metadataSourceFactionName;
-        }
-
-        if (!string.IsNullOrWhiteSpace(metadataOptionFactionName))
-        {
-            return metadataOptionFactionName;
-        }
-
-        return optionFactionId > 0
-            ? $"Faction {optionFactionId}"
-            : sourceFactionId > 0
-                ? $"Faction {sourceFactionId}"
-                : "Faction";
-    }
-
-    internal static CaptainUpgradeOptionSet LoadUpgradeOptions(
-        IArmyDataService armyDataService,
-        ISpecOpsProvider specOpsProvider,
+    /// <summary>The options for <paramref name="factionId"/>; none when the faction has none or can't be read.</summary>
+    public CaptainUpgradeOptionSet Load(
         int factionId,
         bool showUnitsInInches,
         CancellationToken cancellationToken)
@@ -83,16 +26,16 @@ internal static class CaptainPopupInputBuilder
 
         try
         {
-            var snapshot = armyDataService.GetFactionSnapshot(factionId, cancellationToken);
+            var snapshot = armyData.GetFactionSnapshot(factionId, cancellationToken);
             var filters = snapshot?.Filters;
             var skillLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, ArmyFilterSection.Skills);
             var equipLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, ArmyFilterSection.Equip);
             var weaponLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, ArmyFilterSection.Weapons);
             var extrasLookup = BuildExtrasLookup(filters);
 
-            var skillRecords = specOpsProvider.GetSpecopsSkillsByFaction(factionId, cancellationToken);
-            var equipRecords = specOpsProvider.GetSpecopsEquipsByFaction(factionId, cancellationToken);
-            var weaponRecords = specOpsProvider.GetSpecopsWeaponsByFaction(factionId, cancellationToken);
+            var skillRecords = specOps.GetSpecopsSkillsByFaction(factionId, cancellationToken);
+            var equipRecords = specOps.GetSpecopsEquipsByFaction(factionId, cancellationToken);
+            var weaponRecords = specOps.GetSpecopsWeaponsByFaction(factionId, cancellationToken);
 
             var skills = skillRecords
                 .OrderBy(x => x.EntryOrder)
@@ -121,7 +64,7 @@ internal static class CaptainPopupInputBuilder
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"CaptainPopupInputBuilder LoadUpgradeOptions failed for faction {factionId}: {ex.Message}");
+            Console.Error.WriteLine($"Loading the captain options failed for faction {factionId}: {ex.Message}");
             return CaptainUpgradeOptionSet.Empty;
         }
     }

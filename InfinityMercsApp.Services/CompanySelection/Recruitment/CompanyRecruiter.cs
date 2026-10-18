@@ -1,6 +1,5 @@
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Stores;
-using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.Records;
@@ -12,7 +11,7 @@ namespace InfinityMercsApp.Services.CompanySelection.Recruitment;
 /// Hires new recruits mid-season: they join the company file after its last trooper, and their CR cost is
 /// charged in the season through the Additional Recruitment store.
 /// </summary>
-public static class CompanyRecruitmentWorkflow
+public sealed class CompanyRecruiter(SavedEntryWriter entries, ICompanyFileService companyFiles, ISeasonFileService seasonFiles)
 {
     /// <summary>What a recruit's purchase is called in the season's marketplace.</summary>
     public const string ItemPrefix = "Recruit: ";
@@ -21,12 +20,7 @@ public static class CompanyRecruitmentWorkflow
     /// Adds the recruits to the company and charges them in the season. When the season can't be saved, the
     /// company is put back as it was, so nobody joins without being paid for.
     /// </summary>
-    public static async Task<RecruitmentOutcome> HireAsync(
-        CompanyRecruitment recruitment,
-        IReadOnlyList<ICompanyMercsEntry> recruits,
-        IArmyDataService armyData,
-        ICompanyFileService companyFiles,
-        ISeasonFileService seasonFiles)
+    public async Task<RecruitmentOutcome> HireAsync(CompanyRecruitment recruitment, IReadOnlyList<ICompanyMercsEntry> recruits)
     {
         if (recruits.Count == 0)
         {
@@ -35,10 +29,10 @@ public static class CompanyRecruitmentWorkflow
 
         var company = await companyFiles.LoadAsync(recruitment.CompanyFilePath) ?? recruitment.Company;
         var firstEntryIndex = company.Entries.Count == 0 ? 0 : company.Entries.Max(entry => entry.EntryIndex) + 1;
-        var hired = CompanyStartSaveWorkflow.RecruitEntries(recruits.ToList(), firstEntryIndex, armyData);
+        var hired = entries.RecruitEntries(recruits.ToList(), firstEntryIndex);
 
         company.Entries.AddRange(hired);
-        if (!await TrySaveAsync(companyFiles, recruitment.CompanyFilePath, company))
+        if (!await TrySaveAsync(recruitment.CompanyFilePath, company))
         {
             return RecruitmentOutcome.CompanyNotSaved;
         }
@@ -60,14 +54,14 @@ public static class CompanyRecruitmentWorkflow
         if (!charged)
         {
             company.Entries.RemoveAll(entry => entry.EntryIndex >= firstEntryIndex);
-            await TrySaveAsync(companyFiles, recruitment.CompanyFilePath, company);
+            await TrySaveAsync(recruitment.CompanyFilePath, company);
             return RecruitmentOutcome.SeasonNotSaved;
         }
 
         return RecruitmentOutcome.Hired;
     }
 
-    private static async Task<bool> TrySaveAsync(ICompanyFileService companyFiles, string path, SavedCompanyFile company)
+    private async Task<bool> TrySaveAsync(string path, SavedCompanyFile company)
     {
         try
         {

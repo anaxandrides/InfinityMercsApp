@@ -356,17 +356,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         try
         {
             var records = await LoadFactionRecordsAsync(cancellationToken);
-            Factions.ReplaceRange(CompanySelectionFactionsWorkflow.BuildFactionSelectionItems(
-                records,
-                Services.Logos,
-                (id, parentId, name, cachedLogoPath, packagedLogoPath) => new ArmyFactionSelectionItem
-                {
-                    Id = id,
-                    ParentId = parentId,
-                    Name = name,
-                    CachedLogoPath = cachedLogoPath,
-                    PackagedLogoPath = packagedLogoPath
-                }));
+            Factions.ReplaceRange(records.Select(record => ArmyFactionSelectionItem.From(record, Services.Logos)));
         }
         catch (Exception ex)
         {
@@ -383,7 +373,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
     /// <summary>Every non-NA faction of the screen's mode (vanilla or sectorial), with their logos cached.</summary>
     protected async Task<IReadOnlyList<FactionRecord>> LoadModeFactionRecordsAsync(CancellationToken cancellationToken) =>
-        await CompanySelectionFactionsWorkflow.LoadFilteredFactionRecordsAsync(Services.ArmyData, Services.Logos, Mode, cancellationToken);
+        await Services.FactionCatalog.LoadAsync(Mode, cancellationToken);
 
     [RelayCommand]
     private Task SelectFactionAsync(ArmyFactionSelectionItem? item)
@@ -860,47 +850,36 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
         try
         {
-            CompanyUnitDetailsWorkflowService.Load(
-                new CompanyUnitDetailsWorkflowRequest
-                {
-                    UnitName = unit.Name,
-                    UnitId = unit.Id,
-                    SourceFactionId = unit.SourceFactionId,
-                    IsSpecOps = unit.IsSpecOps,
-                    LieutenantOnlyUnits = LieutenantOnlyUnits,
-                    ShowUnitsInInches = Detail.ShowUnitsInInches,
-                    GetUnit = Services.ArmyData.GetUnit,
-                    GetFactionSnapshot = Services.ArmyData.GetFactionSnapshot,
-                    GetSpecopsUnitsByFaction = Services.SpecOps.GetSpecopsUnitsByFaction,
-                    ApplyUnitHeaderColors = ApplyUnitHeaderColors,
-                    ApplyGlobalDisplayUnitsPreference = _ => ApplyDisplayUnitsPreference(),
-                    PopulateUnitStatsFromFirstProfile = groups => Detail.ApplyFirstProfileStats(groups, FormatMove),
-                    SetOrderTraits = Detail.SetOrderTraits,
-                    SetTechTraits = Detail.SetTechTraits,
-                    EnsureLieutenantSkill = CompanyProfileText.EnsureLieutenantSkill,
-                    SetCommonEquipmentSkills = Detail.SetCommonEquipmentAndSkills,
-                    SetSummaryText = (equipment, skills) =>
-                    {
-                        Detail.EquipmentSummary = equipment;
-                        Detail.SpecialSkillsSummary = skills;
-                    },
-                    RefreshSummaryFormatted = () => { },
-                    PopulateProfilesFromProfileGroups = PopulateProfiles,
-                    UpdatePeripheralStatBlockFromVisibleProfiles = UpdatePeripheralFromVisibleProfiles,
-                    SetSelectedUnitProfileGroups = groups => Detail.SetProfileData(groups, Detail.Filters),
-                    SetSelectedUnitFilters = filters => Detail.SetProfileData(Detail.ProfileGroups, filters),
-                    SetUnitNameHeading = heading => Detail.UnitNameHeading = heading,
-                    SetSummaryHighlightLieutenant = _ => { },
-                    LogInfo = _ => { },
-                    LogError = Console.Error.WriteLine
-                },
-                cancellationToken);
+            Detail.UnitNameHeading = unit.Name;
+            var details = Services.UnitDetails.Load(
+                unit.SourceFactionId, unit.Id, unit.IsSpecOps, LieutenantOnlyUnits, Detail.ShowUnitsInInches, cancellationToken);
+            ApplyUnitHeaderColors(unit.SourceFactionId, details.Unit, cancellationToken);
+            if (details.ProfileGroups.IsEmpty)
+            {
+                Console.Error.WriteLine($"No profiles found for unit {unit.Id} of faction {unit.SourceFactionId}.");
+                return;
+            }
+
+            Detail.SetProfileData(details.ProfileGroups, details.Filters);
+            ApplyDisplayUnitsPreference();
+            Detail.ApplyFirstProfileStats(details.ProfileGroups, FormatMove);
+            var order = details.OrderTraits;
+            Detail.SetOrderTraits(order.HasRegular, order.HasIrregular, order.HasImpetuous, order.HasTacticalAwareness);
+            var tech = details.TechTraits;
+            Detail.SetTechTraits(tech.HasCube, tech.HasCube2, tech.HasHackable);
+            Detail.SetCommonEquipmentAndSkills(details.CommonEquipment, details.CommonSkills, details.TreatAsSpecOps);
+            Detail.EquipmentSummary = $"Equipment: {Listed(details.CommonEquipment)}";
+            Detail.SpecialSkillsSummary = $"Special Skills: {Listed(details.CommonSkills)}";
+            PopulateProfiles(details.ProfileGroups, details.Filters, details.TreatAsSpecOps);
+            UpdatePeripheralFromVisibleProfiles();
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Loading the unit's details failed: {ex}");
         }
     }
+
+    private static string Listed(IReadOnlyList<string> names) => names.Count == 0 ? "-" : string.Join(", ", names);
 
     private void ApplyUnitHeaderColors(int sourceFactionId, ArmyUnitRecord? unit, CancellationToken cancellationToken) =>
         Detail.ApplyHeaderColors(CompanySelectionVisualThemeWorkflow.ResolveThemeFactionName(
@@ -1281,7 +1260,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         SetCompanyNameError(false);
         try
         {
-            await CompanyStartSaveWorkflow.RunAsync(new CompanyStartSaveRequest<ArmyFactionSelectionItem, MercsCompanyEntry>
+            var founding = await Services.Founder.FoundAsync(new CompanyFoundingRequest<ArmyFactionSelectionItem, MercsCompanyEntry>
             {
                 CompanyName = CompanyName.Trim(),
                 CompanyType = CompanyTypeLabel,
@@ -1290,18 +1269,19 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
                 LeftSlotFaction = LeftSlotFaction,
                 RightSlotFaction = SavesRightSlot ? RightSlotFaction : null,
                 Factions = Factions,
-                ArmyDataService = Services.ArmyData,
-                SpecOpsProvider = Services.SpecOps,
-                CaptainDialog = Services.CaptainDialog,
-                CompaniesDirectory = Services.Paths.CompaniesDirectory,
                 ShowUnitsInInches = Detail.ShowUnitsInInches,
                 SelectedStartSeasonPoints = SelectedStartSeasonPoints,
-                SeasonPointsCapText = SeasonPointsCapText,
-                TryGetMetadataFactionName = factionId => Services.ArmyData.GetMetadataFactionById(factionId)?.Name,
-                DisplayAlertAsync = (title, message, cancel) => Services.Dialogs.ShowAlertAsync(title, message, cancel),
-                NavigateToCompanyViewerAsync = filePath =>
-                    NavigationService.NavigateToAsync("//SeasonPage", NavigationParameters.ForCompany(filePath))
+                SeasonPointsCapText = SeasonPointsCapText
             });
+            switch (founding.Outcome)
+            {
+                case FoundingOutcome.Founded:
+                    await NavigationService.NavigateToAsync("//SeasonPage", NavigationParameters.ForCompany(founding.FilePath));
+                    break;
+                case FoundingOutcome.NoTroopers:
+                    await Services.Dialogs.ShowAlertAsync("Save Failed", "Add at least one unit before starting a company.");
+                    break;
+            }
         }
         catch (Exception ex)
         {
@@ -1324,8 +1304,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             return;
         }
 
-        var outcome = await CompanyRecruitmentWorkflow.HireAsync(
-            recruitment, recruits, Services.ArmyData, Services.CompanyFiles, Services.SeasonFiles);
+        var outcome = await Services.Recruiter.HireAsync(recruitment, recruits);
         switch (outcome)
         {
             case RecruitmentOutcome.Hired:

@@ -25,14 +25,14 @@ public sealed class LoneWolfCompanySelectionViewModel(CompanySelectionServices s
     {
         var factions = Services.ArmyData
             .GetMetadataFactions(includeDiscontinued: true, cancellationToken)
-            .Where(faction => !CompanySelectionFactionsWorkflow.IsNonAlignedArmyName(faction.Name))
+            .Where(faction => !CompanyFactionCatalog.IsNonAlignedArmyName(faction.Name))
             .ToList();
         if (Services.Logos is { } logos)
         {
             await logos.CacheFactionLogosFromRecordsAsync(factions, cancellationToken);
         }
 
-        return WithoutGeneratedFactions(CompanySelectionFactionsWorkflow.CollapseContractedBackUpVariants(factions).OrderBy(faction => faction.Name));
+        return WithoutGeneratedFactions(CompanyFactionCatalog.CollapseContractedBackUpVariants(factions).OrderBy(faction => faction.Name));
     }
 
     /// <summary>Only regular troopers show, and an empty list stays empty.</summary>

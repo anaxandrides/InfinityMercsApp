@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection.Items;
 
@@ -26,4 +27,14 @@ public partial class ArmyFactionSelectionItem : ObservableObject, IViewerListIte
 
     [ObservableProperty]
     public partial bool IsSelected { get; set; }
+
+    /// <summary>A metadata faction as the picker lists it, with its downloaded and packaged logos.</summary>
+    public static ArmyFactionSelectionItem From(FactionRecord faction, FactionLogoCacheService? logos) => new()
+    {
+        Id = faction.Id,
+        ParentId = faction.ParentId,
+        Name = faction.Name,
+        CachedLogoPath = logos?.TryGetCachedLogoPath(faction.Id),
+        PackagedLogoPath = logos?.GetPackagedFactionLogoPath(faction.Id) ?? $"SVGCache/factions/{faction.Id}.svg"
+    };
 }

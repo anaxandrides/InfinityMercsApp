@@ -1,8 +1,8 @@
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanyProfiles;
+using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.Services.CompanySelection.SpecOps;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
@@ -19,7 +19,7 @@ namespace InfinityMercsApp.ViewModels.Company.Selection;
 public sealed class TagCompanySelectionViewModel(CompanySelectionServices services, ArmySourceSelectionMode mode)
     : StandardCompanySelectionViewModel(services, mode)
 {
-    public const string TagCompanyName = "TAG Company";
+    public const string TagCompanyName = CompanyFounder.TagCompanyType;
     public const string TagCompanyLogoPath = "SVGCache/MercsIcons/noun-battle-mech-1731140.svg";
 
     /// <summary>A TAG's starting experience, spent in its Spec Ops popup.</summary>
@@ -69,7 +69,7 @@ public sealed class TagCompanySelectionViewModel(CompanySelectionServices servic
         SavedImprovedCaptainStats? stats;
         try
         {
-            stats = await CompanySpecOpsWorkflowService.ShowTagSpecOpsConfigurationAsync(SpecOpsRequest(entry));
+            stats = await ConfigureSpecOpsAsync(entry);
         }
         catch (Exception ex)
         {
@@ -86,7 +86,7 @@ public sealed class TagCompanySelectionViewModel(CompanySelectionServices servic
         ReplaceMercsCompanyEntry(entry, TagFinalizedEntry.From(entry, stats));
     }
 
-    private CompanySpecOpsWorkflowRequest SpecOpsRequest(MercsCompanyEntry entry)
+    private Task<SavedImprovedCaptainStats?> ConfigureSpecOpsAsync(MercsCompanyEntry entry)
     {
         var sourceFactionId = TagWorkflowFactionId(entry.SourceFactionId);
         var skillLines = CompanyProfileText.SplitDisplayLine(entry.SavedSkills);
@@ -95,32 +95,24 @@ public sealed class TagCompanySelectionViewModel(CompanySelectionServices servic
             LieutenantRules.AddSkillIfMissing(skillLines);
         }
 
-        return new CompanySpecOpsWorkflowRequest
+        var unit = new CaptainUnitPopupInfo
         {
-            CaptainDialog = Services.CaptainDialog,
-            PreferredOtherFactionId = sourceFactionId > 0 ? sourceFactionId : null,
-            FallbackSourceFactionId = sourceFactionId > 0 ? sourceFactionId : entry.SourceFactionId,
-            FirstSourceFactionId = sourceFactionId > 0 ? sourceFactionId : null,
-            UnitName = entry.Name,
-            UnitCost = entry.CostValue,
-            UnitStatline = entry.Subtitle ?? "-",
-            UnitRangedWeapons = entry.SavedRangedWeapons,
-            UnitCcWeapons = entry.SavedCcWeapons,
-            UnitSkills = skillLines.Count == 0 ? "-" : string.Join(Environment.NewLine, skillLines),
-            UnitEquipment = entry.SavedEquipment,
-            UnitCachedLogoPath = entry.CachedLogoPath,
-            UnitPackagedLogoPath = entry.PackagedLogoPath,
-            TryGetParentFactionId = factionId =>
-                Factions.FirstOrDefault(faction => faction.Id == factionId)?.ParentId
-                ?? Services.ArmyData.GetMetadataFactionById(factionId)?.ParentId,
-            TryGetFactionName = factionId => Factions.FirstOrDefault(faction => faction.Id == factionId)?.Name,
-            TryGetMetadataFactionName = factionId => Services.ArmyData.GetMetadataFactionById(factionId)?.Name,
-            ArmyDataService = Services.ArmyData,
-            SpecOpsProvider = Services.SpecOps,
-            ShowUnitsInInches = Detail.ShowUnitsInInches,
-            IsLieutenant = entry.IsLieutenant,
-            BaseExperience = TagExperience
+            Name = entry.Name,
+            Cost = entry.CostValue,
+            Statline = entry.Subtitle ?? "-",
+            RangedWeapons = entry.SavedRangedWeapons,
+            CcWeapons = entry.SavedCcWeapons,
+            Skills = skillLines.Count == 0 ? "-" : string.Join(Environment.NewLine, skillLines),
+            Equipment = entry.SavedEquipment,
+            CachedLogoPath = entry.CachedLogoPath,
+            PackagedLogoPath = entry.PackagedLogoPath
         };
+        var factions = new CaptainFactions(
+            sourceFactionId > 0 ? sourceFactionId : entry.SourceFactionId,
+            sourceFactionId > 0 ? sourceFactionId : null,
+            Factions.ToList(),
+            sourceFactionId > 0 ? sourceFactionId : null);
+        return Services.Captains.ConfigureTagSpecOpsAsync(unit, factions, entry.IsLieutenant, TagExperience, Detail.ShowUnitsInInches);
     }
 
     // The chosen sectorial; the TAG company itself has no Spec Ops options of its own.

@@ -6,21 +6,22 @@ using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
 namespace InfinityMercsApp.Services.CompanySelection.Factions;
 
-internal static class CompanySelectionFactionsWorkflow
+/// <summary>The factions a company selection screen offers, from the army metadata.</summary>
+public sealed class CompanyFactionCatalog(IArmyDataService armyData, FactionLogoCacheService? logos = null)
 {
-    internal static async Task<List<FactionRecord>> LoadFilteredFactionRecordsAsync(
-        IArmyDataService armyDataService,
-        FactionLogoCacheService? factionLogoCacheService,
-        ArmySourceSelectionMode mode,
-        CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Every vanilla faction or every sectorial (by <paramref name="mode"/>), without the Non-Aligned Armies and
+    /// with one Contracted Back-Up, by name; their logos are cached on the way.
+    /// </summary>
+    public async Task<List<FactionRecord>> LoadAsync(ArmySourceSelectionMode mode, CancellationToken cancellationToken = default)
     {
-        var factions = armyDataService
+        var factions = armyData
             .GetMetadataFactions(includeDiscontinued: true, cancellationToken)
             .ToList();
 
-        if (factionLogoCacheService is not null)
+        if (logos is not null)
         {
-            await factionLogoCacheService.CacheFactionLogosFromRecordsAsync(factions, cancellationToken);
+            await logos.CacheFactionLogosFromRecordsAsync(factions, cancellationToken);
         }
 
         IEnumerable<FactionRecord> filtered = factions;
@@ -38,22 +39,7 @@ internal static class CompanySelectionFactionsWorkflow
         return filtered.OrderBy(x => x.Name).ToList();
     }
 
-    internal static List<TFactionItem> BuildFactionSelectionItems<TFactionItem>(
-        IEnumerable<FactionRecord> factions,
-        FactionLogoCacheService? factionLogoCacheService,
-        Func<int, int, string, string?, string?, TFactionItem> createItem)
-    {
-        return factions
-            .Select(faction => createItem(
-                faction.Id,
-                faction.ParentId,
-                faction.Name,
-                factionLogoCacheService?.TryGetCachedLogoPath(faction.Id),
-                factionLogoCacheService?.GetPackagedFactionLogoPath(faction.Id) ?? $"SVGCache/factions/{faction.Id}.svg"))
-            .ToList();
-    }
-
-    internal static IEnumerable<FactionRecord> CollapseContractedBackUpVariants(IEnumerable<FactionRecord> factions)
+    public static IEnumerable<FactionRecord> CollapseContractedBackUpVariants(IEnumerable<FactionRecord> factions)
     {
         var list = factions.ToList();
         var contracted = list
@@ -71,7 +57,7 @@ internal static class CompanySelectionFactionsWorkflow
         return list.Where(x => !IsContractedBackUpName(x.Name) || x.Id == preferred.Id);
     }
 
-    internal static bool IsNonAlignedArmyName(string? name)
+    public static bool IsNonAlignedArmyName(string? name)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -81,7 +67,7 @@ internal static class CompanySelectionFactionsWorkflow
         return name.Trim().Equals("Non-Aligned Armies", StringComparison.OrdinalIgnoreCase);
     }
 
-    internal static bool IsContractedBackUpName(string? name)
+    private static bool IsContractedBackUpName(string? name)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -92,7 +78,7 @@ internal static class CompanySelectionFactionsWorkflow
         return normalized == "contracted back up";
     }
 
-    internal static bool LooksAllCaps(string? value)
+    private static bool LooksAllCaps(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
