@@ -271,6 +271,27 @@ public sealed class DeploymentRosterTests : IDisposable
         Assert.Contains(PeripheralKinds.ControllerSkill, units[0].Skills);
     }
 
+    // A Cohesive company decides: in its core fireteam a trooper is Regular, outside it Irregular.
+    [Fact]
+    public async Task LoadAsync_CohesiveOrderType_OverridesTheProfile()
+    {
+        const string cohesive = """
+            {
+              "companyType": "Cohesive Company", "coreFireteam": "Fusilier Core",
+              "entries": [
+                { "entryIndex": 1, "name": "Drummer", "isLieutenant": true, "sourceFactionId": 101, "irregularInCompany": true,
+                  "Custom Characteristics": [ "Regular" ] },
+                { "entryIndex": 2, "name": "Kamau", "sourceFactionId": 101, "irregularInCompany": false,
+                  "Custom Characteristics": [ "Irregular" ] }
+              ]
+            }
+            """;
+
+        var units = await _roster.LoadAsync(_records.WriteCompany("cohesive.json", cohesive), SeasonPath, showUnitsInInches: true);
+
+        Assert.Equal([true, false], units.Select(unit => unit.IsIrregular));
+    }
+
     [Fact]
     public async Task LoadAsync_ItemInExtraSlot_WorksAsItsOwnKind()
     {

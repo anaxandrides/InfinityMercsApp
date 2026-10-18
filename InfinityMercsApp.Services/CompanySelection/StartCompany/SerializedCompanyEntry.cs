@@ -139,6 +139,7 @@ internal sealed class SerializedCompanyEntry
     public bool IsLieutenant { get; init; }
     public bool CarriesCaptainUpgrades { get; init; }
     public bool IsLoneWolf { get; init; }
+    public bool? IrregularInCompany { get; init; }
     [JsonIgnore]
     public bool HasPeripheralStatBlock { get; init; }
     [JsonIgnore]

@@ -1,5 +1,11 @@
+using InfinityMercsApp.Domain.Fireteams;
+using InfinityMercsApp.Domain.Models.Filtering;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Selection;
@@ -16,6 +22,26 @@ public sealed class CohesiveCompanySelectionViewModelTests
         var viewModel = await OpenAsync();
         await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Factions[0]);
         return viewModel;
+    }
+
+    // Whether the unit fits the tracked fireteam (or a wildcard), as the company checks it.
+    private static bool CanJoinTracked(CohesiveCompanySelectionViewModel viewModel, ArmyUnitSelectionItem unit)
+    {
+        var slots = viewModel.TeamEntries
+            .Where(team => team.IsTrackedTeam || team.IsWildcardBucket)
+            .SelectMany(team => team.AllowedProfiles)
+            .Select(slot => new FireteamSlot(slot.Name, slot.ResolvedUnitId, slot.ResolvedSourceFactionId, slot.Max))
+            .ToList();
+        return FireteamLevels.CanJoin(new FireteamMember(unit.Name, unit.Name, unit.Id, unit.SourceFactionId), slots);
+    }
+
+    private static async Task<ViewerProfileItem> SelectLieutenantAsync(CohesiveCompanySelectionViewModel viewModel, bool canJoin)
+    {
+        viewModel.TeamsView = false;
+        viewModel.ApplyUnitFilterCommand.Execute(new UnitFilterCriteria { LieutenantOnlyUnits = true });
+        await viewModel.SelectUnitFromListCommand.ExecuteAsync(
+            viewModel.Units.First(unit => unit.IsVisible && CanJoinTracked(viewModel, unit) == canJoin));
+        return viewModel.Profiles.First(profile => profile.IsLieutenant && profile.IsVisible);
     }
 
     [Fact]
@@ -78,16 +104,46 @@ public sealed class CohesiveCompanySelectionViewModelTests
     public async Task AddProfileToMercsCompanyCommand_Trooper_JoinsWithNumberTwoAndLieutenantFtMaster()
     {
         var viewModel = await OpenWithFactionAsync();
-        viewModel.TeamsView = false;
-        viewModel.ApplyUnitFilterCommand.Execute(new InfinityMercsApp.Domain.Models.Filtering.UnitFilterCriteria { LieutenantOnlyUnits = true });
-        await viewModel.SelectUnitFromListCommand.ExecuteAsync(viewModel.Units.First(unit => unit.IsVisible));
-        var lieutenant = viewModel.Profiles.First(profile => profile.IsLieutenant && profile.IsVisible);
+        var lieutenant = await SelectLieutenantAsync(viewModel, canJoin: true);
 
         await viewModel.AddProfileToMercsCompanyCommand.ExecuteAsync(lieutenant);
 
         var entry = Assert.Single(viewModel.MercsCompanyEntries);
         Assert.Contains(CohesiveCompanySelectionViewModel.NumberTwoSkill, entry.SavedSkills);
         Assert.Contains(CohesiveCompanySelectionViewModel.FireteamMasterSkill, entry.SavedSkills);
+        Assert.False(entry.IrregularInCompany);
+    }
+
+    [Fact]
+    public async Task AddProfileToMercsCompanyCommand_CannotJoinTheFireteam_TurnsItAway()
+    {
+        var viewModel = await OpenWithFactionAsync();
+        var lieutenant = await SelectLieutenantAsync(viewModel, canJoin: false);
+
+        await viewModel.AddProfileToMercsCompanyCommand.ExecuteAsync(lieutenant);
+
+        Assert.Empty(viewModel.MercsCompanyEntries);
+        await _kit.Dialogs.Received(1).ShowAlertAsync("Can't Add Trooper", Arg.Is<string>(text => text.Contains(viewModel.TrackedFireteamName)));
+    }
+
+    [Fact]
+    public async Task PrepareRecruitment_SavedFireteam_TracksItAndKeepsIt()
+    {
+        var founding = await OpenWithFactionAsync();
+        var saved = founding.TeamEntries.Where(team => team.ShowTrackingRadioButton).Last().Name;
+        var viewModel = new CohesiveCompanySelectionViewModel(_kit.Services, ArmySourceSelectionMode.Sectorials);
+        viewModel.PrepareRecruitment(new CompanyRecruitment("c.json", "s.json", new SavedCompanyFile
+        {
+            CompanyName = "Blue Team",
+            CompanyType = "Cohesive Company",
+            CoreFireteam = saved,
+            SourceFactions = [new SavedCompanyFaction { FactionId = SelectionTestKit.Sectorial, FactionName = "Sectorial" }]
+        }, 50, []));
+        await SelectionTestKit.OpenAsync(viewModel);
+
+        viewModel.TeamEntries.First(team => team.ShowTrackingRadioButton && team.Name != saved).IsTrackedTeam = true;
+
+        Assert.Equal(saved, viewModel.TrackedFireteamName);
     }
 
     [Fact]

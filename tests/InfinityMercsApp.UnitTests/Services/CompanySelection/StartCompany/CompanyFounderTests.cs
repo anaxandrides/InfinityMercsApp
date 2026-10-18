@@ -1,3 +1,4 @@
+using System.Text.Json;
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.CompanySelection.Captain;
@@ -80,6 +81,36 @@ public sealed class CompanyFounderTests : IDisposable
         var json = await File.ReadAllTextAsync(result.FilePath);
         Assert.Contains("\"Blue Lions\"", json);
         Assert.Contains("\"Kestrel\"", json);
+    }
+
+    [Fact]
+    public async Task FoundAsync_Cohesive_SavesTheCoreFireteamAndOrderTypes()
+    {
+        var outside = Trooper("Bravo");
+        outside.IrregularInCompany = true;
+
+        var request = Request("Cohesive Company", Trooper("Alpha", isLieutenant: true), outside);
+
+        var result = await _founder.FoundAsync(new CompanyFoundingRequest<ArmyFactionSelectionItem, MercsCompanyEntry>
+        {
+            CompanyName = request.CompanyName,
+            CompanyType = request.CompanyType,
+            MercsCompanyEntries = request.MercsCompanyEntries,
+            ShowRightSelectionBox = request.ShowRightSelectionBox,
+            LeftSlotFaction = request.LeftSlotFaction,
+            RightSlotFaction = request.RightSlotFaction,
+            Factions = request.Factions,
+            ShowUnitsInInches = request.ShowUnitsInInches,
+            SelectedStartSeasonPoints = request.SelectedStartSeasonPoints,
+            SeasonPointsCapText = request.SeasonPointsCapText,
+            CoreFireteam = "Fusilier Core"
+        });
+
+        var company = JsonSerializer.Deserialize<SavedCompanyFile>(
+            await File.ReadAllTextAsync(result.FilePath), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        Assert.NotNull(company);
+        Assert.Equal("Fusilier Core", company.CoreFireteam);
+        Assert.Equal([null, true], company.Entries.Select(entry => entry.IrregularInCompany));
     }
 
     [Fact]

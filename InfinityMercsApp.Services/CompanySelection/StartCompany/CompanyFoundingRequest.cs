@@ -18,4 +18,7 @@ public sealed class CompanyFoundingRequest<TFaction, TEntry>
     public required bool ShowUnitsInInches { get; init; }
     public required string SelectedStartSeasonPoints { get; init; }
     public required string SeasonPointsCapText { get; init; }
+
+    /// <summary>A Cohesive company's core fireteam; empty for any other company.</summary>
+    public string CoreFireteam { get; init; } = string.Empty;
 }

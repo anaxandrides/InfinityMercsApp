@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
+using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
@@ -12,8 +13,9 @@ namespace InfinityMercsApp.ViewModels.Company.Selection;
 
 /// <summary>
 /// A Cohesive company: one sectorial that can field a Core fireteam within the points limit. The player
-/// tracks one fireteam; its level gives a bonus, and troopers outside it are irregular. Troopers get
-/// Number 2 (and the lieutenant FT Master), and Tactical Awareness costs 3 points less.
+/// tracks one fireteam; its level gives a bonus, and troopers outside it are irregular. Every trooper must be
+/// able to join it. Troopers get Number 2 (and the lieutenant FT Master), and Tactical Awareness costs 3
+/// points less. The fireteam is saved with the company and fixed from then on, so recruiting keeps it.
 /// </summary>
 public sealed partial class CohesiveCompanySelectionViewModel : CompanySelectionViewModel
 {
@@ -173,15 +175,21 @@ public sealed partial class CohesiveCompanySelectionViewModel : CompanySelection
 
     protected override void OnUnitsLoadFailed() => RestoreTrackedFireteam(string.Empty);
 
+    // While recruiting, the company's saved fireteam can't be swapped for another.
     private void OnTeamPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (!_isUpdatingTrackedTeam &&
             e.PropertyName == nameof(ArmyTeamListItem.IsTrackedTeam) &&
             sender is ArmyTeamListItem { IsTrackedTeam: true, ShowTrackingRadioButton: true } team)
         {
-            SetTrackedFireteam(team.Name);
+            SetTrackedFireteam(IsRecruiting ? TrackedFireteamName : team.Name);
         }
     }
+
+    protected override string CoreFireteam => TrackedFireteamName;
+
+    protected override void OnPreparingRecruitment(SavedCompanyFile company) =>
+        TrackedFireteamName = _trackedFireteamToRestore = company.CoreFireteam;
 
     private void RestoreTrackedFireteam(string? name)
     {
@@ -224,11 +232,13 @@ public sealed partial class CohesiveCompanySelectionViewModel : CompanySelection
         var slots = TrackedFireteamSlots();
         TrackedFireteamLevel = slots is null ? 0 : Math.Clamp(FireteamLevels.Level(Members(), slots), 0, FireteamLevels.MaxLevel);
 
-        // Without a tracked fireteam nobody is irregular.
+        // Without a tracked fireteam nobody is irregular, and each trooper's profile decides.
         var claimed = slots is null ? null : FireteamLevels.ClaimSlots(Members(), slots);
         for (var i = 0; i < MercsCompanyEntries.Count; i++)
         {
-            MercsCompanyEntries[i].IsIrregular = claimed is not null && i < claimed.Count && !claimed[i];
+            var entry = MercsCompanyEntries[i];
+            entry.IsIrregular = claimed is not null && i < claimed.Count && !claimed[i];
+            entry.IrregularInCompany = claimed is null ? null : entry.IsIrregular;
         }
     }
 
@@ -259,6 +269,14 @@ public sealed partial class CohesiveCompanySelectionViewModel : CompanySelection
     protected override void AfterCompanyReset() => ReevaluateTrackedFireteam();
 
     // ── Profiles and troopers ───────────────────────────────────────────────
+
+    /// <summary>Every trooper must be able to join the core fireteam; anyone can join while none is tracked.</summary>
+    protected override bool CanAddProfile(ArmyUnitSelectionItem unit) =>
+        TrackedFireteamSlots() is not { } slots ||
+        FireteamLevels.CanJoin(new FireteamMember(unit.Name, unit.Name, unit.Id, unit.SourceFactionId), slots);
+
+    protected override string? CannotAddMessage(ArmyUnitSelectionItem unit) =>
+        $"{unit.Name} can't join {TrackedFireteamName}, and every trooper in a Cohesive company must be able to.";
 
     /// <summary>Picking a unit from a fireteam-only (FTO) slot shows only its FTO profiles.</summary>
     protected override bool RestrictsProfilesFor(ArmyTeamUnitLimitItem teamItem) => FireteamMatching.IsFtoLabel(teamItem.Name);

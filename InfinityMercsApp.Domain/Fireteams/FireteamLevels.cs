@@ -75,6 +75,13 @@ public static class FireteamLevels
         return claimed;
     }
 
+    /// <summary>Whether <paramref name="member"/> fits any of the fireteam's slots, however full they are.</summary>
+    public static bool CanJoin(FireteamMember member, IReadOnlyList<FireteamSlot> slots)
+    {
+        var memberKeys = MemberNameKeys(member.BaseUnitName, member.Name);
+        return slots.Any(slot => Matches(slot, SlotNameKeys(slot.Name), member, memberKeys));
+    }
+
     /// <summary>A slot's Max as a count: "*" or blank is unbounded, non-positive or unreadable is 0.</summary>
     public static int MaxSlots(string? max)
     {

@@ -167,7 +167,7 @@ public sealed partial class DeploymentRoster(
             IsLieutenant = entry.IsLieutenant,
             IsLoneWolf = entry.IsLoneWolf,
             AspectOf = entry.AspectOf,
-            IsIrregular = HasLine(characteristics, "Irregular", splitOnCommas: true),
+            IsIrregular = entry.IrregularInCompany ?? HasLine(characteristics, "Irregular", splitOnCommas: true),
             IsImpetuous = HasLine(characteristics, "Impetuous", splitOnCommas: true),
             IsTagFromTagCompany = factionId == TagCompanyFactionId &&
                                   UnitTypeCodes.IsTag(entry.UnitTypeCode),

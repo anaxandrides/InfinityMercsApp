@@ -18,6 +18,9 @@ public abstract class CompanySavedCompanyFileBase<TFaction, TEntry>
     /// charged to the season as Additional Recruitment instead, so this never changes.
     /// </summary>
     public int CurrentPoints { get; init; }
+    /// <summary>A Cohesive company's core fireteam, chosen when it was founded; empty for any other company.</summary>
+    public string CoreFireteam { get; init; } = string.Empty;
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SavedImprovedCaptainStats? ImprovedCaptainStats { get; init; }
     public List<TFaction> SourceFactions { get; init; } = [];

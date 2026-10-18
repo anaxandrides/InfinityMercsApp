@@ -278,6 +278,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         try
         {
             MercsCompanyEntries.Clear();
+            OnPreparingRecruitment(recruitment.Company);
             var servants = new ServantPeripherals(Services.ArmyData).For(recruitment.Company);
             foreach (var entry in RosterEntries.From(recruitment.Company, recruitment.RetiredEntries, servants))
             {
@@ -1048,8 +1049,18 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     [RelayCommand]
     private async Task AddProfileToMercsCompanyAsync(ViewerProfileItem? profile)
     {
-        if (profile is null || SelectedUnit is not { } unit || !profile.IsVisible || profile.IsLieutenantBlocked || !CanAddProfile(unit))
+        if (profile is null || SelectedUnit is not { } unit || !profile.IsVisible || profile.IsLieutenantBlocked)
         {
+            return;
+        }
+
+        if (!CanAddProfile(unit))
+        {
+            if (CannotAddMessage(unit) is { } message)
+            {
+                await Services.Dialogs.ShowAlertAsync("Can't Add Trooper", message);
+            }
+
             return;
         }
 
@@ -1132,6 +1143,9 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
     /// <summary>Whether the selected unit can join the company at all.</summary>
     protected virtual bool CanAddProfile(ArmyUnitSelectionItem unit) => true;
+
+    /// <summary>Why <see cref="CanAddProfile"/> turned the unit away, to tell the player; null to say nothing.</summary>
+    protected virtual string? CannotAddMessage(ArmyUnitSelectionItem unit) => null;
 
     /// <summary>The skills every new trooper of this kind of company carries.</summary>
     protected virtual IReadOnlyCollection<string> CommonSkillsFor(
@@ -1340,7 +1354,8 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
                 Factions = Factions,
                 ShowUnitsInInches = Detail.ShowUnitsInInches,
                 SelectedStartSeasonPoints = SelectedStartSeasonPoints,
-                SeasonPointsCapText = SeasonPointsCapText
+                SeasonPointsCapText = SeasonPointsCapText,
+                CoreFireteam = CoreFireteam
             });
             switch (founding.Outcome)
             {
@@ -1362,6 +1377,14 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     /// <summary>Whether the right slot's faction is saved as a source of the company.</summary>
     protected virtual bool SavesRightSlot => ShowRightSlot;
 
+    /// <summary>A Cohesive company's core fireteam, saved with it; empty for any other company.</summary>
+    protected virtual string CoreFireteam => string.Empty;
+
+    /// <summary>Takes up what the saved company fixed when it was founded, before its roster is listed.</summary>
+    protected virtual void OnPreparingRecruitment(SavedCompanyFile company)
+    {
+    }
+
     // After confirming, adds the recruits to the company, charges their CR in the season and goes back.
     private async Task HireRecruitsAsync(CompanyRecruitment recruitment)
     {
@@ -1373,7 +1396,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             return;
         }
 
-        var outcome = await Services.Recruiter.HireAsync(recruitment, recruits);
+        var outcome = await Services.Recruiter.HireAsync(recruitment, MercsCompanyEntries.ToList());
         switch (outcome)
         {
             case RecruitmentOutcome.Hired:

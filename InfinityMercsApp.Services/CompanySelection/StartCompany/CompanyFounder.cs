@@ -148,6 +148,7 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
             StartSeasonPoints = startSeasonPoints,
             PointsLimit = startSeasonPoints,
             CurrentPoints = int.TryParse(request.SeasonPointsCapText, out var currentPoints) ? currentPoints : 0,
+            CoreFireteam = request.CoreFireteam,
             SourceFactions = sourceFactions
                 .Select(faction => new
                 {
