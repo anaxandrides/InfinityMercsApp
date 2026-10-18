@@ -25,6 +25,7 @@ using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 using ArmyUnitRecord = InfinityMercsApp.Domain.Models.Army.Unit;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
+using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 
@@ -832,6 +833,12 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             Detail.SetProfileData(details.ProfileGroups, details.Filters);
             ApplyDisplayUnitsPreference();
             Detail.ApplyFirstProfileStats(details.ProfileGroups);
+            if (!details.TreatAsSpecOps &&
+                Services.UnitDetails.HighestAva(unit.Id, AvaFactionIds(unit), cancellationToken) is { } ava)
+            {
+                Detail.ApplyAva(ava);
+            }
+
             var order = details.OrderTraits;
             Detail.SetOrderTraits(order.HasRegular, order.HasIrregular, order.HasImpetuous, order.HasTacticalAwareness);
             var tech = details.TechTraits;
@@ -847,6 +854,16 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             Console.Error.WriteLine($"Loading the unit's details failed: {ex}");
         }
     }
+
+    // The chosen factions that can list the unit; the TAG Company's own units are numbered apart from the rest.
+    private IEnumerable<int> AvaFactionIds(ArmyUnitSelectionItem unit) =>
+        unit.SourceFactionId == TagGen.TagCompanyFactionId
+            ? [unit.SourceFactionId]
+            : FactionSlots.SourceFactions(ShowRightSlot, LeftSlotFaction, RightSlotFaction)
+                .Select(faction => faction.Id)
+                .Where(id => id != TagGen.TagCompanyFactionId)
+                .Append(unit.SourceFactionId)
+                .Distinct();
 
     private static string Listed(IReadOnlyList<string> names) => names.Count == 0 ? "-" : string.Join(", ", names);
 

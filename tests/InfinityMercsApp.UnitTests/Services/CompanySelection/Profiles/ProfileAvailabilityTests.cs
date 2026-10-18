@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Models.Filtering;
+using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
 using InfinityMercsApp.Services.CompanySelection.Profiles;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
@@ -44,11 +45,11 @@ public sealed class ProfileAvailabilityTests
         Assert.True(ProfileAvailability.Of(20, false, Room with { AvaReached = true }, UnitFilterCriteria.None, false).IsBlocked);
 
     [Theory]
-    [InlineData("2", true)]
-    [InlineData("3", false)]
+    [InlineData("3", true)]
+    [InlineData("4", false)]
     [InlineData("T", false)]
     [InlineData("-", false)]
-    public void RosterRoomFor_UnitInCompany_CountsItAgainstItsAva(string ava, bool reached)
+    public void RosterRoomFor_UnitInCompanyFromEitherFaction_CountsItAgainstItsAva(string ava, bool reached)
     {
         List<MercsCompanyEntry> entries =
         [
@@ -60,5 +61,15 @@ public sealed class ProfileAvailabilityTests
         var room = RosterRoom.For(entries, pointsLimit: 75, currentPoints: 40, ava, unitId: 7, factionId: 101);
 
         Assert.Equal(new RosterRoom(35, reached, HasLieutenant: true), room);
+    }
+
+    // The TAG Company's own TAG is unit 1 there, as Fusiliers are elsewhere.
+    [Fact]
+    public void RosterRoomFor_TagCompanyUnitWithAnotherUnitsId_CountsOnlyItsOwn()
+    {
+        List<MercsCompanyEntry> entries = [new() { SourceUnitId = 1, SourceFactionId = 101 }];
+
+        Assert.False(RosterRoom.For(entries, 75, 0, "1", unitId: 1, factionId: TagCompanyFactionGenerator.TagCompanyFactionId).AvaReached);
+        Assert.True(RosterRoom.For(entries, 75, 0, "1", unitId: 1, factionId: 102).AvaReached);
     }
 }

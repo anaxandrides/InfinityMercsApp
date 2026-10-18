@@ -115,6 +115,9 @@ public sealed partial class CompanyUnitDetail : ObservableObject, IUnitDisplay
     public void SetTechTraits(bool hasCube, bool hasCube2, bool hasHackable) =>
         Icons = Icons with { Cube = hasCube, Cube2 = hasCube2, Hackable = hasHackable };
 
+    /// <summary>Shows the AVA the company goes by, which can be another faction's when the unit is in both.</summary>
+    public void ApplyAva(string ava) => Stats = Stats with { Ava = ava };
+
     public void ResetStats()
     {
         UnitMoveFirstCm = UnitMoveSecondCm = null;

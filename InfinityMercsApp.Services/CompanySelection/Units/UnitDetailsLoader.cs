@@ -68,6 +68,20 @@ public sealed class UnitDetailsLoader(IArmyDataService armyData, ISpecOpsProvide
             commonSkills);
     }
 
+    /// <summary>
+    /// The unit's AVA as the factions list it, the highest when more than one does (a unit in both chosen
+    /// sectorials uses the higher AVA); null when none lists it.
+    /// </summary>
+    public string? HighestAva(int unitId, IEnumerable<int> factionIds, CancellationToken cancellationToken = default) =>
+        factionIds
+            .Select(factionId => armyData.GetUnit(factionId, unitId, cancellationToken)?.ProfileGroups.Groups
+                .SelectMany(group => group.Profiles)
+                .FirstOrDefault())
+            .OfType<UnitProfile>()
+            .Where(profile => profile.Ava is >= 0)
+            .MaxBy(profile => profile.Ava)
+            ?.AvaText;
+
     // Names every profile shares plus names every visible option shares, distinct and sorted.
     private static List<string> CommonNames(
         UnitProfileGroups profileGroups,
