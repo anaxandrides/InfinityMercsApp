@@ -53,4 +53,11 @@ public static class InjuryRules
     /// </summary>
     public static bool Recovers(bool wasDeployed, bool isCaptain, bool hasInjuryFromBefore) =>
         hasInjuryFromBefore && (!wasDeployed || isCaptain);
+
+    /// <summary>
+    /// Who the Captain's injury-healing can go to: the Captain, or, on an elite deployment, any trooper deployed
+    /// with it, for an injury taken before this contract. Troopers that rested recover on their own.
+    /// </summary>
+    public static bool CanTakeCaptainsHealing(bool isCaptain, bool wasDeployed, bool isEliteDeployment, bool hasInjuryFromBefore) =>
+        hasInjuryFromBefore && (isCaptain || (isEliteDeployment && wasDeployed));
 }

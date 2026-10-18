@@ -149,6 +149,13 @@
                         <VerticalStackLayout Padding="16" Spacing="8" BackgroundColor="{StaticResource Plate}">
                             <Label Text="{Binding Name}" TextColor="{StaticResource TextPrimary}" FontAttributes="Bold" FontSize="{DynamicResource FontSizeSectionHeader}" />
                             <Label Text="{Binding Reason}" Style="{StaticResource RowCaption}" />
+                            <Picker Title="Trooper to heal…"
+                                    ItemsSource="{Binding Recipients}"
+                                    SelectedItem="{Binding SelectedRecipient}"
+                                    IsVisible="{Binding HasRecipientChoice}"
+                                    TextColor="{StaticResource TextPrimary}"
+                                    BackgroundColor="{StaticResource HairlineBright}"
+                                    HorizontalOptions="Fill" />
                             <Picker Title="Injury to shed…"
                                     ItemsSource="{Binding Injuries}"
                                     SelectedItem="{Binding SelectedInjury}"

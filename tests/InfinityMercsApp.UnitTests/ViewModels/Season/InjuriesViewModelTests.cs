@@ -24,6 +24,8 @@ public sealed class InjuriesViewModelTests
     private readonly IArmyDataService _armyData = Substitute.For<IArmyDataService>();
     private readonly SeasonFile _season = new() { Rounds = [new SeasonRound { RoundIndex = 1 }] };
 
+    private bool _elite;
+
     private const string CompanyPath = "/companies/test.json";
     private const string SeasonPath = "/seasons/test.json";
 
@@ -49,7 +51,7 @@ public sealed class InjuriesViewModelTests
         _debrief.PendingInjuries = phValues
             .Select((ph, i) => new PendingInjury { EntryIndex = i, Name = $"Trooper {i}", PhValue = ph })
             .ToList();
-        _debrief.Units = phValues.Select((_, i) => new ExperienceUnitResult { EntryIndex = i }).ToList();
+        _debrief.Units = phValues.Select((_, i) => new ExperienceUnitResult { EntryIndex = i, IsEliteDeployment = _elite }).ToList();
 
         var viewModel = new InjuriesViewModel(_navigation, _debrief, _dice, _seasonFiles, _companyFiles, new CompanyRoster(_armyData));
         viewModel.ApplyQueryAttributes(NavigationParameters.ForCompany(CompanyPath, SeasonPath));
@@ -212,5 +214,48 @@ public sealed class InjuriesViewModelTests
         Assert.Equal([Injury.Arms], _season.Troopers[7].Injuries);
         Assert.Empty(_season.Troopers[0].Injuries);
         Assert.Equal([Injury.ShellShocked], _season.Troopers[1].Injuries);
+    }
+
+    [Fact]
+    public async Task Recoveries_NotElite_CaptainsHealingIsTheCaptainsOnly()
+    {
+        _season.TrooperFor(1).Injuries.Add(Injury.ShellShocked);
+
+        var viewModel = await OpenAsync("14", "14");
+
+        Assert.False(viewModel.HasRecoveries);
+    }
+
+    [Fact]
+    public async Task Recoveries_EliteDeployment_CaptainsHealingCanGoToAnotherDeployedTrooper()
+    {
+        _elite = true;
+        _season.TrooperFor(0).Injuries.Add(Injury.EyesInjury);
+        _season.TrooperFor(1).Injuries.Add(Injury.ShellShocked);
+        var viewModel = await OpenAsync("14", "14");
+        var healing = Assert.Single(viewModel.Recoveries);
+        Assert.True(healing.HasRecipientChoice);
+        Assert.Equal(["Captain", "Trooper 1"], healing.Recipients.Select(recipient => recipient.Name));
+
+        healing.SelectedRecipient = healing.Recipients[1];
+        viewModel.Injuries[0].PassCommand.Execute(null);
+        viewModel.Injuries[1].PassCommand.Execute(null);
+        await viewModel.ContinueCommand.ExecuteAsync(null);
+
+        Assert.Equal(Injury.ShellShocked, healing.Injuries[0].Injury);
+        Assert.Empty(_season.Troopers[1].Injuries);
+        Assert.Equal([Injury.EyesInjury], _season.Troopers[0].Injuries);
+    }
+
+    [Fact]
+    public async Task Recoveries_EliteDeploymentCaptainUninjured_HealsTheOnlyInjuredTrooper()
+    {
+        _elite = true;
+        _season.TrooperFor(1).Injuries.Add(Injury.ShellShocked);
+
+        var healing = Assert.Single((await OpenAsync("14", "14")).Recoveries);
+
+        Assert.False(healing.HasRecipientChoice);
+        Assert.Equal("Trooper 1", healing.Name);
     }
 }

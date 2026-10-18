@@ -17,7 +17,8 @@ namespace InfinityMercsApp.ViewModels.Season;
 
 /// <summary>
 /// After a contract: an injury check for every trooper taken out, and one injury shed by every injured trooper
-/// that rested (and by the captain, deployed or not). Continuing saves both to the season.
+/// that rested, plus one through the Captain's healing (the Captain's own, or, when elite deployed, another
+/// deployed trooper's). Continuing saves both to the season.
 /// </summary>
 public partial class InjuriesViewModel(
     INavigationService navigationService,
@@ -67,14 +68,26 @@ public partial class InjuriesViewModel(
             Injuries.Add(new InjuryCheckItem(injury, Carried(injury.EntryIndex), dice, OnSettled));
         }
 
+        var isElite = debrief.Units.Any(unit => unit.IsEliteDeployment);
+        var healable = new List<RecoveryRecipient>();
         foreach (var unit in await CompanyUnitsAsync(seasonFile))
         {
             var carried = Carried(unit.EntryIndex);
             var deployed = debrief.Units.Any(deployedUnit => deployedUnit.EntryIndex == unit.EntryIndex);
-            if (InjuryRules.Recovers(deployed, unit.IsLieutenant, carried.Count > 0))
+            var recipient = RecoveryRecipient.From(unit.EntryIndex, unit.Name, carried);
+            if (InjuryRules.CanTakeCaptainsHealing(unit.IsLieutenant, deployed, isElite, carried.Count > 0))
             {
-                Recoveries.Add(new InjuryRecoveryItem(unit.EntryIndex, unit.Name, unit.IsLieutenant, carried));
+                healable.Add(recipient);
             }
+            else if (InjuryRules.Recovers(deployed, unit.IsLieutenant, carried.Count > 0))
+            {
+                Recoveries.Add(InjuryRecoveryItem.Rested(recipient));
+            }
+        }
+
+        if (healable.Count > 0)
+        {
+            Recoveries.Insert(0, InjuryRecoveryItem.CaptainsHealing(healable, isElite));
         }
 
         HasInjuryChecks = Injuries.Count > 0;

@@ -110,8 +110,8 @@ public partial class GameModeViewModel(
             {
                 var skills = AttackModifiers.NormalizeSkills(trooper.Skills);
                 var modifiers = AttackModifiers.From(skills, trooper.Equipment);
-                var hasTacticalToken = IsEliteDeployment &&
-                    (!trooper.IsLieutenant || DeploymentRoster.HasLine(trooper.Skills, "Tactical Awareness"));
+                var hasTacticalToken = EliteDeployment.HasTacticalAwareness(
+                    DeploymentRoster.HasLine(trooper.Skills, "Tactical Awareness"), trooper.IsLieutenant, IsEliteDeployment);
                 Units.Add(new GameUnitItem(trooper, hasTacticalToken, weapons.CardsFor(trooper.RangedWeapons, trooper.MeleeWeapons, modifiers)));
             }
         }
@@ -240,11 +240,15 @@ public partial class GameModeViewModel(
             .ToList();
     }
 
-    // An injured trooper that sat this contract out, or an injured captain, sheds an injury on the injuries page.
+    // An injured trooper that sat this contract out, or one the captain's healing can reach, sheds an injury on the
+    // injuries page.
     private bool SomeoneRecovers(SeasonFile? seasonFile) =>
         seasonFile?.Troopers.Any(trooper =>
         {
             var deployed = Units.FirstOrDefault(unit => unit.Unit.EntryIndex == trooper.Key)?.Unit;
-            return InjuryRules.Recovers(deployed is not null, deployed?.IsLieutenant ?? false, trooper.Value.Injuries.Count > 0);
+            var isCaptain = deployed?.IsLieutenant ?? false;
+            var injured = trooper.Value.Injuries.Count > 0;
+            return InjuryRules.Recovers(deployed is not null, isCaptain, injured) ||
+                   InjuryRules.CanTakeCaptainsHealing(isCaptain, deployed is not null, IsEliteDeployment, injured);
         }) ?? false;
 }
