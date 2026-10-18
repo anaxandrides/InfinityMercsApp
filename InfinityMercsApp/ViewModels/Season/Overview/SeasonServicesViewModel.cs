@@ -112,7 +112,7 @@ public partial class SeasonServicesViewModel : ObservableObject
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var kind = PerkChoices.IsTagPerk(old.NodeId) ? PerkPointKind.Tag : PerkPointKind.Standard;
         return PerkChoices.ListsFor(kind)
-            .SelectMany(list => PerkChoices.Selectable(list.ListId, old.Tier, owned))
+            .SelectMany(list => PerkChoices.Selectable(list.ListId, old.Tier, owned, progress.IsTag))
             .Where(pick => pick.Tier == old.Tier && !string.Equals(pick.NodeId, old.NodeId, StringComparison.OrdinalIgnoreCase))
             .Select(pick => new PerkOption(pick))
             .ToList();

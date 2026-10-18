@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Presentation.Captain;
@@ -19,9 +20,11 @@ public sealed class ConfigureCaptainViewModelTests
         string popupTitle = "Captain Configuration",
         string confirmText = "FOUND COMPANY",
         string defaultName = "Captain",
-        CaptainStatChart chart = CaptainStatChart.Mercenaries) => new()
+        CaptainStatChart chart = CaptainStatChart.Mercenaries,
+        IReadOnlyList<Stat>? lockedStats = null) => new()
     {
         StatChart = chart,
+        LockedStats = lockedStats ?? [],
         Unit = new CaptainUnitPopupInfo
         {
             Name = "Fusilier",
@@ -365,4 +368,15 @@ public sealed class ConfigureCaptainViewModelTests
     [MemberData(nameof(WipBonuses))]
     public void StatUpgrades_Chart_WipPickerFollowsIt(CaptainStatChart chart, IReadOnlyList<int> bonuses) =>
         Assert.Equal(bonuses, UpgradeOf(new ConfigureCaptainViewModel(Context(chart: chart)), Stat.Wip).Options.Select(option => option.Bonus));
+
+    [Fact]
+    public void StatUpgrades_TagsLockedStats_OfferOnlyNoUpgrade()
+    {
+        var viewModel = new ConfigureCaptainViewModel(Context(chart: CaptainStatChart.SpecOps, lockedStats: TagRestrictions.LockedStats));
+
+        Assert.All(
+            viewModel.StatUpgrades.Where(upgrade => upgrade.Stat is Stat.Arm or Stat.Bts or Stat.Vita),
+            upgrade => Assert.Equal([0], upgrade.Options.Select(option => option.Tier)));
+        Assert.True(UpgradeOf(viewModel, Stat.Cc).Options.Count > 1);
+    }
 }

@@ -1,3 +1,5 @@
+using InfinityMercsApp.Domain.Company;
+using InfinityMercsApp.Domain.Models.Perks.Catalog;
 using InfinityMercsApp.Domain.Season.Troopers;
 
 namespace InfinityMercsApp.UnitTests.Season.Troopers;
@@ -52,5 +54,16 @@ public sealed class PerkChoicesTests
         var picks = PerkChoices.ForTrackRoll("body-8-13", 4, 0, Owned());
 
         Assert.Equal(["body-track-1-tier-1", "body-track-2-tier-1"], picks.Select(pick => pick.NodeId));
+    }
+
+    [Fact]
+    public void Selectable_Tag_LeavesOutPerksGivingBannedSkills()
+    {
+        var list = CompanyPerkCatalog.GetPerkNodeLists().Single(candidate => candidate.ListName == "Initiative");
+        var nodes = list.Roots.SelectMany(root => root.TraverseDepthFirst()).ToList();
+        var owned = Owned(nodes.Where(node => !TagRestrictions.IsBanned(node.Name)).Select(node => node.Id));
+
+        Assert.Contains(PerkChoices.Selectable(list.ListId, 6, owned), pick => TagRestrictions.IsBanned(pick.Name));
+        Assert.DoesNotContain(PerkChoices.Selectable(list.ListId, 6, owned, isTag: true), pick => TagRestrictions.IsBanned(pick.Name));
     }
 }

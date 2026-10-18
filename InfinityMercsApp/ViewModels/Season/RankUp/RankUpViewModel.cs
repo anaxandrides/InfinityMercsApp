@@ -160,7 +160,7 @@ public partial class RankUpViewModel(
         {
             Options = value is null || Trooper?.Progress is not { } progress
                 ? []
-                : PerkChoices.Selectable(value.ListId, progress.RankLevel, _owned).Select(pick => new PerkOption(pick)).ToList();
+                : PerkChoices.Selectable(value.ListId, progress.RankLevel, _owned, progress.IsTag).Select(pick => new PerkOption(pick)).ToList();
         }
     }
 
@@ -207,7 +207,7 @@ public partial class RankUpViewModel(
         for (var attempt = 0; attempt < MaxTrackRolls; attempt++)
         {
             var roll = dice.RollD20();
-            var picks = PerkChoices.ForTrackRoll(list.ListId, roll, progress.RankLevel, _owned);
+            var picks = PerkChoices.ForTrackRoll(list.ListId, roll, progress.RankLevel, _owned, progress.IsTag);
             if (picks.Count > 0)
             {
                 RollText = $"{list.Name}: track roll {roll}";

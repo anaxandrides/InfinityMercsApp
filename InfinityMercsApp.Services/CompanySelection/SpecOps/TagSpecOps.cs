@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 
@@ -6,17 +7,6 @@ namespace InfinityMercsApp.Services.CompanySelection.SpecOps;
 /// <summary>The TAG company's Spec-Ops rules: which faction they come from and which options a TAG can't take.</summary>
 public static class TagSpecOps
 {
-    private static readonly IReadOnlyList<string> DisallowedOptions =
-    [
-        "Forward Deployment",
-        "Strategic Deployment",
-        "Infiltration",
-        "Impersonation",
-        "Parachutist",
-        "Combat Drop",
-        "Engineer"
-    ];
-
     /// <summary>
     /// The faction a TAG's Spec-Ops come from: the sectorial chosen beside the TAG company, else the trooper's or
     /// the first source faction that isn't the TAG company itself.
@@ -59,7 +49,5 @@ public static class TagSpecOps
         Equipment = source.Equipment.Where(option => !IsDisallowed(option)).ToList()
     };
 
-    private static bool IsDisallowed(string optionLabel) =>
-        !string.IsNullOrWhiteSpace(optionLabel) &&
-        DisallowedOptions.Any(disallowed => optionLabel.Contains(disallowed, StringComparison.OrdinalIgnoreCase));
+    private static bool IsDisallowed(string optionLabel) => TagRestrictions.IsBanned(optionLabel);
 }

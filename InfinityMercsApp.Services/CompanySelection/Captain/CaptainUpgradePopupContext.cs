@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Models.Army.Stats;
 
 namespace InfinityMercsApp.Services.CompanySelection.Captain;
 
@@ -17,4 +18,7 @@ public sealed class CaptainUpgradePopupContext
 
     /// <summary>The Spec-Ops chart for a Spec Ops captain (and a TAG Company's Spec Ops); otherwise the Mercenaries chart.</summary>
     public CaptainStatChart StatChart { get; init; } = CaptainStatChart.Mercenaries;
+
+    /// <summary>Stats the popup offers no upgrade for (a TAG's ARM, BTS and STR); <see cref="Stat.Vita"/> stands for the vitality picker.</summary>
+    public IReadOnlyList<Stat> LockedStats { get; init; } = [];
 }

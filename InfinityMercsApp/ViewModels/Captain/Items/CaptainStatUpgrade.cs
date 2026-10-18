@@ -44,9 +44,16 @@ public sealed partial class CaptainStatUpgrade : ObservableObject
     /// <summary>The picked tier, for checking the build.</summary>
     public CaptainStatPick Pick => new(Stat, BaseValue, Tier, Chart);
 
-    /// <summary>The upgrades of <paramref name="stat"/> on <paramref name="chart"/> for a captain whose base value is <paramref name="baseValue"/>.</summary>
-    public static CaptainStatUpgrade For(Stat stat, int baseValue, CaptainStatChart chart, Action selectionChanged) =>
-        new(stat, baseValue, chart, CaptainUpgradeRules.StatOptions(stat, baseValue, chart).Select(StatPickerOption.From).ToList(), selectionChanged);
+    /// <summary>
+    /// The upgrades of <paramref name="stat"/> on <paramref name="chart"/> for a captain whose base value is
+    /// <paramref name="baseValue"/>; a <paramref name="locked"/> stat offers only "no upgrade".
+    /// </summary>
+    public static CaptainStatUpgrade For(Stat stat, int baseValue, CaptainStatChart chart, Action selectionChanged, bool locked = false)
+    {
+        var tiers = CaptainUpgradeRules.StatOptions(stat, baseValue, chart);
+        var options = (locked ? tiers.Take(1) : tiers).Select(StatPickerOption.From).ToList();
+        return new CaptainStatUpgrade(stat, baseValue, chart, options, selectionChanged);
+    }
 
     partial void OnSelectedOptionChanged(StatPickerOption? value) => _selectionChanged();
 }

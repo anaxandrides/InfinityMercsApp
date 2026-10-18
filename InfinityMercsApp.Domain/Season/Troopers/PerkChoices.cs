@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Perks.Catalog;
 using InfinityMercsApp.Domain.Models.Perks.Tables;
 
@@ -18,8 +19,11 @@ public static class PerkChoices
             .Where(list => IsTagList(list.ListId) == (kind == PerkPointKind.Tag))
             .ToList();
 
-    /// <summary>Every perk in the list the trooper may choose, by track then tier.</summary>
-    public static IReadOnlyList<PerkPick> Selectable(string listId, int maxTier, IReadOnlySet<string> owned)
+    /// <summary>
+    /// Every perk in the list the trooper may choose, by track then tier. A TAG (<paramref name="isTag"/>) is never
+    /// offered a perk giving a skill it may not have.
+    /// </summary>
+    public static IReadOnlyList<PerkPick> Selectable(string listId, int maxTier, IReadOnlySet<string> owned, bool isTag = false)
     {
         if (CompanyPerkCatalog.GetPerkNodeLists().FirstOrDefault(list => SameId(list.ListId, listId)) is not { } list)
         {
@@ -30,9 +34,11 @@ public static class PerkChoices
             .SelectMany(root => root.TraverseDepthFirst())
             .Where(node => node.Tier >= 1 && node.Tier <= maxTier && !owned.Contains(node.Id))
             .Where(node => string.IsNullOrWhiteSpace(node.ParentId) || owned.Contains(node.ParentId))
-            .Select(node => (Node: node, Position: PerkPosition.Parse(node.Id)))
-            .Where(item => item.Position is not null)
-            .Select(item => new PerkPick(item.Node.Id, item.Node.Name, list.ListId, list.ListName, item.Position?.Track ?? 0, item.Node.Tier))
+            .Where(node => !(isTag && TagRestrictions.IsBanned(node.Name)))
+            .Select(node => PerkPosition.Parse(node.Id) is { } position
+                ? new PerkPick(node.Id, node.Name, list.ListId, list.ListName, position.Track, node.Tier)
+                : null)
+            .OfType<PerkPick>()
             .OrderBy(pick => pick.Track)
             .ThenBy(pick => pick.Tier)
             .ToList();
@@ -63,14 +69,14 @@ public static class PerkChoices
     /// The perks a second d20 offers in the list: those on the tracks the roll lands on, up to one tier above
     /// the trooper's rank. When none can be taken the roll is made again.
     /// </summary>
-    public static IReadOnlyList<PerkPick> ForTrackRoll(string listId, int trackRoll, int rank, IReadOnlySet<string> owned)
+    public static IReadOnlyList<PerkPick> ForTrackRoll(string listId, int trackRoll, int rank, IReadOnlySet<string> owned, bool isTag = false)
     {
         var tracks = CompanyPerkCatalog.FindPerkListCatalogEntry(listId)?.Tracks
             .Where(track => track.RollRanges.Any(range => range.Contains(trackRoll)))
             .Select(track => track.TrackNumber)
             .ToHashSet() ?? [];
 
-        return Selectable(listId, rank + 1, owned).Where(pick => tracks.Contains(pick.Track)).ToList();
+        return Selectable(listId, rank + 1, owned, isTag).Where(pick => tracks.Contains(pick.Track)).ToList();
     }
 
     /// <summary>The perk node's list, e.g. "mecha" for "mecha-track-1-tier-2".</summary>

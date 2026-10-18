@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Perks.Catalog;
@@ -412,7 +413,9 @@ public partial class SeasonTeamViewModel : ObservableObject
             var held = HeldBy(item, loadout, picker.Slot);
             foreach (var itemName in _inventory.ItemsFor(picker.Slot))
             {
-                var unmet = _catalog.Find(itemName)?.Requirement is { } requirement && !requirement.IsMetBy(held) ? requirement.Unmet : null;
+                var unmet = BannedFor(item, itemName) is { } banned ? $"A TAG can't have {banned}"
+                    : _catalog.Find(itemName)?.Requirement is { } requirement && !requirement.IsMetBy(held) ? requirement.Unmet
+                    : null;
                 var itemOptions = OptionsFor(itemName, picker.Slot, item.EntryIndex, unmet);
                 options.AddRange(itemOptions);
                 if (string.Equals(itemName, loadout[picker.Slot], StringComparison.OrdinalIgnoreCase))
@@ -430,6 +433,12 @@ public partial class SeasonTeamViewModel : ObservableObject
         if (SelectedUnit is not { } item ||
             string.Equals(_loadouts.For(item.EntryIndex)[slot], option.ItemName, StringComparison.OrdinalIgnoreCase))
         {
+            return;
+        }
+
+        if (option.ItemName is { } bannedItem && BannedFor(item, bannedItem) is { } banned)
+        {
+            _ = RefuseBannedAsync(item, banned);
             return;
         }
 
@@ -556,6 +565,10 @@ public partial class SeasonTeamViewModel : ObservableObject
 
     // What the trooper has besides the slot being filled: its skills, equipment and characteristics, and the gear in
     // the loadout's other slots (a role brings its skill).
+    // The skill an item would give a TAG that it may never have, if the trooper is a TAG.
+    private static string? BannedFor(CompanyViewerUnitListItem item, string itemName) =>
+        UnitTypeCodes.IsTag(item.UnitTypeCode) ? TagRestrictions.BannedSkillIn(itemName) : null;
+
     private static List<string> HeldBy(CompanyViewerUnitListItem item, UnitLoadout loadout, GearSlot slot)
     {
         var profile = CompanyRoster.ProfileOf(item);
@@ -572,6 +585,12 @@ public partial class SeasonTeamViewModel : ObservableObject
     private async Task RefuseUnmetAsync(CompanyViewerUnitListItem item, string itemName, AugmentRequirement requirement)
     {
         await _dialogs.ShowAlertAsync("Can't Equip", $"{item.Name} can't take {itemName}. {requirement.Unmet}.");
+        RefreshGearPickers();
+    }
+
+    private async Task RefuseBannedAsync(CompanyViewerUnitListItem item, string banned)
+    {
+        await _dialogs.ShowAlertAsync("Can't Equip", $"{item.Name} is a TAG, and a TAG may never have {banned}.");
         RefreshGearPickers();
     }
 

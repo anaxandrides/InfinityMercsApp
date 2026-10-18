@@ -697,4 +697,23 @@ public sealed class SeasonTeamViewModelTests
         Assert.Empty(_kit.Season.Retired);
         await _seasonChanged.DidNotReceive()();
     }
+
+    // A TAG may never gain the banned skills, so gear giving one is marked and refused.
+    [Fact]
+    public async Task SelectedOption_TagTakingBannedSkill_IsRefused()
+    {
+        _alsoBought = [SeasonTestKit.Bought("Armoury", "Engineer (+Gizmokit)")];
+        var company = SeasonTestKit.Company();
+        company.Entries[0].UnitTypeCode = "TAG";
+        await _team.LoadAsync(company, SeasonTestKit.SeasonPath, _kit.Season, Catalog);
+        _team.ShowOwnedGear(Owned(), Catalog, _companySwc);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        var engineer = Picker(GearSlot.Roles).Options.Single(option => option.ItemName == "Engineer (+Gizmokit)");
+        Assert.Equal("Engineer (+Gizmokit)  [A TAG can't have Engineer]", engineer.Display);
+
+        Picker(GearSlot.Roles).SelectedOption = engineer;
+
+        await _kit.Dialogs.Received(1).ShowAlertAsync("Can't Equip", "Bolt is a TAG, and a TAG may never have Engineer.");
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Roles]);
+    }
 }

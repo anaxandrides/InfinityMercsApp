@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
@@ -33,13 +34,14 @@ public sealed class CompanyFounderTests : IDisposable
 
     public void Dispose() => _records.Dispose();
 
-    private static MercsCompanyEntry Trooper(string name, bool isLieutenant = false) => new()
+    private static MercsCompanyEntry Trooper(string name, bool isLieutenant = false, string unitTypeCode = "LI") => new()
     {
         Name = name,
         BaseUnitName = name,
         Subtitle = "MOV 10-10 | CC 13 | BS 12 | PH 10 | WIP 12 | ARM 1 | BTS 0 | VITA 1 | S 2",
         CostValue = 10,
         IsLieutenant = isLieutenant,
+        UnitTypeCode = unitTypeCode,
         SourceFactionId = Army101Data.PanOceania,
         SourceUnitId = Army101Data.UnitNamed("FUSILIERS").Id
     };
@@ -101,10 +103,22 @@ public sealed class CompanyFounderTests : IDisposable
     }
 
     [Fact]
-    public async Task FoundAsync_TagCompany_ShowsTheTagSpecOpsPopup()
+    public async Task FoundAsync_TagCompanyWithTagCaptain_ShowsTheTagSpecOpsPopup()
     {
-        await _founder.FoundAsync(Request(CompanyFounder.TagCompanyType, Trooper("Squalo", isLieutenant: true)));
+        await _founder.FoundAsync(Request(CompanyFounder.TagCompanyType, Trooper("Squalo", isLieutenant: true, unitTypeCode: "TAG")));
 
-        await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context => context.PopupTitle == "TAG Lieutenant Spec Ops"));
+        await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context =>
+            context.PopupTitle == "TAG Lieutenant Spec Ops" &&
+            context.BaseExperienceOverride == 20 &&
+            context.LockedStats.SequenceEqual(TagRestrictions.LockedStats)));
+    }
+
+    [Fact]
+    public async Task FoundAsync_TagCompanyWithOtherCaptain_ShowsTheCaptainPopup()
+    {
+        await _founder.FoundAsync(Request(CompanyFounder.TagCompanyType, Trooper("Alpha", isLieutenant: true)));
+
+        await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context =>
+            context.PopupTitle == "Captain Configuration" && context.LockedStats.Count == 0));
     }
 }

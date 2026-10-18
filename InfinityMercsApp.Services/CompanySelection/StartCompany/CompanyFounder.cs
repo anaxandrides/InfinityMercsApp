@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Lieutenants;
+using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
@@ -19,7 +20,7 @@ namespace InfinityMercsApp.Services.CompanySelection.StartCompany;
 /// </summary>
 public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entries, RecordPaths paths)
 {
-    /// <summary>The company type a TAG company is saved with; its captain gets the TAG Spec-Ops popup.</summary>
+    /// <summary>The company type a TAG Company is saved with; its TAG, when captain, gets the TAG Spec-Ops popup.</summary>
     public const string TagCompanyType = "TAG Company";
 
     public async Task<FoundingResult> FoundAsync<TFaction, TEntry>(CompanyFoundingRequest<TFaction, TEntry> request)
@@ -66,7 +67,7 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
         where TEntry : class, ICompanyMercsEntry =>
         FactionSlots.SourceFactions(request.ShowRightSelectionBox, request.LeftSlotFaction, request.RightSlotFaction).ToList();
 
-    // A TAG company's captain gets the TAG Spec-Ops popup; every other company's gets the captain popup.
+    // A TAG Company's TAG captain gets the TAG Spec-Ops popup (its 20 XP, no more); any other captain gets the captain popup.
     private Task<SavedImprovedCaptainStats?> ConfigureCaptainAsync<TFaction, TEntry>(
         CompanyFoundingRequest<TFaction, TEntry> request,
         TEntry captain,
@@ -95,7 +96,7 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
         var known = request.Factions.Cast<ICompanySourceFaction>().ToList();
         var firstSourceFactionId = sourceFactions.FirstOrDefault()?.Id;
 
-        if (!string.Equals(request.CompanyType, TagCompanyType, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(request.CompanyType, TagCompanyType, StringComparison.OrdinalIgnoreCase) || !UnitTypeCodes.IsTag(captain.UnitTypeCode))
         {
             return captains.ConfigureCaptainAsync(
                 unit,

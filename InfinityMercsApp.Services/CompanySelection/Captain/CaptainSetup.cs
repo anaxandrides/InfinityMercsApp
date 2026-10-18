@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.SpecOps;
@@ -98,7 +99,8 @@ public sealed class CaptainSetup(ICaptainConfigurationDialog dialog, CaptainOpti
             ConfirmButtonText = "Finalize Tag",
             DefaultUnitCustomName = isLieutenant ? "Lieutenant" : "TAG",
             BaseExperienceOverride = Math.Max(0, baseExperience),
-            StatChart = CaptainStatChart.SpecOps
+            StatChart = CaptainStatChart.SpecOps,
+            LockedStats = TagRestrictions.LockedStats
         });
     }
 
