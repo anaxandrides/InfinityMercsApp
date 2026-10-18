@@ -29,6 +29,16 @@ public sealed class MovementTests
     public void Format_Units_FormatsInThoseUnits(bool inInches, string expected) =>
         Assert.Equal(expected, new Movement(10, 5).Format(inInches));
 
+    [Theory]
+    [InlineData(false, "10-2.5")]
+    [InlineData(true, "4-1")]
+    public void Format_HalfCentimetre_KeepsItInCentimetres(bool inInches, string expected)
+    {
+        Assert.True(Movement.TryParse("10cm-2.5cm", out var movement));
+
+        Assert.Equal(expected, movement.Format(inInches));
+    }
+
     [Fact]
     public void FormatAndFrom_NoMovement_ShowDash()
     {

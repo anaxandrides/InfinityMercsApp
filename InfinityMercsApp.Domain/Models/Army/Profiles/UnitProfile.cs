@@ -27,8 +27,14 @@ public sealed class UnitProfile
     /// </summary>
     public IReadOnlyList<int> MoveCm { get; init; } = [];
 
+    /// <summary>The first movement value in centimetres, when the profile has both.</summary>
+    public int? FirstMoveCm => MoveCm.Count >= 2 ? MoveCm[0] : null;
+
+    /// <summary>The second movement value in centimetres, when the profile has both.</summary>
+    public int? SecondMoveCm => MoveCm.Count >= 2 ? MoveCm[1] : null;
+
     /// <summary>The first two movement values, when the profile has at least two.</summary>
-    public Movement? Movement => MoveCm.Count >= 2 ? new Movement(MoveCm[0], MoveCm[1]) : null;
+    public Movement? Movement => Movement.From(FirstMoveCm, SecondMoveCm);
 
     public int? Cc { get; init; }
 

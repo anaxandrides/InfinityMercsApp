@@ -128,8 +128,8 @@ public sealed partial class CompanyUnitDetail : ObservableObject, IUnitDisplay
     /// <summary>Shows a profile's statline.</summary>
     public void ApplyStats(UnitProfile profile)
     {
-        UnitMoveFirstCm = profile.Movement?.FirstCm;
-        UnitMoveSecondCm = profile.Movement?.SecondCm;
+        UnitMoveFirstCm = profile.FirstMoveCm;
+        UnitMoveSecondCm = profile.SecondMoveCm;
         Stats = UnitStatLine.From(profile, ShowUnitsInInches);
     }
 

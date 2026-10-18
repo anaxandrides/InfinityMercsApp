@@ -44,8 +44,8 @@ public class PeripheralMercsCompanyStats
             names.OrderedUnique(peripheralProfile.Skills, filters.Names(ArmyFilterSection.Skills)));
         var characteristicNames = names.OrderedUnique(peripheralProfile.Chars, filters.Names(ArmyFilterSection.Chars));
         var weaponNames = names.OrderedUnique(peripheralProfile.Weapons, filters.Names(ArmyFilterSection.Weapons));
-        var moveFirstCm = peripheralProfile.Movement?.FirstCm;
-        var moveSecondCm = peripheralProfile.Movement?.SecondCm;
+        var moveFirstCm = peripheralProfile.FirstMoveCm;
+        var moveSecondCm = peripheralProfile.SecondMoveCm;
         var (vitalityStat, vitalityValue) = peripheralProfile.Vitality;
         var vitalityHeader = vitalityStat.Key();
 

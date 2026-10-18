@@ -20,7 +20,7 @@ public sealed class TrooperProfileTests
     [Fact]
     public void With_MoveChange_ChangesInGameInches()
     {
-        Assert.Equal("10cm-3cm", Fusilier().With(new TrooperChange { SecondMoveInches = -1 }).Move);
+        Assert.Equal("10cm-2.5cm", Fusilier().With(new TrooperChange { SecondMoveInches = -1 }).Move);
         Assert.Equal("5cm-5cm", Fusilier().With(new TrooperChange { FirstMoveInches = -2 }).Move);
         Assert.Equal("15cm-10cm", Fusilier().With(new TrooperChange { Move = new MoveInches(6, 4) }).Move);
         Assert.Equal("10-5", Fusilier().With(TrooperChange.None).Move);

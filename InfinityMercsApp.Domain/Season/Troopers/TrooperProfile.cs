@@ -25,7 +25,7 @@ public sealed partial record TrooperProfile(
     public const string NoWoundIncapacitation = "No Wound Incapacitation";
 
     // A game inch is 2.5 cm.
-    private const double CmPerGameInch = 2.5;
+    private const decimal CmPerGameInch = 2.5m;
 
     public TrooperProfile With(TrooperChange change)
     {
@@ -97,7 +97,7 @@ public sealed partial record TrooperProfile(
             return Move;
         }
 
-        double first, second;
+        decimal first, second;
         if (change.Move is { } replaced)
         {
             (first, second) = (replaced.First, replaced.Second);
@@ -116,7 +116,8 @@ public sealed partial record TrooperProfile(
         return $"{Cm(first)}cm-{Cm(second)}cm";
     }
 
-    private static int Cm(double inches) => (int)Math.Round(inches * CmPerGameInch, MidpointRounding.AwayFromZero);
+    // Game inches are 2.5 cm, so a change can leave a half centimetre ("2.5cm").
+    private static string Cm(decimal inches) => (inches * CmPerGameInch).ToString("0.#", CultureInfo.InvariantCulture);
 
     private static string Add(string value, int delta) =>
         delta != 0 && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number)

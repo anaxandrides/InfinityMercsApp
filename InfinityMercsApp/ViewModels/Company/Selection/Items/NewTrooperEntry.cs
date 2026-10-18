@@ -31,8 +31,8 @@ public static class NewTrooperEntry
         string Move(int? firstCm, int? secondCm) => Movement.Format(Movement.From(firstCm, secondCm), detail.ShowUnitsInInches);
 
         var stats = form is null ? detail.Stats : UnitStatLine.From(form.Profile, detail.ShowUnitsInInches);
-        var unitMoveFirstCm = form is null ? detail.UnitMoveFirstCm : form.Profile.Movement?.FirstCm;
-        var unitMoveSecondCm = form is null ? detail.UnitMoveSecondCm : form.Profile.Movement?.SecondCm;
+        var unitMoveFirstCm = form is null ? detail.UnitMoveFirstCm : form.Profile.FirstMoveCm;
+        var unitMoveSecondCm = form is null ? detail.UnitMoveSecondCm : form.Profile.SecondMoveCm;
         var combinedEquipment = CompanyProfileText.MergeCommonAndUnique(detail.CommonEquipment.ToList(), profile.UniqueEquipment);
         var combinedSkills = CompanyProfileText.MergeCommonAndUnique(commonSkills, profile.UniqueSkills);
         var combinedCharacteristics = CompanyProfileText.SplitDisplayLine(profile.Characteristics).ToList();
