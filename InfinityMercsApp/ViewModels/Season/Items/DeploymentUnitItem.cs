@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Season.Experience;
+using InfinityMercsApp.Domain.Season.Game;
 using InfinityMercsApp.Domain.Season.Injuries;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.ViewModels.Components;
@@ -79,6 +80,9 @@ public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListIt
     public bool HasNwi { get; init; }
     public bool HasRemotePresence { get; init; }
     public int MaxWounds => HasRemotePresence ? StartingVitality + 2 : StartingVitality + 1;
+
+    /// <summary>A Transmutation (X) trooper's second profile, taken once it has enough wounds; null for anyone else.</summary>
+    public TransmutedForm? TransmutesTo { get; init; }
 
     /// <summary>Wounds taken this game; change them with <see cref="TakeWound"/> and <see cref="HealWound"/>.</summary>
     [ObservableProperty]

@@ -37,6 +37,7 @@ public sealed partial class DeploymentRoster(
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     private readonly ServantPeripherals _servants = new(armyData);
+    private readonly TransmutedForms _transmuted = new(armyData);
 
     /// <summary>
     /// The company's units, lieutenant first then in company order; Servant peripherals, uncontrolled peripherals
@@ -156,6 +157,7 @@ public sealed partial class DeploymentRoster(
         var logoFactionId = entry.LogoSourceFactionId > 0 ? entry.LogoSourceFactionId : entry.SourceFactionId;
         var logoUnitId = entry.LogoSourceUnitId > 0 ? entry.LogoSourceUnitId : entry.SourceUnitId;
         var experienceLevel = progress.RankLevel;
+        var startingVitality = Math.Max(1, int.TryParse(changed.Vitality, out var vitality) ? vitality : 1);
 
         return new DeploymentUnitItem
         {
@@ -187,7 +189,8 @@ public sealed partial class DeploymentRoster(
             UnitS = profile.S,
             Renown = renown,
             VitalityStat = StatKeys.VitalityFor(worn.UnitTypeCode),
-            StartingVitality = Math.Max(1, int.TryParse(changed.Vitality, out var vitality) ? vitality : 1),
+            StartingVitality = startingVitality,
+            TransmutesTo = _transmuted.For(entry, factionId, armor?.ArmorName, startingVitality, showUnitsInInches),
             HasNwi = HasLine(profile.Skills, "No Wound Incapacitation"),
             HasRemotePresence = HasLine(profile.Skills, "Remote Presence"),
             Equipment = TextDistances.Convert(profile.Equipment, showUnitsInInches),

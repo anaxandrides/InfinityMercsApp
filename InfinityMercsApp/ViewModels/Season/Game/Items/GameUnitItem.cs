@@ -12,7 +12,8 @@ namespace InfinityMercsApp.ViewModels.Season.Game.Items;
 /// <summary>
 /// A deployed trooper's row on the game tracker: wounds, XP, its Tactical Awareness token and its weapons. A Lone
 /// Wolf's loadouts each have a row; the one the Lone Wolf is in shows its profile, and the rest show the Aspect of the
-/// Wolf's until the Lone Wolf transfers into them.
+/// Wolf's until the Lone Wolf transfers into them. A Transmutation (X) trooper shows its second profile while it has
+/// taken enough wounds, keeping its weapons.
 /// </summary>
 public sealed partial class GameUnitItem : ObservableObject
 {
@@ -59,14 +60,31 @@ public sealed partial class GameUnitItem : ObservableObject
     /// <summary>The Lone Wolf can transfer here: an Aspect still standing.</summary>
     public bool CanReceiveLoneWolf => ShowsAspect && IsConscious;
 
-    public IReadOnlyList<StatValue> Statline => ShowsAspect ? AspectOfTheWolf.Statline(Unit.UnitVitality) : Unit.Statline;
+    /// <summary>A Transmutation (X) trooper with enough wounds to be in its second profile.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Statline), nameof(EquipmentItems), nameof(SkillItems), nameof(FormName))]
+    public partial bool IsTransmuted { get; set; }
+
+    /// <summary>The second profile's name ("BATTLE-RAVAGED") while it is in it; empty otherwise.</summary>
+    public string FormName => IsTransmuted && Unit.TransmutesTo is { } form ? form.Name.ToUpperInvariant() : string.Empty;
+
+    public IReadOnlyList<StatValue> Statline =>
+        ShowsAspect ? AspectOfTheWolf.Statline(Unit.UnitVitality)
+        : IsTransmuted && Unit.TransmutesTo is { } form ? form.Statline
+        : Unit.Statline;
 
     /// <summary>The skills with BS Attack written the canonical way.</summary>
     public string Skills { get; }
 
-    public IReadOnlyList<string> EquipmentItems => ShowsAspect ? [] : SortedItems(Unit.Equipment);
+    public IReadOnlyList<string> EquipmentItems =>
+        ShowsAspect ? []
+        : IsTransmuted && Unit.TransmutesTo is { } form ? Sorted(form.Equipment)
+        : SortedItems(Unit.Equipment);
 
-    public IReadOnlyList<string> SkillItems => ShowsAspect ? AspectOfTheWolf.Skills : SortedItems(Skills);
+    public IReadOnlyList<string> SkillItems =>
+        ShowsAspect ? AspectOfTheWolf.Skills
+        : IsTransmuted && Unit.TransmutesTo is { } form ? Sorted(form.Skills)
+        : SortedItems(Skills);
 
     /// <summary>The loadout's weapons; an Aspect the Lone Wolf isn't in can't use them.</summary>
     public IReadOnlyList<GameWeaponCard> WeaponCards => ShowsAspect ? [] : _weaponCards;
@@ -119,7 +137,7 @@ public sealed partial class GameUnitItem : ObservableObject
 
     private void OnUnitPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(DeploymentUnitItem.WoundState))
+        if (e.PropertyName is nameof(DeploymentUnitItem.WoundState) or nameof(DeploymentUnitItem.WoundsReceived))
         {
             ShowWoundState(Unit.WoundState);
         }
@@ -130,6 +148,7 @@ public sealed partial class GameUnitItem : ObservableObject
         WoundState = state;
         IsConscious = state.IsConscious();
         IsOnSecondBody = state == WoundState.KnockedOutBody2;
+        IsTransmuted = Unit.TransmutesTo is { } form && Unit.WoundsReceived >= form.Threshold;
         WoundIconPath = state switch
         {
             WoundState.Healthy => "SVGCache/NonCBIcons/noun-smiley-face.svg",
@@ -143,11 +162,11 @@ public sealed partial class GameUnitItem : ObservableObject
     private static string XpText(int totalXp) => totalXp > 0 ? $"XP ({totalXp})" : "XP";
 
     private static IReadOnlyList<string> SortedItems(string? text) =>
-        string.IsNullOrWhiteSpace(text)
-            ? []
-            : text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-                .Select(item => item.Trim())
-                .Where(item => item.Length > 0 && item != "-")
-                .Order(StringComparer.OrdinalIgnoreCase)
-                .ToList();
+        string.IsNullOrWhiteSpace(text) ? [] : Sorted(text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries));
+
+    private static IReadOnlyList<string> Sorted(IEnumerable<string> items) =>
+        items.Select(item => item.Trim())
+            .Where(item => item.Length > 0 && item != "-")
+            .Order(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 }

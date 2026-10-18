@@ -198,6 +198,11 @@
                                            TextColor="#34D399"
                                            FontSize="{DynamicResource FontSizeMicro}"
                                            FontAttributes="Bold" />
+                                    <Label Text="{Binding FormName}"
+                                           IsVisible="{Binding IsTransmuted}"
+                                           TextColor="#F59E0B"
+                                           FontSize="{DynamicResource FontSizeMicro}"
+                                           FontAttributes="Bold" />
                                 </VerticalStackLayout>
                                 <controls:SvgIcon Grid.Column="2"
                                                   Source="SVGCache/CBIcons/tactical.svg"
