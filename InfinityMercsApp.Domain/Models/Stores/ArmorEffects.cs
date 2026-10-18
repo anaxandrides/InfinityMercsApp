@@ -45,4 +45,10 @@ public sealed class ArmorEffects
 
     /// <summary>Belts and Pouches: one more equipment slot, of any kind but Armor.</summary>
     public bool ExtraSlot { get; set; }
+
+    /// <summary>
+    /// Cuckoo Virus Infusion: no Primary slot, and no attacks that need a BS roll (templates, thrown and technical
+    /// weapons still work).
+    /// </summary>
+    public bool NoPrimary { get; set; }
 }

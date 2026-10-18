@@ -406,6 +406,8 @@ public partial class SeasonTeamViewModel : ObservableObject
             picker.IsAvailable = picker.Slot switch
             {
                 GearSlot.Extra => HasExtraSlot(loadout),
+                // Cuckoo Virus Infusion leaves no Primary slot; one already there stays listed so it can come off.
+                GearSlot.Primary => !HasNoPrimary(loadout) || loadout[GearSlot.Primary] is not null,
                 // TAGs wear no armour; one already on stays listed so it can come off.
                 GearSlot.Armor => !UnitTypeCodes.IsTag(item.UnitTypeCode) || loadout[GearSlot.Armor] is not null,
                 _ => true
@@ -464,6 +466,12 @@ public partial class SeasonTeamViewModel : ObservableObject
         {
             // Taking off Belts and Pouches empties its slot.
             after.Assign(item.EntryIndex, GearSlot.Extra, null);
+        }
+
+        if (slot == GearSlot.Armor && HasNoPrimary(after.For(item.EntryIndex)))
+        {
+            // Cuckoo Virus Infusion takes the Primary slot away; its weapon goes back to the inventory.
+            after.Assign(item.EntryIndex, GearSlot.Primary, null);
         }
 
         var stranded = StrandedBy(after);
@@ -599,6 +607,9 @@ public partial class SeasonTeamViewModel : ObservableObject
     // Belts and Pouches gives one more slot.
     private bool HasExtraSlot(UnitLoadout loadout) =>
         loadout[GearSlot.Armor] is { } armor && _catalog.Find(armor)?.Armor?.Effects.ExtraSlot == true;
+
+    private bool HasNoPrimary(UnitLoadout loadout) =>
+        loadout[GearSlot.Armor] is { } armor && _catalog.Find(armor)?.Armor?.Effects.NoPrimary == true;
 
     // The picker goes back to what the trooper had once the alert is shown.
     private async Task RefuseOverSwcAsync(GearOption option, double equippedSwc)

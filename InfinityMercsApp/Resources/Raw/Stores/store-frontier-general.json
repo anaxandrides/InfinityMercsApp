@@ -20,7 +20,7 @@
   "troopTypes": [
     { "type": "LI", "costCr": 15, "armorName": "Irmandihno Wetsuit", "arm": 1, "bts": null, "abilities": "Booty, Engineer", "effects": {"skills": [{"name": "Engineer"}], "roll": "Booty"} },
     { "type": "LI", "costCr": 15, "armorName": "Scout Suit", "arm": 1, "bts": null, "abilities": "Camouflage, Infiltrate, Surprise Attack (-3)", "effects": {"skills": [{"name": "Camouflage"}, {"name": "Infiltration"}, {"name": "Surprise Attack (-3)"}]} },
-    { "type": null, "costCr": 20, "armorName": "Cuckoo Virus Infusion", "arm": 4, "bts": null, "abilities": "MOV 6-4, Super Jump, +2 Wounds Skill, No Primary", "effects": {"woundsSkill": 2, "move": "6-4", "skills": [{"name": "Super-Jump"}]} },
+    { "type": null, "costCr": 20, "armorName": "Cuckoo Virus Infusion", "arm": 4, "bts": null, "abilities": "MOV 6-4, Super Jump, +2 Wounds Skill, No Primary", "effects": {"woundsSkill": 2, "move": "6-4", "skills": [{"name": "Super-Jump"}], "characteristics": ["No BS Roll Attacks"], "noPrimary": true} },
     { "type": "HI", "costCr": 20, "armorName": "Teseum Plate Armor", "arm": 5, "bts": 0, "abilities": "Immunity (IMM-B), Lose the Hackable trait", "effects": {"maxBts": 0, "skills": [{"name": "Immunity (IMM-B)"}], "characteristicsLost": ["Hackable"]} }
   ],
   "augments": [

@@ -71,7 +71,8 @@ public sealed class SeasonTeamViewModelTests
         TroopTypes =
         [
             new StoreTroopType { ArmorName = "Heavy Armour", Type = "HI", CostCr = 20, Arm = 4, Bts = 3, Effects = new ArmorEffects { WoundsSkill = 1 } },
-            new StoreTroopType { ArmorName = "Belts and Pouches", CostCr = 5, Effects = new ArmorEffects { ExtraSlot = true } }
+            new StoreTroopType { ArmorName = "Belts and Pouches", CostCr = 5, Effects = new ArmorEffects { ExtraSlot = true } },
+            new StoreTroopType { ArmorName = "Cuckoo Virus Infusion", CostCr = 20, Arm = 4, Effects = new ArmorEffects { NoPrimary = true } }
         ],
         Items = [new StoreItem { Name = "Engineer (+Gizmokit)", Category = "Roles", CostCr = 10 }],
         Augments =
@@ -561,6 +562,21 @@ public sealed class SeasonTeamViewModelTests
         Assert.False(Picker(GearSlot.Extra).IsAvailable);
         Assert.Null(SavedLoadouts().For(2)[GearSlot.Extra]);
         Assert.DoesNotContain(_team.Skills.Left.Concat(_team.Skills.Right), line => line.Text == "Courage");
+    }
+
+    [Fact]
+    public async Task SelectedOption_CuckooVirusInfusion_TakesThePrimaryAway()
+    {
+        _alsoBought = [SeasonTestKit.Bought(Armoury.Name, "Cuckoo Virus Infusion")];
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(2, GearSlot.Primary, "Spitfire");
+        await LoadAsync(loadouts);
+        _team.SelectUnitCommand.Execute(_team.Units.Single(unit => unit.EntryIndex == 2));
+
+        Picker(GearSlot.Armor).SelectedOption = Picker(GearSlot.Armor).Options.Single(option => option.ItemName == "Cuckoo Virus Infusion");
+
+        Assert.Null(SavedLoadouts().For(2)[GearSlot.Primary]);
+        Assert.False(Picker(GearSlot.Primary).IsAvailable);
     }
 
     [Fact]
