@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Perks;
 using InfinityMercsApp.Domain.Models.Season;
 
@@ -12,6 +13,7 @@ public sealed record TrooperProgress(
     int StartingXp,
     int SeasonXp,
     bool IsTag,
+    bool IsLoneWolf,
     IReadOnlyList<string> StartingPerks,
     SeasonTrooper Record)
 {
@@ -24,8 +26,15 @@ public sealed record TrooperProgress(
     /// <summary>Every perk the trooper has: those saved with the company, then those chosen this season.</summary>
     public IReadOnlyList<string> Perks => [.. StartingPerks, .. Record.Perks];
 
-    /// <summary>One perk point per rank, less the perks already taken from the usual lists.</summary>
-    public int PerkPointsOwed => Math.Max(0, RankLevel - Perks.Count(perk => !PerkChoices.IsTagPerk(perk)));
+    /// <summary>One perk point per rank (two for a Lone Wolf), less the perks already taken from the usual lists.</summary>
+    public int PerkPointsOwed =>
+        Math.Max(0, RankLevel * (IsLoneWolf ? ProxyPack.PerksPerRank : 1) - Perks.Count(perk => !PerkChoices.IsTagPerk(perk)));
+
+    /// <summary>The renown its ranks add: 10 a rank for a Lone Wolf, none for anyone else.</summary>
+    public int RankRenown => IsLoneWolf ? RankLevel * ProxyPack.RenownPerRank : 0;
+
+    /// <summary>How many Aspects a Lone Wolf has at its rank, its own included; none for anyone else.</summary>
+    public int Aspects => IsLoneWolf ? ProxyPack.AspectsAt(RankLevel) : 0;
 
     /// <summary>A TAG also earns a TAG perk per rank, spent on the Mecha tree.</summary>
     public int TagPerkPointsOwed => IsTag ? Math.Max(0, RankLevel - Perks.Count(PerkChoices.IsTagPerk)) : 0;
@@ -61,12 +70,14 @@ public sealed record TrooperProgress(
         int startingXp,
         IReadOnlyList<string> startingPerks,
         bool isTag,
+        bool isLoneWolf,
         SeasonFile? seasonFile) =>
         new(
             entryIndex,
             Math.Max(0, startingXp),
             SeasonExperience.GainedBy(seasonFile, entryIndex, name),
             isTag,
+            isLoneWolf,
             startingPerks,
             seasonFile?.Troopers.GetValueOrDefault(entryIndex) ?? new SeasonTrooper());
 }

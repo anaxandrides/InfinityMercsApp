@@ -19,8 +19,9 @@ public sealed class TrooperProgressTests
         return season;
     }
 
-    private static TrooperProgress Bolt(SeasonFile season, int startingXp = 0, bool isTag = false, IReadOnlyList<string>? startingPerks = null) =>
-        TrooperProgress.For(1, "Bolt", startingXp, startingPerks ?? [], isTag, season);
+    private static TrooperProgress Bolt(
+        SeasonFile season, int startingXp = 0, bool isTag = false, IReadOnlyList<string>? startingPerks = null, bool isLoneWolf = false) =>
+        TrooperProgress.For(1, "Bolt", startingXp, startingPerks ?? [], isTag, isLoneWolf, season);
 
     [Fact]
     public void TotalXp_SeasonXp_AddsToTheSavedValue()
@@ -91,6 +92,35 @@ public sealed class TrooperProgressTests
     public void Record_NoSeasonRecord_IsEmpty()
     {
         Assert.Empty(Bolt(SeasonWith(0)).Record.Injuries);
-        Assert.Equal(0, TrooperProgress.For(1, "Bolt", -5, [], false, null).TotalXp);
+        Assert.Equal(0, TrooperProgress.For(1, "Bolt", -5, [], false, false, null).TotalXp);
     }
+    [Fact]
+    public void PerkPointsOwed_LoneWolf_EarnsTwoARank()
+    {
+        var hitman = Bolt(SeasonWith(0), startingXp: 30, isLoneWolf: true, startingPerks: ["perk-a"]);
+
+        Assert.Equal(3, hitman.RankLevel);
+        Assert.Equal(3 * 2 - 1, hitman.PerkPointsOwed);
+    }
+
+    [Fact]
+    public void RankRenown_LoneWolfOrNot_TenARankForTheLoneWolfOnly()
+    {
+        Assert.Equal(30, Bolt(SeasonWith(0), startingXp: 30, isLoneWolf: true).RankRenown);
+        Assert.Equal(0, Bolt(SeasonWith(0), startingXp: 30).RankRenown);
+    }
+
+    [Theory]
+    [InlineData(0, 1)]
+    [InlineData(5, 1)]
+    [InlineData(15, 2)]
+    [InlineData(30, 3)]
+    [InlineData(50, 3)]
+    [InlineData(75, 4)]
+    [InlineData(140, 4)]
+    public void Aspects_LoneWolfRank_GrowsToFour(int xp, int aspects) =>
+        Assert.Equal(aspects, Bolt(SeasonWith(0), startingXp: xp, isLoneWolf: true).Aspects);
+
+    [Fact]
+    public void Aspects_NotALoneWolf_None() => Assert.Equal(0, Bolt(SeasonWith(0), startingXp: 75).Aspects);
 }

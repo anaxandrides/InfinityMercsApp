@@ -28,6 +28,7 @@ public static class SeasonTroopers
             entry.ExperiencePoints,
             entry.Perks.Select(perk => perk.Id).ToList(),
             UnitTypeCodes.IsTag(entry.UnitTypeCode),
+            entry.IsLoneWolf,
             season);
 
     /// <summary>The armour the trooper wears this season, as its market's armour table lists it.</summary>

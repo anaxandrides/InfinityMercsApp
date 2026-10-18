@@ -66,4 +66,12 @@ public sealed class CompanyRenownTests
     [Fact]
     public void Of_NoSeason_CountsOnlyTheTroopers() =>
         Assert.Equal(40, CompanyRenown.Of([new TrooperRenown(30, 0, 10)], null));
+    [Fact]
+    public void TrooperRenown_RankRenown_CountsWithAndWithoutGear()
+    {
+        var renown = new TrooperRenown(InitialCost: 20, GearCost: 5, Experience: 15, RankRenown: 20);
+
+        Assert.Equal(20 + 5 + 15 + 20, renown.Total);
+        Assert.Equal(20 + 15 + 20, renown.WithoutGear);
+    }
 }

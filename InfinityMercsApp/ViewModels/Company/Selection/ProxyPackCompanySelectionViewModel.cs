@@ -70,7 +70,11 @@ public sealed class ProxyPackCompanySelectionViewModel(CompanySelectionServices 
         commonSkills.Concat(ProxyPack.LoneWolfSkills).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
     /// <summary>The Lone Wolf is the captain, with or without the Lieutenant skill.</summary>
-    protected override void OnEntryBuilt(MercsCompanyEntry entry) => entry.IsLieutenant = true;
+    protected override void OnEntryBuilt(MercsCompanyEntry entry)
+    {
+        entry.IsLieutenant = true;
+        entry.IsLoneWolf = true;
+    }
 
     private bool IsRegular(ArmyUnitSelectionItem unit, CompanyUnitVisibilityLookupContext context, CancellationToken cancellationToken) =>
         Services.Visibility.ProfileGroupsOf(context, unit, cancellationToken) is { IsEmpty: false } groups &&

@@ -69,6 +69,7 @@ public sealed class ProxyPackCompanySelectionViewModelTests
 
         var wolf = Assert.Single(viewModel.MercsCompanyEntries);
         Assert.True(wolf.IsLieutenant);
+        Assert.True(wolf.IsLoneWolf);
         Assert.Contains("Transfer Consciousness", wolf.SavedSkills);
         Assert.Contains("Tactical Awareness", wolf.SavedSkills);
         Assert.True(viewModel.IsCompanyValid);

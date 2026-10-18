@@ -35,6 +35,9 @@ public abstract class CompanySavedCompanyEntryBase
     /// </summary>
     public bool CarriesCaptainUpgrades { get; init; }
 
+    /// <summary>A Proxy Pack's Lone Wolf: two perks and 10 renown a rank, and up to four Aspects.</summary>
+    public bool IsLoneWolf { get; init; }
+
     [JsonIgnore]
     public string SavedEquipment { get; init; } = "-";
     [JsonIgnore]

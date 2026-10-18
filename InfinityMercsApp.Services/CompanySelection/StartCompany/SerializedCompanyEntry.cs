@@ -138,6 +138,7 @@ internal sealed class SerializedCompanyEntry
     public int Cost { get; init; }
     public bool IsLieutenant { get; init; }
     public bool CarriesCaptainUpgrades { get; init; }
+    public bool IsLoneWolf { get; init; }
     [JsonIgnore]
     public bool HasPeripheralStatBlock { get; init; }
     [JsonIgnore]

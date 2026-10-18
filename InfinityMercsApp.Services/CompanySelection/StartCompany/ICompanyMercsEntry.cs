@@ -6,6 +6,9 @@ public interface ICompanyMercsEntry
     string BaseUnitName { get; }
     int CostValue { get; }
     bool IsLieutenant { get; }
+
+    /// <summary>A Proxy Pack's Lone Wolf, the only trooper that company has.</summary>
+    bool IsLoneWolf { get; }
     bool IsSpecOps { get; }
     string UnitTypeCode { get; }
     string ProfileKey { get; }

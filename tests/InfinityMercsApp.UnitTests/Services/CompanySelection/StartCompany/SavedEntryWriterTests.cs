@@ -43,6 +43,14 @@ public sealed class SavedEntryWriterTests
     }
 
     [Fact]
+    public void Build_LoneWolf_IsSavedAsOne()
+    {
+        var wolf = new MercsCompanyEntry { Name = "Fusilier", IsLieutenant = true, IsLoneWolf = true, SourceFactionId = Army101Data.PanOceania };
+
+        Assert.True(Assert.Single(_writer.Build([wolf], "Lone Wolf", new SavedImprovedCaptainStats())).IsLoneWolf);
+    }
+
+    [Fact]
     public void Build_ServantBeforeItsOwner_PointsAtWhereTheOwnerIsSaved()
     {
         var drummer = Trooper("Drummer", 20, hasPeripheral: true);
