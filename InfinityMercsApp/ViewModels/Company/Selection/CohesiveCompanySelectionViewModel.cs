@@ -20,7 +20,7 @@ public sealed partial class CohesiveCompanySelectionViewModel : CompanySelection
 {
     public const string NumberTwoSkill = "Number 2";
     public const string FireteamMasterSkill = "FT Master";
-    public const int TacticalAwarenessDiscount = 3;
+    public const int TacticalAwarenessPointsOff = 3;
 
     private readonly Dictionary<int, HashSet<string>> _validCoreFireteamsByFaction = [];
     private HashSet<string> _validCoreTeamNames = new(StringComparer.OrdinalIgnoreCase);
@@ -264,31 +264,8 @@ public sealed partial class CohesiveCompanySelectionViewModel : CompanySelection
     /// <summary>Picking a unit from a fireteam-only (FTO) slot shows only its FTO profiles.</summary>
     protected override bool RestrictsProfilesFor(ArmyTeamUnitLimitItem teamItem) => FireteamMatching.IsFtoLabel(teamItem.Name);
 
-    protected override bool IncludesOption(string? optionName) => !RestrictsProfilesToFto || FireteamMatching.IsFtoLabel(optionName);
-
     /// <summary>Tactical Awareness (on the option, what it includes, or the group's profiles) costs 3 points less.</summary>
-    protected override string AdjustOptionDisplayCost(
-        UnitProfileGroups profileGroups, ArmyFilterCatalog filters, ProfileGroup group, ProfileOption option, string cost)
-    {
-        if (!int.TryParse(cost, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
-        {
-            return cost;
-        }
-
-        var skills = filters.Names(ArmyFilterSection.Skills);
-        var hasTacticalAwareness =
-            HasTacticalAwareness(profileGroups.GetEntriesWithIncludes(option, ProfileEntryKind.Skills), skills) ||
-            group.Profiles.Any(profile => HasTacticalAwareness(profile.Skills, skills));
-        return hasTacticalAwareness
-            ? Math.Max(0, parsed - TacticalAwarenessDiscount).ToString(CultureInfo.InvariantCulture)
-            : cost;
-    }
-
-    private static bool HasTacticalAwareness(IEnumerable<ProfileEntry> skillEntries, IReadOnlyDictionary<int, string> skills) =>
-        skillEntries.Any(entry =>
-            entry.Id is int id &&
-            skills.TryGetValue(id, out var name) &&
-            name.Contains("tactical awareness", StringComparison.OrdinalIgnoreCase));
+    protected override int TacticalAwarenessDiscount => TacticalAwarenessPointsOff;
 
     /// <summary>Every trooper has Number 2; the lieutenant also has FT Master.</summary>
     protected override IReadOnlyCollection<string> CommonSkillsFor(

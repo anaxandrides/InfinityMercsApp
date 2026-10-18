@@ -6,6 +6,7 @@ using InfinityMercsApp.Presentation.Company.Viewer;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Packaging;
+using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
 using InfinityMercsApp.ViewModels.Components;
 using NSubstitute;
@@ -180,7 +181,7 @@ public sealed class CompanyRosterTests
         var entry = Entry(1, baseName, sourceFactionId: sourceFactionId);
         var unit = Create().UnitsOf(new SavedCompanyFile { Entries = [entry] })[0];
 
-        Assert.Equal(CompanyRoster.TagCompanyFactionId, CompanyRoster.EffectiveSourceFactionId(entry));
+        Assert.Equal(CompanyRoster.TagCompanyFactionId, SeasonTroopers.SourceFactionId(entry));
         Assert.Equal(CompanyRoster.TagCompanyFactionId, unit.SourceFactionId);
         Assert.Equal(CompanyRoster.TagCompanyFallbackIconPath, unit.FallbackLogoPath);
     }

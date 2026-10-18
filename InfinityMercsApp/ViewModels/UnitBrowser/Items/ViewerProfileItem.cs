@@ -80,7 +80,7 @@ public partial class ViewerProfileItem : ObservableObject
     /// Tactical Awareness icon shows only when the unit's header doesn't already show it.
     /// </summary>
     public static ViewerProfileItem From(
-        ProfileConfiguration configuration, Func<int?, int?, string> formatMove, bool unitShowsTacticalAwareness)
+        ProfileConfiguration configuration, bool showUnitsInInches, bool unitShowsTacticalAwareness)
     {
         var peripheral = configuration.Peripheral;
         var equipment = configuration.PeripheralEquipment;
@@ -108,7 +108,7 @@ public partial class ViewerProfileItem : ObservableObject
             PeripheralsFormatted = CompanyProfileFormatting.BuildListFormattedString(configuration.Peripherals, Color.FromArgb("#FACC15")),
             HasPeripheralStatBlock = peripheral is not null,
             PeripheralNameHeading = peripheral?.NameHeading ?? string.Empty,
-            PeripheralMov = peripheral is not null ? formatMove(peripheral.MoveFirstCm, peripheral.MoveSecondCm) : "-",
+            PeripheralMov = peripheral is not null ? Movement.Format(Movement.From(peripheral.MoveFirstCm, peripheral.MoveSecondCm), showUnitsInInches) : "-",
             PeripheralCc = peripheral?.Cc ?? "-",
             PeripheralBs = peripheral?.Bs ?? "-",
             PeripheralPh = peripheral?.Ph ?? "-",

@@ -39,10 +39,8 @@ public sealed class VisibleUnits
             _names,
             _slugs,
             _normalizedNames,
+            _units,
             treatWildcardAsAlwaysVisible: !inWildcardBucket,
-            visibleUnits: _units,
             resolvedUnitId: slot.ResolvedUnitId,
-            resolvedSourceFactionId: slot.ResolvedSourceFactionId,
-            readUnitId: x => x.Id,
-            readSourceFactionId: x => x.SourceFactionId);
+            resolvedSourceFactionId: slot.ResolvedSourceFactionId);
 }

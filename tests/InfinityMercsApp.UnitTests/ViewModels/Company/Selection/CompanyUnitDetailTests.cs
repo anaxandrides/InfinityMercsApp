@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Presentation.Themes;
 using InfinityMercsApp.Presentation.Units;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
@@ -9,8 +10,6 @@ namespace InfinityMercsApp.UnitTests.ViewModels.Company.Selection;
 
 public sealed class CompanyUnitDetailTests
 {
-    private static string Move(int? first, int? second) => $"{first}/{second}";
-
     private static PeripheralMercsCompanyStats Peripheral() => new()
     {
         NameHeading = "Traktor Mul",
@@ -37,13 +36,15 @@ public sealed class CompanyUnitDetailTests
     [Fact]
     public void APeripheralGetsItsOwnStatline()
     {
-        var detail = new CompanyUnitDetail();
+        var detail = new CompanyUnitDetail { ShowUnitsInInches = false };
 
-        detail.ApplyPeripheral(Peripheral(), Move);
+        detail.ApplyPeripheral(Peripheral());
 
         var peripheral = Assert.IsType<PeripheralStatBlock>(detail.Peripheral);
         Assert.Equal("Traktor Mul", peripheral.NameHeading);
-        Assert.Equal(("15/5", "8", "3"), (peripheral.Stats.Mov, peripheral.Stats.Cc, peripheral.Stats.Arm));
+        Assert.Equal(new Movement(15, 5).Format(inInches: false), peripheral.Stats.Mov);
+        Assert.Equal("8", peripheral.Stats.Cc);
+        Assert.Equal("3", peripheral.Stats.Arm);
         Assert.False(peripheral.HasEquipment);
         Assert.True(peripheral.HasSkills);
     }
@@ -52,7 +53,7 @@ public sealed class CompanyUnitDetailTests
     public void ResettingThePeripheralHidesIt()
     {
         var detail = new CompanyUnitDetail();
-        detail.ApplyPeripheral(Peripheral(), Move);
+        detail.ApplyPeripheral(Peripheral());
         Assert.True(detail.HasPeripheral);
 
         detail.ResetPeripheral();
@@ -69,13 +70,14 @@ public sealed class CompanyUnitDetailTests
     [Fact]
     public void ChangingUnitsReformatsBothMoves()
     {
-        var detail = new CompanyUnitDetail();
-        detail.ApplyPeripheral(Peripheral(), Move);
+        var detail = new CompanyUnitDetail { ShowUnitsInInches = false };
+        detail.ApplyPeripheral(Peripheral());
 
-        detail.RefreshMoves((first, second) => $"{first}-{second} cm");
+        detail.ShowUnitsInInches = true;
+        detail.RefreshMoves();
 
-        Assert.Equal("15-5 cm", detail.Peripheral?.Stats.Mov);
-        Assert.Equal("- cm", detail.Stats.Mov);
+        Assert.Equal(new Movement(15, 5).Format(inInches: true), detail.Peripheral?.Stats.Mov);
+        Assert.Equal("-", detail.Stats.Mov);
     }
 
     [Fact]
@@ -94,7 +96,7 @@ public sealed class CompanyUnitDetailTests
     {
         var detail = new CompanyUnitDetail();
         detail.SetOrderTraits(true, false, false, true);
-        detail.ApplyPeripheral(Peripheral(), Move);
+        detail.ApplyPeripheral(Peripheral());
 
         detail.Reset();
 

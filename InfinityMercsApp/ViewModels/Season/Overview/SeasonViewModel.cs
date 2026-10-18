@@ -299,7 +299,7 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
         var currentRound = SeasonRounds.Current(seasonFile);
         RoundTitle = currentRound == 0 ? "Round 0" : $"Round {currentRound} Marketplace";
 
-        Renown = _company is { } renowned ? SeasonRenown.OfCompany(renowned, seasonFile, catalog, _roster.IsServant) : 0;
+        Renown = _company is { } renowned ? SeasonRenown.OfCompany(renowned, seasonFile, catalog, _roster.ServantsOf(renowned)) : 0;
         var inventory = SeasonInventory.From(seasonFile, catalog);
         Marketplace.RefreshBalance(seasonFile);
         Inventory.Show(_seasonFilePath, seasonFile, inventory);

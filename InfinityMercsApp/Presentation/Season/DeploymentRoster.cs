@@ -15,6 +15,7 @@ using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Services.Season.Peripherals;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.ViewModels.Season.Items;
 
@@ -34,6 +35,8 @@ public sealed partial class DeploymentRoster(
     internal const int TagCompanyFactionId = 2003;
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+
+    private readonly ServantPeripherals _servants = new(armyData);
 
     /// <summary>
     /// The company's units, lieutenant first then in company order; Servant peripherals, uncontrolled peripherals
@@ -70,12 +73,11 @@ public sealed partial class DeploymentRoster(
         var captain = CaptainUpgrades.From(company.ImprovedCaptainStats);
         var catalog = await stores.CatalogAsync();
         var kinds = new GainKinds(armyData.GetWeaponNames(), armyData.GetSkillNames());
-        bool IsServant(SavedCompanyEntry entry) =>
-            SeasonTroopers.IsServantPeripheral(entry, armyData.GetFactionSnapshot(EffectiveSourceFactionId(entry))?.Filters);
-        var controllers = SeasonTroopers.ControllersOf(company, season, IsServant);
+        var servants = _servants.Of(company);
+        var controllers = SeasonTroopers.ControllersOf(company, season, servants);
 
         return company.Entries
-            .Where(e => SeasonTroopers.IsDeployable(e, season, IsServant))
+            .Where(e => SeasonTroopers.IsDeployable(e, season, servants))
             .Where(e => deployedEntryIndices is null || deployedEntryIndices.Contains(e.EntryIndex))
             .OrderByDescending(e => e.IsLieutenant)
             .ThenBy(e => e.EntryIndex)
@@ -107,7 +109,7 @@ public sealed partial class DeploymentRoster(
         bool controlsPeripheral,
         bool showUnitsInInches)
     {
-        var factionId = EffectiveSourceFactionId(entry);
+        var factionId = SeasonTroopers.SourceFactionId(entry);
         var filters = armyData.GetFactionSnapshot(factionId)?.Filters;
         var profile = UnitProfile.From(entry);
         profile.Skills = SavedCodeNames.JoinOrDash(SavedCodeNames.ForEntry(filters, entry, ProfileEntryKind.Skills));
@@ -239,21 +241,6 @@ public sealed partial class DeploymentRoster(
         entry.CurrentMoveFirstCm is > 0 && entry.CurrentMoveSecondCm is > 0
             ? $"{entry.CurrentMoveFirstCm}cm-{entry.CurrentMoveSecondCm}cm"
             : entry.CurrentMov;
-
-    /// <summary>TAG Company units, including its repurposed mining TAGs, take their profiles from the TAG Company faction.</summary>
-    internal static int EffectiveSourceFactionId(SavedCompanyEntry entry)
-    {
-        if (entry.SourceFactionId == TagCompanyFactionId || entry.LogoSourceFactionId == TagCompanyFactionId)
-        {
-            return TagCompanyFactionId;
-        }
-
-        var baseName = entry.BaseUnitName ?? string.Empty;
-        return baseName.Contains("Repurposed Mining Equipment", StringComparison.OrdinalIgnoreCase) ||
-               baseName.Contains("Turtlemek", StringComparison.OrdinalIgnoreCase)
-            ? TagCompanyFactionId
-            : entry.SourceFactionId;
-    }
 
     /// <summary>The unit name without bracketed qualifiers, e.g. "Fusilier (Hacker)" becomes "Fusilier".</summary>
     internal static string BaseDisplayName(string? baseUnitName)

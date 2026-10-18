@@ -22,7 +22,8 @@ public sealed class SeasonRenownTests
         ]
     };
 
-    private static bool IsServant(SavedCompanyEntry entry) => entry.Name == "Traktor Mul";
+    // The Traktor Mul is a Servant; the Drumbot a trooper of its own.
+    private static readonly IReadOnlySet<int> Servants = new HashSet<int> { 3 };
 
     [Fact]
     public void ATrooperCountsItsSeasonGearAndXp()
@@ -43,6 +44,6 @@ public sealed class SeasonRenownTests
     {
         var season = new SeasonFile { Rounds = [new SeasonRound { RoundIndex = 1, MissionResults = new SeasonMissionResult { Won = true } }] };
 
-        Assert.Equal(14 + 20 + 5 + 10, SeasonRenown.OfCompany(Company(), season, Catalog, IsServant));
+        Assert.Equal(14 + 20 + 5 + 10, SeasonRenown.OfCompany(Company(), season, Catalog, Servants));
     }
 }

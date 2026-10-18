@@ -4,26 +4,9 @@ namespace InfinityMercsApp.Services.CompanySelection.Units;
 
 internal static partial class CompanyUnitDetailsShared
 {
-    /// <summary>
-    /// Shows the first profile's statline (or clears the stats when the unit has no profiles).
-    /// </summary>
-    internal static void PopulateUnitStatsFromFirstProfile(
-        UnitProfileGroups profileGroups,
-        Action resetUnitStatsOnly,
-        Action<UnitProfile> populateUnitStats)
-    {
-        resetUnitStatsOnly();
-
-        var firstProfile = profileGroups.Groups.SelectMany(group => group.Profiles).FirstOrDefault();
-        if (firstProfile is not null)
-        {
-            populateUnitStats(firstProfile);
-        }
-    }
-
     internal static CompanyUnitStatProjection BuildUnitStatProjection(
         UnitProfile profile,
-        Func<int?, int?, string> formatMoveValue)
+        bool showUnitsInInches)
     {
         var moveFirstCm = profile.Movement?.FirstCm;
         var moveSecondCm = profile.Movement?.SecondCm;
@@ -32,7 +15,7 @@ internal static partial class CompanyUnitDetailsShared
         return new CompanyUnitStatProjection(
             moveFirstCm,
             moveSecondCm,
-            formatMoveValue(moveFirstCm, moveSecondCm),
+            Movement.Format(profile.Movement, showUnitsInInches),
             UnitProfile.StatText(profile.Cc),
             UnitProfile.StatText(profile.Bs),
             UnitProfile.StatText(profile.Ph),

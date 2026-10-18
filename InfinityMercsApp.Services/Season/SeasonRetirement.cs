@@ -12,8 +12,8 @@ public static class SeasonRetirement
     /// Whether the trooper can retire: anyone still active but the captain. A Servant peripheral leaves with its
     /// trooper rather than on its own; any other peripheral is a trooper of its own.
     /// </summary>
-    public static bool CanRetire(SavedCompanyEntry entry, SeasonFile? season, Func<SavedCompanyEntry, bool> isServant) =>
-        !entry.IsLieutenant && !(entry.IsPeripheralUnit && isServant(entry)) && season?.IsRetired(entry.EntryIndex) != true;
+    public static bool CanRetire(SavedCompanyEntry entry, SeasonFile? season, IReadOnlySet<int> servants) =>
+        !entry.IsLieutenant && !servants.Contains(entry.EntryIndex) && season?.IsRetired(entry.EntryIndex) != true;
 
     /// <summary>
     /// The trooper retiring, with the renown it keeps (its cost and XP; its gear goes back to the inventory) and
@@ -25,15 +25,15 @@ public static class SeasonRetirement
         int entryIndex,
         SeasonFile season,
         InventoryCatalog catalog,
-        Func<SavedCompanyEntry, bool> isServant)
+        IReadOnlySet<int> servants)
     {
-        if (company.Entries.FirstOrDefault(entry => entry.EntryIndex == entryIndex) is not { } entry || !CanRetire(entry, season, isServant))
+        if (company.Entries.FirstOrDefault(entry => entry.EntryIndex == entryIndex) is not { } entry || !CanRetire(entry, season, servants))
         {
             return null;
         }
 
         var peripherals = company.Entries
-            .Where(candidate => candidate.IsPeripheralUnit && candidate.ParentEntryIndex == entryIndex && isServant(candidate))
+            .Where(candidate => candidate.IsPeripheralUnit && candidate.ParentEntryIndex == entryIndex && servants.Contains(candidate.EntryIndex))
             .Select(peripheral => new RetiringPeripheral(peripheral.EntryIndex, SeasonTroopers.NameOf(peripheral)))
             .ToList();
         return new RetiringTrooper(

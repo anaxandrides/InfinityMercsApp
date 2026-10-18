@@ -22,9 +22,10 @@ public static class NewTrooperEntry
         ViewerProfileItem profile,
         CompanyUnitDetail detail,
         IReadOnlyCollection<string> commonSkills,
-        PeripheralMercsCompanyStats? peripheralStats,
-        Func<int?, int?, string> formatMoveValue)
+        PeripheralMercsCompanyStats? peripheralStats)
     {
+        string Move(int? firstCm, int? secondCm) => Movement.Format(Movement.From(firstCm, secondCm), detail.ShowUnitsInInches);
+
         var stats = detail.Stats;
         var unitMoveFirstCm = detail.UnitMoveFirstCm;
         var unitMoveSecondCm = detail.UnitMoveSecondCm;
@@ -50,7 +51,7 @@ public static class NewTrooperEntry
 
         var peripheralMov = peripheralStats is null
             ? (profile.HasPeripheralStatBlock ? profile.PeripheralMov : "-")
-            : formatMoveValue(peripheralStats.MoveFirstCm, peripheralStats.MoveSecondCm);
+            : Move(peripheralStats.MoveFirstCm, peripheralStats.MoveSecondCm);
         var peripheralCc = peripheralStats?.Cc ?? (profile.HasPeripheralStatBlock ? profile.PeripheralCc : "-");
         var peripheralBs = peripheralStats?.Bs ?? (profile.HasPeripheralStatBlock ? profile.PeripheralBs : "-");
         var peripheralPh = peripheralStats?.Ph ?? (profile.HasPeripheralStatBlock ? profile.PeripheralPh : "-");
@@ -84,7 +85,7 @@ public static class NewTrooperEntry
 
             peripheralCharacteristicsText = CompanyProfileText.JoinOrDash(peripheralCharacteristicLines);
         }
-        var currentUnitMove = formatMoveValue(unitMoveFirstCm, unitMoveSecondCm);
+        var currentUnitMove = Move(unitMoveFirstCm, unitMoveSecondCm);
         var statline =
             $"MOV {stats.Mov} | CC {stats.Cc} | BS {stats.Bs} | PH {stats.Ph} | WIP {stats.Wip} | ARM {stats.Arm} | BTS {stats.Bts} | {stats.VitalityHeader} {stats.Vitality} | S {stats.S}";
 

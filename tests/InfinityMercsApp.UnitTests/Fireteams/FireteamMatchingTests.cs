@@ -4,7 +4,12 @@ namespace InfinityMercsApp.UnitTests.Fireteams;
 
 public sealed class FireteamMatchingTests
 {
-    private sealed record TestUnit(string Name, string? Slug);
+    private sealed record TestUnit(string Name, string? Slug) : IFireteamUnit
+    {
+        public int Id => 0;
+
+        public int SourceFactionId => 0;
+    }
 
     [Theory]
     [InlineData("Kamau Hacker", "KAMAUHACKER")]
@@ -58,5 +63,5 @@ public sealed class FireteamMatchingTests
     }
 
     private static TestUnit? Resolve(string? name, string? slug, IEnumerable<TestUnit> units) =>
-        FireteamMatching.ResolveUnitForTeamEntry(name, slug, units, x => x.Name, x => x.Slug);
+        FireteamMatching.ResolveUnitForTeamEntry(name, slug, units);
 }

@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Presentation.Company.Selection;
 using InfinityMercsApp.Presentation.Themes;
 using InfinityMercsApp.Presentation.Units;
@@ -123,9 +124,9 @@ public sealed partial class CompanyUnitDetail : ObservableObject, IUnitDisplay
     }
 
     /// <summary>Shows a profile's statline.</summary>
-    public void ApplyStats(UnitProfile profile, Func<int?, int?, string> formatMove)
+    public void ApplyStats(UnitProfile profile)
     {
-        var projection = CompanyUnitDetailsShared.BuildUnitStatProjection(profile, formatMove);
+        var projection = CompanyUnitDetailsShared.BuildUnitStatProjection(profile, ShowUnitsInInches);
         UnitMoveFirstCm = projection.MoveFirstCm;
         UnitMoveSecondCm = projection.MoveSecondCm;
         Stats = new UnitStatLine
@@ -145,8 +146,14 @@ public sealed partial class CompanyUnitDetail : ObservableObject, IUnitDisplay
     }
 
     /// <summary>Shows the first profile's statline, or none when the unit has no profiles.</summary>
-    public void ApplyFirstProfileStats(UnitProfileGroups profileGroups, Func<int?, int?, string> formatMove) =>
-        CompanyUnitDetailsShared.PopulateUnitStatsFromFirstProfile(profileGroups, ResetStats, profile => ApplyStats(profile, formatMove));
+    public void ApplyFirstProfileStats(UnitProfileGroups profileGroups)
+    {
+        ResetStats();
+        if (profileGroups.Groups.SelectMany(group => group.Profiles).FirstOrDefault() is { } first)
+        {
+            ApplyStats(first);
+        }
+    }
 
     public void ResetPeripheral()
     {
@@ -154,7 +161,7 @@ public sealed partial class CompanyUnitDetail : ObservableObject, IUnitDisplay
         Peripheral = null;
     }
 
-    public void ApplyPeripheral(PeripheralMercsCompanyStats stats, Func<int?, int?, string> formatMove)
+    public void ApplyPeripheral(PeripheralMercsCompanyStats stats)
     {
         _peripheralMoveFirstCm = stats.MoveFirstCm;
         _peripheralMoveSecondCm = stats.MoveSecondCm;
@@ -162,7 +169,7 @@ public sealed partial class CompanyUnitDetail : ObservableObject, IUnitDisplay
             stats.NameHeading,
             new UnitStatLine
             {
-                Mov = formatMove(stats.MoveFirstCm, stats.MoveSecondCm),
+                Mov = Move(stats.MoveFirstCm, stats.MoveSecondCm),
                 Cc = stats.Cc,
                 Bs = stats.Bs,
                 Ph = stats.Ph,
@@ -181,14 +188,14 @@ public sealed partial class CompanyUnitDetail : ObservableObject, IUnitDisplay
     }
 
     /// <summary>Re-formats MOV after the inches/centimetres preference changed.</summary>
-    public void RefreshMoves(Func<int?, int?, string> formatMove)
+    public void RefreshMoves()
     {
-        Stats = Stats with { Mov = formatMove(UnitMoveFirstCm, UnitMoveSecondCm) };
+        Stats = Stats with { Mov = Move(UnitMoveFirstCm, UnitMoveSecondCm) };
         if (Peripheral is { } peripheral)
         {
             Peripheral = peripheral with
             {
-                Stats = peripheral.Stats with { Mov = formatMove(_peripheralMoveFirstCm, _peripheralMoveSecondCm) }
+                Stats = peripheral.Stats with { Mov = Move(_peripheralMoveFirstCm, _peripheralMoveSecondCm) }
             };
         }
     }
@@ -207,6 +214,8 @@ public sealed partial class CompanyUnitDetail : ObservableObject, IUnitDisplay
         SpecialSkillsSummaryFormatted = CompanyProfileFormatting.BuildNamedSummaryFormatted(
             "Special Skills", CommonSkills, accents.Skills, highlightLieutenantPurple: HighlightLieutenant);
     }
+
+    private string Move(int? firstCm, int? secondCm) => Movement.Format(Movement.From(firstCm, secondCm), ShowUnitsInInches);
 
     private static CompanyHeaderColors HeaderColorsFor(string? vanillaFactionName) =>
         FactionColors.GetHeaderColors(vanillaFactionName);

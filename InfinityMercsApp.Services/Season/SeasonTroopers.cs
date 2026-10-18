@@ -10,6 +10,7 @@ using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 
 namespace InfinityMercsApp.Services.Season;
 
@@ -80,6 +81,24 @@ public static class SeasonTroopers
     /// Whether the entry is a Servant or Ancillary peripheral, which stays equipment of its trooper; any other
     /// peripheral is a trooper of its own.
     /// </summary>
+    /// <summary>
+    /// The faction a trooper's profiles come from: its source faction, except that TAG Company units (its own
+    /// TAGs and the repurposed mining TAGs) keep the TAG Company, even when saved under another faction.
+    /// </summary>
+    public static int SourceFactionId(SavedCompanyEntry entry)
+    {
+        if (entry.SourceFactionId == TagGen.TagCompanyFactionId || entry.LogoSourceFactionId == TagGen.TagCompanyFactionId)
+        {
+            return TagGen.TagCompanyFactionId;
+        }
+
+        var baseName = entry.BaseUnitName ?? string.Empty;
+        return baseName.Contains("Repurposed Mining Equipment", StringComparison.OrdinalIgnoreCase) ||
+               baseName.Contains("Turtlemek", StringComparison.OrdinalIgnoreCase)
+            ? TagGen.TagCompanyFactionId
+            : entry.SourceFactionId;
+    }
+
     public static bool IsServantPeripheral(SavedCompanyEntry entry, ArmyFilterCatalog? filters) =>
         entry.IsPeripheralUnit &&
         PeripheralKinds.IsServant([
@@ -91,14 +110,14 @@ public static class SeasonTroopers
     /// Whether the entry is a trooper that can deploy: not a Servant peripheral, and for a peripheral from the
     /// Peripheral (Controller) augment, one a trooper controls.
     /// </summary>
-    public static bool IsDeployable(SavedCompanyEntry entry, SeasonFile? season, Func<SavedCompanyEntry, bool> isServant) =>
+    public static bool IsDeployable(SavedCompanyEntry entry, SeasonFile? season, IReadOnlySet<int> servants) =>
         season?.IsRetired(entry.EntryIndex) != true &&
-        (!entry.IsPeripheralUnit || (!isServant(entry) && (!entry.FromControllerAugment || ControllerOf(entry, season) is not null)));
+        (!entry.IsPeripheralUnit || (!servants.Contains(entry.EntryIndex) && (!entry.FromControllerAugment || ControllerOf(entry, season) is not null)));
 
     /// <summary>The troopers controlling a peripheral that is a trooper of its own, who gain FT Master (own peripheral).</summary>
-    public static IReadOnlySet<int> ControllersOf(SavedCompanyFile company, SeasonFile? season, Func<SavedCompanyEntry, bool> isServant) =>
+    public static IReadOnlySet<int> ControllersOf(SavedCompanyFile company, SeasonFile? season, IReadOnlySet<int> servants) =>
         company.Entries
-            .Where(entry => entry.IsPeripheralUnit && IsDeployable(entry, season, isServant))
+            .Where(entry => entry.IsPeripheralUnit && IsDeployable(entry, season, servants))
             .Select(entry => entry.FromControllerAugment ? ControllerOf(entry, season) : entry.ParentEntryIndex)
             .OfType<int>()
             .ToHashSet();

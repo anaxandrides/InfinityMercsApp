@@ -81,5 +81,5 @@ public static class TeamListings
 
     private static TUnit? Match<TUnit>(string name, string? slug, IReadOnlyList<TUnit> units)
         where TUnit : class, ISelectionUnit =>
-        FireteamMatching.ResolveUnitForTeamEntry(name, slug, units, x => x.Name, x => x.Slug);
+        FireteamMatching.ResolveUnitForTeamEntry(name, slug, units);
 }

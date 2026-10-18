@@ -15,6 +15,7 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Services.Season.Peripherals;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
@@ -29,6 +30,8 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
 {
     public const int TagCompanyFactionId = 2003;
     public const string TagCompanyFallbackIconPath = "SVGCache/MercsIcons/noun-battle-mech-1731140.svg";
+
+    private readonly ServantPeripherals _servants = new(armyData);
 
     public static readonly Color RangedColor = Color.FromArgb("#EF4444");
     public static readonly Color MeleeColor = Color.FromArgb("#22C55E");
@@ -48,7 +51,7 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         var captain = company.ImprovedCaptainStats ?? new SavedImprovedCaptainStats();
         var captainName = string.IsNullOrWhiteSpace(captain.CaptainName) ? "Captain" : captain.CaptainName.Trim();
         var kinds = new GainKinds(armyData.GetWeaponNames(), armyData.GetSkillNames());
-        var controllers = SeasonTroopers.ControllersOf(company, season, IsServant);
+        var controllers = SeasonTroopers.ControllersOf(company, season, ServantsOf(company));
 
         return company.Entries
             .Where(entry => season?.IsRetired(entry.EntryIndex) != true)
@@ -69,7 +72,7 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         GainKinds kinds,
         bool controlsPeripheral)
     {
-        var sourceFactionId = EffectiveSourceFactionId(entry);
+        var sourceFactionId = SeasonTroopers.SourceFactionId(entry);
         var baseUnitName = !string.IsNullOrWhiteSpace(entry.BaseUnitName) ? entry.BaseUnitName
             : !string.IsNullOrWhiteSpace(entry.Name) ? entry.Name
             : $"Unit {position + 1}";
@@ -165,29 +168,18 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             SelectionAccentColor = AccentFor(logoFactionId),
             CachedLogoPath = logoCache?.TryGetCachedUnitLogoPath(logoFactionId, logoUnitId),
             PackagedLogoPath = logoCache?.GetPackagedUnitLogoPath(logoFactionId, logoUnitId) ?? $"SVGCache/units/{logoFactionId}-{logoUnitId}.svg",
-            FallbackLogoPath = IsTagCompanyUnit(sourceFactionId, logoFactionId, baseUnitName) ? TagCompanyFallbackIconPath : null
+            FallbackLogoPath = sourceFactionId == TagCompanyFactionId ? TagCompanyFallbackIconPath : null
         };
     }
 
-    /// <summary>Whether the entry is a Servant or Ancillary peripheral, which stays equipment of its trooper.</summary>
-    public bool IsServant(SavedCompanyEntry entry) =>
-        SeasonTroopers.IsServantPeripheral(entry, armyData.GetFactionSnapshot(EffectiveSourceFactionId(entry))?.Filters);
+    /// <summary>The entry indexes of the company's Servant and Ancillary peripherals, which stay equipment of their trooper.</summary>
+    public IReadOnlySet<int> ServantsOf(SavedCompanyFile company) => _servants.Of(company);
 
     // The movement in centimetres when the entry has both values, so it reads back unambiguously; otherwise as saved.
     private static string SavedMove(SavedCompanyEntry entry) =>
         entry.CurrentMoveFirstCm is > 0 && entry.CurrentMoveSecondCm is > 0
             ? $"{entry.CurrentMoveFirstCm}cm-{entry.CurrentMoveSecondCm}cm"
             : entry.CurrentMov;
-
-    /// <summary>TAG company units keep the TAG company as their source, even when saved under another faction.</summary>
-    public static int EffectiveSourceFactionId(SavedCompanyEntry entry) =>
-        IsTagCompanyUnit(entry.SourceFactionId, entry.LogoSourceFactionId, entry.BaseUnitName) ? TagCompanyFactionId : entry.SourceFactionId;
-
-    private static bool IsTagCompanyUnit(int sourceFactionId, int logoFactionId, string? baseUnitName) =>
-        sourceFactionId == TagCompanyFactionId ||
-        logoFactionId == TagCompanyFactionId ||
-        (baseUnitName ?? string.Empty).Contains("Repurposed Mining Equipment", StringComparison.OrdinalIgnoreCase) ||
-        (baseUnitName ?? string.Empty).Contains("Turtlemek", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// The trooper's saved loadout as a single configuration: tidied skills, the lieutenant order, and its

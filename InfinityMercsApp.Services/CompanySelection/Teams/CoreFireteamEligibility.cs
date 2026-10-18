@@ -7,10 +7,11 @@ namespace InfinityMercsApp.Services.CompanySelection.Teams;
 /// <summary>Which of a faction's Core fireteams a Cohesive company can field under its filter and points.</summary>
 public sealed class CoreFireteamEligibility(IArmyDataService armyData)
 {
-    private sealed class EligibilitySourceUnit
+    private sealed class EligibilitySourceUnit : IFireteamUnit
     {
         public required int Id { get; init; }
-        public required string? Name { get; init; }
+        public required int SourceFactionId { get; init; }
+        public required string Name { get; init; }
         public required string? Slug { get; init; }
         public required int? Type { get; init; }
         public required bool IsCharacter { get; init; }
@@ -34,6 +35,7 @@ public sealed class CoreFireteamEligibility(IArmyDataService armyData)
         var sourceUnits = armyData.GetResumeByFactionMercsOnly(factionId, cancellationToken).Select(unit => new EligibilitySourceUnit
             {
                 Id = unit.UnitId,
+                SourceFactionId = factionId,
                 Name = unit.Name,
                 Slug = unit.Slug,
                 Type = unit.Type,
@@ -55,9 +57,7 @@ public sealed class CoreFireteamEligibility(IArmyDataService armyData)
                 var matchedUnit = FireteamMatching.ResolveUnitForTeamEntry(
                     unitLimit.Key,
                     unitLimit.Value.Slug,
-                    sourceUnits,
-                    x => x.Name,
-                    x => x.Slug);
+                    sourceUnits);
                 if (matchedUnit is null || matchedUnit.IsCharacter)
                 {
                     continue;

@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanySelection.Units;
 
 namespace InfinityMercsApp.Services.CompanySelection.StartCompany;
@@ -27,18 +28,18 @@ internal static class CompanyStartSharedState
 
     internal static void RefreshMercsCompanyEntryDistanceDisplays<TEntry>(
         IEnumerable<TEntry> entries,
-        Func<int?, int?, string> formatMoveValue)
+        bool showUnitsInInches)
         where TEntry : ICompanyMercsEntry
     {
         foreach (var entry in entries)
         {
-            var moveDisplay = formatMoveValue(entry.UnitMoveFirstCm, entry.UnitMoveSecondCm);
+            var moveDisplay = Movement.Format(Movement.From(entry.UnitMoveFirstCm, entry.UnitMoveSecondCm), showUnitsInInches);
             entry.UnitMoveDisplay = moveDisplay;
             entry.Subtitle = CompanyUnitDetailsShared.ReplaceSubtitleMoveDisplay(entry.Subtitle, moveDisplay);
 
             if (entry.HasPeripheralStatBlock)
             {
-                entry.PeripheralMov = formatMoveValue(entry.PeripheralMoveFirstCm, entry.PeripheralMoveSecondCm);
+                entry.PeripheralMov = Movement.Format(Movement.From(entry.PeripheralMoveFirstCm, entry.PeripheralMoveSecondCm), showUnitsInInches);
             }
         }
     }

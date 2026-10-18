@@ -827,7 +827,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
             Detail.SetProfileData(details.ProfileGroups, details.Filters);
             ApplyDisplayUnitsPreference();
-            Detail.ApplyFirstProfileStats(details.ProfileGroups, FormatMove);
+            Detail.ApplyFirstProfileStats(details.ProfileGroups);
             var order = details.OrderTraits;
             Detail.SetOrderTraits(order.HasRegular, order.HasIrregular, order.HasImpetuous, order.HasTacticalAwareness);
             var tech = details.TechTraits;
@@ -859,11 +859,10 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         }
 
         Detail.ShowUnitsInInches = showInches;
-        Detail.RefreshMoves(FormatMove);
-        CompanyStartSharedState.RefreshMercsCompanyEntryDistanceDisplays(MercsCompanyEntries, FormatMove);
+        Detail.RefreshMoves();
+        CompanyStartSharedState.RefreshMercsCompanyEntryDistanceDisplays(MercsCompanyEntries, showInches);
     }
 
-    protected string FormatMove(int? firstCm, int? secondCm) => Services.ArmyData.FormatMoveValue(firstCm, secondCm);
 
     private void PopulateProfiles(UnitProfileGroups profileGroups, ArmyFilterCatalog filters, bool forceLieutenant)
     {
@@ -880,24 +879,20 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             Filters = filters,
             ForceLieutenant = forceLieutenant,
             ShowUnitsInInches = Detail.ShowUnitsInInches,
-            IncludesOption = IncludesOption,
-            AdjustCost = (group, option, cost) => AdjustOptionDisplayCost(profileGroups, filters, group, option, cost)
+            FireteamOnly = RestrictsProfilesToFto,
+            TacticalAwarenessDiscount = TacticalAwarenessDiscount
         });
 
         foreach (var configuration in configurations)
         {
-            Profiles.Add(ViewerProfileItem.From(configuration, FormatMove, Detail.Icons.TacticalAwareness));
+            Profiles.Add(ViewerProfileItem.From(configuration, Detail.ShowUnitsInInches, Detail.Icons.TacticalAwareness));
         }
 
         ApplyLieutenantVisualStates();
     }
 
-    /// <summary>Whether a profile option is listed; by default every one.</summary>
-    protected virtual bool IncludesOption(string? optionName) => true;
-
-    /// <summary>A company's adjustment to an option's displayed cost; by default none.</summary>
-    protected virtual string AdjustOptionDisplayCost(
-        UnitProfileGroups profileGroups, ArmyFilterCatalog filters, ProfileGroup group, ProfileOption option, string cost) => cost;
+    /// <summary>Points off a profile with Tactical Awareness; none by default.</summary>
+    protected virtual int TacticalAwarenessDiscount => 0;
 
     /// <summary>
     /// Shows the profiles the points, filter and lieutenant rules allow, blocks those that can't be added,
@@ -943,7 +938,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             {
                 if (PeripheralStats(peripheralName, peripheralProfile, Detail.Filters) is { } stats)
                 {
-                    Detail.ApplyPeripheral(stats, FormatMove);
+                    Detail.ApplyPeripheral(stats);
                 }
             });
 
@@ -1012,7 +1007,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         }
 
         var entry = NewTrooperEntry.From(
-            unit, profile, Detail, CommonSkillsFor(unit, profile, Detail.CommonSkills), PeripheralStatsOf(profile), FormatMove);
+            unit, profile, Detail, CommonSkillsFor(unit, profile, Detail.CommonSkills), PeripheralStatsOf(profile));
         OnEntryBuilt(entry);
 
         if (entry.IsLieutenant)

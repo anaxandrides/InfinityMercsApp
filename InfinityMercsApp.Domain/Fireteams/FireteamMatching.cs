@@ -20,42 +20,35 @@ public static class FireteamMatching
         return ContainsWildcardToken(teamName);
     }
 
-    public static bool IsVisibleTeamAllowedProfile<TUnit>(
+    /// <summary>
+    /// Whether a fireteam slot shows for the visible units: a wildcard slot always (unless
+    /// <paramref name="treatWildcardAsAlwaysVisible"/> is off, when only the unit it was matched to counts); a slot
+    /// matched to a unit when that unit is visible; any other by slug, name or normalised name.
+    /// </summary>
+    public static bool IsVisibleTeamAllowedProfile(
         string? allowedProfileName,
         string? allowedProfileSlug,
         HashSet<string> visibleUnitNames,
         HashSet<string> visibleUnitSlugs,
         IReadOnlyList<string> visibleNormalizedNames,
+        IReadOnlyList<IFireteamUnit> visibleUnits,
         bool treatWildcardAsAlwaysVisible = true,
-        IReadOnlyList<TUnit>? visibleUnits = null,
         int? resolvedUnitId = null,
-        int? resolvedSourceFactionId = null,
-        Func<TUnit, int>? readUnitId = null,
-        Func<TUnit, int>? readSourceFactionId = null)
-        where TUnit : class
+        int? resolvedSourceFactionId = null)
     {
         if (treatWildcardAsAlwaysVisible && IsWildcardEntry(allowedProfileName, allowedProfileSlug))
         {
             return true;
         }
 
-        if (!treatWildcardAsAlwaysVisible)
+        if (resolvedUnitId is int unitId && resolvedSourceFactionId is int factionId)
         {
-            if (!resolvedUnitId.HasValue || !resolvedSourceFactionId.HasValue || visibleUnits is null || readUnitId is null || readSourceFactionId is null)
-            {
-                return false;
-            }
-
-            return visibleUnits.Any(x =>
-                readUnitId(x) == resolvedUnitId.Value &&
-                readSourceFactionId(x) == resolvedSourceFactionId.Value);
+            return visibleUnits.Any(x => x.Id == unitId && x.SourceFactionId == factionId);
         }
 
-        if (resolvedUnitId.HasValue && resolvedSourceFactionId.HasValue && visibleUnits is not null && readUnitId is not null && readSourceFactionId is not null)
+        if (!treatWildcardAsAlwaysVisible)
         {
-            return visibleUnits.Any(x =>
-                readUnitId(x) == resolvedUnitId.Value &&
-                readSourceFactionId(x) == resolvedSourceFactionId.Value);
+            return false;
         }
 
         if (!string.IsNullOrWhiteSpace(allowedProfileSlug) &&
@@ -95,32 +88,30 @@ public static class FireteamMatching
     public static TUnit? ResolveUnitForTeamEntry<TUnit>(
         string? allowedProfileName,
         string? allowedProfileSlug,
-        IEnumerable<TUnit> sourceUnits,
-        Func<TUnit, string?> readName,
-        Func<TUnit, string?> readSlug)
-        where TUnit : class
+        IEnumerable<TUnit> sourceUnits)
+        where TUnit : class, IFireteamUnit
     {
         var reinforcementOnly = IsReinforcementTeamEntry(allowedProfileName);
         var preferredSourceUnits = reinforcementOnly
-            ? sourceUnits.Where(x => IsReinforcementUnit(readName(x), readSlug(x))).ToList()
+            ? sourceUnits.Where(x => IsReinforcementUnit(x.Name, x.Slug)).ToList()
             : sourceUnits.ToList();
         var fallbackSourceUnits = reinforcementOnly
-            ? sourceUnits.Where(x => !IsReinforcementUnit(readName(x), readSlug(x))).ToList()
+            ? sourceUnits.Where(x => !IsReinforcementUnit(x.Name, x.Slug)).ToList()
             : [];
 
         if (!string.IsNullOrWhiteSpace(allowedProfileSlug))
         {
             var slugMatch = preferredSourceUnits.FirstOrDefault(x =>
-                !string.IsNullOrWhiteSpace(readSlug(x)) &&
-                string.Equals(readSlug(x)?.Trim(), allowedProfileSlug.Trim(), StringComparison.Ordinal));
+                !string.IsNullOrWhiteSpace(x.Slug) &&
+                string.Equals(x.Slug?.Trim(), allowedProfileSlug.Trim(), StringComparison.Ordinal));
             if (slugMatch is not null)
             {
                 return slugMatch;
             }
 
             slugMatch = preferredSourceUnits.FirstOrDefault(x =>
-                !string.IsNullOrWhiteSpace(readSlug(x)) &&
-                string.Equals(readSlug(x)?.Trim(), allowedProfileSlug.Trim(), StringComparison.OrdinalIgnoreCase));
+                !string.IsNullOrWhiteSpace(x.Slug) &&
+                string.Equals(x.Slug?.Trim(), allowedProfileSlug.Trim(), StringComparison.OrdinalIgnoreCase));
             if (slugMatch is not null)
             {
                 return slugMatch;
@@ -130,8 +121,8 @@ public static class FireteamMatching
             if (!string.IsNullOrWhiteSpace(normalizedAllowedSlug))
             {
                 slugMatch = preferredSourceUnits.FirstOrDefault(x =>
-                    !string.IsNullOrWhiteSpace(readSlug(x)) &&
-                    string.Equals(NormalizeSlugForLookup(readSlug(x)), normalizedAllowedSlug, StringComparison.Ordinal));
+                    !string.IsNullOrWhiteSpace(x.Slug) &&
+                    string.Equals(NormalizeSlugForLookup(x.Slug), normalizedAllowedSlug, StringComparison.Ordinal));
                 if (slugMatch is not null)
                 {
                     return slugMatch;
@@ -141,7 +132,7 @@ public static class FireteamMatching
             if (!string.IsNullOrWhiteSpace(allowedProfileName))
             {
                 var slugFallbackNameMatch = preferredSourceUnits.FirstOrDefault(x =>
-                    string.Equals(readName(x), allowedProfileName, StringComparison.OrdinalIgnoreCase));
+                    string.Equals(x.Name, allowedProfileName, StringComparison.OrdinalIgnoreCase));
                 if (slugFallbackNameMatch is not null)
                 {
                     return slugFallbackNameMatch;
@@ -151,8 +142,8 @@ public static class FireteamMatching
             if (reinforcementOnly)
             {
                 slugMatch = fallbackSourceUnits.FirstOrDefault(x =>
-                    !string.IsNullOrWhiteSpace(readSlug(x)) &&
-                    string.Equals(readSlug(x)?.Trim(), allowedProfileSlug.Trim(), StringComparison.OrdinalIgnoreCase));
+                    !string.IsNullOrWhiteSpace(x.Slug) &&
+                    string.Equals(x.Slug?.Trim(), allowedProfileSlug.Trim(), StringComparison.OrdinalIgnoreCase));
                 if (slugMatch is not null)
                 {
                     return slugMatch;
@@ -168,7 +159,7 @@ public static class FireteamMatching
         }
 
         var exactNameMatch = preferredSourceUnits.FirstOrDefault(x =>
-            string.Equals(readName(x), allowedProfileName, StringComparison.OrdinalIgnoreCase));
+            string.Equals(x.Name, allowedProfileName, StringComparison.OrdinalIgnoreCase));
         if (exactNameMatch is not null)
         {
             return exactNameMatch;
@@ -182,7 +173,7 @@ public static class FireteamMatching
 
         foreach (var unit in preferredSourceUnits)
         {
-            var normalizedUnit = NormalizeTeamUnitName(readName(unit));
+            var normalizedUnit = NormalizeTeamUnitName(unit.Name);
             if (string.IsNullOrWhiteSpace(normalizedUnit))
             {
                 continue;
@@ -197,7 +188,7 @@ public static class FireteamMatching
         if (reinforcementOnly)
         {
             var fallbackNameMatch = fallbackSourceUnits.FirstOrDefault(x =>
-                string.Equals(readName(x), allowedProfileName, StringComparison.OrdinalIgnoreCase));
+                string.Equals(x.Name, allowedProfileName, StringComparison.OrdinalIgnoreCase));
             if (fallbackNameMatch is not null)
             {
                 return fallbackNameMatch;

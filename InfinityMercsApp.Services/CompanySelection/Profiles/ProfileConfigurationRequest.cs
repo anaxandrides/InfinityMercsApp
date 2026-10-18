@@ -13,9 +13,12 @@ public sealed class ProfileConfigurationRequest
 
     public required bool ShowUnitsInInches { get; init; }
 
-    /// <summary>The company's option filter (e.g. fireteam-only profiles), given the option's name.</summary>
-    public required Func<string, bool> IncludesOption { get; init; }
+    /// <summary>Only fireteam-only (FTO) options are listed, as when the unit was picked from an FTO fireteam slot.</summary>
+    public bool FireteamOnly { get; init; }
 
-    /// <summary>The company's adjustment to an option's cost, applied after the peripheral adjustment.</summary>
-    public Func<ProfileGroup, ProfileOption, string, string>? AdjustCost { get; init; }
+    /// <summary>
+    /// Points off an option with Tactical Awareness (on the option, what it includes, or its group's profiles),
+    /// after the peripheral adjustment; a Cohesive company's rule.
+    /// </summary>
+    public int TacticalAwarenessDiscount { get; init; }
 }

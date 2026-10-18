@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Traits;
@@ -51,7 +52,7 @@ public static class ProfileConfigurations
                 }
 
                 var optionNameForFilter = ReadOptionNameOrGroup(option, groupName);
-                if (!request.IncludesOption(optionNameForFilter))
+                if (request.FireteamOnly && !FireteamMatching.IsFtoLabel(optionNameForFilter))
                 {
                     continue;
                 }
@@ -93,7 +94,7 @@ public static class ProfileConfigurations
                 }
 
                 var optionName = ReadOptionNameOrGroup(option, groupName);
-                if (!request.IncludesOption(optionName))
+                if (request.FireteamOnly && !FireteamMatching.IsFtoLabel(optionName))
                 {
                     continue;
                 }
@@ -179,7 +180,9 @@ public static class ProfileConfigurations
                 }
 
                 var adjustedCost = unit.GetAdjustedCost(group, option);
-                var cost = request.AdjustCost is null ? adjustedCost : request.AdjustCost(group, option, adjustedCost);
+                var cost = request.TacticalAwarenessDiscount > 0 && HasTacticalAwareness(unit, group, option, skillsLookup)
+                    ? Discounted(adjustedCost, request.TacticalAwarenessDiscount)
+                    : adjustedCost;
                 var displayPeripheralNames = peripheralNames;
                 var displayCost = cost;
 
@@ -394,6 +397,23 @@ public static class ProfileConfigurations
 
         return CompanyProfileText.JoinOrDash(lines);
     }
+
+    private static bool HasTacticalAwareness(
+        UnitProfileGroups unit, ProfileGroup group, ProfileOption option, IReadOnlyDictionary<int, string> skillsLookup)
+    {
+        bool Named(IEnumerable<ProfileEntry> entries) => entries.Any(entry =>
+            entry.Id is int id &&
+            skillsLookup.TryGetValue(id, out var name) &&
+            name.Contains("tactical awareness", StringComparison.OrdinalIgnoreCase));
+
+        return Named(unit.GetEntriesWithIncludes(option, ProfileEntryKind.Skills)) || group.Profiles.Any(profile => Named(profile.Skills));
+    }
+
+    // A cost less the discount, never below 0; a cost that isn't a number stays as it is.
+    private static string Discounted(string cost, int discount) =>
+        int.TryParse(cost, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
+            ? Math.Max(0, parsed - discount).ToString(CultureInfo.InvariantCulture)
+            : cost;
 
     /// <summary>
     /// Reads the profile group display name.

@@ -170,7 +170,7 @@ public sealed class DeploymentRosterTests : IDisposable
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         Assert.NotNull(entry);
 
-        Assert.Equal(DeploymentRoster.TagCompanyFactionId, DeploymentRoster.EffectiveSourceFactionId(entry));
+        Assert.Equal(DeploymentRoster.TagCompanyFactionId, SeasonTroopers.SourceFactionId(entry));
     }
 
     [Fact]

@@ -256,7 +256,7 @@ public partial class SeasonTeamViewModel : ObservableObject
     {
         if (SelectedUnit is not { } item || _company is not { } company ||
             await _seasonFiles.LoadAsync(_seasonFilePath) is not { } season ||
-            SeasonRetirement.For(company, item.EntryIndex, season, _catalog, _roster.IsServant) is not { } trooper)
+            SeasonRetirement.For(company, item.EntryIndex, season, _catalog, _roster.ServantsOf(company)) is not { } trooper)
         {
             return;
         }

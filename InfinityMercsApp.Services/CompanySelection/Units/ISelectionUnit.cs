@@ -1,12 +1,8 @@
 namespace InfinityMercsApp.Services.CompanySelection.Units;
 
 /// <summary>A unit as a company selection screen lists it.</summary>
-public interface ISelectionUnit
+public interface ISelectionUnit : IFireteamUnit
 {
-    int Id { get; }
-    int SourceFactionId { get; }
-    string Name { get; }
-    string? Slug { get; }
     int? Type { get; }
     bool IsSpecOps { get; }
     bool IsCharacter { get; }

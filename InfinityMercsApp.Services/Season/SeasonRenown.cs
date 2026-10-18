@@ -20,10 +20,10 @@ public static class SeasonRenown
     /// belongs to; any other peripheral is a trooper of its own. Retired troopers count with the renown they kept
     /// when they left.
     /// </summary>
-    public static int OfCompany(SavedCompanyFile company, SeasonFile? season, InventoryCatalog catalog, Func<SavedCompanyEntry, bool> isServant) =>
+    public static int OfCompany(SavedCompanyFile company, SeasonFile? season, InventoryCatalog catalog, IReadOnlySet<int> servants) =>
         CompanyRenown.Of(
             company.Entries
-                .Where(entry => !(entry.IsPeripheralUnit && isServant(entry)) && season?.IsRetired(entry.EntryIndex) != true)
+                .Where(entry => !servants.Contains(entry.EntryIndex) && season?.IsRetired(entry.EntryIndex) != true)
                 .Select(entry => Of(entry, season, catalog)),
             season);
 }

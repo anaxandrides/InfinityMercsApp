@@ -21,10 +21,10 @@ public sealed class SeasonRetirementTests
         ]
     };
 
-    private static bool IsServant(SavedCompanyEntry entry) => entry.Name == "Servant";
+    private static readonly IReadOnlySet<int> Servants = new HashSet<int> { 3 };
 
     private static RetiringTrooper? Retiring(int entryIndex, SeasonFile? season = null) =>
-        SeasonRetirement.For(Company(), entryIndex, season ?? new SeasonFile(), InventoryCatalog.Empty, IsServant);
+        SeasonRetirement.For(Company(), entryIndex, season ?? new SeasonFile(), InventoryCatalog.Empty, Servants);
 
     [Theory]
     [InlineData(1, false)]
@@ -68,6 +68,6 @@ public sealed class SeasonRetirementTests
     {
         var season = new SeasonFile { Retired = [new RetiredTrooper { EntryIndex = 4, Renown = 15 }] };
 
-        Assert.Equal(10 + 18 + 6 + 15, SeasonRenown.OfCompany(Company(), season, InventoryCatalog.Empty, IsServant));
+        Assert.Equal(10 + 18 + 6 + 15, SeasonRenown.OfCompany(Company(), season, InventoryCatalog.Empty, Servants));
     }
 }
