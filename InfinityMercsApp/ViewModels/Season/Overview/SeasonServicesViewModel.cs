@@ -50,7 +50,7 @@ public partial class SeasonServicesViewModel : ObservableObject
     [ObservableProperty]
     public partial InjuryTableEntry? SelectedInjury { get; set; }
 
-    /// <summary>The selected trooper's perks taken this season that nothing builds on.</summary>
+    /// <summary>The selected trooper's perks that nothing builds on.</summary>
     [ObservableProperty]
     public partial IReadOnlyList<PerkOption> RetrainablePerks { get; set; } = [];
 
@@ -82,7 +82,7 @@ public partial class SeasonServicesViewModel : ObservableObject
         SelectedInjury = Injuries.FirstOrDefault();
         RetrainablePerks = progress is null
             ? []
-            : progress.Record.Perks
+            : progress.Perks
                 .Where(perk => SeasonServices.CanRetrain(progress.Perks, perk))
                 .Select(PerkChoices.PickFor)
                 .OfType<PerkPick>()
@@ -199,7 +199,7 @@ public partial class SeasonServicesViewModel : ObservableObject
                     SeasonServices.CalmDown(record, service, keepsNoCover);
                     break;
                 case SeasonService.ForcedRetraining when retrainFrom is not null && retrainTo is not null:
-                    SeasonServices.Retrain(record, retrainFrom, retrainTo);
+                    SeasonServices.Retrain(record, trooper.Progress?.StartingPerks ?? [], retrainFrom, retrainTo);
                     break;
                 case SeasonService.RegularTraining:
                     SeasonServices.TrainRegular(record);

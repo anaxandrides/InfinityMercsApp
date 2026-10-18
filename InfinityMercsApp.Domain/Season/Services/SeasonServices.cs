@@ -83,18 +83,33 @@ public static class SeasonServices
     }
 
     /// <summary>
-    /// Swaps a perk chosen this season for another of the same tier, keeping its place in the order chosen.
-    /// False when the old perk wasn't chosen this season, the tiers differ, or another perk builds on the old one.
+    /// Swaps one of the trooper's perks for another of the same tier. One chosen this season keeps its place in the
+    /// order chosen; one saved with the company is recorded as swapped for the season. False when the trooper doesn't
+    /// have the old perk, the tiers differ, or another perk builds on the old one.
     /// </summary>
-    public static bool Retrain(SeasonTrooper trooper, string oldPerkId, PerkPick replacement)
+    /// <param name="startingPerks">The perks saved with the company.</param>
+    public static bool Retrain(SeasonTrooper trooper, IReadOnlyList<string> startingPerks, string oldPerkId, PerkPick replacement)
     {
-        var index = trooper.Perks.FindIndex(perk => string.Equals(perk, oldPerkId, StringComparison.OrdinalIgnoreCase));
-        if (index < 0 || !CanRetrain(trooper.Perks, oldPerkId) || TierOf(oldPerkId) != replacement.Tier)
+        var perks = TrooperProgress.Retrained(startingPerks, trooper).Concat(trooper.Perks).ToList();
+        if (!perks.Contains(oldPerkId, StringComparer.OrdinalIgnoreCase) || !CanRetrain(perks, oldPerkId) || TierOf(oldPerkId) != replacement.Tier)
         {
             return false;
         }
 
-        trooper.Perks[index] = replacement.NodeId;
+        var index = trooper.Perks.FindIndex(perk => string.Equals(perk, oldPerkId, StringComparison.OrdinalIgnoreCase));
+        if (index >= 0)
+        {
+            trooper.Perks[index] = replacement.NodeId;
+        }
+        else if (trooper.RetrainedPerks.FirstOrDefault(swap => string.Equals(swap.Replacement, oldPerkId, StringComparison.OrdinalIgnoreCase)) is { } swapped)
+        {
+            swapped.Replacement = replacement.NodeId;
+        }
+        else
+        {
+            trooper.RetrainedPerks.Add(new PerkSwap { Replaced = oldPerkId, Replacement = replacement.NodeId });
+        }
+
         return true;
     }
 

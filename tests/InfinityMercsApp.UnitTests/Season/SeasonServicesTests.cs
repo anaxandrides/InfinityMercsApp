@@ -59,9 +59,27 @@ public sealed class SeasonServicesTests
         var trooper = new SeasonTrooper { Perks = ["body-track-1-tier-1", "reflex-track-2-tier-1"] };
         var terrain = new PerkPick("body-track-6-tier-1", "Terrain (Total)", "body-8-13", "Body", 6, 1);
 
-        Assert.True(SeasonServices.Retrain(trooper, "reflex-track-2-tier-1", terrain));
+        Assert.True(SeasonServices.Retrain(trooper, [], "reflex-track-2-tier-1", terrain));
 
         Assert.Equal(["body-track-1-tier-1", "body-track-6-tier-1"], trooper.Perks);
+    }
+
+    // A perk from an earlier season is saved with the company, so the season records the swap.
+    [Fact]
+    public void Retrain_PerkSavedWithTheCompany_RecordsTheSwap()
+    {
+        var trooper = new SeasonTrooper();
+        IReadOnlyList<string> starting = ["reflex-track-2-tier-1"];
+        var terrain = new PerkPick("body-track-6-tier-1", "Terrain (Total)", "body-8-13", "Body", 6, 1);
+        var climbing = new PerkPick("body-track-1-tier-1", "Climbing Plus", "body-8-13", "Body", 1, 1);
+
+        Assert.True(SeasonServices.Retrain(trooper, starting, "reflex-track-2-tier-1", terrain));
+        Assert.True(SeasonServices.Retrain(trooper, starting, "body-track-6-tier-1", climbing));
+
+        var swap = Assert.Single(trooper.RetrainedPerks);
+        Assert.Equal(("reflex-track-2-tier-1", "body-track-1-tier-1"), (swap.Replaced, swap.Replacement));
+        Assert.Equal(["body-track-1-tier-1"], TrooperProgress.Retrained(starting, trooper));
+        Assert.Empty(trooper.Perks);
     }
 
     [Fact]
@@ -71,9 +89,9 @@ public sealed class SeasonServicesTests
         var tierTwo = new PerkPick("reflex-track-8-tier-2", "+1 BS", "reflex-11-16", "Reflex", 8, 2);
         var tierOne = new PerkPick("body-track-6-tier-1", "Terrain (Total)", "body-8-13", "Body", 6, 1);
 
-        Assert.False(SeasonServices.Retrain(trooper, "body-track-1-tier-3", tierTwo));
-        Assert.False(SeasonServices.Retrain(trooper, "body-track-1-tier-1", tierOne));
-        Assert.False(SeasonServices.Retrain(trooper, "body-track-9-tier-3", tierOne));
+        Assert.False(SeasonServices.Retrain(trooper, [], "body-track-1-tier-3", tierTwo));
+        Assert.False(SeasonServices.Retrain(trooper, [], "body-track-1-tier-1", tierOne));
+        Assert.False(SeasonServices.Retrain(trooper, [], "body-track-9-tier-3", tierOne));
         Assert.False(SeasonServices.CanRetrain(trooper.Perks, "body-track-1-tier-1"));
     }
 }

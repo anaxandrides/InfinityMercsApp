@@ -23,8 +23,18 @@ public sealed record TrooperProgress(
 
     public string RankName => CompanyUnitExperienceRanks.GetRankName(TotalXp);
 
-    /// <summary>Every perk the trooper has: those saved with the company, then those chosen this season.</summary>
-    public IReadOnlyList<string> Perks => [.. StartingPerks, .. Record.Perks];
+    /// <summary>
+    /// Every perk the trooper has: those saved with the company (as retrained this season), then those chosen this
+    /// season.
+    /// </summary>
+    public IReadOnlyList<string> Perks => [.. Retrained(StartingPerks, Record), .. Record.Perks];
+
+    /// <summary>The perks saved with the company, each replaced by what Forced Retraining swapped it for this season.</summary>
+    public static IReadOnlyList<string> Retrained(IEnumerable<string> startingPerks, SeasonTrooper record) =>
+        startingPerks
+            .Select(perk => record.RetrainedPerks.FirstOrDefault(swap => string.Equals(swap.Replaced, perk, StringComparison.OrdinalIgnoreCase))
+                ?.Replacement ?? perk)
+            .ToList();
 
     /// <summary>One perk point per rank (two for a Lone Wolf), less the perks already taken from the usual lists.</summary>
     public int PerkPointsOwed =>

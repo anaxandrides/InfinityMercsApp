@@ -13,6 +13,9 @@ public class SeasonTrooper
     /// <summary>Perk node ids, in the order they were chosen.</summary>
     public List<string> Perks { get; set; } = [];
 
+    /// <summary>Perks saved with the company that Forced Retraining replaced this season.</summary>
+    public List<PerkSwap> RetrainedPerks { get; set; } = [];
+
     public List<string> SkillsGained { get; set; } = [];
 
     public List<string> CharacteristicsGained { get; set; } = [];
