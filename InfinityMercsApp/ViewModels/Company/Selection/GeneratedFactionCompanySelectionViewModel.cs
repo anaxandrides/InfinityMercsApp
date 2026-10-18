@@ -1,10 +1,8 @@
 using System.Globalization;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Presentation.Company.Selection;
-using InfinityMercsApp.Services.CompanySelection.Common;
 using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Teams;
-using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
@@ -67,11 +65,11 @@ public abstract class GeneratedFactionCompanySelectionViewModel : CompanySelecti
 
     private bool HasLieutenant(int factionId, CancellationToken cancellationToken)
     {
-        var skills = CompanySelectionSharedUtilities.BuildIdNameLookup(
-            Services.ArmyData.GetFactionSnapshot(factionId, cancellationToken)?.Filters, ArmyFilterSection.Skills);
+        var skills = (Services.ArmyData.GetFactionSnapshot(factionId, cancellationToken)?.Filters ?? ArmyFilterCatalog.Empty)
+            .Names(ArmyFilterSection.Skills);
         return Services.ArmyData
             .GetMergedMercsArmyList([factionId], cancellationToken)
-            .Any(entry => CompanySelectionSharedUtilities.UnitHasLieutenantOption(entry.ProfileGroups, skills));
+            .Any(entry => entry.ProfileGroups.HasLieutenantOption(skills));
     }
 
     /// <summary>The picked sectorial always goes in the left slot, whose units then show.</summary>
@@ -121,7 +119,7 @@ public abstract class GeneratedFactionCompanySelectionViewModel : CompanySelecti
     }
 
     protected override IReadOnlyList<ArmyFactionSelectionItem> UnitSourceFactions() =>
-        CompanyUnitDetailsShared.BuildUnitSourceFactionsForActiveSlot(ActiveSlotIndex, LeftSlotFaction, RightSlotFaction);
+        FactionSlots.ActiveSlotFaction(ActiveSlotIndex, LeftSlotFaction, RightSlotFaction);
 
     /// <summary>The generated faction's units borrow their source units' logos, so none are cached for it.</summary>
     protected override Task CacheUnitLogosAsync(int factionId, IReadOnlyList<InfinityMercsApp.Domain.Models.Army.Resume> units, CancellationToken cancellationToken) =>

@@ -281,7 +281,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
             var onRoster = MercsCompanyEntries.Sum(entry => entry.CostValue);
             SelectedStartSeasonPoints = (onRoster + Math.Max(0, recruitment.Credits)).ToString(CultureInfo.InvariantCulture);
-            SeasonPointsCapText = CompanyStartSharedState.ComputeTotalCostText(MercsCompanyEntries);
+            SeasonPointsCapText = RosterCost();
         }
         finally
         {
@@ -515,7 +515,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
     /// <summary>The factions whose units are listed.</summary>
     protected virtual IReadOnlyList<ArmyFactionSelectionItem> UnitSourceFactions() =>
-        CompanyUnitDetailsShared.BuildUnitSourceFactions(ShowRightSlot, LeftSlotFaction, RightSlotFaction, faction => faction.Id);
+        FactionSlots.SourceFactions(ShowRightSlot, LeftSlotFaction, RightSlotFaction);
 
     /// <summary>Lists the units (and their fireteams) of the source factions.</summary>
     protected async Task LoadUnitsAsync(CancellationToken cancellationToken = default)
@@ -860,7 +860,10 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
         Detail.ShowUnitsInInches = showInches;
         Detail.RefreshMoves();
-        CompanyStartSharedState.RefreshMercsCompanyEntryDistanceDisplays(MercsCompanyEntries, showInches);
+        foreach (var entry in MercsCompanyEntries)
+        {
+            entry.RefreshMoves(showInches);
+        }
     }
 
 
@@ -925,32 +928,23 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     /// <summary>A company's extra profile blocking; returns how many profiles still show.</summary>
     protected virtual int AdjustLieutenantVisualStates(int visibleProfiles) => visibleProfiles;
 
-    private void UpdatePeripheralFromVisibleProfiles() =>
-        CompanyUnitDetailsShared.UpdatePeripheralStatBlockFromVisibleProfiles(
-            Detail.ProfileGroups,
-            Profiles,
-            profile => profile.IsVisible,
-            profile => profile.HasPeripherals,
-            profile => profile.Peripherals,
-            CompanyUnitDetailsShared.ExtractFirstPeripheralName,
-            Detail.ResetPeripheral,
-            (peripheralProfile, peripheralName) =>
-            {
-                if (PeripheralStats(peripheralName, peripheralProfile, Detail.Filters) is { } stats)
-                {
-                    Detail.ApplyPeripheral(stats);
-                }
-            });
-
-    private PeripheralMercsCompanyStats? PeripheralStats(string peripheralName, UnitProfile profile, ArmyFilterCatalog? filters) =>
-        CompanyUnitDetailsShared.BuildPeripheralStatBlock(peripheralName, profile, filters, Detail.ShowUnitsInInches);
+    // Shows the peripheral of the first visible profile that has one.
+    private void UpdatePeripheralFromVisibleProfiles()
+    {
+        Detail.ResetPeripheral();
+        if (Profiles.FirstOrDefault(profile => profile.IsVisible && profile.HasPeripherals) is { } profile &&
+            PeripheralStatsOf(profile) is { } stats)
+        {
+            Detail.ApplyPeripheral(stats);
+        }
+    }
 
     // The statline of the profile's first peripheral, when the selected unit has its profile.
     private PeripheralMercsCompanyStats? PeripheralStatsOf(ViewerProfileItem profile)
     {
-        var peripheralName = CompanyUnitDetailsShared.ExtractFirstPeripheralName(profile.Peripherals);
+        var peripheralName = PeripheralNames.FirstOf(profile.Peripherals);
         return !string.IsNullOrWhiteSpace(peripheralName) && Detail.ProfileGroups.FindPeripheralProfile(peripheralName) is { } peripheralProfile
-            ? PeripheralStats(peripheralName, peripheralProfile, Detail.Filters)
+            ? PeripheralMercsCompanyStats.From(peripheralName, peripheralProfile, Detail.Filters, Detail.ShowUnitsInInches)
             : null;
     }
 
@@ -959,25 +953,12 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     /// </summary>
     protected async Task<string?> UnitLogoSourceAsync(ArmyUnitSelectionItem item)
     {
-        var leftId = LeftSlotFaction?.Id;
-        var rightId = ShowRightSlot ? RightSlotFaction?.Id : null;
-        var logos = Services.Logos;
-
-        var cached = logos is null
-            ? [item.CachedLogoPath]
-            : CompanyUnitDetailsShared.BuildUnitCachedPathCandidates(
-                item.CachedLogoPath, item.SourceFactionId, item.Id, leftId, rightId,
-                logos.GetCachedUnitLogoPath, CachedFactionLogoPath);
-        if (cached.FirstOrDefault(path => !string.IsNullOrWhiteSpace(path) && File.Exists(path)) is { } cachedPath)
+        if (CachedLogoCandidates(item).FirstOrDefault(path => !string.IsNullOrWhiteSpace(path) && File.Exists(path)) is { } cachedPath)
         {
             return cachedPath;
         }
 
-        var packaged = CompanyUnitDetailsShared.BuildUnitPackagedPathCandidates(
-            item.PackagedLogoPath, item.SourceFactionId, item.Id, leftId, rightId,
-            logos is null ? null : logos.GetPackagedUnitLogoPath,
-            logos is null ? null : PackagedFactionLogoPath);
-        foreach (var candidate in packaged.OfType<string>().Where(path => !string.IsNullOrWhiteSpace(path)))
+        foreach (var candidate in PackagedLogoCandidates(item).OfType<string>().Where(path => !string.IsNullOrWhiteSpace(path)))
         {
             var normalized = candidate.Replace('\\', '/').TrimStart('/');
             if (await Services.PackageFiles.ExistsAsync(normalized))
@@ -987,6 +968,51 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         }
 
         return item.PackagedLogoPath;
+    }
+
+    // The unit's own downloaded logo, then its logo under each slot's faction, then its faction's logo.
+    private IEnumerable<string?> CachedLogoCandidates(ArmyUnitSelectionItem item)
+    {
+        yield return item.CachedLogoPath;
+        if (Services.Logos is not { } logos)
+        {
+            yield break;
+        }
+
+        foreach (var factionId in LogoFactions(item))
+        {
+            yield return logos.GetCachedUnitLogoPath(factionId, item.Id);
+        }
+
+        yield return CachedFactionLogoPath(item.SourceFactionId);
+    }
+
+    // The packaged logos in the same order, by the logo service's paths or the packaged folders' own.
+    private IEnumerable<string?> PackagedLogoCandidates(ArmyUnitSelectionItem item)
+    {
+        yield return item.PackagedLogoPath;
+        var logos = Services.Logos;
+        foreach (var factionId in LogoFactions(item))
+        {
+            yield return logos?.GetPackagedUnitLogoPath(factionId, item.Id) ?? $"SVGCache/units/{factionId}-{item.Id}.svg";
+        }
+
+        yield return logos is null ? $"SVGCache/factions/{item.SourceFactionId}.svg" : PackagedFactionLogoPath(item.SourceFactionId);
+    }
+
+    // The unit's own faction, then the left slot's, then the right slot's when the company has one.
+    private IEnumerable<int> LogoFactions(ArmyUnitSelectionItem item)
+    {
+        yield return item.SourceFactionId;
+        if (LeftSlotFaction is { } left)
+        {
+            yield return left.Id;
+        }
+
+        if (ShowRightSlot && RightSlotFaction is { } right)
+        {
+            yield return right.Id;
+        }
     }
 
     /// <summary>A faction's downloaded logo, used when a unit has none of its own.</summary>
@@ -1058,10 +1084,13 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
         }
     }
 
+    // What the company's troopers cost, as the points shown.
+    private string RosterCost() => MercsCompanyEntries.Sum(entry => entry.CostValue).ToString(CultureInfo.InvariantCulture);
+
     // Recounts the points; that refreshes validity, profile blocking and which units still fit.
     private void OnRosterChanged()
     {
-        SeasonPointsCapText = CompanyStartSharedState.ComputeTotalCostText(MercsCompanyEntries);
+        SeasonPointsCapText = RosterCost();
         AfterRosterChanged();
         ApplyLieutenantVisualStates();
         ApplyUnitVisibilityFilters();
@@ -1115,7 +1144,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             MercsCompanyEntries.Remove(entry);
         }
 
-        SeasonPointsCapText = CompanyStartSharedState.ComputeTotalCostText(MercsCompanyEntries);
+        SeasonPointsCapText = RosterCost();
         AfterCompanyReset();
     }
 
@@ -1162,7 +1191,8 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     /// </summary>
     protected void UpdateSeasonValidation()
     {
-        IsCompanyValid = CompanyStartSharedState.IsSeasonValid(MercsCompanyEntries, SelectedStartSeasonPoints, SeasonPointsCapText) &&
+        IsCompanyValid = MercsCompanyEntries.Any(entry => entry.IsLieutenant) &&
+                         Points(SeasonPointsCapText) <= Points(SelectedStartSeasonPoints) &&
                          (IsFoundingCompany || MercsCompanyEntries.Any(entry => !entry.IsOnRoster));
         CreditsLeftText = IsRecruiting ? $"{PointsRemaining} CR LEFT" : string.Empty;
     }
@@ -1175,7 +1205,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
 
     partial void OnCompanyNameChanged(string value)
     {
-        if (ShowCompanyNameValidationError && CompanyStartSharedState.IsCompanyNameValid(value))
+        if (ShowCompanyNameValidationError && !string.IsNullOrWhiteSpace(value))
         {
             SetCompanyNameError(false);
         }
@@ -1199,7 +1229,7 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
             return;
         }
 
-        if (!CompanyStartSharedState.IsCompanyNameValid(CompanyName))
+        if (string.IsNullOrWhiteSpace(CompanyName))
         {
             SetCompanyNameError(true);
             return;

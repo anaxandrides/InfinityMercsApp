@@ -16,4 +16,12 @@ public sealed class StatlineTests
         Assert.Equal<StatValue>(
             [new(Stat.Mov, "10-5"), new(Stat.Cc, "14"), new(Stat.Ava, "T")],
             Statline.Entries("MOV 10-5 | cc 14 | junk | XP 3 | AVA T"));
+
+    [Fact]
+    public void WithMove_Statline_ReplacesOnlyTheMove() =>
+        Assert.Equal("MOV 4-2 | CC 14 | BS 12", Statline.WithMove("MOV 10-5 | CC 14 | BS 12", "4-2"));
+
+    [Fact]
+    public void WithMove_NoStatline_ReturnsJustTheMove() =>
+        Assert.Equal("MOV 4-2", Statline.WithMove(null, "4-2"));
 }

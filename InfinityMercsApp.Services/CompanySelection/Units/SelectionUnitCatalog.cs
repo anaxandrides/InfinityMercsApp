@@ -16,8 +16,8 @@ public sealed class SelectionUnitCatalog(IArmyDataService armyData, ISpecOpsProv
             factionId,
             resumes,
             specOps.GetSpecopsUnitsByFaction(factionId, cancellationToken),
-            CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Type),
-            CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Category),
+            (snapshot?.Filters ?? ArmyFilterCatalog.Empty).Names(ArmyFilterSection.Type),
+            (snapshot?.Filters ?? ArmyFilterCatalog.Empty).Names(ArmyFilterSection.Category),
             snapshot?.FireteamChart);
     }
 
@@ -45,8 +45,8 @@ public sealed class SelectionUnitCatalog(IArmyDataService armyData, ISpecOpsProv
                         resume.Name,
                         resume.Slug,
                         resume.Type,
-                        CompanyUnitDetailsShared.IsCharacterCategory(resume, faction.CategoryLookup),
-                        CompanyUnitDetailsShared.BuildUnitSubtitle(resume, faction.TypeLookup, faction.CategoryLookup),
+                        UnitClassification.IsCharacter(resume, faction.CategoryLookup),
+                        UnitClassification.Subtitle(resume, faction.TypeLookup, faction.CategoryLookup),
                         IsSpecOps: false,
                         resume.Logo);
                 }
@@ -67,8 +67,8 @@ public sealed class SelectionUnitCatalog(IArmyDataService armyData, ISpecOpsProv
                         key,
                         specOpsUnit.Slug,
                         resume?.Type,
-                        resume is not null && CompanyUnitDetailsShared.IsCharacterCategory(resume, faction.CategoryLookup),
-                        resume is not null ? CompanyUnitDetailsShared.BuildUnitSubtitle(resume, faction.TypeLookup, faction.CategoryLookup) : "Spec Ops",
+                        resume is not null && UnitClassification.IsCharacter(resume, faction.CategoryLookup),
+                        resume is not null ? UnitClassification.Subtitle(resume, faction.TypeLookup, faction.CategoryLookup) : "Spec Ops",
                         IsSpecOps: true,
                         resume?.Logo);
                 }

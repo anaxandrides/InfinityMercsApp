@@ -38,4 +38,19 @@ public sealed class ThemeFactionsTests
     [Fact]
     public void NameFor_VanillaScreen_PrefersTheUnitsFactionWithColours() =>
         Assert.Equal("PanOceania", _themes.NameFor(ArmySourceSelectionMode.VanillaFactions, 4242, [4242, 102]));
+
+    [Theory]
+    [InlineData("Yu Jing Reinforcements", "yujing")]
+    [InlineData("Japanese Secessionist Army", "jsa")]
+    [InlineData("O-12", "o12")]
+    [InlineData("Military Orders", "militaryorders")]
+    public void Key_FactionName_NormalisesIt(string name, string expected) =>
+        Assert.Equal(expected, ThemeFactions.Key(name));
+
+    [Theory]
+    [InlineData("PanOceania", true)]
+    [InlineData("Non-Aligned Armies", true)]
+    [InlineData("Military Orders", false)]
+    public void HasColours_FactionName_TrueForVanillaFactions(string name, bool expected) =>
+        Assert.Equal(expected, ThemeFactions.HasColours(name));
 }

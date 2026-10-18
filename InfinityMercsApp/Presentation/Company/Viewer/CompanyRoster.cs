@@ -9,9 +9,9 @@ using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Presentation.Themes;
 using InfinityMercsApp.Presentation.Units;
 using InfinityMercsApp.Services.ArmyData;
-using InfinityMercsApp.Services.CompanySelection.Common;
 using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Services.CompanySelection.Profiles;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;
@@ -293,7 +293,7 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         }
 
         var metadataName = armyData.GetMetadataFactionById(factionId)?.Name;
-        return !string.IsNullOrWhiteSpace(metadataName) && CompanySelectionSharedUtilities.IsThemeFactionName(metadataName)
+        return !string.IsNullOrWhiteSpace(metadataName) && ThemeFactions.HasColours(metadataName)
             ? metadataName
             : ThemeFactions.ByFactionId(factionId);
     }
@@ -309,7 +309,7 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
     {
         var name = string.IsNullOrWhiteSpace(peripheralHeading)
             ? string.Empty
-            : CompanySelectionSharedUtilities.ExtractFirstPeripheralName(peripheralHeading);
+            : PeripheralNames.FirstOf(peripheralHeading);
         return string.IsNullOrWhiteSpace(name) ? "-" : $"{name} (1)";
     }
 }

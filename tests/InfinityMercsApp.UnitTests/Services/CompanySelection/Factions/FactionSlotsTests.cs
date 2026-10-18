@@ -1,4 +1,5 @@
 using InfinityMercsApp.Services.CompanySelection.Factions;
+using InfinityMercsApp.Services.CompanySelection.StartCompany;
 
 namespace InfinityMercsApp.UnitTests.Services.CompanySelection.Factions;
 
@@ -31,4 +32,27 @@ public sealed class FactionSlotsTests
     [InlineData(false, false, 1, 1)]
     public void AfterFilling_OneSlotEmpty_ReturnsTheEmptyOne(bool leftFilled, bool rightFilled, int current, int next) =>
         Assert.Equal(next, FactionSlots.AfterFilling(hasRightSlot: true, leftFilled, rightFilled, current));
+
+    [Fact]
+    public void SourceFactions_BothSlotsDiffer_ListsBoth() =>
+        Assert.Equal([Left, Right], FactionSlots.SourceFactions(hasRightSlot: true, Left, Right));
+
+    [Fact]
+    public void SourceFactions_SameFactionInBothSlots_ListsItOnce() =>
+        Assert.Equal([Left], FactionSlots.SourceFactions(hasRightSlot: true, Left, Left with { Name = "Again" }));
+
+    [Fact]
+    public void SourceFactions_NoRightSlot_ListsOnlyTheLeft() =>
+        Assert.Equal([Left], FactionSlots.SourceFactions(hasRightSlot: false, Left, Right));
+
+    [Theory]
+    [InlineData(0, 101)]
+    [InlineData(1, 102)]
+    public void ActiveSlotFaction_Slot_ListsOnlyThatSlotsFaction(int slot, int expected) =>
+        Assert.Equal([expected], FactionSlots.ActiveSlotFaction(slot, Left, Right).Select(faction => faction.Id));
+
+    private static readonly SlotFaction Left = new(101, 101, "PanOceania");
+    private static readonly SlotFaction Right = new(102, 101, "Military Orders");
+
+    private sealed record SlotFaction(int Id, int ParentId, string Name) : ICompanySourceFaction;
 }

@@ -1,12 +1,13 @@
 using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Services.CompanySelection.Captain;
-using InfinityMercsApp.Services.CompanySelection.Common;
+using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.Services.Records;
 using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 
@@ -56,18 +57,14 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
         }
 
         Directory.CreateDirectory(saveDir);
-        var companyIndex = CompanySelectionSharedUtilities.GetNextCompanyIndex(saveDir, trimmedName, safeFileName);
+        var companyIndex = NextCompanyIndex(saveDir, trimmedName, safeFileName);
         return $"{safeFileName}-{companyIndex:D4}.json";
     }
 
     private static List<TFaction> SourceFactions<TFaction, TEntry>(CompanyFoundingRequest<TFaction, TEntry> request)
         where TFaction : class, ICompanySourceFaction
         where TEntry : class, ICompanyMercsEntry =>
-        CompanyUnitDetailsShared.BuildUnitSourceFactions(
-            request.ShowRightSelectionBox,
-            request.LeftSlotFaction,
-            request.RightSlotFaction,
-            faction => faction.Id);
+        FactionSlots.SourceFactions(request.ShowRightSelectionBox, request.LeftSlotFaction, request.RightSlotFaction).ToList();
 
     // A TAG company's captain gets the TAG Spec-Ops popup; every other company's gets the captain popup.
     private Task<SavedImprovedCaptainStats?> ConfigureCaptainAsync<TFaction, TEntry>(
@@ -142,7 +139,7 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
         {
             CompanyName = request.CompanyName.Trim(),
             CompanyType = request.CompanyType,
-            CompanyIdentifier = CompanySelectionSharedUtilities.ComputeCompanyIdentifier(fileName),
+            CompanyIdentifier = CompanyIdentifier(fileName),
             CompanyIndex = ParseCompanyIndexFromFileName(filePath),
             CreatedUtc = DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture),
             StartSeasonPoints = startSeasonPoints,
@@ -165,6 +162,47 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
                 WriteIndented = true,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             }));
+    }
+
+    // The SHA-256 of the file name, in hex: a company's id for the seasons that play it.
+    private static string CompanyIdentifier(string fileName) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(fileName)));
+
+    // One more than the highest index of a company of the same name: read from each file, else from its name.
+    private static int NextCompanyIndex(string saveDir, string companyName, string safeFileName)
+    {
+        var maxIndex = 0;
+        foreach (var file in Directory.EnumerateFiles(saveDir, "*.json"))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllText(file));
+                if (!doc.RootElement.TryGetProperty("CompanyName", out var nameElement) ||
+                    !string.Equals(nameElement.GetString(), companyName, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (doc.RootElement.TryGetProperty("CompanyIndex", out var indexElement) &&
+                    indexElement.ValueKind == JsonValueKind.Number &&
+                    indexElement.TryGetInt32(out var parsedIndex))
+                {
+                    maxIndex = Math.Max(maxIndex, parsedIndex);
+                    continue;
+                }
+            }
+            catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+            {
+                // A malformed or unreadable file still counts by its name.
+            }
+
+            var match = Regex.Match(Path.GetFileNameWithoutExtension(file), $"^{Regex.Escape(safeFileName)}-(\\d+)$", RegexOptions.IgnoreCase);
+            if (match.Success && int.TryParse(match.Groups[1].Value, out var fallbackIndex))
+            {
+                maxIndex = Math.Max(maxIndex, fallbackIndex);
+            }
+        }
+
+        return maxIndex + 1;
     }
 
     private static int ParseCompanyIndexFromFileName(string filePath)

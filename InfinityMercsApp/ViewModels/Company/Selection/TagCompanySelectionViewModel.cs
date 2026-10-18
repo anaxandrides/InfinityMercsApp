@@ -60,7 +60,7 @@ public sealed class TagCompanySelectionViewModel(CompanySelectionServices servic
     protected override async Task AfterEntryAddedAsync(ArmyUnitSelectionItem unit, ViewerProfileItem profile, MercsCompanyEntry entry)
     {
         if (profile.IsLieutenant ||
-            !(UnitTypeCodes.IsTag(entry.UnitTypeCode) || UnitTypeCodes.IsTag(CompanyStartSharedState.ExtractUnitTypeCode(unit.Subtitle))))
+            !(UnitTypeCodes.IsTag(entry.UnitTypeCode) || UnitTypeCodes.IsTag(UnitTypeCodes.FromSubtitle(unit.Subtitle))))
         {
             return;
         }

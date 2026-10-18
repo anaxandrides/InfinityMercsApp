@@ -10,6 +10,11 @@ public static class UnitTypeCodes
     public const string Remote = "REM";
     public const string Peripheral = "PERIPHERAL";
 
+    /// <summary>The troop type a list subtitle starts with ("LI - Garrison Troops" → "LI"); empty when there is none.</summary>
+    public static string FromSubtitle(string? subtitle) =>
+        subtitle?.Split([' ', '-', '\u2013', '\u2014'], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim().ToUpperInvariant()
+        ?? string.Empty;
+
     public static bool IsTag(string? unitTypeCode) => Is(unitTypeCode, Tag);
 
     public static bool IsRemote(string? unitTypeCode) => Is(unitTypeCode, Remote);

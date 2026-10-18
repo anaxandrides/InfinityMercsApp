@@ -11,6 +11,13 @@ public static class ProfileValues
     /// Reads a cost such as <c>"25"</c> or <c>"x7"</c> as a number: the whole text when it is an integer,
     /// otherwise its first run of digits, otherwise 0.
     /// </summary>
+    /// <summary>
+    /// How many of a unit a company may field, from its AVA text; null when unlimited ("T", "-", a blank, or the
+    /// 255 that stands for Total).
+    /// </summary>
+    public static int? ParseAvaLimit(string? ava) =>
+        int.TryParse(ava?.Trim(), out var limit) && limit < 255 ? limit : null;
+
     public static int ParseCost(string? cost)
     {
         if (string.IsNullOrWhiteSpace(cost))

@@ -4,7 +4,6 @@ using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.ArmyData;
-using InfinityMercsApp.Services.CompanySelection.Common;
 
 namespace InfinityMercsApp.Services.CompanySelection.Captain;
 
@@ -28,9 +27,9 @@ public sealed class CaptainOptionCatalog(IArmyDataService armyData, ISpecOpsProv
         {
             var snapshot = armyData.GetFactionSnapshot(factionId, cancellationToken);
             var filters = snapshot?.Filters;
-            var skillLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, ArmyFilterSection.Skills);
-            var equipLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, ArmyFilterSection.Equip);
-            var weaponLookup = CompanySelectionSharedUtilities.BuildIdNameLookup(filters, ArmyFilterSection.Weapons);
+            var skillLookup = (filters ?? ArmyFilterCatalog.Empty).Names(ArmyFilterSection.Skills);
+            var equipLookup = (filters ?? ArmyFilterCatalog.Empty).Names(ArmyFilterSection.Equip);
+            var weaponLookup = (filters ?? ArmyFilterCatalog.Empty).Names(ArmyFilterSection.Weapons);
             var extrasLookup = BuildExtrasLookup(filters);
 
             var skillRecords = specOps.GetSpecopsSkillsByFaction(factionId, cancellationToken);
@@ -147,7 +146,7 @@ public sealed class CaptainOptionCatalog(IArmyDataService armyData, ISpecOpsProv
             return definition.Name;
         }
 
-        return CompanySelectionSharedUtilities.ConvertDistanceText(definition.Name, showUnitsInInches);
+        return DistanceText.Convert(definition.Name, showUnitsInInches);
     }
 
     private sealed record CaptainExtraDefinition(string Name, string Type);

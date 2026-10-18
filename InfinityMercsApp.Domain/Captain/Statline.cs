@@ -8,6 +8,12 @@ namespace InfinityMercsApp.Domain.Captain;
 public static partial class Statline
 {
     /// <summary>The numeric combat stats (CC, BS, PH, WIP, ARM, BTS, VITA, STR, W); later values win.</summary>
+    /// <summary>The statline with its MOV replaced by <paramref name="move"/>; just the MOV when there is no statline.</summary>
+    public static string WithMove(string? statline, string move) =>
+        string.IsNullOrWhiteSpace(statline)
+            ? $"MOV {move}"
+            : MovePart().Replace(statline, move);
+
     public static IReadOnlyDictionary<Stat, int> NumericStats(string? statline)
     {
         var values = new Dictionary<Stat, int>();
@@ -48,6 +54,9 @@ public static partial class Statline
 
         return entries;
     }
+
+    [GeneratedRegex(@"(?<=\bMOV\s)[^|]*[^|\s]", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex MovePart();
 
     [GeneratedRegex(@"\b(CC|BS|PH|WIP|ARM|BTS|VITA|STR|W)\s+(\d+)\b", RegexOptions.IgnoreCase)]
     private static partial Regex NumericStat();

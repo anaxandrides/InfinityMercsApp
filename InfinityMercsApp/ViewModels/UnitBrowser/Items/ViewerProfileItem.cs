@@ -3,7 +3,6 @@ using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Presentation.Company.Selection;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Profiles;
-using InfinityMercsApp.Services.CompanySelection.Units;
 
 namespace InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
@@ -119,7 +118,7 @@ public partial class ViewerProfileItem : ObservableObject
             PeripheralVitality = peripheral?.Vitality ?? "-",
             PeripheralS = peripheral?.S ?? "-",
             PeripheralAva = peripheral?.Ava ?? "-",
-            PeripheralSubtitle = CompanyUnitDetailsShared.BuildPeripheralSubtitle(peripheral),
+            PeripheralSubtitle = peripheral?.Subtitle ?? "-",
             PeripheralEquipmentLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Equipment", equipment, Color.FromArgb("#06B6D4")),
             HasPeripheralEquipmentLine = peripheral is not null && !string.IsNullOrWhiteSpace(equipment) && equipment != "-",
             PeripheralSkillsLineFormatted = CompanyProfileFormatting.BuildMercsCompanyLineFormatted("Skills", skills, Color.FromArgb("#F59E0B")),

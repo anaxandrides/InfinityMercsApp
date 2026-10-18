@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Services.ArmyData;
-using InfinityMercsApp.Services.CompanySelection.Common;
 
 namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
@@ -79,8 +78,8 @@ public sealed partial class SavedCodeEncoder(IArmyDataService armyData)
         IEnumerable<string> candidates =
         [
             extraName,
-            CompanySelectionSharedUtilities.ConvertDistanceText(extraName, showUnitsInInches: true),
-            CompanySelectionSharedUtilities.ConvertDistanceText(extraName, showUnitsInInches: false)
+            DistanceText.Convert(extraName, showUnitsInInches: true),
+            DistanceText.Convert(extraName, showUnitsInInches: false)
         ];
         var spellings = candidates
             .Select(NormalizeName)

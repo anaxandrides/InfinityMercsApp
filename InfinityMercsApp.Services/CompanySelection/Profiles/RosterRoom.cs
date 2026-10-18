@@ -1,4 +1,3 @@
-using InfinityMercsApp.Services.CompanySelection.Common;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 
 namespace InfinityMercsApp.Services.CompanySelection.Profiles;
@@ -17,7 +16,7 @@ public sealed record RosterRoom(int PointsRemaining, bool AvaReached, bool HasLi
             : 0;
         return new RosterRoom(
             pointsLimit - currentPoints,
-            CompanySelectionSharedUtilities.ParseAvaLimit(ava) is int limit && inCompany >= limit,
+            ProfileValues.ParseAvaLimit(ava) is int limit && inCompany >= limit,
             entries.Any(x => x.IsLieutenant));
     }
 }

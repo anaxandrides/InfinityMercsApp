@@ -3,8 +3,6 @@ using InfinityMercsApp.Presentation.Company.Selection;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Profiles;
-using InfinityMercsApp.Services.CompanySelection.StartCompany;
-using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection.Items;
@@ -32,7 +30,7 @@ public static class NewTrooperEntry
         var combinedEquipment = CompanyProfileText.MergeCommonAndUnique(detail.CommonEquipment.ToList(), profile.UniqueEquipment);
         var combinedSkills = CompanyProfileText.MergeCommonAndUnique(commonSkills, profile.UniqueSkills);
         var combinedCharacteristics = CompanyProfileText.SplitDisplayLine(profile.Characteristics).ToList();
-        var inferredPeripheralName = CompanyUnitDetailsShared.ExtractFirstPeripheralName(profile.Peripherals);
+        var inferredPeripheralName = PeripheralNames.FirstOf(profile.Peripherals);
         var peripheralHasControlModifier = ProfileHasPeripheralControlModifier(profile, inferredPeripheralName);
         if (peripheralHasControlModifier && !string.IsNullOrWhiteSpace(inferredPeripheralName))
         {
@@ -95,7 +93,7 @@ public static class NewTrooperEntry
             BaseUnitName = selectedUnit.Name,
             NameFormatted = profile.NameFormatted ?? CompanyProfileFormatting.BuildNameFormatted(profile.Name),
             Subtitle = statline,
-            UnitTypeCode = CompanyStartSharedState.ExtractUnitTypeCode(selectedUnit.Subtitle),
+            UnitTypeCode = UnitTypeCodes.FromSubtitle(selectedUnit.Subtitle),
             CostDisplay = $"C {profile.Cost}",
             CostValue = ProfileValues.ParseCost(profile.Cost),
             IsLieutenant = profile.IsLieutenant,

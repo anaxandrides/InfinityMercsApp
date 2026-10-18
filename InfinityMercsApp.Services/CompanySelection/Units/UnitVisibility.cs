@@ -16,7 +16,7 @@ public sealed class UnitVisibility(IArmyDataService armyData, ISpecOpsProvider s
         {
             var filters = armyData.GetFactionSnapshot(factionId, cancellationToken)?.Filters;
             context.LookupsByFactionId[factionId] = UnitFilterLookups.From(filters);
-            context.TypeByFactionId[factionId] = CompanyUnitDetailsShared.BuildIdNameLookup(filters, ArmyFilterSection.Type);
+            context.TypeByFactionId[factionId] = (filters ?? ArmyFilterCatalog.Empty).Names(ArmyFilterSection.Type);
             context.SpecopsByFactionId[factionId] = specOps.GetSpecopsUnitsByFaction(factionId, cancellationToken)
                 .GroupBy(x => x.UnitId)
                 .ToDictionary(x => x.Key, x => x.First());
@@ -55,7 +55,7 @@ public sealed class UnitVisibility(IArmyDataService armyData, ISpecOpsProvider s
         }
 
         var typeLookup = context.TypeByFactionId.TryGetValue(unit.SourceFactionId, out var types) ? types : new Dictionary<int, string>();
-        return CompanyUnitDetailsShared.MatchesClassificationFilter(filter, unit.Type, typeLookup) &&
+        return UnitOptionFilter.MatchesClassification(filter, unit.Type, typeLookup) &&
                UnitOptionFilter.HasVisibleOption(
                    ProfileGroupsOf(context, unit, cancellationToken),
                    lookups,

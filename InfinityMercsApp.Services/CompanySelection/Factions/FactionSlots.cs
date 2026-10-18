@@ -1,3 +1,5 @@
+using InfinityMercsApp.Services.CompanySelection.StartCompany;
+
 namespace InfinityMercsApp.Services.CompanySelection.Factions;
 
 /// <summary>Which faction slot a selection screen's next faction pick goes to.</summary>
@@ -18,6 +20,32 @@ public static class FactionSlots
             ? rightFactionId == factionId && leftFactionId != factionId
             : leftFactionId == factionId && rightFactionId != factionId;
     }
+
+    /// <summary>The factions whose units are listed: the left slot's, and the right slot's when there is one and it differs.</summary>
+    public static IReadOnlyList<TFaction> SourceFactions<TFaction>(bool hasRightSlot, TFaction? left, TFaction? right)
+        where TFaction : class, ICompanySourceFaction
+    {
+        var factions = new List<TFaction>(2);
+        if (left is not null)
+        {
+            factions.Add(left);
+        }
+
+        if (hasRightSlot && right is not null && right.Id != left?.Id)
+        {
+            factions.Add(right);
+        }
+
+        return factions;
+    }
+
+    /// <summary>
+    /// Only the active slot's faction, for companies whose slots each list their own units (Airborne, Inspiring)
+    /// rather than both slots' units together.
+    /// </summary>
+    public static IReadOnlyList<TFaction> ActiveSlotFaction<TFaction>(int activeSlot, TFaction? left, TFaction? right)
+        where TFaction : class =>
+        (activeSlot == 1 ? right : left) is { } faction ? [faction] : [];
 
     /// <summary>The slot tapped; the left one when there is no right slot.</summary>
     public static int Active(int slot, bool hasRightSlot) => slot == 1 && hasRightSlot ? 1 : 0;

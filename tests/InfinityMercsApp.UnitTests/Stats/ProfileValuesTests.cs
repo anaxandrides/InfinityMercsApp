@@ -24,4 +24,14 @@ public sealed class ProfileValuesTests
     [InlineData(null, false)]
     public void CostsSwc_Swc_IsAPositiveValueThatIsNotAGrant(string? swc, bool expected) =>
         Assert.Equal(expected, ProfileValues.CostsSwc(swc));
+
+    [Theory]
+    [InlineData("2", 2)]
+    [InlineData(" 3 ", 3)]
+    [InlineData("T", null)]
+    [InlineData("-", null)]
+    [InlineData("255", null)]
+    [InlineData(null, null)]
+    public void ParseAvaLimit_AvaText_ReturnsTheLimitOrNullWhenUnlimited(string? ava, int? expected) =>
+        Assert.Equal(expected, ProfileValues.ParseAvaLimit(ava));
 }

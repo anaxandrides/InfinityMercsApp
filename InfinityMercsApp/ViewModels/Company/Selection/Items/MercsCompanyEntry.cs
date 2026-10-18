@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
@@ -132,6 +133,15 @@ public partial class MercsCompanyEntry : ObservableObject, IViewerListItem, ICom
         var parts = CompanyProfileText.SplitDisplayLine(value);
         return parts.Count == 0 ? "-" : string.Join(", ", parts);
     }
+
+    /// <summary>Re-formats the trooper's and its peripheral's MOV after the inches/centimetres preference changed.</summary>
+    public void RefreshMoves(bool inInches)
+    {
+        UnitMoveDisplay = Movement.Format(Movement.From(UnitMoveFirstCm, UnitMoveSecondCm), inInches);
+        Subtitle = Statline.WithMove(Subtitle, UnitMoveDisplay);
+        if (HasPeripheralStatBlock)
+        {
+            PeripheralMov = Movement.Format(Movement.From(PeripheralMoveFirstCm, PeripheralMoveSecondCm), inInches);
+        }
+    }
 }
-
-

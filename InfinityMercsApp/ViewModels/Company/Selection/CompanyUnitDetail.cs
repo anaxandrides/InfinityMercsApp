@@ -6,7 +6,6 @@ using InfinityMercsApp.Presentation.Themes;
 using InfinityMercsApp.Presentation.Units;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.Services.CompanySelection.Units;
 using InfinityMercsApp.ViewModels.Components;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
@@ -126,22 +125,22 @@ public sealed partial class CompanyUnitDetail : ObservableObject, IUnitDisplay
     /// <summary>Shows a profile's statline.</summary>
     public void ApplyStats(UnitProfile profile)
     {
-        var projection = CompanyUnitDetailsShared.BuildUnitStatProjection(profile, ShowUnitsInInches);
-        UnitMoveFirstCm = projection.MoveFirstCm;
-        UnitMoveSecondCm = projection.MoveSecondCm;
+        UnitMoveFirstCm = profile.Movement?.FirstCm;
+        UnitMoveSecondCm = profile.Movement?.SecondCm;
+        var vitality = profile.Vitality;
         Stats = new UnitStatLine
         {
-            Mov = projection.Mov,
-            Cc = projection.Cc,
-            Bs = projection.Bs,
-            Ph = projection.Ph,
-            Wip = projection.Wip,
-            Arm = projection.Arm,
-            Bts = projection.Bts,
-            S = projection.S,
-            Ava = projection.Ava,
-            VitalityHeader = projection.VitalityHeader,
-            Vitality = projection.Vitality
+            Mov = Movement.Format(profile.Movement, ShowUnitsInInches),
+            Cc = UnitProfile.StatText(profile.Cc),
+            Bs = UnitProfile.StatText(profile.Bs),
+            Ph = UnitProfile.StatText(profile.Ph),
+            Wip = UnitProfile.StatText(profile.Wip),
+            Arm = UnitProfile.StatText(profile.Arm),
+            Bts = UnitProfile.StatText(profile.Bts),
+            S = UnitProfile.StatText(profile.S),
+            Ava = profile.AvaText,
+            VitalityHeader = vitality.Stat.Key(),
+            Vitality = vitality.Value
         };
     }
 

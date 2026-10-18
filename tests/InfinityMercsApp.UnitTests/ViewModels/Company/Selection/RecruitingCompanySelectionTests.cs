@@ -1,6 +1,5 @@
 using InfinityMercsApp.Domain.Models.Army.Profiles;
 using InfinityMercsApp.Domain.Models.Season;
-using InfinityMercsApp.Services.CompanySelection.Common;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.Navigation;
@@ -164,7 +163,7 @@ public sealed class RecruitingCompanySelectionTests
         await HireableProfileAsync(first);
         var unit = first.SelectedUnit;
         Assert.NotNull(unit);
-        var ava = CompanySelectionSharedUtilities.ParseAvaLimit(first.Detail.Stats.Ava);
+        var ava = ProfileValues.ParseAvaLimit(first.Detail.Stats.Ava);
         Assert.NotNull(ava);
 
         var full = await OpenAsync(Company(unit.Id, ava.Value));

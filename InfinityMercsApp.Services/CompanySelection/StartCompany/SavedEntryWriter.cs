@@ -5,7 +5,6 @@ using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.Services.CompanySelection.Units;
 
 namespace InfinityMercsApp.Services.CompanySelection.StartCompany;
 
@@ -438,7 +437,7 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
         where TEntry : class, ICompanyMercsEntry
     {
         var profile = armyData.GetUnit(entry.SourceFactionId, entry.SourceUnitId)?.ProfileGroups.FindPeripheralProfile(peripheralName);
-        var types = CompanyUnitDetailsShared.BuildIdNameLookup(armyData.GetFactionSnapshot(entry.SourceFactionId)?.Filters, ArmyFilterSection.Type);
+        var types = (armyData.GetFactionSnapshot(entry.SourceFactionId)?.Filters ?? ArmyFilterCatalog.Empty).Names(ArmyFilterSection.Type);
         return profile?.Type is { } type && types.TryGetValue(type, out var typeName) && !string.IsNullOrWhiteSpace(typeName)
             ? typeName.Trim().ToUpperInvariant()
             : UnitTypeCodes.Peripheral;
@@ -452,7 +451,7 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
             return entry.UnitTypeCode.Trim().ToUpperInvariant();
         }
 
-        var fromSubtitle = CompanyStartSharedState.ExtractUnitTypeCode(entry.Subtitle);
+        var fromSubtitle = UnitTypeCodes.FromSubtitle(entry.Subtitle);
         if (!string.IsNullOrWhiteSpace(fromSubtitle))
         {
             return fromSubtitle.Trim().ToUpperInvariant();
@@ -472,7 +471,7 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
         }
 
         var snapshot = armyData.GetFactionSnapshot(entry.SourceFactionId);
-        var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot?.Filters, ArmyFilterSection.Type);
+        var typeLookup = (snapshot?.Filters ?? ArmyFilterCatalog.Empty).Names(ArmyFilterSection.Type);
         if (!typeLookup.TryGetValue(resumeType, out var typeName) || string.IsNullOrWhiteSpace(typeName))
         {
             return string.Empty;

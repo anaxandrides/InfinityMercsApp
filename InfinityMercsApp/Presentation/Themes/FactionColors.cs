@@ -1,4 +1,4 @@
-using InfinityMercsApp.Services.CompanySelection.Common;
+using InfinityMercsApp.Services.CompanySelection.Factions;
 
 namespace InfinityMercsApp.Presentation.Themes;
 
@@ -37,7 +37,7 @@ internal static class FactionColors
 
     /// <summary>The faction's colours, or the defaults for factions without a theme.</summary>
     internal static FactionTheme GetFactionTheme(string? factionName, Color defaultPrimary, Color defaultSecondary) =>
-        FactionThemes.TryGetValue(CompanySelectionSharedUtilities.NormalizeFactionName(factionName), out var theme)
+        FactionThemes.TryGetValue(ThemeFactions.Key(factionName), out var theme)
             ? theme
             : new FactionTheme(defaultPrimary, defaultSecondary);
 

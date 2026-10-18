@@ -30,8 +30,8 @@ public sealed class CoreFireteamEligibility(IArmyDataService armyData)
         }
 
         var lookups = UnitFilterLookups.From(snapshot.Filters);
-        var typeLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, ArmyFilterSection.Type);
-        var categoryLookup = CompanyUnitDetailsShared.BuildIdNameLookup(snapshot.Filters, ArmyFilterSection.Category);
+        var typeLookup = (snapshot.Filters ?? ArmyFilterCatalog.Empty).Names(ArmyFilterSection.Type);
+        var categoryLookup = (snapshot.Filters ?? ArmyFilterCatalog.Empty).Names(ArmyFilterSection.Category);
         var sourceUnits = armyData.GetResumeByFactionMercsOnly(factionId, cancellationToken).Select(unit => new EligibilitySourceUnit
             {
                 Id = unit.UnitId,
@@ -39,7 +39,7 @@ public sealed class CoreFireteamEligibility(IArmyDataService armyData)
                 Name = unit.Name,
                 Slug = unit.Slug,
                 Type = unit.Type,
-                IsCharacter = CompanyUnitDetailsShared.IsCharacterCategory(unit, categoryLookup)
+                IsCharacter = UnitClassification.IsCharacter(unit, categoryLookup)
             })
             .ToList();
 
@@ -63,7 +63,7 @@ public sealed class CoreFireteamEligibility(IArmyDataService armyData)
                     continue;
                 }
 
-                if (!CompanyUnitDetailsShared.MatchesClassificationFilter(filter, matchedUnit.Type, typeLookup))
+                if (!UnitOptionFilter.MatchesClassification(filter, matchedUnit.Type, typeLookup))
                 {
                     continue;
                 }

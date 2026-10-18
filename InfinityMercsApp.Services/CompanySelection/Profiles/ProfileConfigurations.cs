@@ -4,7 +4,6 @@ using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Traits;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.Services.CompanySelection.Units;
 
 namespace InfinityMercsApp.Services.CompanySelection.Profiles;
 
@@ -155,19 +154,19 @@ public static class ProfileConfigurations
                     unit.GetDisplayPeripheralEntries(group, option),
                     peripheralLookup);
                 var firstPeripheralName = peripheralNames.FirstOrDefault();
-                var peripheralUnitName = CompanyUnitDetailsShared.ExtractFirstPeripheralName(firstPeripheralName);
+                var peripheralUnitName = PeripheralNames.FirstOf(firstPeripheralName);
 
                 PeripheralMercsCompanyStats? peripheralStats = null;
                 var hasPeripheralProfile = false;
 
                 if (!string.IsNullOrWhiteSpace(firstPeripheralName))
                 {
-                    var extractedPeripheralName = CompanyUnitDetailsShared.ExtractFirstPeripheralName(firstPeripheralName);
+                    var extractedPeripheralName = PeripheralNames.FirstOf(firstPeripheralName);
                     var peripheralProfile = unit.FindPeripheralProfile(extractedPeripheralName);
                     if (peripheralProfile is not null)
                     {
                         hasPeripheralProfile = true;
-                        peripheralStats = CompanyPeripheralStatBlockService.Build(extractedPeripheralName, peripheralProfile, filters, request.ShowUnitsInInches);
+                        peripheralStats = PeripheralMercsCompanyStats.From(extractedPeripheralName, peripheralProfile, filters, request.ShowUnitsInInches);
                     }
                 }
 
@@ -186,22 +185,21 @@ public static class ProfileConfigurations
                 var displayPeripheralNames = peripheralNames;
                 var displayCost = cost;
 
-                if (CompanyUnitDetailsShared.TryBuildSinglePeripheralDisplay(peripheralNames, out var singlePeripheralName, out var singlePeripheralCount) &&
-                    singlePeripheralCount > 1)
+                if (PeripheralNames.SingleCounted(peripheralNames) is { Count: > 1 } single)
                 {
-                    displayPeripheralNames = [$"{singlePeripheralName} (1)"];
+                    displayPeripheralNames = [$"{single.Name} (1)"];
 
                     if (hasPeripheralProfile)
                     {
-                        displayCost = UnitOptionFilter.SinglePeripheralCost(unit, cost, singlePeripheralName, singlePeripheralCount);
+                        displayCost = UnitOptionFilter.SinglePeripheralCost(unit, cost, single.Name, single.Count);
                     }
                 }
 
                 var normalizedPeripheralNames = peripheralNames
-                    .Select(CompanyUnitDetailsShared.NormalizePeripheralNameForDedupe)
+                    .Select(PeripheralNames.DedupeKey)
                     .Where(x => !string.IsNullOrWhiteSpace(x))
                     .ToList();
-                var peripheralCount = CompanyUnitDetailsShared.GetPeripheralTotalCount(peripheralNames);
+                var peripheralCount = PeripheralNames.TotalCount(peripheralNames);
                 var dedupeKey =
                     $"{groupName}|{optionName}|{string.Join("|", rangedWeaponNames)}|{string.Join("|", meleeWeaponNames)}|{string.Join("|", uniqueEquipmentNames)}|{string.Join("|", uniqueSkillsNames)}|{string.Join("|", normalizedPeripheralNames)}|{swc}";
                 bestConfigurationByKey.TryGetValue(dedupeKey, out var existingConfiguration);
