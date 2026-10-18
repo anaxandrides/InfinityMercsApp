@@ -214,6 +214,18 @@
 
         <!-- Deploy area -->
         <VerticalStackLayout Grid.Row="2" Spacing="4" Padding="0,8,0,12" HorizontalOptions="Center">
+            <!-- A Proxy Pack picks the loadout its Lone Wolf starts in; the others deploy as Aspects. -->
+            <HorizontalStackLayout Spacing="8" HorizontalOptions="Center" IsVisible="{Binding IsProxyPack}">
+                <Label Text="Deploy as the Lone Wolf:"
+                       FontSize="{DynamicResource FontSizeBody}"
+                       TextColor="{StaticResource TextMuted}"
+                       VerticalOptions="Center" />
+                <Picker ItemsSource="{Binding LoneWolfLoadouts}"
+                        ItemDisplayBinding="{Binding Name, x:DataType=seasonItems:DeploymentUnitItem}"
+                        SelectedItem="{Binding StartingLoneWolf}"
+                        TextColor="{StaticResource TextPrimary}"
+                        MinimumWidthRequest="160" />
+            </HorizontalStackLayout>
             <Label Text="{Binding DeploymentStatusText}"
                    FontSize="{DynamicResource FontSizeBody}"
                    TextColor="{StaticResource TextMuted}"

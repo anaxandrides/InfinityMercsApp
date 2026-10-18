@@ -32,7 +32,12 @@ public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListIt
     public bool IsImpetuous { get; init; }
     public bool IsTagFromTagCompany { get; init; }
     public int SlotCost => IsTagFromTagCompany ? 2 : 1;
-    public bool IsCheckboxEnabled => !IsLieutenant;
+
+    /// <summary>One of a Proxy Pack's loadouts: the Lone Wolf's own or an Aspect's.</summary>
+    public bool IsPartOfLoneWolf => IsLoneWolf || AspectOf is not null;
+
+    /// <summary>The lieutenant always deploys; a Lone Wolf deploys in whichever of its loadouts the player picks.</summary>
+    public bool IsCheckboxEnabled => !IsLieutenant || IsLoneWolf;
     public string CaptainIconPackagedPath { get; init; } = string.Empty;
     public string ExperienceIconPackagedPath { get; init; } = string.Empty;
     public IReadOnlyList<string> LogoCandidates => UnitLogo.Candidates(CachedLogoPath, PackagedLogoPath);

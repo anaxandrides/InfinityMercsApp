@@ -21,6 +21,9 @@ public static class NavigationParameters
     /// <summary>Whether the game uses elite deployment (bool).</summary>
     public const string EliteDeployment = "eliteDeployment";
 
+    /// <summary>The entry of the deployed loadout a Proxy Pack's Lone Wolf starts the game in (int).</summary>
+    public const string LoneWolfStart = "loneWolfStart";
+
     /// <summary>Present when LoadCompanyPage is opened to start a season (bool).</summary>
     public const string SeasonMode = "seasonMode";
 
@@ -57,6 +60,17 @@ public static class NavigationParameters
             _ => false
         };
     }
+
+    /// <summary>The parameter as an int, or null when it is absent or not a number.</summary>
+    public static int? GetInt(IDictionary<string, object> query, string key) =>
+        query.TryGetValue(key, out var value)
+            ? value switch
+            {
+                int number => number,
+                string text when int.TryParse(text, out var parsed) => parsed,
+                _ => null
+            }
+            : null;
 
     /// <summary>The parameter as a set of ints, or null when it is absent.</summary>
     public static HashSet<int>? GetIntSet(IDictionary<string, object> query, string key)

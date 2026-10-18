@@ -40,6 +40,7 @@ public partial class GameModeViewModel(
     private string _seasonFilePath = string.Empty;
     private string? _loadedFilePath;
     private IReadOnlySet<int>? _deployedEntryIndices;
+    private int? _loneWolfStart;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(RoundText), nameof(CanEndGame), nameof(HasNextRound))]
@@ -86,6 +87,7 @@ public partial class GameModeViewModel(
         _companyFilePath = NavigationParameters.GetString(query, NavigationParameters.CompanyFilePath) ?? _companyFilePath;
         _seasonFilePath = NavigationParameters.GetString(query, NavigationParameters.SeasonFilePath) ?? _seasonFilePath;
         _deployedEntryIndices = NavigationParameters.GetIntSet(query, NavigationParameters.DeployedIndices);
+        _loneWolfStart = NavigationParameters.GetInt(query, NavigationParameters.LoneWolfStart);
         IsEliteDeployment = NavigationParameters.GetFlag(query, NavigationParameters.EliteDeployment);
     }
 
@@ -120,7 +122,21 @@ public partial class GameModeViewModel(
             Console.Error.WriteLine($"Loading the game failed: {ex.Message}");
         }
 
+        PlaceLoneWolf();
         ResetOrders();
+    }
+
+    // A Proxy Pack's Lone Wolf starts in the loadout picked at deployment, else its own, else the first deployed.
+    private void PlaceLoneWolf()
+    {
+        var loadouts = Units.Where(unit => unit.IsPartOfLoneWolf).ToList();
+        var start = loadouts.FirstOrDefault(unit => unit.Unit.EntryIndex == _loneWolfStart)
+                    ?? loadouts.FirstOrDefault(unit => unit.Unit.IsLoneWolf)
+                    ?? loadouts.FirstOrDefault();
+        foreach (var loadout in loadouts)
+        {
+            loadout.HostsLoneWolf = ReferenceEquals(loadout, start);
+        }
     }
 
     // ── Rounds and orders ───────────────────────────────────────────────────

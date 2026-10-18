@@ -26,7 +26,7 @@ public sealed class LoneWolfGameModeTests : IDisposable
     public void Dispose() => _records.Dispose();
 
     // A Proxy Pack: the Lone Wolf (entry 0) and its second Aspect (entry 1), both with VITA 2.
-    private async Task<GameModeViewModel> OpenAsync()
+    private async Task<GameModeViewModel> OpenAsync(int? loneWolfStart = null)
     {
         var entries = new List<Dictionary<string, object>>
         {
@@ -49,6 +49,11 @@ public sealed class LoneWolfGameModeTests : IDisposable
             _debrief, Substitute.For<IAppSettingsProvider>());
         var query = NavigationParameters.ForCompany(companyPath, SeasonPath);
         query[NavigationParameters.EliteDeployment] = true;
+        if (loneWolfStart is { } start)
+        {
+            query[NavigationParameters.LoneWolfStart] = start;
+        }
+
         viewModel.ApplyQueryAttributes(query);
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         return viewModel;
@@ -71,6 +76,15 @@ public sealed class LoneWolfGameModeTests : IDisposable
         Assert.True(aspect.CanReceiveLoneWolf);
         Assert.False(wolf.CanReceiveLoneWolf);
         Assert.Contains(wolf.Statline, stat => stat == new StatValue(Stat.Wip, "13"));
+    }
+
+    [Fact]
+    public async Task InitializeAsyncCommand_StartPicked_PutsTheLoneWolfInThatLoadout()
+    {
+        var viewModel = await OpenAsync(loneWolfStart: 1);
+
+        Assert.True(Row(viewModel, 1).HostsLoneWolf);
+        Assert.True(Row(viewModel, 0).ShowsAspect);
     }
 
     [Fact]

@@ -2,6 +2,7 @@ using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.UnitTests.Season.Inventory;
 
@@ -70,6 +71,44 @@ public sealed class LoneWolfAspectsTests
         var company = new SavedCompanyFile { Entries = [new SavedCompanyEntry { EntryIndex = 0, IsLieutenant = true, ExperiencePoints = 80 }] };
 
         Assert.False(LoneWolfAspects.Sync(company, season: null));
+    }
+
+    [Fact]
+    public void Refresh_LoneWolfChanged_CarriesOverToItsAspects()
+    {
+        var company = ProxyPack(startingXp: 15);
+        LoneWolfAspects.Sync(company, season: null);
+        var wolf = company.Entries[0];
+        wolf.CustomName = "Ghost";
+        wolf.CustomSkills.Add("Stealth");
+
+        Assert.True(LoneWolfAspects.Refresh(company));
+
+        var aspect = company.Entries[1];
+        Assert.Equal(("Ghost (Aspect 2)", 4, 3), (aspect.CustomName, aspect.EntryIndex, aspect.AspectOf));
+        Assert.Contains("Stealth", aspect.CustomSkills);
+        Assert.False(LoneWolfAspects.Refresh(company));
+    }
+
+    [Fact]
+    public async Task SaveAsync_LoneWolfChanged_SavesItsAspectsInStep()
+    {
+        var company = ProxyPack(startingXp: 15);
+        LoneWolfAspects.Sync(company, season: null);
+        company.Entries[0].CustomName = "Ghost";
+        var path = Path.Combine(Path.GetTempPath(), $"lone-wolf-{Guid.NewGuid():N}.json");
+        var store = new CompanyFileStore();
+        try
+        {
+            await store.SaveAsync(path, company);
+
+            var saved = await store.LoadAsync(path);
+            Assert.Equal("Ghost (Aspect 2)", saved?.Entries[1].CustomName);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 
     [Fact]

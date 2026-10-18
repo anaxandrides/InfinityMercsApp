@@ -15,7 +15,8 @@ namespace InfinityMercsApp.ViewModels.Season;
 
 /// <summary>
 /// Chooses which units deploy for a mission. The lieutenant always deploys; at most six slots can be
-/// filled (a TAG Company TAG takes two), and four or fewer is an elite deployment.
+/// filled (a TAG Company TAG takes two), and four or fewer is an elite deployment. A Proxy Pack deploys any of the
+/// Lone Wolf's loadouts, at least one, and picks the one the Lone Wolf starts in; the rest deploy as Aspects.
 /// </summary>
 public partial class PlayModeViewModel(
     INavigationService navigationService,
@@ -32,6 +33,17 @@ public partial class PlayModeViewModel(
     private bool? _loadedInInches;
 
     public ObservableCollection<DeploymentUnitItem> DeploymentUnits { get; } = [];
+
+    /// <summary>The deployed loadouts the Lone Wolf can start in.</summary>
+    public ObservableCollection<DeploymentUnitItem> LoneWolfLoadouts { get; } = [];
+
+    /// <summary>The loadout the Lone Wolf starts the game in.</summary>
+    [ObservableProperty]
+    public partial DeploymentUnitItem? StartingLoneWolf { get; set; }
+
+    /// <summary>Whether the company is a Proxy Pack, which picks where its Lone Wolf starts.</summary>
+    [ObservableProperty]
+    public partial bool IsProxyPack { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedUnit), nameof(NoUnitSelected))]
@@ -87,6 +99,8 @@ public partial class PlayModeViewModel(
         }
 
         DeployedSlotCount = CountDeployedSlots();
+        IsProxyPack = DeploymentUnits.Any(unit => unit.IsLoneWolf);
+        RefreshLoneWolfLoadouts();
         SelectUnit(DeploymentUnits.FirstOrDefault());
     }
 
@@ -114,6 +128,11 @@ public partial class PlayModeViewModel(
         var parameters = NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath);
         parameters[NavigationParameters.DeployedIndices] = deployed.Select(u => u.EntryIndex).ToList();
         parameters[NavigationParameters.EliteDeployment] = IsEliteDeployment;
+        if (StartingLoneWolf is { } start)
+        {
+            parameters[NavigationParameters.LoneWolfStart] = start.EntryIndex;
+        }
+
         await NavigationService.PushAsync(nameof(GameModePage), parameters);
     }
 
@@ -125,7 +144,9 @@ public partial class PlayModeViewModel(
             return;
         }
 
-        if (unit is { IsLieutenant: true, IsChecked: false })
+        // The lieutenant always deploys; a Lone Wolf needs at least one of its loadouts deployed.
+        if ((unit is { IsLieutenant: true, IsLoneWolf: false, IsChecked: false }) ||
+            (unit is { IsPartOfLoneWolf: true, IsChecked: false } && !DeploymentUnits.Any(other => other is { IsPartOfLoneWolf: true, IsChecked: true })))
         {
             unit.IsChecked = true;
             return;
@@ -138,6 +159,22 @@ public partial class PlayModeViewModel(
         }
 
         DeployedSlotCount = CountDeployedSlots();
+        RefreshLoneWolfLoadouts();
+    }
+
+    // The deployed loadouts offered for the Lone Wolf's start, keeping the pick while it stays deployed; the Lone
+    // Wolf's own loadout is the first choice otherwise.
+    private void RefreshLoneWolfLoadouts()
+    {
+        var deployed = DeploymentUnits.Where(unit => unit is { IsPartOfLoneWolf: true, IsChecked: true }).ToList();
+        var keep = StartingLoneWolf is { } current && deployed.Contains(current) ? current : null;
+        LoneWolfLoadouts.Clear();
+        foreach (var loadout in deployed)
+        {
+            LoneWolfLoadouts.Add(loadout);
+        }
+
+        StartingLoneWolf = keep ?? deployed.FirstOrDefault(unit => unit.IsLoneWolf) ?? deployed.FirstOrDefault();
     }
 
     private int CountDeployedSlots() => DeploymentUnits.Where(u => u.IsChecked).Sum(u => u.SlotCost);
