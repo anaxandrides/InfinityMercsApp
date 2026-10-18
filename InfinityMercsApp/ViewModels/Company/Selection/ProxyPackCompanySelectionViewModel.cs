@@ -1,20 +1,23 @@
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Army.Traits;
 using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
+using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 
 /// <summary>
-/// A Lone Wolf company: regular troopers from any faction, vanilla or sectorial, with no lieutenant-only
-/// filter or fireteams.
+/// A Proxy Pack: one Regular trooper from any single sectorial or vanilla army, the Lone Wolf. It is the company's
+/// captain without needing the Lieutenant skill, gains Transfer Consciousness and Tactical Awareness, and is the
+/// only trooper the company ever has.
 /// </summary>
-public sealed class LoneWolfCompanySelectionViewModel(CompanySelectionServices services, ArmySourceSelectionMode mode)
+public sealed class ProxyPackCompanySelectionViewModel(CompanySelectionServices services, ArmySourceSelectionMode mode)
     : StandardCompanySelectionViewModel(services, mode)
 {
-    public override string CompanyTypeLabel => "Lone Wolf Company";
+    public override string CompanyTypeLabel => ProxyPack.CompanyType;
 
     protected override bool AllowsLieutenantFilter => false;
 
@@ -43,6 +46,31 @@ public sealed class LoneWolfCompanySelectionViewModel(CompanySelectionServices s
             unit.IsVisible = false;
         }
     }
+
+    /// <summary>The Lone Wolf is the only trooper.</summary>
+    protected override bool CanAddProfile(ArmyUnitSelectionItem unit) => MercsCompanyEntries.Count == 0;
+
+    /// <summary>Once the Lone Wolf is picked, no other profile can be added.</summary>
+    protected override int AdjustLieutenantVisualStates(int visibleProfiles)
+    {
+        if (MercsCompanyEntries.Count > 0)
+        {
+            foreach (var profile in Profiles)
+            {
+                profile.IsLieutenantBlocked = true;
+            }
+        }
+
+        return visibleProfiles;
+    }
+
+    /// <summary>The Lone Wolf gains Transfer Consciousness and Tactical Awareness.</summary>
+    protected override IReadOnlyCollection<string> CommonSkillsFor(
+        ArmyUnitSelectionItem unit, ViewerProfileItem profile, IReadOnlyList<string> commonSkills) =>
+        commonSkills.Concat(ProxyPack.LoneWolfSkills).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+    /// <summary>The Lone Wolf is the captain, with or without the Lieutenant skill.</summary>
+    protected override void OnEntryBuilt(MercsCompanyEntry entry) => entry.IsLieutenant = true;
 
     private bool IsRegular(ArmyUnitSelectionItem unit, CompanyUnitVisibilityLookupContext context, CancellationToken cancellationToken) =>
         Services.Visibility.ProfileGroupsOf(context, unit, cancellationToken) is { IsEmpty: false } groups &&

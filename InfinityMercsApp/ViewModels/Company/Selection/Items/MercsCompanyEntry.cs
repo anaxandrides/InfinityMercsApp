@@ -16,7 +16,8 @@ public partial class MercsCompanyEntry : ObservableObject, IViewerListItem, ICom
     public string CostDisplay { get; init; } = string.Empty;
     public int CostValue { get; init; }
     public string ProfileKey { get; init; } = string.Empty;
-    public bool IsLieutenant { get; init; }
+    /// <summary>The captain; a Proxy Pack's Lone Wolf is one without the Lieutenant skill.</summary>
+    public bool IsLieutenant { get; set; }
 
     /// <summary>Recruited as a Spec Ops profile, whose captain upgrades come from the Spec-Ops chart.</summary>
     public bool IsSpecOps { get; init; }

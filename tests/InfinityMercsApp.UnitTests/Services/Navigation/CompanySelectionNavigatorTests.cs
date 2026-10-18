@@ -11,7 +11,7 @@ public sealed class CompanySelectionNavigatorTests
     [Theory]
     [InlineData(CompanyKind.Standard, typeof(StandardCompanySelectionViewModel))]
     [InlineData(CompanyKind.Tag, typeof(TagCompanySelectionViewModel))]
-    [InlineData(CompanyKind.LoneWolf, typeof(LoneWolfCompanySelectionViewModel))]
+    [InlineData(CompanyKind.ProxyPack, typeof(ProxyPackCompanySelectionViewModel))]
     [InlineData(CompanyKind.Cohesive, typeof(CohesiveCompanySelectionViewModel))]
     [InlineData(CompanyKind.Inspiring, typeof(InspiringCompanySelectionViewModel))]
     [InlineData(CompanyKind.Airborne, typeof(AirborneCompanySelectionViewModel))]

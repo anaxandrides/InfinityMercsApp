@@ -12,13 +12,15 @@ public sealed class CaptainSetup(ICaptainConfigurationDialog dialog, CaptainOpti
 {
     /// <summary>
     /// The captain popup, with the Spec-Ops options of the source faction's vanilla parent (or the faction itself
-    /// when the parent offers none). A Spec-Ops captain uses the Spec-Ops stat chart.
+    /// when the parent offers none). A Spec-Ops captain uses the Spec-Ops stat chart. A Proxy Pack's Lone Wolf has
+    /// 10 more Spec-Ops XP to spend, whatever it costs.
     /// </summary>
     /// <returns>The chosen upgrades, or null when the player backed out.</returns>
     public async Task<SavedImprovedCaptainStats?> ConfigureCaptainAsync(
         CaptainUnitPopupInfo unit,
         CaptainFactions factions,
         bool isSpecOps,
+        bool isLoneWolf,
         bool showUnitsInInches,
         CancellationToken cancellationToken = default)
     {
@@ -39,7 +41,12 @@ public sealed class CaptainSetup(ICaptainConfigurationDialog dialog, CaptainOpti
             WeaponOptions = choices.Weapons,
             SkillOptions = choices.Skills,
             EquipmentOptions = choices.Equipment,
-            StatChart = isSpecOps ? CaptainStatChart.SpecOps : CaptainStatChart.Mercenaries
+            StatChart = isSpecOps ? CaptainStatChart.SpecOps : CaptainStatChart.Mercenaries,
+            PopupTitle = isLoneWolf ? "Lone Wolf Configuration" : "Captain Configuration",
+            DefaultUnitCustomName = isLoneWolf ? "Lone Wolf" : "Captain",
+            BaseExperienceOverride = isLoneWolf
+                ? CaptainUpgradeRules.StartingExperience(unit.Cost) + ProxyPack.ExtraSpecOpsXp
+                : null
         });
     }
 

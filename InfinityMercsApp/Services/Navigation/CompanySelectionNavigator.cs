@@ -45,7 +45,7 @@ internal sealed class CompanySelectionNavigator(CompanySelectionServices service
     {
         CompanyKind.Standard => new StandardCompanySelectionViewModel(services, mode),
         CompanyKind.Tag => new TagCompanySelectionViewModel(services, mode),
-        CompanyKind.LoneWolf => new LoneWolfCompanySelectionViewModel(services, mode),
+        CompanyKind.ProxyPack => new ProxyPackCompanySelectionViewModel(services, mode),
         CompanyKind.Cohesive => new CohesiveCompanySelectionViewModel(services, mode),
         CompanyKind.Inspiring => new InspiringCompanySelectionViewModel(services),
         CompanyKind.Airborne => new AirborneCompanySelectionViewModel(services),

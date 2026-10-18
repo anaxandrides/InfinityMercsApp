@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Stores;
@@ -184,6 +185,12 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
     {
         if (_company is not { } company || _seasonFilePath is not { } seasonFilePath)
         {
+            return;
+        }
+
+        if (ProxyPack.Is(company.CompanyType))
+        {
+            await _dialogs.ShowAlertAsync("Can't Recruit", "A Proxy Pack's Lone Wolf is the only trooper it may ever have.");
             return;
         }
 

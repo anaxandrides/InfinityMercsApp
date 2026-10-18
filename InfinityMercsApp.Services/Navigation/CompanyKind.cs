@@ -5,7 +5,7 @@ public enum CompanyKind
 {
     Standard,
     Tag,
-    LoneWolf,
+    ProxyPack,
     Cohesive,
     Inspiring,
     Airborne

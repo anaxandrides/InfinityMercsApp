@@ -18,7 +18,7 @@ public partial class CreateNewCompanyPageViewModel : AdaptiveViewModelBase<Creat
         LayOutChoices();
     }
 
-    /// <summary>The cards in display order. Lone Wolf has a command but no card until it is ready.</summary>
+    /// <summary>The cards in display order.</summary>
     [ObservableProperty]
     public partial IReadOnlyList<CompanyChoice> Choices { get; set; } = [];
 
@@ -41,7 +41,8 @@ public partial class CreateNewCompanyPageViewModel : AdaptiveViewModelBase<Creat
             ("Cohesive Company", "MercsIcons/cohesive_company.svg", OpenCohesiveCompanyPageCommand),
             ("Inspiring Leader", "MercsIcons/inspiring_leadership.svg", OpenInspiringLeadershipPageCommand),
             ("Airborne Company", "MercsIcons/airborne_company.svg", OpenAirborneCompanyPageCommand),
-            ("TAG Company", "MercsIcons/tag_company.svg", OpenTAGCompanyPageCommand)
+            ("TAG Company", "MercsIcons/tag_company.svg", OpenTAGCompanyPageCommand),
+            ("Proxy Pack", "MercsIcons/proxy_pack.svg", OpenProxyPackCompanyPageCommand)
         ];
         return cards.Select((card, index) => new CompanyChoice(card.Title, card.Icon, card.Command, layout.CellFor(index), layout.Card)).ToList();
     }
@@ -65,5 +66,5 @@ public partial class CreateNewCompanyPageViewModel : AdaptiveViewModelBase<Creat
     private Task OpenTAGCompanyPageAsync() => _companySelection.OpenAsync(CompanyKind.Tag, ArmySourceSelectionMode.Sectorials);
 
     [RelayCommand]
-    private Task OpenLoneWolfCompanyPopupAsync() => _companySelection.OpenAsync(CompanyKind.LoneWolf, ArmySourceSelectionMode.VanillaFactions);
+    private Task OpenProxyPackCompanyPageAsync() => _companySelection.OpenAsync(CompanyKind.ProxyPack, ArmySourceSelectionMode.VanillaFactions);
 }

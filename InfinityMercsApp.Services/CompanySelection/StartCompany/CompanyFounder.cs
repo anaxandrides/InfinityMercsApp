@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanySelection.Captain;
@@ -102,6 +103,7 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
                 unit,
                 new CaptainFactions(captain.SourceFactionId, firstSourceFactionId, known),
                 captain.IsSpecOps,
+                ProxyPack.Is(request.CompanyType),
                 request.ShowUnitsInInches);
         }
 

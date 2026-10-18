@@ -11,7 +11,6 @@ public sealed class RecruitableCompanyTests
         { "Standard Company - Vanilla", CompanyKind.Standard, ArmySourceSelectionMode.VanillaFactions },
         { "Standard Company - Sectorial", CompanyKind.Standard, ArmySourceSelectionMode.Sectorials },
         { "TAG Company", CompanyKind.Tag, ArmySourceSelectionMode.Sectorials },
-        { "Lone Wolf Company", CompanyKind.LoneWolf, ArmySourceSelectionMode.VanillaFactions },
         { "Cohesive Company", CompanyKind.Cohesive, ArmySourceSelectionMode.Sectorials },
         { "Inspiring Leader", CompanyKind.Inspiring, ArmySourceSelectionMode.Sectorials },
         { " Airborne Company ", CompanyKind.Airborne, ArmySourceSelectionMode.Sectorials }

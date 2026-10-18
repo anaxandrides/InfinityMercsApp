@@ -34,7 +34,7 @@ public sealed class CreateNewCompanyPageViewModelTests
     [InlineData(nameof(CreateNewCompanyPageViewModel.OpenInspiringLeadershipPageCommand), CompanyKind.Inspiring, ArmySourceSelectionMode.Sectorials)]
     [InlineData(nameof(CreateNewCompanyPageViewModel.OpenAirborneCompanyPageCommand), CompanyKind.Airborne, ArmySourceSelectionMode.Sectorials)]
     [InlineData(nameof(CreateNewCompanyPageViewModel.OpenTAGCompanyPageCommand), CompanyKind.Tag, ArmySourceSelectionMode.Sectorials)]
-    [InlineData(nameof(CreateNewCompanyPageViewModel.OpenLoneWolfCompanyPopupCommand), CompanyKind.LoneWolf, ArmySourceSelectionMode.VanillaFactions)]
+    [InlineData(nameof(CreateNewCompanyPageViewModel.OpenProxyPackCompanyPageCommand), CompanyKind.ProxyPack, ArmySourceSelectionMode.VanillaFactions)]
     public async Task OpenCompanyCommands_OtherCompanies_OpenTheirSelectionScreens(string command, CompanyKind kind, ArmySourceSelectionMode mode)
     {
         var viewModel = Create();
@@ -48,14 +48,16 @@ public sealed class CreateNewCompanyPageViewModelTests
     }
 
     [Fact]
-    public void Choices_Compact_ListsFiveCardsInOneColumn()
+    public void Choices_Compact_ListsSixCardsInOneColumn()
     {
         var viewModel = Create();
 
-        Assert.Equal(["Standard Company", "Cohesive Company", "Inspiring Leader", "Airborne Company", "TAG Company"], viewModel.Choices.Select(choice => choice.Title));
-        Assert.Same(viewModel.OpenTAGCompanyPageCommand, viewModel.Choices[4].Command);
-        Assert.Equal(new GridCell(4, 0), viewModel.Choices[4].Cell);
-        Assert.Equal("Auto,Auto,Auto,Auto,Auto", viewModel.ChoiceRows);
+        Assert.Equal(
+            ["Standard Company", "Cohesive Company", "Inspiring Leader", "Airborne Company", "TAG Company", "Proxy Pack"],
+            viewModel.Choices.Select(choice => choice.Title));
+        Assert.Same(viewModel.OpenProxyPackCompanyPageCommand, viewModel.Choices[5].Command);
+        Assert.Equal(new GridCell(5, 0), viewModel.Choices[5].Cell);
+        Assert.Equal("Auto,Auto,Auto,Auto,Auto,Auto", viewModel.ChoiceRows);
     }
 
     [Fact]

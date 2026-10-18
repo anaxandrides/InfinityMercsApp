@@ -11,7 +11,6 @@ public sealed record RecruitableCompany(CompanyKind Kind, ArmySourceSelectionMod
         "Standard Company - Vanilla" => new(CompanyKind.Standard, ArmySourceSelectionMode.VanillaFactions),
         "Standard Company - Sectorial" => new(CompanyKind.Standard, ArmySourceSelectionMode.Sectorials),
         "TAG Company" => new(CompanyKind.Tag, ArmySourceSelectionMode.Sectorials),
-        "Lone Wolf Company" => new(CompanyKind.LoneWolf, ArmySourceSelectionMode.VanillaFactions),
         "Cohesive Company" => new(CompanyKind.Cohesive, ArmySourceSelectionMode.Sectorials),
         "Inspiring Leader" => new(CompanyKind.Inspiring, ArmySourceSelectionMode.Sectorials),
         "Airborne Company" => new(CompanyKind.Airborne, ArmySourceSelectionMode.Sectorials),
