@@ -206,6 +206,25 @@ public sealed class CompanyViewerViewModelTests
     }
 
     [Fact]
+    public async Task EditAndSaveNameCommands_AspectSelected_CannotExecute()
+    {
+        var company = new SavedCompanyFile
+        {
+            Entries =
+            [
+                CompanyRosterTests.Entry(0, "Fusilier", isLieutenant: true, customName: "Kestrel"),
+                new SavedCompanyEntry { EntryIndex = 1, Name = "Fusilier", CustomName = "Kestrel (Aspect 2)", AspectOf = 0 }
+            ]
+        };
+        var viewModel = await OpenAsync(company);
+
+        await viewModel.SelectUnitCommand.ExecuteAsync(viewModel.CompanyUnits.Single(unit => unit.EntryIndex == 1));
+
+        Assert.False(viewModel.EditNameCommand.CanExecute(null));
+        Assert.False(viewModel.SaveNameCommand.CanExecute(null));
+    }
+
+    [Fact]
     public async Task EditAndSaveNameCommands_NoSelection_CannotExecute()
     {
         var viewModel = await OpenAsync(new SavedCompanyFile());

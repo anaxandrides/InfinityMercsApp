@@ -180,9 +180,10 @@ public partial class CompanyViewerViewModel(
 
     // ── Name editing ────────────────────────────────────────────────────────
 
-    private bool HasSelectedUnit() => SelectedUnit is not null;
+    // An Aspect is named after its Lone Wolf, so renaming the Lone Wolf renames it.
+    private bool CanRename() => SelectedUnit is { AspectOf: null };
 
-    [RelayCommand(CanExecute = nameof(HasSelectedUnit))]
+    [RelayCommand(CanExecute = nameof(CanRename))]
     private void EditName()
     {
         NameDraft = SelectedName;
@@ -197,7 +198,7 @@ public partial class CompanyViewerViewModel(
     }
 
     /// <summary>Keeps the edited name and writes it to the company file; a blank name keeps the current one.</summary>
-    [RelayCommand(CanExecute = nameof(HasSelectedUnit))]
+    [RelayCommand(CanExecute = nameof(CanRename))]
     private async Task SaveNameAsync()
     {
         if (SelectedUnit is not { } unit)

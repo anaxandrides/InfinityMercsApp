@@ -244,7 +244,9 @@ public partial class GameModeViewModel(
 
         debrief.Units = Units.Select(unit => unit.Unit.ToResult(missionNumber, IsEliteDeployment, wasDeployed: true)).ToList();
         debrief.Troopers = await CompanyTroopersAsync(debrief.Units);
-        // Only the Lone Wolf checks for injury, wherever it ended; its Aspects never do.
+        // Only the Lone Wolf checks for injury, wherever it ended; its Aspects never do. It goes by its own name even
+        // when it ended in an Aspect and its own loadout stayed home.
+        var troopers = debrief.Troopers;
         debrief.PendingInjuries = Units
             .Where(unit => unit.ChecksForInjury)
             .Select(unit => unit.Unit)
@@ -252,7 +254,7 @@ public partial class GameModeViewModel(
             .Select(unit => new PendingInjury
             {
                 EntryIndex = unit.AspectOf ?? unit.EntryIndex,
-                Name = unit.AspectOf is { } wolf && Units.FirstOrDefault(other => other.Unit.EntryIndex == wolf) is { } loneWolf
+                Name = unit.AspectOf is { } wolf && troopers.FirstOrDefault(trooper => trooper.EntryIndex == wolf) is { } loneWolf
                     ? loneWolf.Name
                     : unit.Name,
                 PhValue = unit.UnitPh,

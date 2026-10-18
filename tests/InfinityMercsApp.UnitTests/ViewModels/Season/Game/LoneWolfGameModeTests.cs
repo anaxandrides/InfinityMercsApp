@@ -26,7 +26,7 @@ public sealed class LoneWolfGameModeTests : IDisposable
     public void Dispose() => _records.Dispose();
 
     // A Proxy Pack: the Lone Wolf (entry 0) and its second Aspect (entry 1), both with VITA 2.
-    private async Task<GameModeViewModel> OpenAsync(int? loneWolfStart = null)
+    private async Task<GameModeViewModel> OpenAsync(int? loneWolfStart = null, HashSet<int>? deployed = null)
     {
         var entries = new List<Dictionary<string, object>>
         {
@@ -52,6 +52,11 @@ public sealed class LoneWolfGameModeTests : IDisposable
         if (loneWolfStart is { } start)
         {
             query[NavigationParameters.LoneWolfStart] = start;
+        }
+
+        if (deployed is not null)
+        {
+            query[NavigationParameters.DeployedIndices] = deployed;
         }
 
         viewModel.ApplyQueryAttributes(query);
@@ -137,5 +142,24 @@ public sealed class LoneWolfGameModeTests : IDisposable
         var check = Assert.Single(_debrief.PendingInjuries);
         Assert.Equal((0, "Kestrel"), (check.EntryIndex, check.Name));
         Assert.Equal(0, _debrief.Units.Single(unit => unit.EntryIndex == 1).AspectOf);
+    }
+
+    [Fact]
+    public async Task EndGameCommand_OwnLoadoutLeftHome_ChecksUnderTheLoneWolfsName()
+    {
+        _dialogs.ConfirmAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(true);
+        var viewModel = await OpenAsync(loneWolfStart: 1, deployed: [1]);
+        var aspect = Row(viewModel, 1);
+        for (var wound = 0; wound < 3; wound++)
+        {
+            aspect.TakeWoundCommand.Execute(null);
+        }
+
+        viewModel.NextRoundCommand.Execute(null);
+        viewModel.NextRoundCommand.Execute(null);
+        await viewModel.EndGameCommand.ExecuteAsync(null);
+
+        var check = Assert.Single(_debrief.PendingInjuries);
+        Assert.Equal((0, "Kestrel"), (check.EntryIndex, check.Name));
     }
 }
