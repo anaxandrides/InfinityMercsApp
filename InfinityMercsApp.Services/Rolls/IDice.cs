@@ -5,4 +5,7 @@ public interface IDice
 {
     /// <summary>A roll from 1 to 20.</summary>
     int RollD20();
+
+    /// <summary>A roll from 1 to 6.</summary>
+    int RollD6();
 }

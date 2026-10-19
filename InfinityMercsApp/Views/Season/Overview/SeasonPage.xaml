@@ -552,6 +552,17 @@
             <!-- Inventory: what the company owns, by category -->
             <ScrollView IsVisible="{Binding IsInventoryTab}">
                 <VerticalStackLayout Padding="16,12">
+                    <Button Text="LOOT BOXES"
+                            BackgroundColor="{StaticResource HairlineBright}"
+                            TextColor="{StaticResource Signal}"
+                            BorderColor="{StaticResource Signal}"
+                            BorderWidth="1"
+                            CornerRadius="4"
+                            FontSize="{DynamicResource FontSizeCaption}"
+                            FontAttributes="Bold"
+                            HeightRequest="40"
+                            Margin="0,0,0,12"
+                            Command="{Binding OpenLootBoxesCommand}" />
                     <Label Text="{Binding Inventory.Message}"
                            IsVisible="{Binding Inventory.HasMessage}"
                            Style="{StaticResource LabelBody}"

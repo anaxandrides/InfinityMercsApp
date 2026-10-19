@@ -1,6 +1,7 @@
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Metadata.Ranges;
 using InfinityMercsApp.Domain.Season.Game;
+using InfinityMercsApp.Domain.Season.Loot;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
 using InfinityMercsApp.Presentation.Season.Game;
 using NSubstitute;
@@ -60,6 +61,22 @@ public sealed class GameWeaponCatalogTests
         var cc = cards.Single(card => card.Title == GameWeaponCatalog.CcCardTitle);
         Assert.Equal(3, cc.Modes[0].Modifiers.DamageReduction);
         Assert.True(cc.Modes[0].IsFirst);
+    }
+
+    // A loot Spitfire fires as the Lootsheet says, not as the army data's Spitfire.
+    [Fact]
+    public void CardsFor_LootWeapon_GetsACardFromItsLootProfile()
+    {
+        LootItem loot = new(LootBoxTiers.Of(LootBoxTier.FieldPack), LootWeaponChart.For(21), null, [LootBuffChart.For(1)], 0);
+        Returns("Spitfire [Shock]", new Weapon { Name = "Spitfire", Burst = "4", Damage = "13" });
+
+        var cards = new GameWeaponCatalog(_metadata, [loot]).CardsFor("Spitfire [Shock]\nPistol", null, AttackModifiers.None);
+
+        var card = cards.Single(candidate => candidate.Title == "Spitfire [Shock]");
+        var mode = Assert.Single(card.Modes);
+        Assert.Equal(("4", "6", "Shock"), (mode.Burst, mode.Damage, mode.Ammo));
+        Assert.True(card.HasRange);
+        Assert.Contains(cards, candidate => candidate.Title == "Pistol");
     }
 
     [Fact]

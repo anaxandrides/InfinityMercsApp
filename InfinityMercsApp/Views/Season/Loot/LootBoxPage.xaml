@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views.Season.Loot"
+             xmlns:loot="clr-namespace:InfinityMercsApp.ViewModels.Season.Loot"
+             xmlns:lootItems="clr-namespace:InfinityMercsApp.ViewModels.Season.Loot.Items"
+             xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
+             x:Class="InfinityMercsApp.Views.Season.Loot.LootBoxPage"
+             x:Name="LootBoxPageRoot"
+             x:DataType="loot:LootBoxViewModel"
+             Title="Loot Boxes"
+             BackgroundColor="{StaticResource Void}">
+
+    <ContentPage.Resources>
+        <Style x:Key="SectionLabel" TargetType="Label">
+            <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+        </Style>
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="{StaticResource HairlineBright}" />
+            <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}" />
+            <Setter Property="HeightRequest" Value="44" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="8,0" />
+            <Style.Triggers>
+                <Trigger TargetType="Button" Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.45" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16,12,16,16" Spacing="16">
+
+            <Button Text="ADD A LOOT BOX"
+                    Style="{StaticResource ActionButton}"
+                    TextColor="{StaticResource Signal}"
+                    BorderColor="{StaticResource Signal}"
+                    BorderWidth="1"
+                    Command="{Binding AddBoxCommand}" />
+
+            <Label Text="An organiser hands out loot boxes. Add one here, then open it: roll the weapon, then buffs while dice are left."
+                   IsVisible="{Binding HasBox, Converter={StaticResource InvertedBoolConverter}}"
+                   Style="{StaticResource LabelCaption}"
+                   TextColor="{StaticResource TextMuted}" />
+
+            <!-- The box being opened -->
+            <Border IsVisible="{Binding HasBox}"
+                    BackgroundColor="{StaticResource Plate}"
+                    Stroke="{StaticResource Signal}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 6"
+                    Padding="12,10">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="{Binding BoxTitle}"
+                           FontSize="{DynamicResource FontSizeSubHeadline}"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}" />
+                    <Label Text="{Binding QueuedBoxes, StringFormat='{0} more waiting'}"
+                           Style="{StaticResource LabelCaption}"
+                           TextColor="{StaticResource TextMuted}">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding QueuedBoxes}" Value="0">
+                                <Setter Property="IsVisible" Value="False" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                    <Label Text="{Binding DiceText}"
+                           Style="{StaticResource LabelBody}"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Signal}" />
+                    <Label Text="{Binding LootText}"
+                           Style="{StaticResource LabelBody}"
+                           TextColor="{StaticResource TextPrimary}"
+                           LineBreakMode="WordWrap" />
+                    <Label Text="{Binding StepText}"
+                           Style="{StaticResource LabelCaption}"
+                           TextColor="{StaticResource TextSecondary}"
+                           LineBreakMode="WordWrap" />
+
+                    <!-- One button per number of dice, with the results it can give -->
+                    <FlexLayout BindableLayout.ItemsSource="{Binding DiceChoices}"
+                                Direction="Row"
+                                Wrap="NoWrap"
+                                JustifyContent="SpaceBetween">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="lootItems:LootDiceChoice">
+                                <Border FlexLayout.Basis="23%"
+                                        BackgroundColor="{StaticResource HairlineBright}"
+                                        Stroke="Transparent"
+                                        StrokeShape="RoundRectangle 4"
+                                        Padding="4,6"
+                                        InputTransparent="{Binding IsEnabled, Converter={StaticResource InvertedBoolConverter}}">
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsEnabled}" Value="False">
+                                            <Setter Property="Opacity" Value="0.35" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding ViewModel.RollCommand, Source={x:Reference LootBoxPageRoot}, x:DataType=view:LootBoxPage}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="0">
+                                        <Label Text="{Binding Label}"
+                                               Style="{StaticResource LabelCaption}"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource TextPrimary}"
+                                               HorizontalTextAlignment="Center"
+                                               MaxLines="1" />
+                                        <Label Text="{Binding Range}"
+                                               Style="{StaticResource LabelCaption}"
+                                               TextColor="{StaticResource TextSecondary}"
+                                               HorizontalTextAlignment="Center"
+                                               MaxLines="1" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Button Text="REROLL LAST BUFF"
+                                Style="{StaticResource ActionButton}"
+                                TextColor="{StaticResource Caution}"
+                                Command="{Binding RerollLastBuffCommand}" />
+                        <Button Grid.Column="1"
+                                Text="TAKE THE LOOT"
+                                Style="{StaticResource ActionButton}"
+                                BackgroundColor="{StaticResource Signal}"
+                                TextColor="{StaticResource Void}"
+                                Command="{Binding TakeLootCommand}" />
+                    </Grid>
+                    <Label Text="Reroll the last buff when it can't go with the others. Duplicates, and Continuous with a non-lethal buff, are rerolled for you."
+                           Style="{StaticResource LabelCaption}"
+                           TextColor="{StaticResource TextMuted}"
+                           LineBreakMode="WordWrap" />
+
+                    <VerticalStackLayout Spacing="2" BindableLayout.ItemsSource="{Binding Log}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Label Text="{Binding .}"
+                                       Style="{StaticResource LabelCaption}"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       LineBreakMode="WordWrap" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Loot already taken -->
+            <VerticalStackLayout Spacing="6" IsVisible="{Binding HasRewards}">
+                <Label Text="Loot Taken" Style="{StaticResource SectionLabel}" />
+                <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Rewards}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="lootItems:LootRewardItem">
+                            <Border BackgroundColor="{StaticResource Plate}"
+                                    Stroke="{StaticResource HairlineBright}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 6"
+                                    Padding="12,8">
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="{Binding Name}"
+                                           Style="{StaticResource LabelBody}"
+                                           TextColor="{StaticResource TextPrimary}"
+                                           LineBreakMode="WordWrap" />
+                                    <Label Text="{Binding Details}"
+                                           Style="{StaticResource LabelCaption}"
+                                           TextColor="{StaticResource TextMuted}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</baseViews:ContentPageBase>

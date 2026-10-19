@@ -5,6 +5,7 @@ using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Experience;
 using InfinityMercsApp.Domain.Season.Game;
 using InfinityMercsApp.Domain.Season.Injuries;
+using InfinityMercsApp.Domain.Season.Loot;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
 using InfinityMercsApp.Presentation.Season;
@@ -106,7 +107,7 @@ public partial class GameModeViewModel(
 
         try
         {
-            var weapons = new GameWeaponCatalog(metadata);
+            var weapons = new GameWeaponCatalog(metadata, SeasonLoot.Items(await seasonFiles.LoadAsync(_seasonFilePath)));
             var troopers = await roster.LoadAsync(_companyFilePath, _seasonFilePath, ShowUnitsInInches, _deployedEntryIndices);
             foreach (var trooper in troopers)
             {

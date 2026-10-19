@@ -22,6 +22,9 @@ public class SeasonFile
     /// <summary>Troopers retired this season, in the order they left; a peripheral leaves with its trooper.</summary>
     public List<RetiredTrooper> Retired { get; set; } = [];
 
+    /// <summary>Loot boxes the company was given, opened or not, in the order they came.</summary>
+    public List<SeasonLootBox> LootBoxes { get; set; } = [];
+
     public bool IsRetired(int entryIndex) => Retired.Any(trooper => trooper.EntryIndex == entryIndex);
 
     /// <summary>The renown the retired troopers keep for the company.</summary>

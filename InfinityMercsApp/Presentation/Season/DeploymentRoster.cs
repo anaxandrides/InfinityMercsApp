@@ -9,6 +9,7 @@ using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Armor;
 using InfinityMercsApp.Domain.Season.Game;
 using InfinityMercsApp.Domain.Season.Inventory;
+using InfinityMercsApp.Domain.Season.Loot;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.ArmyData;
@@ -76,7 +77,7 @@ public sealed partial class DeploymentRoster(
         var season = string.IsNullOrWhiteSpace(seasonFilePath) ? null : await seasonFiles.LoadAsync(seasonFilePath);
         var seasonGear = season?.UnitGear ?? [];
         var captain = CaptainUpgrades.From(company.ImprovedCaptainStats);
-        var catalog = await stores.CatalogAsync();
+        var catalog = SeasonLoot.Catalog(await stores.CatalogAsync(), season);
         var kinds = new GainKinds(armyData.GetWeaponNames(), armyData.GetSkillNames());
         var servants = _servants.Of(company);
         var controllers = SeasonTroopers.ControllersOf(company, season, servants);
@@ -215,14 +216,22 @@ public sealed partial class DeploymentRoster(
 
     /// <summary>
     /// Adds season gear: weapons to the ranged or melee list, roles to skills, and augments either
-    /// as stat overrides ("BS=14") or as skills. An extra slot's item works as its own kind.
+    /// as stat overrides ("BS=14") or as skills. An extra slot's item works as its own kind. Loot is always a
+    /// weapon, even an Upgrade or Armed Turret in the Augments slot, so it gets a weapon card.
     /// </summary>
     internal static void ApplySeasonGear(UnitProfile profile, IEnumerable<SeasonUnitGear> gear, InventoryCatalog catalog)
     {
         foreach (var item in EquippedItem.In(gear, catalog))
         {
+            if (item.Slot == GearSlot.Augments && IsLoot(item.Name, catalog))
+            {
+                profile.RangedWeapons = AppendKeepingText(profile.RangedWeapons, [item.Name]);
+                continue;
+            }
+
             switch (item.Slot)
             {
+
                 case GearSlot.Primary or GearSlot.Secondary or GearSlot.Sidearm or GearSlot.Accessories:
                     if (CompanyProfileText.IsMeleeWeaponName(item.Name))
                     {
@@ -263,12 +272,16 @@ public sealed partial class DeploymentRoster(
         IEnumerable<SeasonUnitGear> gear, InventoryCatalog catalog, IEnumerable<string> skills, IReadOnlyList<string> rolledEquipment)
     {
         var gearSkills = EquippedItem.In(gear, catalog)
-            .Where(item => item.Slot is GearSlot.Roles || item.Slot is GearSlot.Augments && !StatOverride.TryParse(item.Name, out _))
+            .Where(item => item.Slot is GearSlot.Roles ||
+                           item.Slot is GearSlot.Augments && !StatOverride.TryParse(item.Name, out _) && !IsLoot(item.Name, catalog))
             .Select(item => item.Name)
             .Concat(skills.Where(skill => skill.Contains(Neurocinetics, StringComparison.OrdinalIgnoreCase)))
             .ToList();
         return new CarriedGear(gearSkills, rolledEquipment);
     }
+
+    private static bool IsLoot(string itemName, InventoryCatalog catalog) =>
+        string.Equals(catalog.Find(itemName)?.StoreName, LootItem.StoreName, StringComparison.OrdinalIgnoreCase);
 
     // The movement in centimetres when the entry has both values, so it reads back unambiguously; otherwise as saved.
     private static string MoveText(SavedCompanyEntry entry) =>

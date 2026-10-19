@@ -5,6 +5,7 @@ using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Inventory;
+using InfinityMercsApp.Domain.Season.Loot;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Presentation.Season;
 using InfinityMercsApp.Services.Season;
@@ -167,6 +168,31 @@ public sealed class DeploymentRosterTests : IDisposable
 
         Assert.Equal(["Mimetism (-3)", "Forward Observer", "Neurocinetics (B2 in Active)"], carried.Skills);
         Assert.Equal(["Medikit"], carried.Equipment);
+    }
+
+    // An Armed Turret sits in the Augments slot but is a weapon, so it isn't listed as a skill.
+    [Fact]
+    public void ApplySeasonGear_LootInTheAugmentsSlot_IsAWeapon()
+    {
+        var season = new SeasonFile
+        {
+            LootBoxes =
+            [
+                new SeasonLootBox
+                {
+                    IsOpened = true,
+                    Weapon = new SeasonLootRoll { Dice = 3, Result = LootWeaponChart.ArmedTurretRoll },
+                    TurretWeapon = 21
+                }
+            ]
+        };
+        var profile = new DeploymentRoster.UnitProfile();
+        List<SeasonUnitGear> gear = [new() { Slot = "Augments", ItemName = "Armed Turret (Spitfire) [Loot]" }];
+
+        DeploymentRoster.ApplySeasonGear(profile, gear, SeasonLoot.Catalog(InventoryCatalog.Empty, season));
+
+        Assert.Equal("Armed Turret (Spitfire) [Loot]", profile.RangedWeapons);
+        Assert.Equal("-", profile.Skills);
     }
 
     [Fact]

@@ -1,6 +1,7 @@
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
+using InfinityMercsApp.Domain.Season.Loot;
 using InfinityMercsApp.Domain.Season.Marketplace;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
 
@@ -8,7 +9,7 @@ namespace InfinityMercsApp.Domain.Season.Inventory;
 
 /// <summary>
 /// The gear a company owns at this point in the season: everything bought from the markets (as the catalog
-/// knows it) or won in downtime, less what has been sold. Exchange items are spent on purchase and not kept.
+/// knows it), won in downtime or found in loot boxes, less what has been sold. Loot has no price, so it can't be sold. Exchange items are spent on purchase and not kept.
 /// </summary>
 public sealed class SeasonInventory
 {
@@ -67,6 +68,11 @@ public sealed class SeasonInventory
             {
                 tally.Add(RandomPistol, GearSlot.Sidearm.Key(), "Downtime", 0, round.RoundIndex);
             }
+        }
+
+        foreach (var loot in SeasonLoot.Items(seasonFile))
+        {
+            tally.Add(loot.Name, loot.Slot.Key(), $"{LootItem.StoreName}: {loot.Tier.Name}", 0, loot.GainedAfterRound);
         }
 
         return new SeasonInventory(tally.Entries());

@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Season.Game;
+using InfinityMercsApp.Domain.Season.Loot;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
 
 namespace InfinityMercsApp.Presentation.Season.Game;
@@ -8,8 +9,9 @@ namespace InfinityMercsApp.Presentation.Season.Game;
 /// <summary>
 /// Builds a trooper's weapon cards from the metadata: ranged weapons with a range band first, then the
 /// rest, then any the metadata doesn't know; all CC weapons on one card; then Discover and Suppressive Fire.
+/// A loot weapon gets a card of its own from its loot profile, whichever list it is in.
 /// </summary>
-public sealed partial class GameWeaponCatalog(IMetadataProvider? metadata)
+public sealed partial class GameWeaponCatalog(IMetadataProvider? metadata, IReadOnlyList<LootItem>? loot = null)
 {
     public const string CcCardTitle = "CC Weapon";
 
@@ -20,7 +22,7 @@ public sealed partial class GameWeaponCatalog(IMetadataProvider? metadata)
         var cards = new List<GameWeaponCard>();
         var ranged = new WeaponModeModifiers(modifiers.BsDamageReduction, modifiers.BsAmmoModifier, modifiers.BsBurstBonus);
 
-        var rangedLines = Resolve(rangedWeapons);
+        var rangedLines = Resolve(WithoutLoot(rangedWeapons, cards, ranged, modifiers.HasXVisor));
         cards.AddRange(rangedLines
             .OrderBy(line => line.Weapons.Count == 0 ? 2 : line.Weapons.Any(w => w.Distance is not null) ? 0 : 1)
             .ThenBy(line => line.BaseName, StringComparer.OrdinalIgnoreCase)
@@ -28,14 +30,15 @@ public sealed partial class GameWeaponCatalog(IMetadataProvider? metadata)
                 ? GameWeaponCard.Unmatched(line.Line)
                 : Card(line.Line, line.Weapons, ranged, modifiers.HasXVisor)));
 
-        var meleeLines = Resolve(meleeWeapons);
+        var melee = new WeaponModeModifiers(modifiers.CcDamageReduction, null, 0);
+        var meleeLines = Resolve(WithoutLoot(meleeWeapons, cards, melee, modifiers.HasXVisor));
         var meleeWeaponModes = meleeLines
             .SelectMany(line => line.Weapons)
             .OrderBy(weapon => string.IsNullOrWhiteSpace(weapon.Mode) ? weapon.Name : weapon.Mode, StringComparer.OrdinalIgnoreCase)
             .ToList();
         if (meleeWeaponModes.Count > 0)
         {
-            cards.Add(Card(CcCardTitle, meleeWeaponModes, new WeaponModeModifiers(modifiers.CcDamageReduction, null, 0), modifiers.HasXVisor));
+            cards.Add(Card(CcCardTitle, meleeWeaponModes, melee, modifiers.HasXVisor));
         }
 
         cards.AddRange(meleeLines.Where(line => line.Weapons.Count == 0).Select(line => GameWeaponCard.Unmatched(line.Line)));
@@ -44,6 +47,39 @@ public sealed partial class GameWeaponCatalog(IMetadataProvider? metadata)
         AddNamedCard(cards, "Discover", "Discover", WeaponModeModifiers.None, modifiers.HasXVisor);
         AddNamedCard(cards, WeaponModeModifiers.SuppressiveFireMode, "Suppressive Fire Mode Weapon", ranged with { AmmoModifier = null, BurstBonus = 0 }, modifiers.HasXVisor);
         return cards;
+    }
+
+    // Adds a card for each loot weapon in the list and leaves the other lines to be matched against the metadata.
+    private IReadOnlyList<string> WithoutLoot(string? weaponsText, List<GameWeaponCard> cards, WeaponModeModifiers card, bool hasXVisor)
+    {
+        List<string> rest = [];
+        foreach (var line in Lines(weaponsText))
+        {
+            if (loot?.FirstOrDefault(item => string.Equals(item.Name, line, StringComparison.OrdinalIgnoreCase)) is { } item)
+            {
+                cards.Add(LootCard(item, card, hasXVisor));
+            }
+            else
+            {
+                rest.Add(line);
+            }
+        }
+
+        return rest;
+    }
+
+    private static GameWeaponCard LootCard(LootItem item, WeaponModeModifiers card, bool hasXVisor)
+    {
+        var lootModes = item.Modes();
+        var weapons = lootModes.Select(mode => mode.Weapon).ToList();
+        var modes = lootModes
+            .Select((mode, index) =>
+            {
+                var modifiers = WeaponModeModifiers.For(mode.Weapon, weapons, item.Name, card);
+                return new GameWeaponMode(mode.Weapon, modifiers, modifiers.Ammo(mode.Ammo), index == 0);
+            })
+            .ToList();
+        return new GameWeaponCard(item.Name, modes, hasXVisor);
     }
 
     private void AddNamedCard(List<GameWeaponCard> cards, string title, string searchName, WeaponModeModifiers card, bool hasXVisor)
@@ -67,8 +103,8 @@ public sealed partial class GameWeaponCatalog(IMetadataProvider? metadata)
         return new GameWeaponCard(title, modes, hasXVisor);
     }
 
-    private IReadOnlyList<WeaponLine> Resolve(string? weaponsText) =>
-        Lines(weaponsText)
+    private IReadOnlyList<WeaponLine> Resolve(IEnumerable<string> lines) =>
+        lines
             .Select(line =>
             {
                 var baseName = LeadingName().Match(line).Value.Trim();

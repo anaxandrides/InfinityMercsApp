@@ -58,6 +58,18 @@ public sealed class InventoryCatalog
         return new InventoryCatalog(byStoreAndName);
     }
 
+    /// <summary>This catalog with <paramref name="items"/> added under their own store; a name already sold keeps its item.</summary>
+    public InventoryCatalog With(IEnumerable<CatalogItem> items)
+    {
+        var byStoreAndName = new Dictionary<string, CatalogItem>(_byStoreAndName, StringComparer.OrdinalIgnoreCase);
+        foreach (var item in items)
+        {
+            byStoreAndName.TryAdd(Key(item.StoreName, item.Name), item);
+        }
+
+        return new InventoryCatalog(byStoreAndName);
+    }
+
     /// <summary>How a troop type's armour is named when bought: "Light Armour (LI)", or the armour alone.</summary>
     public static string ArmorName(StoreTroopType troop) =>
         string.IsNullOrWhiteSpace(troop.Type) ? troop.ArmorName.Trim() : $"{troop.ArmorName.Trim()} ({troop.Type})";

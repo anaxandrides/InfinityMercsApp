@@ -5,6 +5,7 @@ using InfinityMercsApp.Domain.Models.Metadata;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Inventory;
+using InfinityMercsApp.Domain.Season.Loot;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Domain.Utilities;
 using InfinityMercsApp.Presentation.Company.Viewer;
@@ -234,6 +235,11 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
     private Task TakeByeAsync() =>
         NavigationService.PushAsync("ByeRoundPage", NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath ?? string.Empty));
 
+    /// <summary>Opens the loot box page, to add a box the organiser gave and open it.</summary>
+    [RelayCommand]
+    private Task OpenLootBoxesAsync() =>
+        NavigationService.PushAsync("LootBoxPage", NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath ?? string.Empty));
+
     private async Task LoadAsync()
     {
         try
@@ -297,7 +303,7 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
     {
         var seasonFile = await _seasonFiles.LoadAsync(_seasonFilePath);
         var stores = await _stores.AllAsync();
-        var catalog = await _stores.CatalogAsync();
+        var catalog = SeasonLoot.Catalog(await _stores.CatalogAsync(), seasonFile);
         if (_company is { } company)
         {
             // A Lone Wolf that ranked up gains its next Aspect.
