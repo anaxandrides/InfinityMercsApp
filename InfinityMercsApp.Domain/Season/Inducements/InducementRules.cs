@@ -1,7 +1,7 @@
 namespace InfinityMercsApp.Domain.Season.Inducements;
 
 /// <summary>
-/// Inducements: the underdog of a contract gets half the difference in deployed renown, rounded down to a multiple
+/// Inducements: the underdog of a contract gets half the difference in company renown, rounded down to a multiple
 /// of 5, to spend on that contract only. A cooperative contract gives none.
 /// </summary>
 public static class InducementRules

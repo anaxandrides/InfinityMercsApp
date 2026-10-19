@@ -248,9 +248,9 @@
 
         <!-- Deploy area -->
         <VerticalStackLayout Grid.Row="2" Spacing="4" Padding="16,8,16,12">
-            <!-- Inducements: the underdog gets half the renown difference, rounded down to 5. -->
+            <!-- Inducements: the underdog company gets half the renown difference, rounded down to 5. -->
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-                <Label Text="{Binding DeployedRenown, StringFormat='Deployed renown: {0}'}"
+                <Label Text="{Binding CompanyRenown, StringFormat='Company renown: {0}'}"
                        FontSize="{DynamicResource FontSizeBody}"
                        TextColor="{StaticResource TextSecondary}"
                        VerticalTextAlignment="Center" />

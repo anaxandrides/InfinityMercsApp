@@ -1,15 +1,15 @@
 namespace InfinityMercsApp.Domain.Models.Season;
 
 /// <summary>
-/// The renown each side deployed for a contract, and the inducements the company got and spent; what they bought
+/// Each company's renown going into a contract, and the inducements the company got and spent; what they bought
 /// lasts for that contract only.
 /// </summary>
 public class ContractInducements
 {
-    /// <summary>The renown of the company's deployed troopers.</summary>
-    public int DeployedRenown { get; set; }
+    /// <summary>The company's renown: all its troopers', what retired ones kept, and its wins.</summary>
+    public int CompanyRenown { get; set; }
 
-    /// <summary>The renown the opponent deployed, as the opponent gave it.</summary>
+    /// <summary>The opponent company's renown, as the opponent gave it.</summary>
     public int OpponentRenown { get; set; }
 
     /// <summary>A cooperative contract, which gives no inducements.</summary>

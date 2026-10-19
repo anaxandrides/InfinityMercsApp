@@ -143,12 +143,13 @@ public partial class GameModeViewModel(
         CommandTokens.Reset(_inducements.CommandTokens);
     }
 
+    // Elite deployment's benefits go to the company's troopers; a hired troop has a token only from its own skill.
     private GameUnitItem Row(DeploymentUnitItem trooper, GameWeaponCatalog weapons, bool isOverTrooperLimit)
     {
         var skills = AttackModifiers.NormalizeSkills(trooper.Skills);
         var modifiers = AttackModifiers.From(skills, trooper.Equipment);
         var hasTacticalToken = EliteDeployment.HasTacticalAwareness(
-            DeploymentRoster.HasLine(trooper.Skills, "Tactical Awareness"), trooper.IsLieutenant, IsEliteDeployment);
+            DeploymentRoster.HasLine(trooper.Skills, "Tactical Awareness"), trooper.IsLieutenant, IsEliteDeployment && !trooper.IsHired);
         return new GameUnitItem(trooper, hasTacticalToken, weapons.CardsFor(trooper.RangedWeapons, trooper.MeleeWeapons, modifiers), isOverTrooperLimit);
     }
 

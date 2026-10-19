@@ -62,18 +62,7 @@ public sealed partial class DeploymentRoster(
         IReadOnlySet<int>? deployedEntryIndices = null,
         IReadOnlyList<RentedGear>? rentals = null)
     {
-        SavedCompanyFile? company;
-        try
-        {
-            company = companyFiles.Exists(companyFilePath) ? await companyFiles.LoadAsync(companyFilePath) : null;
-        }
-        catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
-        {
-            Console.Error.WriteLine($"Deployment roster failed to read '{companyFilePath}': {ex.Message}");
-            return [];
-        }
-
-        if (company?.Entries is null)
+        if (await LoadCompanyAsync(companyFilePath) is not { } company)
         {
             return [];
         }
@@ -108,6 +97,36 @@ public sealed partial class DeploymentRoster(
                 outsideCoreFireteam,
                 showUnitsInInches))
             .ToList();
+    }
+
+    /// <summary>
+    /// The company's renown as the season page shows it, which inducements are worked out from: every active
+    /// trooper's, what retired troopers kept, and the contracts won. 0 when the company file is missing or unreadable.
+    /// </summary>
+    public async Task<int> CompanyRenownAsync(string companyFilePath, string? seasonFilePath)
+    {
+        if (await LoadCompanyAsync(companyFilePath) is not { } company)
+        {
+            return 0;
+        }
+
+        var season = string.IsNullOrWhiteSpace(seasonFilePath) ? null : await seasonFiles.LoadAsync(seasonFilePath);
+        return SeasonRenown.OfCompany(company, season, SeasonLoot.Catalog(await stores.CatalogAsync(), season), _servants.Of(company));
+    }
+
+    // The saved company, or null when its file is missing, unreadable or has no entries.
+    private async Task<SavedCompanyFile?> LoadCompanyAsync(string companyFilePath)
+    {
+        try
+        {
+            var company = companyFiles.Exists(companyFilePath) ? await companyFiles.LoadAsync(companyFilePath) : null;
+            return company?.Entries is null ? null : company;
+        }
+        catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
+        {
+            Console.Error.WriteLine($"Deployment roster failed to read '{companyFilePath}': {ex.Message}");
+            return null;
+        }
     }
 
     /// <summary>

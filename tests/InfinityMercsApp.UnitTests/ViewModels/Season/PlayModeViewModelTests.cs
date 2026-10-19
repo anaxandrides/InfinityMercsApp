@@ -135,7 +135,7 @@ public sealed class PlayModeViewModelTests : IDisposable
         await viewModel.Shop.HireCommand.ExecuteAsync(viewModel.Shop.HireOffers[0]);
     }
 
-    // The lieutenant alone deploys 20 renown; 75 against it is 55 more, half of which rounds down to 25.
+    // The company's renown is 30 (lieutenant 20, trooper 10); 75 against it is 45 more, half of which rounds down to 20.
     [Fact]
     public async Task OpponentRenownText_HigherRenown_GivesTheCompanyInducements()
     {
@@ -143,16 +143,28 @@ public sealed class PlayModeViewModelTests : IDisposable
 
         viewModel.OpponentRenownText = "75";
 
-        Assert.Equal((20, 25), (viewModel.DeployedRenown, viewModel.Inducements.Received));
-        Assert.Equal("You get 25 inducements.", viewModel.InducementText);
+        Assert.Equal((30, 20), (viewModel.CompanyRenown, viewModel.Inducements.Received));
+        Assert.Equal("You get 20 inducements.", viewModel.InducementText);
         Assert.True(viewModel.CanSpendInducements);
+    }
+
+    // Inducements go by the whole company's renown, not by who is ticked to deploy.
+    [Fact]
+    public async Task IsChecked_TrooperLeftHome_KeepsTheInducements()
+    {
+        var viewModel = await OpenAsync(troopers: 1);
+        viewModel.OpponentRenownText = "75";
+
+        viewModel.DeploymentUnits[1].IsChecked = true;
+        viewModel.DeploymentUnits[1].IsChecked = false;
+
+        Assert.Equal((30, 20), (viewModel.Inducements.CompanyRenown, viewModel.Inducements.Received));
     }
 
     [Fact]
     public async Task OpponentRenownText_LowerRenown_SaysTheOpponentGetsThem()
     {
         var viewModel = await OpenAsync(troopers: 1);
-        viewModel.DeploymentUnits[1].IsChecked = true;
 
         viewModel.OpponentRenownText = "0";
 
@@ -202,7 +214,23 @@ public sealed class PlayModeViewModelTests : IDisposable
         }
 
         Assert.Equal(5, viewModel.DeployedSlotCount);
-        Assert.False(viewModel.IsEliteDeployment);
+    }
+
+    [Fact]
+    public async Task IsEliteDeployment_FourDeployedAndHires_StaysElite()
+    {
+        var viewModel = await OpenAsync(troopers: 3);
+        viewModel.OpponentRenownText = "500";
+        foreach (var unit in viewModel.DeploymentUnits)
+        {
+            unit.IsChecked = true;
+        }
+
+        await HireAsync(viewModel);
+        await HireAsync(viewModel);
+
+        Assert.True(viewModel.IsEliteDeployment);
+        Assert.Equal("4 / 6 slots + 2 hired · ELITE", viewModel.DeploymentStatusText);
     }
 
     [Fact]

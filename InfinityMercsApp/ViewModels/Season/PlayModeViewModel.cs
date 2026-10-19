@@ -23,7 +23,7 @@ namespace InfinityMercsApp.ViewModels.Season;
 /// Chooses which units deploy for a mission. The lieutenant always deploys; at most six slots can be
 /// filled (a TAG Company TAG takes two), and four or fewer is an elite deployment. A Proxy Pack deploys any of the
 /// Lone Wolf's loadouts, at least one, and picks the one the Lone Wolf starts in; the rest deploy as Aspects.
-/// With the opponent's deployed renown, the underdog gets inducements; the company spends its own in the
+/// With the opponent's company renown, the underdog gets inducements; the company spends its own in the
 /// inducements pop-up, and hired troops take the deployment up to seven troopers.
 /// </summary>
 public partial class PlayModeViewModel(
@@ -66,23 +66,23 @@ public partial class PlayModeViewModel(
     [NotifyPropertyChangedFor(nameof(IsEliteDeployment), nameof(DeploymentStatusText))]
     public partial int DeployedSlotCount { get; set; }
 
-    /// <summary>Troops hired with inducements; they count toward the elite deployment's four.</summary>
+    /// <summary>Troops hired with inducements; they don't count toward the elite deployment's four.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsEliteDeployment), nameof(DeploymentStatusText))]
+    [NotifyPropertyChangedFor(nameof(DeploymentStatusText))]
     public partial int HiredCount { get; set; }
 
-    public bool IsEliteDeployment => DeployedSlotCount + HiredCount is > 0 and <= MaxEliteSlots;
+    public bool IsEliteDeployment => DeployedSlotCount is > 0 and <= MaxEliteSlots;
 
     public string DeploymentStatusText =>
         $"{DeployedSlotCount} / {MaxSlots} slots" +
         (HiredCount > 0 ? $" + {HiredCount} hired" : string.Empty) +
         (IsEliteDeployment ? " · ELITE" : string.Empty);
 
-    /// <summary>The renown of the troopers ticked to deploy.</summary>
+    /// <summary>The company's renown, as the season page shows it; whoever deploys, it is what inducements go by.</summary>
     [ObservableProperty]
-    public partial int DeployedRenown { get; set; }
+    public partial int CompanyRenown { get; set; }
 
-    /// <summary>The opponent's deployed renown as typed; blank until the opponent gives it.</summary>
+    /// <summary>The opponent company's renown as typed; blank until the opponent gives it.</summary>
     [ObservableProperty]
     public partial string OpponentRenownText { get; set; } = string.Empty;
 
@@ -137,6 +137,7 @@ public partial class PlayModeViewModel(
         }
 
         DeploymentUnits.Clear();
+        CompanyRenown = await roster.CompanyRenownAsync(_companyFilePath, _seasonFilePath);
         foreach (var unit in await roster.LoadAsync(_companyFilePath, _seasonFilePath, inches))
         {
             unit.PropertyChanged += OnUnitPropertyChanged;
@@ -234,22 +235,21 @@ public partial class PlayModeViewModel(
         }
     }
 
-    // The deployed renown, the inducements it brings against the opponent's, and the pop-up's view of them. Gear rented
+    // The inducements the company's renown brings against the opponent's, and the pop-up's view of them. Gear rented
     // for a trooper no longer deploying goes back.
     private void RefreshInducements()
     {
         var deployed = DeploymentUnits.Where(u => u.IsChecked).ToList();
         InducementShop.KeepDeployed(Inducements, deployed.Select(u => u.EntryIndex).ToHashSet());
-        DeployedRenown = deployed.Sum(u => u.Renown);
         var hasOpponentRenown = int.TryParse(OpponentRenownText, NumberStyles.Integer, CultureInfo.CurrentCulture, out var opponentRenown) &&
                                 opponentRenown >= 0;
-        Inducements.DeployedRenown = DeployedRenown;
+        Inducements.CompanyRenown = CompanyRenown;
         Inducements.OpponentRenown = hasOpponentRenown ? opponentRenown : 0;
         Inducements.IsCooperative = IsCooperative;
-        Inducements.Received = hasOpponentRenown ? InducementRules.For(DeployedRenown, opponentRenown, IsCooperative) : 0;
-        var opponentGets = hasOpponentRenown ? InducementRules.For(opponentRenown, DeployedRenown, IsCooperative) : 0;
+        Inducements.Received = hasOpponentRenown ? InducementRules.For(CompanyRenown, opponentRenown, IsCooperative) : 0;
+        var opponentGets = hasOpponentRenown ? InducementRules.For(opponentRenown, CompanyRenown, IsCooperative) : 0;
         InducementText =
-            !hasOpponentRenown ? "Enter the opponent's deployed renown for inducements."
+            !hasOpponentRenown ? "Enter the opponent's company renown for inducements."
             : IsCooperative ? "A cooperative contract gives no inducements."
             : Inducements.Received > 0 ? $"You get {Inducements.Received} inducements."
             : opponentGets > 0 ? $"Your opponent gets {opponentGets} inducements."

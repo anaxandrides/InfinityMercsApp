@@ -317,6 +317,15 @@ public sealed class GameModeViewModelTests : IDisposable
     }
 
     [Fact]
+    public async Task HasTacticalToken_EliteDeploymentWithAHire_OnlyTheCompanysTroopers()
+    {
+        var viewModel = await OpenAsync(elite: true, inducements: Hiring(-1));
+
+        Assert.True(viewModel.Units[1].HasTacticalToken);
+        Assert.False(viewModel.Units[^1].HasTacticalToken);
+    }
+
+    [Fact]
     public async Task InitializeAsyncCommand_RentedGear_IsCarriedThisGame()
     {
         var inducements = new ContractInducements
