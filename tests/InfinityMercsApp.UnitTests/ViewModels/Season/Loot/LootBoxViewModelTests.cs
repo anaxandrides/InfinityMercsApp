@@ -1,8 +1,8 @@
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Loot;
+using InfinityMercsApp.Domain.Season.Rolls;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
-using InfinityMercsApp.Services.Rolls;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Season.Loot;
 using InfinityMercsApp.ViewModels.Season.Loot.Items;

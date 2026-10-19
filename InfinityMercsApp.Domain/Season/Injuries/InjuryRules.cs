@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Season.Rolls;
 using InfinityMercsApp.Domain.Season.Troopers;
 
 namespace InfinityMercsApp.Domain.Season.Injuries;
@@ -30,7 +31,7 @@ public static class InjuryRules
     /// An injury rolled on the table for a trooper that already has <paramref name="current"/>: each injury is
     /// unique, so one it has is rolled again. Null when it already has them all.
     /// </summary>
-    public static Injury? RollNew(Func<int> rollD20, IReadOnlyCollection<Injury> current)
+    public static Injury? RollNew(IDice dice, IReadOnlyCollection<Injury> current)
     {
         if (Table.All(entry => current.Contains(entry.Injury)))
         {
@@ -39,7 +40,7 @@ public static class InjuryRules
 
         while (true)
         {
-            var index = TableIndexForRoll(rollD20());
+            var index = TableIndexForRoll(dice.RollD20());
             if (index >= 0 && !current.Contains(Table[index].Injury))
             {
                 return Table[index].Injury;

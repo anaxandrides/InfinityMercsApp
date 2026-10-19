@@ -2,8 +2,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Marketplace;
+using InfinityMercsApp.Domain.Season.Rolls;
 using InfinityMercsApp.Presentation.Season.Overview;
-using InfinityMercsApp.Services.Rolls;
 using InfinityMercsApp.Services.Season;
 
 namespace InfinityMercsApp.ViewModels.Season.Overview;
@@ -133,7 +133,7 @@ public partial class WarMarketChoiceViewModel(
             return;
         }
 
-        var result = WarMarketRoll.Search(dice.RollD20, _factionMarkets);
+        var result = WarMarketRoll.Search(dice, _factionMarkets);
         Show(result, result.Kind switch
         {
             WarMarketRollKind.Found => $"Rolled {result.Roll} — {result.Store}",

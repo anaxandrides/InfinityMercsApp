@@ -1,4 +1,4 @@
-namespace InfinityMercsApp.Services.Rolls;
+namespace InfinityMercsApp.Domain.Season.Rolls;
 
 /// <summary>Dice rolls, injectable so tests can fix the result.</summary>
 public interface IDice

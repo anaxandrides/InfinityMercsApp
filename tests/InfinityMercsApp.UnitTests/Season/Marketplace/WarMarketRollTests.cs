@@ -1,10 +1,14 @@
 using InfinityMercsApp.Domain.Season.Marketplace;
+using InfinityMercsApp.Domain.Season.Rolls;
+using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.Season.Marketplace;
 
 public sealed class WarMarketRollTests
 {
     private static readonly IReadOnlySet<string> NumberOneIsOurs = new HashSet<string>(["Number One"], StringComparer.OrdinalIgnoreCase);
+
+    private readonly IDice _dice = Substitute.For<IDice>();
 
     [Fact]
     public void For_Roll_NamesItsMarket()
@@ -35,9 +39,9 @@ public sealed class WarMarketRollTests
     [Fact]
     public void Search_CompanysOwnMarket_Rerolls()
     {
-        var rolls = new Queue<int>([1, 2, 5]);
+        _dice.RollD20().Returns(1, 2, 5);
 
-        var result = WarMarketRoll.Search(rolls.Dequeue, NumberOneIsOurs);
+        var result = WarMarketRoll.Search(_dice, NumberOneIsOurs);
 
         Assert.Equal(new WarMarketRoll(5, WarMarketRollKind.Found, "Arachne Req"), result);
     }
@@ -45,19 +49,19 @@ public sealed class WarMarketRollTests
     [Fact]
     public void Search_FreeChoiceRolled_Stops()
     {
-        var rolls = new Queue<int>([1, 20]);
+        _dice.RollD20().Returns(1, 20);
 
-        Assert.Equal(WarMarketRollKind.ChooseAny, WarMarketRoll.Search(rolls.Dequeue, NumberOneIsOurs).Kind);
+        Assert.Equal(WarMarketRollKind.ChooseAny, WarMarketRoll.Search(_dice, NumberOneIsOurs).Kind);
     }
 
     [Fact]
     public void Search_TooManyRerolls_GivesUp()
     {
-        var attempts = 0;
+        _dice.RollD20().Returns(1);
 
-        var result = WarMarketRoll.Search(() => { attempts++; return 1; }, NumberOneIsOurs);
+        var result = WarMarketRoll.Search(_dice, NumberOneIsOurs);
 
         Assert.Equal(WarMarketRollKind.Exhausted, result.Kind);
-        Assert.Equal(WarMarketRoll.MaxAttempts, attempts);
+        _dice.Received(WarMarketRoll.MaxAttempts).RollD20();
     }
 }

@@ -34,12 +34,12 @@ public sealed record WarMarketRoll(int Roll, WarMarketRollKind Kind, string? Sto
     }
 
     /// <summary>Rolls until another faction's market or a free choice comes up, giving up after <see cref="MaxAttempts"/> rolls.</summary>
-    public static WarMarketRoll Search(Func<int> rollD20, IReadOnlySet<string> factionMarkets)
+    public static WarMarketRoll Search(IDice dice, IReadOnlySet<string> factionMarkets)
     {
         var last = 0;
         for (var attempt = 0; attempt < MaxAttempts; attempt++)
         {
-            var result = For(rollD20(), factionMarkets);
+            var result = For(dice.RollD20(), factionMarkets);
             if (result.Kind is WarMarketRollKind.Found or WarMarketRollKind.ChooseAny)
             {
                 return result;

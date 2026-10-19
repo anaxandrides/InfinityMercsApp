@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Stores;
+using InfinityMercsApp.Domain.Season.Rolls;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
 using InfinityMercsApp.Presentation.Company.Viewer;

@@ -1,5 +1,7 @@
 using InfinityMercsApp.Domain.Season.Injuries;
+using InfinityMercsApp.Domain.Season.Rolls;
 using InfinityMercsApp.Domain.Season.Troopers;
+using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.Season.Troopers;
 
@@ -32,15 +34,16 @@ public sealed class InjuryEffectsTests
     [Fact]
     public void RollNew_InjuriesHeld_GivesOneNotHeld()
     {
-        var rolls = new Queue<int>([3, 5, 9]);
+        var dice = Substitute.For<IDice>();
+        dice.RollD20().Returns(3, 5, 9);
 
-        Assert.Equal(Injury.Arms, InjuryRules.RollNew(rolls.Dequeue, [Injury.BattleFury]));
+        Assert.Equal(Injury.Arms, InjuryRules.RollNew(dice, [Injury.BattleFury]));
     }
 
     [Fact]
     public void RollNew_EveryInjuryHeld_ReturnsNull()
     {
-        Assert.Null(InjuryRules.RollNew(() => 1, Enum.GetValues<Injury>()));
+        Assert.Null(InjuryRules.RollNew(Substitute.For<IDice>(), Enum.GetValues<Injury>()));
     }
 
     [Theory]

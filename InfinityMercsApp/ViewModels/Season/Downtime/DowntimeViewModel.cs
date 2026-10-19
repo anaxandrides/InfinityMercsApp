@@ -12,7 +12,6 @@ using InfinityMercsApp.Presentation.Season.Downtime;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Records;
-using InfinityMercsApp.Services.Rolls;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Season.Downtime.Items;
@@ -408,7 +407,7 @@ public partial class DowntimeViewModel(
                 trooper.SkillsGained.Add(skill);
             }
 
-            if (injures && InjuryRules.RollNew(dice.RollD20, trooper.Injuries) is { } rolled)
+            if (injures && InjuryRules.RollNew(dice, trooper.Injuries) is { } rolled)
             {
                 injury = rolled;
                 trooper.Injuries.Add(rolled);

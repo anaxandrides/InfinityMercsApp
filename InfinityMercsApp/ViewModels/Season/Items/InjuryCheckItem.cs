@@ -1,9 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Season.Injuries;
+using InfinityMercsApp.Domain.Season.Rolls;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Services.Logos;
-using InfinityMercsApp.Services.Rolls;
 using InfinityMercsApp.Services.Season;
 
 namespace InfinityMercsApp.ViewModels.Season.Items;
@@ -90,7 +90,7 @@ public partial class InjuryCheckItem : ObservableObject
             var index = InjuryRules.TableIndexForRoll(roll);
             var rolled = index >= 0 && !_carried.Contains(InjuryRules.Table[index].Injury)
                 ? InjuryRules.Table[index].Injury
-                : InjuryRules.RollNew(_dice.RollD20, _carried);
+                : InjuryRules.RollNew(_dice, _carried);
             if (rolled is { } injury)
             {
                 SelectedInjury = InjuryRules.EntryFor(injury);

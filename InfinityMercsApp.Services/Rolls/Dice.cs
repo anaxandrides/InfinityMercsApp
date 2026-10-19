@@ -1,3 +1,5 @@
+using InfinityMercsApp.Domain.Season.Rolls;
+
 namespace InfinityMercsApp.Services.Rolls;
 
 internal sealed class Dice : IDice

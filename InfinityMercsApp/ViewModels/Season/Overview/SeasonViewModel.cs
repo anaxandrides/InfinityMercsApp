@@ -6,6 +6,7 @@ using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.Loot;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
+using InfinityMercsApp.Domain.Season.Rolls;
 using InfinityMercsApp.Domain.Utilities;
 using InfinityMercsApp.Presentation.Company.Viewer;
 using InfinityMercsApp.Services.ArmyData;

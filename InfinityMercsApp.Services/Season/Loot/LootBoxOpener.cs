@@ -1,6 +1,6 @@
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Loot;
-using InfinityMercsApp.Services.Rolls;
+using InfinityMercsApp.Domain.Season.Rolls;
 
 namespace InfinityMercsApp.Services.Season.Loot;
 
