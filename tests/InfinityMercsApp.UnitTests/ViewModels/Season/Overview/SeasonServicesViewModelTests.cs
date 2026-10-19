@@ -2,6 +2,7 @@ using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Services;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Presentation.Company.Viewer;
+using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using InfinityMercsApp.ViewModels.Season.Overview.Items;
 using NSubstitute;

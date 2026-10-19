@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Metadata;
-using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.Loot;
@@ -18,7 +17,6 @@ using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Rolls;
 using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.Services.Season.Peripherals;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Components;
@@ -32,12 +30,6 @@ namespace InfinityMercsApp.ViewModels.Season.Overview;
 /// </summary>
 public partial class SeasonViewModel : ViewModelBase, ITeamChanges
 {
-    /// <summary>What buying a peripheral for the Peripheral (Controller) augment is called in the marketplace.</summary>
-    public const string PeripheralPrefix = "Peripheral: ";
-
-    /// <summary>What selling one is called.</summary>
-    public const string PeripheralSalePrefix = "Peripheral sold: ";
-
     public const string DefaultName = "Season";
 
     private readonly ICompanyFileService _companyFiles;
@@ -47,7 +39,7 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
     private readonly IDialogService _dialogs;
     private readonly ICompanySelectionNavigator _companySelection;
     private readonly RecruitRollPrompt _rolls;
-    private readonly TohaaPeripherals _peripherals;
+    private readonly PeripheralTrades _peripheralTrades;
     private readonly CompanyRoster _roster;
     private readonly HashSet<int> _rollsToAskFor = [];
     private string _companyFilePath = string.Empty;
@@ -68,7 +60,8 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
         IAppPackageFiles packageFiles,
         CompanyRoster roster,
         UnitDetailViewModel detail,
-        MarketplaceDetailViewModel detailPopup) : base(navigationService)
+        MarketplaceDetailViewModel detailPopup,
+        PeripheralTrades peripheralTrades) : base(navigationService)
     {
         _companyFiles = companyFiles;
         _seasonFiles = seasonFiles;
@@ -78,7 +71,7 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
         _companySelection = companySelection;
         DetailPopup = detailPopup;
         _rolls = new RecruitRollPrompt(dialogs, dice, armyData);
-        _peripherals = new TohaaPeripherals(armyData);
+        _peripheralTrades = peripheralTrades;
         _roster = roster;
         Team = new SeasonTeamViewModel(roster, detail, packageFiles, seasonFiles, detailPopup, dialogs, RefreshSeasonAsync, this);
         Inventory = new SeasonInventoryViewModel(seasonFiles, dialogs, RefreshSeasonAsync);
@@ -336,152 +329,21 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
 
     async Task<bool> ITeamChanges.ChangePeripheralsAsync(PeripheralChange change)
     {
-        if (await LoadCompanyFileAsync() is not { } company)
+        if (await _peripheralTrades.ChangeAsync(_companyFilePath, _seasonFilePath, change) is not { } company)
         {
-            return false;
-        }
-
-        var season = await _seasonFiles.LoadAsync(_seasonFilePath);
-        foreach (var peripheral in company.Entries.Where(entry =>
-                     entry.FromControllerAugment && entry.ParentEntryIndex is { } controller && change.LosingControl.Contains(controller)))
-        {
-            peripheral.ParentEntryIndex = null;
-        }
-
-        PeripheralOffer? bought = null;
-        if (change.GainingControl is { } gaining)
-        {
-            var owned = company.Entries
-                .Where(entry => entry.FromControllerAugment && SeasonTroopers.ControllerOf(entry, season) is null && season?.IsRetired(entry.EntryIndex) != true)
-                .ToList();
-            var offers = _peripherals.Offers();
-            List<string> choices = [.. owned.Select(OwnedChoice), .. offers.Select(offer => offer.Display)];
-            if (choices.Count == 0)
-            {
-                await _dialogs.ShowAlertAsync("No Peripherals", "The army data has no Tohaa peripherals to choose from; update the data and try again.");
-                return false;
-            }
-
-            var choice = await _dialogs.ChooseAsync($"Peripheral for {change.GainingName}", "Cancel", choices);
-            if (owned.FirstOrDefault(entry => OwnedChoice(entry) == choice) is { } reattached)
-            {
-                reattached.ParentEntryIndex = gaining;
-            }
-            else if (offers.FirstOrDefault(offer => offer.Display == choice) is { } offer)
-            {
-                var credits = SeasonEconomy.Ledger(season).CreditsBalance;
-                var nextIndex = company.Entries.Count == 0 ? 0 : company.Entries.Max(entry => entry.EntryIndex) + 1;
-                if (offer.Cost > credits)
-                {
-                    await _dialogs.ShowAlertAsync("Not Enough CR", $"{offer.Name} costs {offer.Cost} CR; the company has {credits} CR.");
-                    return false;
-                }
-
-                if (_peripherals.EntryFor(offer, nextIndex, gaining) is not { } added)
-                {
-                    return false;
-                }
-
-                company.Entries.Add(added);
-                bought = offer;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        if (!await SaveCompanyFileAsync(company))
-        {
-            return false;
-        }
-
-        if (bought is { } paidFor && !await _seasonFiles.UpdateAsync(_seasonFilePath, seasonFile =>
-                SeasonRounds.CurrentMarketplace(seasonFile).Transactions.Add(new SeasonTransaction
-                {
-                    OriginStore = ServiceStoreNames.AdditionalRecruitment,
-                    ItemName = PeripheralPrefix + paidFor.Name,
-                    CostCr = paidFor.Cost
-                })))
-        {
-            company.Entries.RemoveAt(company.Entries.Count - 1);
-            await SaveCompanyFileAsync(company);
-            await _dialogs.ShowAlertAsync("Peripheral Not Bought", SeasonMessages.NotSaved);
             return false;
         }
 
         _company = company;
         return true;
-
-        static string OwnedChoice(SavedCompanyEntry entry) => $"{SeasonTroopers.NameOf(entry)} (owned, #{entry.EntryIndex})";
     }
 
     async Task ITeamChanges.SellPeripheralAsync(int entryIndex)
     {
-        if (await LoadCompanyFileAsync() is not { } company ||
-            company.Entries.FirstOrDefault(entry => entry.EntryIndex == entryIndex && entry.FromControllerAugment) is not { } peripheral)
+        if (await _peripheralTrades.SellAsync(_companyFilePath, _seasonFilePath, entryIndex) is { } company)
         {
-            return;
-        }
-
-        var name = SeasonTroopers.NameOf(peripheral);
-        var price = (int)Math.Ceiling(peripheral.Cost / 2.0);
-        if (!await _dialogs.ConfirmAsync("Sell Peripheral", $"Sell {name} for {price} CR? It leaves the company, with its XP and perks.", "Sell", "Cancel"))
-        {
-            return;
-        }
-
-        company.Entries.Remove(peripheral);
-        if (!await SaveCompanyFileAsync(company))
-        {
-            return;
-        }
-
-        if (!await _seasonFiles.UpdateAsync(_seasonFilePath, seasonFile =>
-                SeasonRounds.CurrentMarketplace(seasonFile).Transactions.Add(new SeasonTransaction
-                {
-                    OriginStore = ServiceStoreNames.AdditionalRecruitment,
-                    ItemName = PeripheralSalePrefix + name,
-                    CostCr = -price,
-                    IsSale = true
-                })))
-        {
-            company.Entries.Add(peripheral);
-            await SaveCompanyFileAsync(company);
-            await _dialogs.ShowAlertAsync("Peripheral Not Sold", SeasonMessages.NotSaved);
-            return;
-        }
-
-        _company = company;
-        await RefreshSeasonAsync();
-    }
-
-    private async Task<SavedCompanyFile?> LoadCompanyFileAsync()
-    {
-        try
-        {
-            return await _companyFiles.LoadAsync(_companyFilePath);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
-        {
-            Console.Error.WriteLine($"Reading the company failed: {ex.Message}");
-            await _dialogs.ShowAlertAsync("Company Not Read", "The company file couldn't be read.");
-            return null;
-        }
-    }
-
-    private async Task<bool> SaveCompanyFileAsync(SavedCompanyFile company)
-    {
-        try
-        {
-            await _companyFiles.SaveAsync(_companyFilePath, company);
-            return true;
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            Console.Error.WriteLine($"Saving the company failed: {ex.Message}");
-            await _dialogs.ShowAlertAsync("Company Not Saved", "The company file couldn't be saved, so nothing changed.");
-            return false;
+            _company = company;
+            await RefreshSeasonAsync();
         }
     }
 

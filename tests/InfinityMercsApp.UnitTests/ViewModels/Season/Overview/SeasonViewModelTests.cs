@@ -10,6 +10,7 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Rolls;
+using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.UnitTests.Presentation.Company.Viewer;
 using InfinityMercsApp.UnitTests.Services.Season.Peripherals;
 using InfinityMercsApp.ViewModels.Season.Overview;
@@ -152,7 +153,7 @@ public sealed class SeasonViewModelTests
         Assert.Equal((4, 1), (peripheral.EntryIndex, peripheral.ParentEntryIndex));
         await _kit.CompanyFiles.Received().SaveAsync(SeasonTestKit.CompanyPath, company);
         var charge = SeasonRounds.CurrentMarketplace(_kit.Season).Transactions.Single();
-        Assert.Equal((SeasonViewModel.PeripheralPrefix + "Chaksa Peripheral B", 4), (charge.ItemName, charge.CostCr));
+        Assert.Equal((PeripheralTrades.PeripheralPrefix + "Chaksa Peripheral B", 4), (charge.ItemName, charge.CostCr));
     }
 
     [Fact]

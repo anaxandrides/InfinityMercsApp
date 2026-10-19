@@ -9,7 +9,6 @@ using InfinityMercsApp.Services.Rolls;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Season.Loot;
 using InfinityMercsApp.ViewModels.Base;
-using InfinityMercsApp.ViewModels.Season.Overview;
 using InfinityMercsApp.ViewModels.Season.Loot.Items;
 
 namespace InfinityMercsApp.ViewModels.Season.Loot;

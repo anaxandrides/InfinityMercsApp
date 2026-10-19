@@ -162,6 +162,7 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<UnitVisibility>()
                 .AddSingleton<UnitFilterOptionsCatalog>()
                 .AddSingleton<CompanyRoster>()
+                .AddTransient<PeripheralTrades>()
                 .AddSingleton<DeploymentRoster>()
                 .AddSingleton<MissionDebrief>()
                 .AddSingleton<CaptainChange>()

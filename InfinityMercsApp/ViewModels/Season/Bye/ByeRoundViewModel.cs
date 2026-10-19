@@ -10,7 +10,6 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Season.Bye.Items;
-using InfinityMercsApp.ViewModels.Season.Overview;
 
 namespace InfinityMercsApp.ViewModels.Season.Bye;
 

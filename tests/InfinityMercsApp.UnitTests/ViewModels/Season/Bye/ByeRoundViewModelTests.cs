@@ -10,7 +10,6 @@ using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Season.Bye;
-using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Bye;

@@ -1,4 +1,4 @@
-namespace InfinityMercsApp.ViewModels.Season.Overview;
+namespace InfinityMercsApp.Services.Season;
 
 /// <summary>Messages the season tabs share.</summary>
 public static class SeasonMessages

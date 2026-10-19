@@ -1,4 +1,4 @@
-namespace InfinityMercsApp.ViewModels.Season.Overview;
+namespace InfinityMercsApp.Services.Season;
 
 /// <summary>
 /// What a gear change does to Peripheral (Controller) augments: the troopers that lose one, and the trooper that
