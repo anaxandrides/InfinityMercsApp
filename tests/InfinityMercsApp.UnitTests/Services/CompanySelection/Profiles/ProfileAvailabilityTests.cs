@@ -72,4 +72,17 @@ public sealed class ProfileAvailabilityTests
         Assert.False(RosterRoom.For(entries, 75, 0, "1", unitId: 1, factionId: TagCompanyFactionGenerator.TagCompanyFactionId).AvaReached);
         Assert.True(RosterRoom.For(entries, 75, 0, "1", unitId: 1, factionId: 102).AvaReached);
     }
+
+    // An Inspiring company's captain is Fusiliers (unit 1); its generated faction lists Fusiliers as unit 12 and
+    // another unit as 1.
+    [Fact]
+    public void RosterRoomFor_GeneratedFactionUnit_MatchesByItsArmyUnit()
+    {
+        List<MercsCompanyEntry> entries = [new() { SourceUnitId = 1, SourceFactionId = 101, IsLieutenant = true }];
+        List<MercsCompanyEntry> recruited = [new() { SourceUnitId = 12, SourceFactionId = 2002, LogoSourceUnitId = 1, LogoSourceFactionId = 101 }];
+
+        Assert.True(RosterRoom.For(entries, 75, 0, "1", unitId: 1, factionId: 101).AvaReached);
+        Assert.True(RosterRoom.For(recruited, 75, 0, "1", unitId: 1, factionId: 102).AvaReached);
+        Assert.False(RosterRoom.For(recruited, 75, 0, "1", unitId: 12, factionId: 101).AvaReached);
+    }
 }

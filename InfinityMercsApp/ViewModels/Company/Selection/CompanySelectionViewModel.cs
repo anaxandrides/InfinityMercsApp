@@ -926,7 +926,9 @@ public abstract partial class CompanySelectionViewModel : AdaptiveViewModelBase<
     protected void ApplyLieutenantVisualStates()
     {
         var room = RosterRoom.For(
-            MercsCompanyEntries, Points(SelectedStartSeasonPoints), Points(SeasonPointsCapText), Detail.Stats.Ava, SelectedUnit?.Id, SelectedUnit?.SourceFactionId);
+            MercsCompanyEntries, Points(SelectedStartSeasonPoints), Points(SeasonPointsCapText), Detail.Stats.Ava,
+            SelectedUnit?.LogoSourceUnitId is > 0 ? SelectedUnit.LogoSourceUnitId : SelectedUnit?.Id,
+            SelectedUnit?.LogoSourceFactionId is > 0 ? SelectedUnit.LogoSourceFactionId : SelectedUnit?.SourceFactionId);
         var visibleProfiles = 0;
         foreach (var profile in Profiles)
         {
