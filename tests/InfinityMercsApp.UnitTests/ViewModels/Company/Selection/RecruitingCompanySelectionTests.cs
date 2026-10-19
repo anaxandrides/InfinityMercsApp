@@ -5,6 +5,7 @@ using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company.Selection;
+using InfinityMercsApp.ViewModels.Company.Selection.Rules;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using NSubstitute;
 
@@ -49,10 +50,10 @@ public sealed class RecruitingCompanySelectionTests
         ]
     };
 
-    private async Task<StandardCompanySelectionViewModel> OpenAsync(SavedCompanyFile company)
+    private async Task<CompanySelectionViewModel> OpenAsync(SavedCompanyFile company)
     {
         _kit.CompanyFiles.LoadAsync(CompanyPath).Returns(company);
-        var viewModel = new StandardCompanySelectionViewModel(_kit.Services, ArmySourceSelectionMode.VanillaFactions);
+        var viewModel = new CompanySelectionViewModel(_kit.Services, new StandardCompanyRules(ArmySourceSelectionMode.VanillaFactions));
         viewModel.PrepareRecruitment(new CompanyRecruitment(CompanyPath, SeasonPath, company, Credits, []));
         return await SelectionTestKit.OpenAsync(viewModel);
     }
@@ -60,10 +61,10 @@ public sealed class RecruitingCompanySelectionTests
     // The first trooper profile that can be hired, after picking a unit that has one.
     private static async Task<ViewerProfileItem> HireableProfileAsync(CompanySelectionViewModel viewModel)
     {
-        foreach (var unit in viewModel.Units.Where(unit => unit.IsVisible).ToList())
+        foreach (var unit in viewModel.UnitList.Units.Where(unit => unit.IsVisible).ToList())
         {
             await viewModel.SelectUnitFromListCommand.ExecuteAsync(unit);
-            if (viewModel.Profiles.FirstOrDefault(profile => profile is { IsVisible: true, IsLieutenantBlocked: false }) is { } profile)
+            if (viewModel.Preview.Profiles.FirstOrDefault(profile => profile is { IsVisible: true, IsLieutenantBlocked: false }) is { } profile)
             {
                 return profile;
             }
@@ -81,11 +82,11 @@ public sealed class RecruitingCompanySelectionTests
         Assert.False(viewModel.IsFoundingCompany);
         Assert.Equal("Recruit for Blue Team", viewModel.PageTitle);
         Assert.Equal("HIRE RECRUITS", viewModel.ConfirmText);
-        Assert.Equal("Blue Team", viewModel.CompanyName);
-        Assert.Equal(Army101Data.PanOceania, viewModel.LeftSlotFaction?.Id);
+        Assert.Equal("Blue Team", viewModel.Roster.CompanyName);
+        Assert.Equal(Army101Data.PanOceania, viewModel.Slots.Left?.Id);
         Assert.False(viewModel.ShowFactionStrip);
-        Assert.NotEmpty(viewModel.Units);
-        var captain = Assert.Single(viewModel.MercsCompanyEntries);
+        Assert.NotEmpty(viewModel.UnitList.Units);
+        var captain = Assert.Single(viewModel.Roster.Entries);
         Assert.True(captain is { IsOnRoster: true, IsLieutenant: true });
     }
 
@@ -106,10 +107,10 @@ public sealed class RecruitingCompanySelectionTests
 
         viewModel.SelectSlotCommand.Execute(0);
         viewModel.OpenFactionStripCommand.Execute(null);
-        await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Factions[0]);
+        await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Slots.Factions[0]);
 
         Assert.False(viewModel.ShowFactionStrip);
-        Assert.False(viewModel.Factions[0].IsSelected);
+        Assert.False(viewModel.Slots.Factions[0].IsSelected);
     }
 
     [Fact]
@@ -117,9 +118,9 @@ public sealed class RecruitingCompanySelectionTests
     {
         var viewModel = await OpenAsync(Company());
 
-        viewModel.RemoveMercsCompanyEntryCommand.Execute(viewModel.MercsCompanyEntries[0]);
+        viewModel.RemoveMercsCompanyEntryCommand.Execute(viewModel.Roster.Entries[0]);
 
-        Assert.Single(viewModel.MercsCompanyEntries);
+        Assert.Single(viewModel.Roster.Entries);
     }
 
     [Fact]
@@ -128,10 +129,10 @@ public sealed class RecruitingCompanySelectionTests
         var viewModel = await OpenAsync(Company());
         var lieutenantsSeen = 0;
 
-        foreach (var unit in viewModel.Units.Where(unit => unit.IsVisible).ToList())
+        foreach (var unit in viewModel.UnitList.Units.Where(unit => unit.IsVisible).ToList())
         {
             await viewModel.SelectUnitFromListCommand.ExecuteAsync(unit);
-            var lieutenants = viewModel.Profiles.Where(profile => profile.IsLieutenant).ToList();
+            var lieutenants = viewModel.Preview.Profiles.Where(profile => profile.IsLieutenant).ToList();
             lieutenantsSeen += lieutenants.Count;
             Assert.All(lieutenants, profile => Assert.True(profile.IsLieutenantBlocked));
         }
@@ -145,10 +146,10 @@ public sealed class RecruitingCompanySelectionTests
         var viewModel = await OpenAsync(Company());
         var tooDearSeen = 0;
 
-        foreach (var unit in viewModel.Units.Where(unit => unit.IsVisible).ToList())
+        foreach (var unit in viewModel.UnitList.Units.Where(unit => unit.IsVisible).ToList())
         {
             await viewModel.SelectUnitFromListCommand.ExecuteAsync(unit);
-            var tooDear = viewModel.Profiles.Where(profile => ProfileValues.ParseCost(profile.Cost) > Credits).ToList();
+            var tooDear = viewModel.Preview.Profiles.Where(profile => ProfileValues.ParseCost(profile.Cost) > Credits).ToList();
             tooDearSeen += tooDear.Count;
             Assert.All(tooDear, profile => Assert.True(!profile.IsVisible || profile.IsLieutenantBlocked));
         }
@@ -161,16 +162,16 @@ public sealed class RecruitingCompanySelectionTests
     {
         var first = await OpenAsync(Company());
         await HireableProfileAsync(first);
-        var unit = first.SelectedUnit;
+        var unit = first.Preview.SelectedUnit;
         Assert.NotNull(unit);
-        var ava = ProfileValues.ParseAvaLimit(first.Detail.Stats.Ava);
+        var ava = ProfileValues.ParseAvaLimit(first.Preview.Detail.Stats.Ava);
         Assert.NotNull(ava);
 
         var full = await OpenAsync(Company(unit.Id, ava.Value));
-        await full.SelectUnitFromListCommand.ExecuteAsync(full.Units.First(candidate => candidate.Id == unit.Id));
+        await full.SelectUnitFromListCommand.ExecuteAsync(full.UnitList.Units.First(candidate => candidate.Id == unit.Id));
 
-        Assert.NotEmpty(full.Profiles);
-        Assert.All(full.Profiles, profile => Assert.True(profile.IsLieutenantBlocked));
+        Assert.NotEmpty(full.Preview.Profiles);
+        Assert.All(full.Preview.Profiles, profile => Assert.True(profile.IsLieutenantBlocked));
     }
 
     [Fact]
@@ -179,7 +180,7 @@ public sealed class RecruitingCompanySelectionTests
         var viewModel = await OpenAsync(Company());
         var profile = await HireableProfileAsync(viewModel);
         await viewModel.AddProfileToMercsCompanyCommand.ExecuteAsync(profile);
-        var recruit = viewModel.MercsCompanyEntries[^1];
+        var recruit = viewModel.Roster.Entries[^1];
         Assert.True(recruit.CanRemove);
         Assert.True(viewModel.IsCompanyValid);
         Assert.Equal($"{Credits - recruit.CostValue} CR LEFT", viewModel.CreditsLeftText);
@@ -200,9 +201,9 @@ public sealed class RecruitingCompanySelectionTests
         var viewModel = await OpenAsync(Company());
         await viewModel.AddProfileToMercsCompanyCommand.ExecuteAsync(await HireableProfileAsync(viewModel));
 
-        viewModel.RemoveMercsCompanyEntryCommand.Execute(viewModel.MercsCompanyEntries[^1]);
+        viewModel.RemoveMercsCompanyEntryCommand.Execute(viewModel.Roster.Entries[^1]);
 
-        Assert.Single(viewModel.MercsCompanyEntries);
+        Assert.Single(viewModel.Roster.Entries);
         Assert.Equal("25 CR LEFT", viewModel.CreditsLeftText);
     }
 
@@ -222,7 +223,7 @@ public sealed class RecruitingCompanySelectionTests
     [Fact]
     public async Task StartPointsChoice_Founding_SetsTheStartingPoints()
     {
-        var viewModel = await SelectionTestKit.OpenAsync(new StandardCompanySelectionViewModel(_kit.Services, ArmySourceSelectionMode.VanillaFactions));
+        var viewModel = await SelectionTestKit.OpenAsync(new CompanySelectionViewModel(_kit.Services, new StandardCompanyRules(ArmySourceSelectionMode.VanillaFactions)));
 
         viewModel.StartPointsChoice = "90";
 

@@ -127,8 +127,7 @@ internal sealed class SelectionTestKit
             .ToList();
 
     /// <summary>Opens the screen at a wide layout and loads its factions.</summary>
-    public static async Task<TViewModel> OpenAsync<TViewModel>(TViewModel viewModel)
-        where TViewModel : CompanySelectionViewModel
+    public static async Task<CompanySelectionViewModel> OpenAsync(CompanySelectionViewModel viewModel)
     {
         viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Wide);
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);

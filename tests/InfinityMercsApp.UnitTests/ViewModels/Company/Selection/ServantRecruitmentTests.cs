@@ -1,5 +1,6 @@
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection;
+using InfinityMercsApp.ViewModels.Company.Selection.Rules;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using NSubstitute;
 
@@ -9,18 +10,18 @@ public sealed class ServantRecruitmentTests
 {
     private readonly SelectionTestKit _kit = new();
 
-    private async Task<StandardCompanySelectionViewModel> OpenAsync()
+    private async Task<CompanySelectionViewModel> OpenAsync()
     {
-        var viewModel = await SelectionTestKit.OpenAsync(new StandardCompanySelectionViewModel(_kit.Services, ArmySourceSelectionMode.VanillaFactions));
-        await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Factions[0]);
+        var viewModel = await SelectionTestKit.OpenAsync(new CompanySelectionViewModel(_kit.Services, new StandardCompanyRules(ArmySourceSelectionMode.VanillaFactions)));
+        await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Slots.Factions[0]);
         return viewModel;
     }
 
     // Picks the unit and returns its first profile that has the skill (any profile when skill is null).
     private static async Task<ViewerProfileItem> ProfileAsync(CompanySelectionViewModel viewModel, string unitName, string? skill = null)
     {
-        await viewModel.SelectUnitFromListCommand.ExecuteAsync(viewModel.Units.First(unit => unit.Name == unitName));
-        return viewModel.Profiles.First(profile => profile.IsVisible && (skill is null || profile.UniqueSkills.Contains(skill, StringComparison.OrdinalIgnoreCase)));
+        await viewModel.SelectUnitFromListCommand.ExecuteAsync(viewModel.UnitList.Units.First(unit => unit.Name == unitName));
+        return viewModel.Preview.Profiles.First(profile => profile.IsVisible && (skill is null || profile.UniqueSkills.Contains(skill, StringComparison.OrdinalIgnoreCase)));
     }
 
     private static async Task AddAsync(CompanySelectionViewModel viewModel, string unitName, string? skill = null) =>
@@ -33,7 +34,7 @@ public sealed class ServantRecruitmentTests
 
         await AddAsync(viewModel, "PALBOTS");
 
-        Assert.Empty(viewModel.MercsCompanyEntries);
+        Assert.Empty(viewModel.Roster.Entries);
         await _kit.Dialogs.Received(1).ShowAlertAsync("Needs a Doctor or Engineer", Arg.Any<string>());
     }
 
@@ -46,9 +47,9 @@ public sealed class ServantRecruitmentTests
 
         await AddAsync(viewModel, "PALBOTS");
 
-        Assert.Equal(3, viewModel.MercsCompanyEntries.Count);
-        var palbot = viewModel.MercsCompanyEntries[1];
-        Assert.Same(viewModel.MercsCompanyEntries[0], palbot.ServantOwner);
+        Assert.Equal(3, viewModel.Roster.Entries.Count);
+        var palbot = viewModel.Roster.Entries[1];
+        Assert.Same(viewModel.Roster.Entries[0], palbot.ServantOwner);
         Assert.True(palbot.IsServant);
         await _kit.Dialogs.DidNotReceive().ChooseAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IReadOnlyList<string>>());
     }
@@ -64,7 +65,7 @@ public sealed class ServantRecruitmentTests
 
         await AddAsync(viewModel, "PALBOTS");
 
-        Assert.Equal("KARHU (Engineer)", viewModel.MercsCompanyEntries[2].ServantOwner?.Name);
+        Assert.Equal("KARHU (Engineer)", viewModel.Roster.Entries[2].ServantOwner?.Name);
     }
 
     [Fact]
@@ -76,7 +77,7 @@ public sealed class ServantRecruitmentTests
 
         await AddAsync(viewModel, "PALBOTS");
 
-        Assert.Equal(2, viewModel.MercsCompanyEntries.Count);
+        Assert.Equal(2, viewModel.Roster.Entries.Count);
     }
 
     [Fact]
@@ -86,8 +87,8 @@ public sealed class ServantRecruitmentTests
         await AddAsync(viewModel, "KAPLAN TACTICAL SERVICES (KTS)", "Doctor");
         await AddAsync(viewModel, "PALBOTS");
 
-        viewModel.RemoveMercsCompanyEntryCommand.Execute(viewModel.MercsCompanyEntries[0]);
+        viewModel.RemoveMercsCompanyEntryCommand.Execute(viewModel.Roster.Entries[0]);
 
-        Assert.Empty(viewModel.MercsCompanyEntries);
+        Assert.Empty(viewModel.Roster.Entries);
     }
 }

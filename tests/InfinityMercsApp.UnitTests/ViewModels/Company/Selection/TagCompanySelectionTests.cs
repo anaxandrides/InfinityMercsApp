@@ -2,27 +2,28 @@ using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection;
+using InfinityMercsApp.ViewModels.Company.Selection.Rules;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using NSubstitute;
 using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Company.Selection;
 
-public sealed class TagCompanySelectionViewModelTests
+public sealed class TagCompanySelectionTests
 {
     private readonly SelectionTestKit _kit = new();
 
-    private Task<TagCompanySelectionViewModel> OpenAsync() =>
-        SelectionTestKit.OpenAsync(new TagCompanySelectionViewModel(_kit.Services, ArmySourceSelectionMode.Sectorials));
+    private Task<CompanySelectionViewModel> OpenAsync() =>
+        SelectionTestKit.OpenAsync(new CompanySelectionViewModel(_kit.Services, new TagCompanyRules(ArmySourceSelectionMode.Sectorials)));
 
     [Fact]
     public async Task InitializeAsync_TagCompany_FillsTheRightSlot()
     {
         var viewModel = await OpenAsync();
 
-        Assert.Equal(TagCompanySelectionViewModel.TagCompanyName, viewModel.CompanyTypeLabel);
-        Assert.Equal(TagGen.TagCompanyFactionId, viewModel.RightSlotFaction?.Id);
-        Assert.Equal(TagCompanySelectionViewModel.TagCompanyLogoPath, viewModel.RightSlotLogoSource);
+        Assert.Equal(TagCompanyRules.TagCompanyName, viewModel.Rules.CompanyTypeLabel);
+        Assert.Equal(TagGen.TagCompanyFactionId, viewModel.Slots.Right?.Id);
+        Assert.Equal(TagCompanyRules.TagCompanyLogoPath, viewModel.Slots.RightLogoSource);
     }
 
     [Fact]
@@ -31,12 +32,12 @@ public sealed class TagCompanySelectionViewModelTests
         var viewModel = await OpenAsync();
 
         viewModel.SelectSlotCommand.Execute(1);
-        Assert.Equal(0, viewModel.ActiveSlotIndex);
+        Assert.Equal(0, viewModel.Slots.ActiveIndex);
 
-        await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Factions[0]);
+        await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Slots.Factions[0]);
 
-        Assert.Equal(SelectionTestKit.Sectorial, viewModel.LeftSlotFaction?.Id);
-        Assert.Equal(TagGen.TagCompanyFactionId, viewModel.RightSlotFaction?.Id);
+        Assert.Equal(SelectionTestKit.Sectorial, viewModel.Slots.Left?.Id);
+        Assert.Equal(TagGen.TagCompanyFactionId, viewModel.Slots.Right?.Id);
     }
 
     [Fact]
@@ -78,15 +79,15 @@ public sealed class TagCompanySelectionViewModelTests
     {
         _kit.CaptainDialog.ShowAsync(Arg.Any<CaptainUpgradePopupContext>()).Returns((SavedImprovedCaptainStats?)null);
         var viewModel = await OpenAsync();
-        await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Factions[0]);
-        var tag = viewModel.Units.FirstOrDefault(unit => unit.IsVisible && (unit.Subtitle ?? string.Empty).StartsWith("TAG", StringComparison.OrdinalIgnoreCase));
+        await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Slots.Factions[0]);
+        var tag = viewModel.UnitList.Units.FirstOrDefault(unit => unit.IsVisible && (unit.Subtitle ?? string.Empty).StartsWith("TAG", StringComparison.OrdinalIgnoreCase));
         Assert.NotNull(tag);
         await viewModel.SelectUnitFromListCommand.ExecuteAsync(tag);
-        var profile = viewModel.Profiles.First(candidate => candidate.IsVisible && !candidate.IsLieutenant && !candidate.IsLieutenantBlocked);
+        var profile = viewModel.Preview.Profiles.First(candidate => candidate.IsVisible && !candidate.IsLieutenant && !candidate.IsLieutenantBlocked);
 
         await viewModel.AddProfileToMercsCompanyCommand.ExecuteAsync(profile);
 
         await _kit.CaptainDialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context => context.PopupTitle == "TAG Spec Ops"));
-        Assert.Empty(viewModel.MercsCompanyEntries);
+        Assert.Empty(viewModel.Roster.Entries);
     }
 }

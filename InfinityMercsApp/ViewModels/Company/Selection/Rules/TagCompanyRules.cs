@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
@@ -7,16 +8,16 @@ using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
+using ArmyResumeRecord = InfinityMercsApp.Domain.Models.Army.Resume;
 using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 
-namespace InfinityMercsApp.ViewModels.Company.Selection;
+namespace InfinityMercsApp.ViewModels.Company.Selection.Rules;
 
 /// <summary>
 /// A TAG company: a sectorial in the left slot and the TAG company's own units in the fixed right slot.
 /// Every TAG added gets its Spec Ops upgrades chosen straight away.
 /// </summary>
-public sealed class TagCompanySelectionViewModel(CompanySelectionServices services, ArmySourceSelectionMode mode)
-    : StandardCompanySelectionViewModel(services, mode)
+public sealed class TagCompanyRules(ArmySourceSelectionMode mode) : StandardCompanyRules(mode)
 {
     public const string TagCompanyName = CompanyFounder.TagCompanyType;
     public const string TagCompanyLogoPath = "SVGCache/MercsIcons/noun-battle-mech-1731140.svg";
@@ -28,36 +29,36 @@ public sealed class TagCompanySelectionViewModel(CompanySelectionServices servic
 
     public override string CompanyTypeLabel => TagCompanyName;
 
-    protected override int? FixedFactionSlot => 0;
+    public override int? FixedFactionSlot => 0;
 
-    protected override bool CanPickRightSlot => false;
+    public override bool CanPickRightSlot => false;
 
     /// <summary>The TAG company itself goes in the right slot.</summary>
-    protected override void OnFirstAppearing()
+    public override void Prepare(CompanySelectionViewModel screen)
     {
-        if (ShowRightSlot)
+        if (HasRightSlot)
         {
-            RightSlotFaction = new ArmyFactionSelectionItem
+            screen.Slots.Set(1, new ArmyFactionSelectionItem
             {
                 Id = TagGen.TagCompanyFactionId,
                 ParentId = TagGen.TagCompanyFactionId,
                 Name = TagCompanyName,
                 PackagedLogoPath = TagCompanyLogoPath
-            };
-            RightSlotLogoSource = TagCompanyLogoPath;
+            });
         }
     }
 
     /// <summary>The TAG company's own units are all listed, not only its Mercs ones.</summary>
-    protected override IReadOnlyList<InfinityMercsApp.Domain.Models.Army.Resume> ResumesFor(int factionId, CancellationToken cancellationToken) =>
+    public override IReadOnlyList<ArmyResumeRecord> ResumesFor(IArmyDataService armyData, int factionId, CancellationToken cancellationToken) =>
         factionId == TagGen.TagCompanyFactionId
-            ? Services.ArmyData.GetResumeByFaction(factionId, cancellationToken)
-            : base.ResumesFor(factionId, cancellationToken);
+            ? armyData.GetResumeByFaction(factionId, cancellationToken)
+            : base.ResumesFor(armyData, factionId, cancellationToken);
 
-    protected override bool IsHighlightedUnit(int factionId, int unitId) => factionId == TagGen.TagCompanyFactionId && unitId == 1;
+    public override bool IsHighlightedUnit(int factionId, int unitId) => factionId == TagGen.TagCompanyFactionId && unitId == 1;
 
     /// <summary>A TAG trooper (not the lieutenant) gets its Spec Ops chosen; backing out removes it again.</summary>
-    protected override async Task AfterEntryAddedAsync(ArmyUnitSelectionItem unit, ViewerProfileItem profile, MercsCompanyEntry entry)
+    public override async Task AfterEntryAddedAsync(
+        CompanySelectionViewModel screen, ArmyUnitSelectionItem unit, ViewerProfileItem profile, MercsCompanyEntry entry)
     {
         if (profile.IsLieutenant ||
             !(UnitTypeCodes.IsTag(entry.UnitTypeCode) || UnitTypeCodes.IsTag(UnitTypeCodes.FromSubtitle(unit.Subtitle))))
@@ -68,7 +69,7 @@ public sealed class TagCompanySelectionViewModel(CompanySelectionServices servic
         SavedImprovedCaptainStats? stats;
         try
         {
-            stats = await ConfigureSpecOpsAsync(entry);
+            stats = await ConfigureSpecOpsAsync(screen, entry);
         }
         catch (Exception ex)
         {
@@ -78,16 +79,16 @@ public sealed class TagCompanySelectionViewModel(CompanySelectionServices servic
 
         if (stats is null)
         {
-            RemoveMercsCompanyEntryCommand.Execute(entry);
+            screen.RemoveMercsCompanyEntryCommand.Execute(entry);
             return;
         }
 
-        ReplaceMercsCompanyEntry(entry, TagFinalizedEntry.From(entry, stats));
+        screen.ReplaceEntry(entry, TagFinalizedEntry.From(entry, stats));
     }
 
-    private Task<SavedImprovedCaptainStats?> ConfigureSpecOpsAsync(MercsCompanyEntry entry)
+    private static Task<SavedImprovedCaptainStats?> ConfigureSpecOpsAsync(CompanySelectionViewModel screen, MercsCompanyEntry entry)
     {
-        var sourceFactionId = TagWorkflowFactionId(entry.SourceFactionId);
+        var sourceFactionId = TagWorkflowFactionId(screen.Slots, entry.SourceFactionId);
         var skillLines = CompanyProfileText.SplitDisplayLine(entry.SavedSkills);
         if (entry.IsLieutenant)
         {
@@ -109,15 +110,15 @@ public sealed class TagCompanySelectionViewModel(CompanySelectionServices servic
         var factions = new CaptainFactions(
             sourceFactionId > 0 ? sourceFactionId : entry.SourceFactionId,
             sourceFactionId > 0 ? sourceFactionId : null,
-            Factions.ToList(),
+            screen.Slots.Factions.ToList(),
             sourceFactionId > 0 ? sourceFactionId : null);
-        return Services.Captains.ConfigureTagSpecOpsAsync(unit, factions, entry.IsLieutenant, TagExperience, Detail.ShowUnitsInInches);
+        return screen.Services.Captains.ConfigureTagSpecOpsAsync(unit, factions, entry.IsLieutenant, TagExperience, screen.Preview.Detail.ShowUnitsInInches);
     }
 
     // The chosen sectorial; the TAG company itself has no Spec Ops options of its own.
-    private int TagWorkflowFactionId(int fallbackFactionId)
+    private static int TagWorkflowFactionId(FactionSlotsViewModel slots, int fallbackFactionId)
     {
-        var chosen = new List<int> { LeftSlotFaction?.Id ?? 0, RightSlotFaction?.Id ?? 0 }
+        var chosen = new List<int> { slots.Left?.Id ?? 0, slots.Right?.Id ?? 0 }
             .FirstOrDefault(id => id > 0 && id != TagGen.TagCompanyFactionId);
         if (chosen > 0)
         {

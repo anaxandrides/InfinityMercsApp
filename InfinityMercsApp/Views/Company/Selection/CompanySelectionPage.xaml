@@ -42,10 +42,10 @@
             <controls:FactionSlotSelectorView
                 VerticalOptions="Center"
                 IsVisible="{Binding IsCompact, Converter={StaticResource InvertedBoolConverter}}"
-                ShowRightSelectionBox="{Binding ShowRightSlot}"
-                ActiveSlotIndex="{Binding ActiveSlotIndex}"
-                LeftSlotSource="{Binding LeftSlotLogoSource}"
-                RightSlotSource="{Binding RightSlotLogoSource}"
+                ShowRightSelectionBox="{Binding Slots.HasRightSlot}"
+                ActiveSlotIndex="{Binding Slots.ActiveIndex}"
+                LeftSlotSource="{Binding Slots.LeftLogoSource}"
+                RightSlotSource="{Binding Slots.RightLogoSource}"
                 SlotTappedCommand="{Binding SelectSlotCommand}" />
             <controls:SeasonStartPointsView
                 Grid.Column="1"
@@ -74,17 +74,17 @@
         <controls:FactionSelectionStripView
             Grid.ColumnSpan="2"
             IsVisible="{Binding ShowFactionStrip}"
-            ItemsSource="{Binding Factions}"
+            ItemsSource="{Binding Slots.Factions}"
             SelectFactionCommand="{Binding SelectFactionCommand}" />
-        <controls:LoadingLabel Grid.ColumnSpan="2" IsVisible="{Binding IsLoadingFactions}" />
+        <controls:LoadingLabel Grid.ColumnSpan="2" IsVisible="{Binding Slots.IsLoading}" />
 
         <!-- Compact: the chosen faction(s), tapped to reopen the picker. -->
         <controls:SelectedFactionButtonView
             Grid.ColumnSpan="2"
             IsVisible="{Binding IsCompact}"
-            ShowRightSlot="{Binding ShowRightSlot}"
-            LeftSlotSource="{Binding LeftSlotLogoSource}"
-            RightSlotSource="{Binding RightSlotLogoSource}"
+            ShowRightSlot="{Binding Slots.HasRightSlot}"
+            LeftSlotSource="{Binding Slots.LeftLogoSource}"
+            RightSlotSource="{Binding Slots.RightLogoSource}"
             Command="{Binding OpenFactionStripCommand}" />
 
         <!-- Compact: switches between the units, the selected unit, and the company. -->
@@ -122,23 +122,23 @@
         <Grid Grid.Row="2" RowDefinitions="Auto,*" RowSpacing="8" IsVisible="{Binding ShowsUnitsPane}">
             <controls:CompanyUnitSelectionListPanelView
                 VerticalOptions="Fill"
-                ShowUnitsList="{Binding ShowUnitsList}"
+                ShowUnitsList="{Binding UnitList.ShowUnitsList}"
                 IsDense="{Binding IsCompact}"
-                ItemsSource="{Binding Units}"
+                ItemsSource="{Binding UnitList.Units}"
                 ItemTappedCommand="{Binding SelectUnitFromListCommand}"
                 FilterCommand="{Binding OpenUnitFilterCommand}"
-                IsFilterActive="{Binding IsUnitFilterActive}">
+                IsFilterActive="{Binding UnitList.IsFilterActive}">
                 <controls:CompanyUnitSelectionListPanelView.Triggers>
-                    <DataTrigger TargetType="controls:CompanyUnitSelectionListPanelView" Binding="{Binding ShowUnitsList}" Value="True">
+                    <DataTrigger TargetType="controls:CompanyUnitSelectionListPanelView" Binding="{Binding UnitList.ShowUnitsList}" Value="True">
                         <Setter Property="Grid.RowSpan" Value="2" />
                     </DataTrigger>
                 </controls:CompanyUnitSelectionListPanelView.Triggers>
             </controls:CompanyUnitSelectionListPanelView>
 
-            <ScrollView Grid.Row="1" IsVisible="{Binding ShowTeamsList}">
+            <ScrollView Grid.Row="1" IsVisible="{Binding UnitList.ShowTeamsList}">
                 <VerticalStackLayout Spacing="0">
                     <Label Text="{Binding FireteamRuleText}" FontAttributes="Bold" Margin="8,6,8,8" />
-                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding TeamEntries}" Spacing="0">
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding UnitList.TeamEntries}" Spacing="0">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="teamItemsItems:ArmyTeamListItem">
                                 <Border StrokeThickness="1" Padding="8,6" MinimumHeightRequest="50" IsVisible="{Binding IsVisible}">
@@ -147,7 +147,7 @@
                                             <Label Text="{Binding Name}" VerticalOptions="Center" />
                                             <!-- Cohesive companies track one fireteam. -->
                                             <ContentView Grid.Column="1"
-                                                         IsVisible="{Binding ViewModel.ShowsFireteamTracking, Source={x:Reference CompanySelectionRoot}, x:DataType=view:CompanySelectionPage}">
+                                                         IsVisible="{Binding ViewModel.TracksCoreFireteam, Source={x:Reference CompanySelectionRoot}, x:DataType=view:CompanySelectionPage}">
                                                 <RadioButton VerticalOptions="Center"
                                                              GroupName="CohesiveCoreFireteamSelection"
                                                              IsVisible="{Binding ShowTrackingRadioButton}"
@@ -180,7 +180,7 @@
                 </VerticalStackLayout>
             </ScrollView>
 
-            <controls:LoadingLabel Grid.RowSpan="2" VerticalOptions="Start" IsVisible="{Binding IsLoadingUnits}" />
+            <controls:LoadingLabel Grid.RowSpan="2" VerticalOptions="Start" IsVisible="{Binding UnitList.IsLoading}" />
         </Grid>
 
         <!-- The selected unit over the company; one at a time on compact screens. -->
@@ -192,8 +192,8 @@
                 VerticalOptions="Fill"
                 ShowSummaryRows="False"
                 IsVisible="{Binding ShowsDetailPane}"
-                Unit="{Binding Detail}"
-                Profiles="{Binding Profiles}"
+                Unit="{Binding Preview.Detail}"
+                Profiles="{Binding Preview.Profiles}"
                 ProfileTappedCommand="{Binding AddProfileToMercsCompanyCommand}" />
 
             <!-- The company: its name, its troopers filling the space, and the button that starts it beneath them. -->
@@ -204,7 +204,7 @@
                             <Label Text="Mercs Company" FontSize="{DynamicResource FontSizeTitleSmall}" FontAttributes="Bold" VerticalOptions="Center" />
                             <Label Text="-" VerticalOptions="Center" />
                         </HorizontalStackLayout>
-                        <Label Text="Enter Company Name" TextColor="{StaticResource Danger}" IsVisible="{Binding ShowCompanyNameValidationError}" />
+                        <Label Text="Enter Company Name" TextColor="{StaticResource Danger}" IsVisible="{Binding Roster.ShowCompanyNameValidationError}" />
                     </VerticalStackLayout>
                     <Border Grid.Column="1"
                             Stroke="{StaticResource TextMuted}"
@@ -214,25 +214,25 @@
                             MaximumWidthRequest="320"
                             VerticalOptions="Center">
                         <Border.Triggers>
-                            <DataTrigger TargetType="Border" Binding="{Binding ShowCompanyNameValidationError}" Value="True">
+                            <DataTrigger TargetType="Border" Binding="{Binding Roster.ShowCompanyNameValidationError}" Value="True">
                                 <Setter Property="Stroke" Value="#EF4444" />
                             </DataTrigger>
                         </Border.Triggers>
-                        <Entry Text="{Binding CompanyName}" IsReadOnly="{Binding IsRecruiting}" Placeholder="Company Name" ClearButtonVisibility="WhileEditing" VerticalOptions="Center" />
+                        <Entry Text="{Binding Roster.CompanyName}" IsReadOnly="{Binding IsRecruiting}" Placeholder="Company Name" ClearButtonVisibility="WhileEditing" VerticalOptions="Center" />
                     </Border>
                     <!-- Cohesive companies show the tracked fireteam and its level. -->
-                    <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" Spacing="2" IsVisible="{Binding ShowsFireteamTracking}">
-                        <Label Text="{Binding TrackedFireteamNameDisplay}" HorizontalTextAlignment="Center" LineBreakMode="TailTruncation" MaxLines="1" />
-                        <Label Text="{Binding TrackedFireteamLevelBonusText}"
+                    <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" Spacing="2" IsVisible="{Binding TracksCoreFireteam}">
+                        <Label Text="{Binding CoreFireteam.NameDisplay}" HorizontalTextAlignment="Center" LineBreakMode="TailTruncation" MaxLines="1" />
+                        <Label Text="{Binding CoreFireteam.LevelBonusText}"
                                HorizontalTextAlignment="Center"
                                FontSize="{DynamicResource FontSizeCaption}"
-                               IsVisible="{Binding HasTrackedFireteamLevelBonus}"
+                               IsVisible="{Binding CoreFireteam.HasLevelBonus}"
                                LineBreakMode="WordWrap"
                                MaxLines="2" />
                     </VerticalStackLayout>
                     <controls:SvgIcon Grid.Column="3"
-                                      Source="{Binding TrackedFireteamLevelIcon}"
-                                      IsVisible="{Binding ShowsFireteamTracking}"
+                                      Source="{Binding CoreFireteam.LevelIcon}"
+                                      IsVisible="{Binding TracksCoreFireteam}"
                                       WidthRequest="50"
                                       HeightRequest="50"
                                       Margin="0,0,4,0"
@@ -242,10 +242,10 @@
                 <controls:MercsCompanyEntriesListView
                     Grid.Row="1"
                     VerticalOptions="Fill"
-                    ItemsSource="{Binding MercsCompanyEntries}"
+                    ItemsSource="{Binding Roster.Entries}"
                     SelectEntryCommand="{Binding SelectMercsCompanyEntryCommand}"
                     RemoveEntryCommand="{Binding RemoveMercsCompanyEntryCommand}"
-                    ShowOrderModifierBadges="{Binding ShowsOrderModifierBadges}" />
+                    ShowOrderModifierBadges="{Binding TracksCoreFireteam}" />
                 <Button Grid.Row="2"
                         Text="{Binding ConfirmText}"
                         HorizontalOptions="End"
@@ -258,10 +258,10 @@
         <Grid Grid.RowSpan="3"
               Grid.ColumnSpan="2"
               RowDefinitions="*,18*,*"
-              IsVisible="{Binding IsUnitFilterOpen}"
+              IsVisible="{Binding UnitList.IsFilterOpen}"
               BackgroundColor="#880E1116"
               ZIndex="100">
-            <unitFilter:UnitFilterPopupView Grid.Row="1" HorizontalOptions="Center" MaximumWidthRequest="700" BindingContext="{Binding UnitFilter}" />
+            <unitFilter:UnitFilterPopupView Grid.Row="1" HorizontalOptions="Center" MaximumWidthRequest="700" BindingContext="{Binding UnitList.Filter}" />
         </Grid>
 
         <!-- Compact: the full-screen faction selector. -->
@@ -271,9 +271,9 @@
             ZIndex="200"
             Title="{Binding Heading}"
             IsOpen="{Binding IsFactionOverlayOpen}"
-            ItemsSource="{Binding Factions}"
+            ItemsSource="{Binding Slots.Factions}"
             SelectFactionCommand="{Binding SelectFactionCommand}"
             CloseCommand="{Binding CloseFactionStripCommand}"
-            IsLoading="{Binding IsLoadingFactions}" />
+            IsLoading="{Binding Slots.IsLoading}" />
     </Grid>
 </layout:AdaptiveContentPage>

@@ -1,5 +1,6 @@
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.ViewModels.Company.Selection;
+using InfinityMercsApp.ViewModels.Company.Selection.Rules;
 using InfinityMercsApp.Views.Company.Selection;
 
 namespace InfinityMercsApp.Services.Navigation;
@@ -40,15 +41,18 @@ internal sealed class CompanySelectionNavigator(CompanySelectionServices service
         return viewModel;
     }
 
-    /// <summary>The ViewModel for a kind of company; Inspiring and Airborne companies always use sectorials.</summary>
-    internal CompanySelectionViewModel ViewModelFor(CompanyKind kind, ArmySourceSelectionMode mode) => kind switch
+    /// <summary>The selection screen for a kind of company.</summary>
+    internal CompanySelectionViewModel ViewModelFor(CompanyKind kind, ArmySourceSelectionMode mode) => new(services, RulesFor(kind, mode));
+
+    /// <summary>The rules for a kind of company; Inspiring and Airborne companies always use sectorials.</summary>
+    internal static CompanyRules RulesFor(CompanyKind kind, ArmySourceSelectionMode mode) => kind switch
     {
-        CompanyKind.Standard => new StandardCompanySelectionViewModel(services, mode),
-        CompanyKind.Tag => new TagCompanySelectionViewModel(services, mode),
-        CompanyKind.ProxyPack => new ProxyPackCompanySelectionViewModel(services, mode),
-        CompanyKind.Cohesive => new CohesiveCompanySelectionViewModel(services, mode),
-        CompanyKind.Inspiring => new InspiringCompanySelectionViewModel(services),
-        CompanyKind.Airborne => new AirborneCompanySelectionViewModel(services),
+        CompanyKind.Standard => new StandardCompanyRules(mode),
+        CompanyKind.Tag => new TagCompanyRules(mode),
+        CompanyKind.ProxyPack => new ProxyPackCompanyRules(mode),
+        CompanyKind.Cohesive => new CohesiveCompanyRules(mode),
+        CompanyKind.Inspiring => new InspiringCompanyRules(),
+        CompanyKind.Airborne => new AirborneCompanyRules(),
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
     };
 }
