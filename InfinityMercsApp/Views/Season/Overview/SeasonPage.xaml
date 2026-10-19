@@ -438,11 +438,11 @@
                                 </Grid>
                             </VerticalStackLayout>
 
-                            <Label Text="{Binding Team.SwcText}"
+                            <Label Text="{Binding Team.Gear.SwcText}"
                                    TextColor="{StaticResource TextMuted}"
                                    FontAttributes="Bold"
                                    FontSize="{DynamicResource FontSizeCaption}" />
-                            <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Team.GearSlots}">
+                            <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Team.Gear.Slots}">
                                 <BindableLayout.ItemTemplate>
                                     <DataTemplate x:DataType="overviewItems:GearSlotPicker">
                                         <VerticalStackLayout Spacing="6" IsVisible="{Binding IsAvailable}">

@@ -326,7 +326,7 @@ public sealed class SeasonViewModelTests
     {
         var viewModel = await _kit.OpenAsync();
 
-        Assert.Equal("SWC EQUIPPED 0 / 0.5", viewModel.Team.SwcText);
+        Assert.Equal("SWC EQUIPPED 0 / 0.5", viewModel.Team.Gear.SwcText);
     }
 
     [Fact]
@@ -346,7 +346,7 @@ public sealed class SeasonViewModelTests
 
         var section = Assert.Single(viewModel.Inventory.Sections);
         Assert.Equal("SIDEARM", section.Title);
-        var sidearm = viewModel.Team.GearSlots.Single(picker => picker.Title == "SIDEARM");
+        var sidearm = viewModel.Team.Gear.Slots.Single(picker => picker.Title == "SIDEARM");
         Assert.Equal(["(none)", "Pistol"], sidearm.Options.Select(option => option.Display));
     }
 

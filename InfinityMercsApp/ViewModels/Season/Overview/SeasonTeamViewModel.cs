@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Captain;
-using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Perks.Catalog;
@@ -18,25 +17,18 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;
-using InfinityMercsApp.Services.Season.Peripherals;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;
 using InfinityMercsApp.ViewModels.Components;
-using InfinityMercsApp.ViewModels.Season.Overview.Items;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 
 namespace InfinityMercsApp.ViewModels.Season.Overview;
 
 /// <summary>
 /// The season's Team tab: the company's troopers in a drop-down, and the chosen one's stats, equipment,
-/// skills and weapons, with a picker per gear slot for the season gear the company owns. Gear choices are
-/// saved to the season file; an augment that sets a stat ("WIP=12") changes the stat line. An augment needs its
-/// requirement met by what the trooper has, its other gear included; a change that would leave an equipped augment
-/// without it takes that augment off, once confirmed. The Peripheral (Controller) augment brings a peripheral with
-/// it, picked when it is equipped, and leaves the peripheral uncontrolled when it comes off. The SWC of the gear equipped across the
-/// company may not go over the company's SWC. Any trooper but the captain can be retired, a peripheral too
-/// unless it is a Servant one.
+/// skills and weapons, with its gear pickers (<see cref="Gear"/>); an augment that sets a stat ("WIP=12") changes
+/// the stat line. Any trooper but the captain can be retired, a peripheral too unless it is a Servant one.
 /// </summary>
-public partial class SeasonTeamViewModel : ObservableObject
+public sealed partial class SeasonTeamViewModel : ObservableObject
 {
     public const string NoUnitTitle = "Select unit...";
 
@@ -49,10 +41,6 @@ public partial class SeasonTeamViewModel : ObservableObject
     private readonly ITeamChanges _changes;
     private SavedCompanyFile? _company;
     private SavedImprovedCaptainStats _captain = new();
-    private CompanyLoadouts _loadouts = new();
-    private SeasonInventory _inventory = SeasonInventory.Empty;
-    private InventoryCatalog _catalog = InventoryCatalog.Empty;
-    private double _companySwc;
     private string? _seasonFilePath;
 
     public SeasonTeamViewModel(
@@ -73,7 +61,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         _seasonFiles = seasonFiles;
         _detailPopup = detailPopup;
         Detail = detail;
-        GearSlots = Enum.GetValues<GearSlot>().Select(slot => new GearSlotPicker(slot, OnGearPicked)).ToList();
+        Gear = new TeamGearViewModel(seasonFiles, dialogs, changes, seasonChanged, Units);
     }
 
     /// <summary>The selected trooper's stat line, icons and logo.</summary>
@@ -81,8 +69,8 @@ public partial class SeasonTeamViewModel : ObservableObject
 
     public ObservableCollection<CompanyViewerUnitListItem> Units { get; } = [];
 
-    /// <summary>A picker for each gear slot, in slot order.</summary>
-    public IReadOnlyList<GearSlotPicker> GearSlots { get; }
+    /// <summary>The selected trooper's gear pickers.</summary>
+    public TeamGearViewModel Gear { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PickerTitle))]
@@ -151,10 +139,6 @@ public partial class SeasonTeamViewModel : ObservableObject
     [ObservableProperty]
     public partial string SellText { get; set; } = string.Empty;
 
-    /// <summary>The company's equipped SWC against its SWC, e.g. "SWC EQUIPPED 1.5 / 2".</summary>
-    [ObservableProperty]
-    public partial string SwcText { get; set; } = string.Empty;
-
     public bool HasPerks => Perks.Count > 0;
 
     public bool HasInjuries => Injuries.Count > 0;
@@ -176,7 +160,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         _company = company;
         _captain = company.ImprovedCaptainStats ?? new SavedImprovedCaptainStats();
         _seasonFilePath = seasonFilePath;
-        _loadouts = CompanyLoadouts.From(season?.UnitGear ?? []);
+        Gear.Load(seasonFilePath, season?.UnitGear ?? []);
         Units.Clear();
         SelectedUnit = null;
         foreach (var unit in _roster.UnitsOf(company, season, catalog))
@@ -198,18 +182,6 @@ public partial class SeasonTeamViewModel : ObservableObject
         SelectedUnit = null;
         SelectedName = SelectedBaseName = SelectedUnitType = OwedRollText = string.Empty;
         CanRetireSelected = CanSellSelected = false;
-    }
-
-    /// <summary>
-    /// Takes in what the company now owns for the gear pickers, with the catalog that knows each item's SWC and
-    /// the company's SWC that equipped gear must stay within.
-    /// </summary>
-    public void ShowOwnedGear(SeasonInventory inventory, InventoryCatalog catalog, double companySwc)
-    {
-        _inventory = inventory;
-        _catalog = catalog;
-        _companySwc = companySwc;
-        RefreshGearPickers();
     }
 
     /// <summary>Picks up the inches/centimetres setting, redrawing the selected trooper when it changed.</summary>
@@ -257,7 +229,7 @@ public partial class SeasonTeamViewModel : ObservableObject
     {
         if (SelectedUnit is not { } item || _company is not { } company ||
             await _seasonFiles.LoadAsync(_seasonFilePath) is not { } season ||
-            SeasonRetirement.For(company, item.EntryIndex, season, _catalog, _roster.ServantsOf(company)) is not { } trooper)
+            SeasonRetirement.For(company, item.EntryIndex, season, Gear.Catalog, _roster.ServantsOf(company)) is not { } trooper)
         {
             return;
         }
@@ -307,7 +279,7 @@ public partial class SeasonTeamViewModel : ObservableObject
 
         var profile = CompanyRoster.ProfileOf(item, Detail.ShowUnitsInInches);
         CompanyRoster.ShowOn(Detail, item, profile);
-        var carried = EquippedItem.In(_loadouts.For(item.EntryIndex).ToSeasonGear(), _catalog);
+        var carried = Gear.CarriedBy(item.EntryIndex);
         foreach (var augment in carried.Where(gear => gear.Slot == GearSlot.Augments))
         {
             if (StatOverride.TryParse(augment.Name, out var statOverride))
@@ -332,7 +304,7 @@ public partial class SeasonTeamViewModel : ObservableObject
         Equipment = ProfileColumns.From(ProfileText.Lines(profile.UniqueEquipment));
         Skills = ProfileColumns.From(SkillLines(profile, carried));
         ShowWeapons(profile, carried);
-        RefreshGearPickers();
+        Gear.Show(item);
     }
 
     // The captain's (or a TAG company TAG's) Spec-Ops buys are listed first among the perks, as on an army sheet, then Booty and
@@ -387,259 +359,5 @@ public partial class SeasonTeamViewModel : ObservableObject
 
         RangedWeapons = ProfileColumns.From(ranged);
         MeleeWeapons = ProfileColumns.From(melee);
-    }
-
-    // Each slot offers nothing or an owned item that fits it, noting who else carries it.
-    private void RefreshGearPickers()
-    {
-        if (SelectedUnit is not { } item)
-        {
-            return;
-        }
-
-        SwcText = $"SWC EQUIPPED {SeasonEconomy.SwcText((decimal)EquippedSwc.Of(_loadouts, _catalog))} / {SeasonEconomy.SwcText((decimal)_companySwc)}";
-        var loadout = _loadouts.For(item.EntryIndex);
-        var perkSlots = PerkSlots.Filled(item.Progress?.Perks ?? []);
-        foreach (var picker in GearSlots)
-        {
-            picker.FilledByPerk = perkSlots.GetValueOrDefault(picker.Slot) ?? string.Empty;
-            picker.IsAvailable = picker.Slot switch
-            {
-                GearSlot.Extra => HasExtraSlot(loadout),
-                // Cuckoo Virus Infusion leaves no Primary slot; one already there stays listed so it can come off.
-                GearSlot.Primary => !HasNoPrimary(loadout) || loadout[GearSlot.Primary] is not null,
-                // TAGs wear no armour; one already on stays listed so it can come off.
-                GearSlot.Armor => !UnitTypeCodes.IsTag(item.UnitTypeCode) || loadout[GearSlot.Armor] is not null,
-                _ => true
-            };
-            List<GearOption> options = [GearOption.None];
-            var selected = GearOption.None;
-            var held = HeldBy(item, loadout, picker.Slot);
-            foreach (var itemName in _inventory.ItemsFor(picker.Slot))
-            {
-                var unmet = BannedFor(item, itemName) is { } banned ? $"A TAG can't have {banned}"
-                    : _catalog.Find(itemName)?.Requirement is { } requirement && !requirement.IsMetBy(held) ? requirement.Unmet
-                    : null;
-                var itemOptions = OptionsFor(itemName, picker.Slot, item.EntryIndex, unmet);
-                options.AddRange(itemOptions);
-                if (string.Equals(itemName, loadout[picker.Slot], StringComparison.OrdinalIgnoreCase))
-                {
-                    selected = itemOptions[0];
-                }
-            }
-
-            picker.Show(options, selected);
-        }
-    }
-
-    private void OnGearPicked(GearSlot slot, GearOption option)
-    {
-        if (SelectedUnit is not { } item ||
-            string.Equals(_loadouts.For(item.EntryIndex)[slot], option.ItemName, StringComparison.OrdinalIgnoreCase))
-        {
-            return;
-        }
-
-        if (option.ItemName is { } bannedItem && BannedFor(item, bannedItem) is { } banned)
-        {
-            _ = RefuseBannedAsync(item, banned);
-            return;
-        }
-
-        if (option.ItemName is { } itemName && _catalog.Find(itemName)?.Requirement is { } requirement &&
-            !requirement.IsMetBy(HeldBy(item, _loadouts.For(item.EntryIndex), slot)))
-        {
-            _ = RefuseUnmetAsync(item, itemName, requirement);
-            return;
-        }
-
-        var equippedSwc = EquippedSwc.After(_loadouts, item.EntryIndex, slot, option.ItemName, _catalog, option.TakenFrom);
-        if (equippedSwc > _companySwc && equippedSwc > EquippedSwc.Of(_loadouts, _catalog))
-        {
-            _ = RefuseOverSwcAsync(option, equippedSwc);
-            return;
-        }
-
-        var after = CompanyLoadouts.From(_loadouts.ToSeasonGear());
-        after.Assign(item.EntryIndex, slot, option.ItemName, option.TakenFrom);
-        if (slot == GearSlot.Armor && !HasExtraSlot(after.For(item.EntryIndex)))
-        {
-            // Taking off Belts and Pouches empties its slot.
-            after.Assign(item.EntryIndex, GearSlot.Extra, null);
-        }
-
-        if (slot == GearSlot.Armor && HasNoPrimary(after.For(item.EntryIndex)))
-        {
-            // Cuckoo Virus Infusion takes the Primary slot away; its weapon goes back to the inventory.
-            after.Assign(item.EntryIndex, GearSlot.Primary, null);
-        }
-
-        var stranded = StrandedBy(after);
-        var peripherals = PeripheralChangeTo(after, item);
-        if (stranded.Count > 0 || !peripherals.IsEmpty)
-        {
-            _ = ApplyAsync(after, stranded, peripherals);
-            return;
-        }
-
-        _loadouts = after;
-        _ = SaveThenRefreshAsync();
-    }
-
-    // Who loses or gains the Peripheral (Controller) augment, in its slot or the extra one.
-    private PeripheralChange PeripheralChangeTo(CompanyLoadouts after, CompanyViewerUnitListItem picking)
-    {
-        bool Controls(CompanyLoadouts loadouts, int entryIndex) =>
-            new List<GearSlot> { GearSlot.Augments, GearSlot.Extra }.Any(slot =>
-                string.Equals(loadouts.For(entryIndex)[slot], TohaaPeripherals.AugmentName, StringComparison.OrdinalIgnoreCase));
-
-        var losing = Units.Select(unit => unit.EntryIndex).Where(index => Controls(_loadouts, index) && !Controls(after, index)).ToList();
-        var gaining = !Controls(_loadouts, picking.EntryIndex) && Controls(after, picking.EntryIndex) ? picking.EntryIndex : (int?)null;
-        return new PeripheralChange(losing, gaining, picking.Name);
-    }
-
-    // The augments, on any trooper, that meet their requirement now but wouldn't with the gear in <paramref name="after"/>.
-    private List<StrandedAugment> StrandedBy(CompanyLoadouts after)
-    {
-        var stranded = new List<StrandedAugment>();
-        foreach (var unit in Units)
-        {
-            foreach (var slot in new List<GearSlot> { GearSlot.Augments, GearSlot.Extra })
-            {
-                if (after.For(unit.EntryIndex)[slot] is { } itemName &&
-                    _catalog.Find(itemName)?.Requirement is { } requirement &&
-                    !requirement.IsMetBy(HeldBy(unit, after.For(unit.EntryIndex), slot)) &&
-                    requirement.IsMetBy(HeldBy(unit, _loadouts.For(unit.EntryIndex), slot)))
-                {
-                    stranded.Add(new StrandedAugment(unit.EntryIndex, unit.Name, slot, itemName, requirement));
-                }
-            }
-        }
-
-        return stranded;
-    }
-
-    // A change that strands augments goes ahead once confirmed, the stranded augments going back to the inventory;
-    // one that moves the Peripheral (Controller) augment goes ahead once the peripherals have moved. Otherwise the
-    // pickers go back to what was equipped.
-    private async Task ApplyAsync(CompanyLoadouts after, IReadOnlyList<StrandedAugment> stranded, PeripheralChange peripherals)
-    {
-        if (stranded.Count > 0)
-        {
-            var lines = string.Join(Environment.NewLine, stranded.Select(augment => augment.Describe()));
-            if (!await _dialogs.ConfirmAsync(
-                    "Augments Come Off",
-                    $"This leaves an augment without its requirement, so it goes back to the inventory:{Environment.NewLine}{lines}",
-                    "Continue",
-                    "Cancel"))
-            {
-                RefreshGearPickers();
-                return;
-            }
-
-            foreach (var augment in stranded)
-            {
-                after.Assign(augment.EntryIndex, augment.Slot, null);
-            }
-        }
-
-        if (!peripherals.IsEmpty && !await _changes.ChangePeripheralsAsync(peripherals))
-        {
-            RefreshGearPickers();
-            return;
-        }
-
-        _loadouts = after;
-        await SaveThenRefreshAsync();
-    }
-
-    // A spare copy is offered as itself; with none spare, each copy another slot holds is offered, with whose it is.
-    // The trooper's own copy in this slot is always offered first.
-    private List<GearOption> OptionsFor(string itemName, GearSlot slot, int entryIndex, string? unmet)
-    {
-        var swc = EquippedSwc.Of(itemName, _catalog);
-        var holdings = _loadouts.Holding(itemName);
-        var here = new GearHolding(entryIndex, slot);
-        if (holdings.Contains(here) || holdings.Count < _inventory.CountOf(itemName))
-        {
-            return [GearOption.For(itemName, swc, null, unmet: unmet)];
-        }
-
-        return holdings
-            .Where(holding => slot.SharesItemsWith(holding.Slot))
-            .Select(holding => holding.EntryIndex)
-            .Distinct()
-            .Select(holder => GearOption.For(itemName, swc, Units.FirstOrDefault(unit => unit.EntryIndex == holder)?.Name, holder, unmet))
-            .ToList();
-    }
-
-    // What the trooper has besides the slot being filled: its skills, equipment and characteristics, and the gear in
-    // the loadout's other slots (a role brings its skill).
-    // The skill an item would give a TAG that it may never have, if the trooper is a TAG.
-    private static string? BannedFor(CompanyViewerUnitListItem item, string itemName) =>
-        UnitTypeCodes.IsTag(item.UnitTypeCode) ? TagRestrictions.BannedSkillIn(itemName) : null;
-
-    private static List<string> HeldBy(CompanyViewerUnitListItem item, UnitLoadout loadout, GearSlot slot)
-    {
-        var profile = CompanyRoster.ProfileOf(item);
-        return
-        [
-            .. ProfileText.Lines(profile.UniqueSkills),
-            .. ProfileText.Lines(profile.UniqueEquipment),
-            .. ProfileText.Lines(profile.Characteristics),
-            .. Enum.GetValues<GearSlot>().Where(other => other != slot).Select(other => loadout[other]).OfType<string>()
-        ];
-    }
-
-    // The picker goes back to what the trooper had once the alert is shown.
-    private async Task RefuseUnmetAsync(CompanyViewerUnitListItem item, string itemName, AugmentRequirement requirement)
-    {
-        await _dialogs.ShowAlertAsync("Can't Equip", $"{item.Name} can't take {itemName}. {requirement.Unmet}.");
-        RefreshGearPickers();
-    }
-
-    private async Task RefuseBannedAsync(CompanyViewerUnitListItem item, string banned)
-    {
-        await _dialogs.ShowAlertAsync("Can't Equip", $"{item.Name} is a TAG, and a TAG may never have {banned}.");
-        RefreshGearPickers();
-    }
-
-    // Belts and Pouches gives one more slot.
-    private bool HasExtraSlot(UnitLoadout loadout) =>
-        loadout[GearSlot.Armor] is { } armor && _catalog.Find(armor)?.Armor?.Effects.ExtraSlot == true;
-
-    private bool HasNoPrimary(UnitLoadout loadout) =>
-        loadout[GearSlot.Armor] is { } armor && _catalog.Find(armor)?.Armor?.Effects.NoPrimary == true;
-
-    // The picker goes back to what the trooper had once the alert is shown.
-    private async Task RefuseOverSwcAsync(GearOption option, double equippedSwc)
-    {
-        await _dialogs.ShowAlertAsync(
-            "Not Enough SWC",
-            $"Equipping {option.ItemName} would bring the company's equipped SWC to {SeasonEconomy.SwcText((decimal)equippedSwc)}, " +
-            $"over its {SeasonEconomy.SwcText((decimal)_companySwc)} SWC.");
-        RefreshGearPickers();
-    }
-
-    // The season is re-read after the save, once the picker that reported the choice has finished with it: armour
-    // changes the trooper's line, and gear counts toward renown.
-    private async Task SaveThenRefreshAsync()
-    {
-        try
-        {
-            if (await _seasonFiles.LoadAsync(_seasonFilePath) is { } seasonFile)
-            {
-                seasonFile.UnitGear = _loadouts.ToSeasonGear();
-                await _seasonFiles.SaveAsync(_seasonFilePath, seasonFile);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Saving the season gear failed: {ex.Message}");
-            ShowSelected();
-            return;
-        }
-
-        await _seasonChanged();
     }
 }

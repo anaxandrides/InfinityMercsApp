@@ -96,12 +96,12 @@ public sealed class SeasonTeamViewModelTests
     private async Task ShowSeasonAsync()
     {
         await _team.LoadAsync(SeasonTestKit.Company(), SeasonTestKit.SeasonPath, _kit.Season, Catalog);
-        _team.ShowOwnedGear(Owned(), Catalog, _companySwc);
+        _team.Gear.ShowOwned(Owned(), Catalog, _companySwc);
     }
 
     private CompanyLoadouts SavedLoadouts() => CompanyLoadouts.From(_kit.Season.UnitGear);
 
-    private GearSlotPicker Picker(GearSlot slot) => _team.GearSlots.Single(picker => picker.Slot == slot);
+    private GearSlotPicker Picker(GearSlot slot) => _team.Gear.Slots.Single(picker => picker.Slot == slot);
 
     private CompanyViewerUnitListItem Unit(string name) => _team.Units.Single(unit => unit.Name == name);
 
@@ -172,7 +172,7 @@ public sealed class SeasonTeamViewModelTests
         company.Entries[0].SpecOpsPurchases = ["Spec-Ops: +1 ARM"];
 
         await _team.LoadAsync(company, SeasonTestKit.SeasonPath, _kit.Season, Catalog);
-        _team.ShowOwnedGear(Owned(), Catalog, _companySwc);
+        _team.Gear.ShowOwned(Owned(), Catalog, _companySwc);
         _team.SelectUnitCommand.Execute(Unit("Bolt"));
 
         Assert.Equal(["Spec-Ops: +1 ARM"], _team.Perks);
@@ -375,7 +375,7 @@ public sealed class SeasonTeamViewModelTests
         Assert.Equal(["(none)", "Monofilament Blade"], Picker(GearSlot.Secondary).Options.Select(option => option.Display));
         Assert.Equal(["(none)", "Light Armour (LI)"], Picker(GearSlot.Armor).Options.Select(option => option.Display));
         Assert.Equal(["(none)"], Picker(GearSlot.Roles).Options.Select(option => option.Display));
-        Assert.All(_team.GearSlots, picker => Assert.Equal(GearOption.None, picker.SelectedOption));
+        Assert.All(_team.Gear.Slots, picker => Assert.Equal(GearOption.None, picker.SelectedOption));
     }
 
     [Fact]
@@ -389,7 +389,7 @@ public sealed class SeasonTeamViewModelTests
         Assert.Equal("Spitfire", _team.RangedWeapons.Left.Single().Text);
         Assert.Equal("Monofilament Blade", _team.MeleeWeapons.Left.Single().Text);
         Assert.Equal("Spitfire", _kit.Season.UnitGear[2].Single(gear => gear.Slot == "Primary").ItemName);
-        await _kit.SeasonFiles.Received(2).SaveAsync(SeasonTestKit.SeasonPath, _kit.Season);
+        await _kit.SeasonFiles.Received(2).UpdateAsync(SeasonTestKit.SeasonPath, Arg.Any<Action<SeasonFile>>());
     }
 
     [Fact]
@@ -458,7 +458,7 @@ public sealed class SeasonTeamViewModelTests
         loadouts.Assign(1, GearSlot.Primary, "Spitfire");
         await LoadAsync(loadouts, companySwc: 1.5);
 
-        Assert.Equal("SWC EQUIPPED 1 / 1.5", _team.SwcText);
+        Assert.Equal("SWC EQUIPPED 1 / 1.5", _team.Gear.SwcText);
     }
 
     [Fact]
@@ -471,7 +471,7 @@ public sealed class SeasonTeamViewModelTests
         await _kit.Dialogs.Received(1).ShowAlertAsync("Not Enough SWC", Arg.Is<string>(text => text.Contains("Spitfire") && text.Contains("over its 0.5 SWC")));
         Assert.Equal(GearOption.None, Picker(GearSlot.Primary).SelectedOption);
         Assert.Empty(_kit.Season.UnitGear);
-        await _kit.SeasonFiles.DidNotReceive().SaveAsync(Arg.Any<string?>(), Arg.Any<SeasonFile?>());
+        await _kit.SeasonFiles.DidNotReceive().UpdateAsync(Arg.Any<string?>(), Arg.Any<Action<SeasonFile>>());
     }
 
     [Fact]
@@ -482,7 +482,7 @@ public sealed class SeasonTeamViewModelTests
         Picker(GearSlot.Primary).SelectedOption = Picker(GearSlot.Primary).Options[1];
 
         Assert.Equal("Spitfire", SavedLoadouts().For(2)[GearSlot.Primary]);
-        Assert.Equal("SWC EQUIPPED 1 / 1", _team.SwcText);
+        Assert.Equal("SWC EQUIPPED 1 / 1", _team.Gear.SwcText);
         await _kit.Dialogs.DidNotReceive().ShowAlertAsync(Arg.Any<string>(), Arg.Any<string>());
     }
 
@@ -591,13 +591,27 @@ public sealed class SeasonTeamViewModelTests
     }
 
     [Fact]
+    public async Task SelectedOption_SaveFails_KeepsTheGearAsItWas()
+    {
+        await LoadAsync();
+        _kit.SeasonFiles.UpdateAsync(SeasonTestKit.SeasonPath, Arg.Any<Action<SeasonFile>>()).Returns(false);
+
+        Picker(GearSlot.Primary).SelectedOption = Picker(GearSlot.Primary).Options[1];
+
+        await _kit.Dialogs.Received(1).ShowAlertAsync("Gear Not Saved", Arg.Any<string>());
+        Assert.Equal(GearOption.None, Picker(GearSlot.Primary).SelectedOption);
+        Assert.Equal("SWC EQUIPPED 0 / 2", _team.Gear.SwcText);
+        await _seasonChanged.DidNotReceive()();
+    }
+
+    [Fact]
     public async Task SelectedOption_Null_SavesNothing()
     {
         await LoadAsync();
 
         Picker(GearSlot.Primary).SelectedOption = null;
 
-        await _kit.SeasonFiles.DidNotReceiveWithAnyArgs().SaveAsync(default, default);
+        await _kit.SeasonFiles.DidNotReceive().UpdateAsync(Arg.Any<string?>(), Arg.Any<Action<SeasonFile>>());
     }
 
     [Fact]
@@ -736,7 +750,7 @@ public sealed class SeasonTeamViewModelTests
         var company = SeasonTestKit.Company();
         company.Entries[0].UnitTypeCode = "TAG";
         await _team.LoadAsync(company, SeasonTestKit.SeasonPath, _kit.Season, Catalog);
-        _team.ShowOwnedGear(Owned(), Catalog, _companySwc);
+        _team.Gear.ShowOwned(Owned(), Catalog, _companySwc);
         _team.SelectUnitCommand.Execute(Unit("Bolt"));
         var engineer = Picker(GearSlot.Roles).Options.Single(option => option.ItemName == "Engineer (+Gizmokit)");
         Assert.Equal("Engineer (+Gizmokit)  [A TAG can't have Engineer]", engineer.Display);

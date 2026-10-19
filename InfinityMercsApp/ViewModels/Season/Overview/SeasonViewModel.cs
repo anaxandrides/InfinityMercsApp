@@ -317,7 +317,7 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
         Marketplace.RefreshBalance(seasonFile);
         Inventory.Show(_seasonFilePath, seasonFile, inventory);
         Services.Show(_seasonFilePath, seasonFile, Team.Units.ToList());
-        Team.ShowOwnedGear(inventory, catalog, SeasonEconomy.Ledger(seasonFile).CompanySwc);
+        Team.Gear.ShowOwned(inventory, catalog, SeasonEconomy.Ledger(seasonFile).CompanySwc);
         WarMarketChoice.Prepare(
             _seasonFilePath,
             seasonFile,
