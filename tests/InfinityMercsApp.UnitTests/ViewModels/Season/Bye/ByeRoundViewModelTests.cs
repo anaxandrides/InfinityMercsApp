@@ -5,6 +5,7 @@ using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Presentation.Season;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.UnitTests.Support;
@@ -57,7 +58,7 @@ public sealed class ByeRoundViewModelTests : IDisposable
 
     private async Task<ByeRoundViewModel> OpenAsync()
     {
-        var roster = new DeploymentRoster(Army101Data.Create(), _seasonFiles, new StoreCatalog(Substitute.For<IStoreProvider>()));
+        var roster = new DeploymentRoster(Army101Data.Create(), new CompanyFileStore(), _seasonFiles, new StoreCatalog(Substitute.For<IStoreProvider>()));
         var viewModel = new ByeRoundViewModel(_navigation, _dialogs, _seasonFiles, roster, _debrief);
         viewModel.ApplyQueryAttributes(NavigationParameters.ForCompany(_companyPath, SeasonPath));
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);

@@ -224,8 +224,7 @@ public sealed class CompanyRosterTests
             CarriesCaptainUpgrades = true,
             Cost = 18,
             SavedSkills = string.Join(Environment.NewLine, "Lieutenant (+1 Order)", "Dodge", "Courage"),
-            SavedRangedWeapons = "Combi Rifle",
-            SavedPeripheralNameHeading = "Peripheral: Traktor Mul"
+            SavedRangedWeapons = "Combi Rifle"
         };
 
         var profile = CompanyRoster.ProfileOf(item);

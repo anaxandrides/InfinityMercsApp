@@ -16,6 +16,7 @@ using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
+using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Season.Peripherals;
 using InfinityMercsApp.Services.Stores;
@@ -30,6 +31,7 @@ namespace InfinityMercsApp.Presentation.Season;
 /// </summary>
 public sealed partial class DeploymentRoster(
     IArmyDataService armyData,
+    ICompanyFileService companyFiles,
     ISeasonFileService seasonFiles,
     StoreCatalog stores,
     FactionLogoCacheService? logos = null)
@@ -38,8 +40,6 @@ public sealed partial class DeploymentRoster(
 
     // The one skill a Transmutation (X) trooper keeps in both profiles, whatever gave it.
     private const string Neurocinetics = "Neurocinetics";
-
-    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     private readonly ServantPeripherals _servants = new(armyData);
     private readonly TransmutedForms _transmuted = new(armyData);
@@ -59,9 +59,7 @@ public sealed partial class DeploymentRoster(
         SavedCompanyFile? company;
         try
         {
-            company = File.Exists(companyFilePath)
-                ? JsonSerializer.Deserialize<SavedCompanyFile>(await File.ReadAllTextAsync(companyFilePath), JsonOptions)
-                : null;
+            company = companyFiles.Exists(companyFilePath) ? await companyFiles.LoadAsync(companyFilePath) : null;
         }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {

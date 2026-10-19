@@ -9,6 +9,7 @@ using InfinityMercsApp.Presentation.Season;
 using InfinityMercsApp.Presentation.Season.Game;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.UnitTests.Support;
@@ -51,7 +52,7 @@ public sealed class GameModeViewModelTests : IDisposable
         var companyPath = _records.WriteCompany("c.json", JsonSerializer.Serialize(new { entries }));
 
         var viewModel = new GameModeViewModel(
-            _navigation, _dialogs, _seasonFiles, new DeploymentRoster(Army101Data.Create(), _seasonFiles, new StoreCatalog(Substitute.For<IStoreProvider>())), _debrief, _settings);
+            _navigation, _dialogs, _seasonFiles, new DeploymentRoster(Army101Data.Create(), new CompanyFileStore(), _seasonFiles, new StoreCatalog(Substitute.For<IStoreProvider>())), _debrief, _settings);
         var query = NavigationParameters.ForCompany(companyPath, SeasonPath);
         query[NavigationParameters.EliteDeployment] = elite;
         viewModel.ApplyQueryAttributes(query);

@@ -37,7 +37,7 @@ public static class SavedCodeNames
     }
 
     /// <summary>The entry's coded names followed by its custom (uncoded) names for one kind.</summary>
-    public static List<string> ForEntry(ArmyFilterCatalog? filters, CompanySavedCompanyEntryBase entry, ProfileEntryKind kind)
+    public static List<string> ForEntry(ArmyFilterCatalog? filters, SavedCompanyEntry entry, ProfileEntryKind kind)
     {
         var names = Resolve(filters, entry.CurrentCodes(kind), kind);
         names.AddRange(entry.CustomNames(kind));
@@ -45,7 +45,7 @@ public static class SavedCodeNames
     }
 
     /// <summary>The entry's weapons, coded and custom, without blanks, dashes or repeats, split into ranged and melee.</summary>
-    public static WeaponLists Weapons(ArmyFilterCatalog? filters, CompanySavedCompanyEntryBase entry) =>
+    public static WeaponLists Weapons(ArmyFilterCatalog? filters, SavedCompanyEntry entry) =>
         WeaponLists.Split(ForEntry(filters, entry, ProfileEntryKind.Weapons)
             .Where(name => !string.IsNullOrWhiteSpace(name) && name.Trim() != "-")
             .Select(name => name.Trim())

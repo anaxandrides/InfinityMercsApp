@@ -4,6 +4,7 @@ using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Presentation.Season;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.UnitTests.Support;
@@ -36,7 +37,7 @@ public sealed class PlayModeViewModelTests : IDisposable
 
         _companyPath = _records.WriteCompany("c.json", JsonSerializer.Serialize(new { entries }));
         var viewModel = new PlayModeViewModel(
-            _navigation, _dialogs, new DeploymentRoster(Army101Data.Create(), Substitute.For<ISeasonFileService>(), new StoreCatalog(Substitute.For<IStoreProvider>())), _settings);
+            _navigation, _dialogs, new DeploymentRoster(Army101Data.Create(), new CompanyFileStore(), Substitute.For<ISeasonFileService>(), new StoreCatalog(Substitute.For<IStoreProvider>())), _settings);
         viewModel.ApplyQueryAttributes(NavigationParameters.ForCompany(_companyPath, "/s.json"));
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         return viewModel;

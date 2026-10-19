@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
 
@@ -13,7 +14,8 @@ namespace InfinityMercsApp.ViewModels.Season;
 public partial class LoadSeasonViewModel(
     INavigationService navigationService,
     IDialogService dialogs,
-    SeasonRecordCatalog catalog) : AdaptiveViewModelBase<RecordListLayout>(navigationService, RecordListLayout.For)
+    SeasonRecordCatalog catalog,
+    ICompanyFileService companyFiles) : AdaptiveViewModelBase<RecordListLayout>(navigationService, RecordListLayout.For)
 {
     public ObservableCollection<SeasonRecord> SeasonRecords { get; } = [];
 
@@ -42,7 +44,7 @@ public partial class LoadSeasonViewModel(
             return;
         }
 
-        if (!File.Exists(record.CompanyFilePath))
+        if (!companyFiles.Exists(record.CompanyFilePath))
         {
             await dialogs.ShowAlertAsync(
                 "Company Not Found",

@@ -6,6 +6,7 @@ using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.Dialogs;
+using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using NSubstitute;
@@ -29,7 +30,7 @@ public sealed class CompanyFounderTests : IDisposable
     {
         var armyData = Army101Data.Create();
         var captains = new CaptainSetup(_dialog, new CaptainOptionCatalog(armyData, Substitute.For<ISpecOpsProvider>()), armyData);
-        _founder = new CompanyFounder(captains, new SavedEntryWriter(armyData), _records.Paths);
+        _founder = new CompanyFounder(captains, new SavedEntryWriter(armyData), _records.Paths, new CompanyFileStore());
         _dialog.ShowAsync(Arg.Any<CaptainUpgradePopupContext>())
             .Returns(new SavedImprovedCaptainStats { IsEnabled = true, CaptainName = "Kestrel" });
     }
@@ -110,6 +111,22 @@ public sealed class CompanyFounderTests : IDisposable
         Assert.NotNull(company);
         Assert.Equal("Fusilier Core", company.CoreFireteam);
         Assert.Equal([new FireteamSlot("Fusilier", 7, 101, "*")], company.CoreFireteamSlots);
+    }
+
+    // Armour keeps the captain's ARM bonus on top, and the Team tab lists its buys, from the saved upgrades.
+    [Fact]
+    public async Task FoundAsync_CaptainUpgraded_SavesTheUpgradesAndTheirStats()
+    {
+        _dialog.ShowAsync(Arg.Any<CaptainUpgradePopupContext>())
+            .Returns(new SavedImprovedCaptainStats { IsEnabled = true, CaptainName = "Kestrel", ArmBonus = 1 });
+
+        var result = await _founder.FoundAsync(Request("Standard Company", Trooper("Alpha", isLieutenant: true), Trooper("Bravo")));
+
+        var company = await new CompanyFileStore().LoadAsync(result.FilePath);
+        Assert.NotNull(company);
+        Assert.Equal((true, 1), (company.ImprovedCaptainStats?.IsEnabled, company.ImprovedCaptainStats?.ArmBonus));
+        Assert.Equal(["2", "1"], company.Entries.Select(entry => entry.CurrentArm));
+        Assert.Equal([true, false], company.Entries.Select(entry => entry.CarriesCaptainUpgrades));
     }
 
     [Fact]

@@ -107,7 +107,7 @@ internal sealed class SelectionTestKit
                 UnitDetails: new UnitDetailsLoader(ArmyData, SpecOps),
                 CoreFireteams: new CoreFireteamEligibility(ArmyData),
                 Captains: captains,
-                Founder: new CompanyFounder(captains, entries, Paths),
+                Founder: new CompanyFounder(captains, entries, Paths, new CompanyFileStore()),
                 Recruiter: new CompanyRecruiter(entries, CompanyFiles, SeasonFiles),
                 Settings: Settings);
         }

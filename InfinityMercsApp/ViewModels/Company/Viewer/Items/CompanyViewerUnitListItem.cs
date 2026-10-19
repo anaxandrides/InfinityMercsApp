@@ -44,7 +44,6 @@ public sealed partial class CompanyViewerUnitListItem : ObservableObject, IViewe
     public string SavedCharacteristics { get; init; } = "-";
     public string SavedRangedWeapons { get; init; } = "-";
     public string SavedCcWeapons { get; init; } = "-";
-    public string SavedPeripheralNameHeading { get; init; } = string.Empty;
     public string UnitMov { get; init; } = "-";
     public string UnitCc { get; init; } = "-";
     public string UnitBs { get; init; } = "-";

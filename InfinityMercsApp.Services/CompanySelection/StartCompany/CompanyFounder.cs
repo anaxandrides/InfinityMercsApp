@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Lieutenants;
@@ -17,9 +16,9 @@ namespace InfinityMercsApp.Services.CompanySelection.StartCompany;
 
 /// <summary>
 /// Founds a company: the captain (or a TAG company's lieutenant TAG) is upgraded through its popup, then the
-/// company is written to a new file in the companies folder.
+/// company is saved to a new file in the companies folder, with the captain's upgrades.
 /// </summary>
-public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entries, RecordPaths paths)
+public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entries, RecordPaths paths, ICompanyFileService companyFiles)
 {
     /// <summary>The company type a TAG Company is saved with; its TAG, when captain, gets the TAG Spec-Ops popup.</summary>
     public const string TagCompanyType = "TAG Company";
@@ -138,7 +137,7 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
         var startSeasonPoints = int.TryParse(request.SelectedStartSeasonPoints, out var parsedStartSeasonPoints)
             ? parsedStartSeasonPoints
             : 0;
-        var payload = new
+        var company = new SavedCompanyFile
         {
             CompanyName = request.CompanyName.Trim(),
             CompanyType = request.CompanyType,
@@ -149,24 +148,15 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
             PointsLimit = startSeasonPoints,
             CurrentPoints = int.TryParse(request.SeasonPointsCapText, out var currentPoints) ? currentPoints : 0,
             CoreFireteam = request.CoreFireteam,
-            request.CoreFireteamSlots,
+            CoreFireteamSlots = [.. request.CoreFireteamSlots],
+            ImprovedCaptainStats = improvedCaptainStats,
             SourceFactions = sourceFactions
-                .Select(faction => new
-                {
-                    FactionId = faction.Id,
-                    FactionName = faction.Name
-                })
+                .Select(faction => new SavedCompanyFaction { FactionId = faction.Id, FactionName = faction.Name })
                 .ToList(),
             Entries = entries.Build(troopers, normalizedCaptainName, improvedCaptainStats)
         };
 
-        await File.WriteAllTextAsync(
-            filePath,
-            JsonSerializer.Serialize(payload, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            }));
+        await companyFiles.SaveAsync(filePath, company);
     }
 
     // The SHA-256 of the file name, in hex: a company's id for the seasons that play it.

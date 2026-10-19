@@ -1,4 +1,3 @@
-using System.Text.Json;
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Filters;
@@ -21,26 +20,22 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
     public IReadOnlyList<SavedCompanyEntry> RecruitEntries<TEntry>(
         IList<TEntry> recruits,
         int firstEntryIndex)
-        where TEntry : class, ICompanyMercsEntry
-    {
-        var serialized = Build(recruits, "Captain", new SavedImprovedCaptainStats(), firstEntryIndex);
-        var json = JsonSerializer.Serialize(serialized);
-        return JsonSerializer.Deserialize<List<SavedCompanyEntry>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
-    }
+        where TEntry : class, ICompanyMercsEntry =>
+        Build(recruits, "Captain", new SavedImprovedCaptainStats(), firstEntryIndex);
 
     /// <summary>
     /// The troopers as saved entries numbered from <paramref name="firstEntryIndex"/>, each followed by its
     /// peripheral; the lieutenant gets <paramref name="improvedCaptainStats"/>. A Servant recruited on its own is
     /// saved as its owner's peripheral, at its own cost.
     /// </summary>
-    internal List<SerializedCompanyEntry> Build<TEntry>(
+    internal List<SavedCompanyEntry> Build<TEntry>(
         IList<TEntry> entries,
         string normalizedCaptainName,
         SavedImprovedCaptainStats improvedCaptainStats,
         int firstEntryIndex = 0)
         where TEntry : class, ICompanyMercsEntry
     {
-        var result = new List<SerializedCompanyEntry>(entries.Count * 2);
+        var result = new List<SavedCompanyEntry>(entries.Count * 2);
         var encoder = new SavedCodeEncoder(armyData);
         var indexes = EntryIndexes(entries, firstEntryIndex);
         var entryIndex = firstEntryIndex;
@@ -92,7 +87,7 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
         : indexes.TryGetValue(owner, out var index) ? index
         : owner.SavedEntryIndex;
 
-    private SerializedCompanyEntry CreatePrimaryEntry<TEntry>(
+    private SavedCompanyEntry CreatePrimaryEntry<TEntry>(
         TEntry entry,
         int entryIndex,
         int? servantOwnerIndex,
@@ -119,13 +114,9 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
         var currentBts = baseBts;
         var currentVitaOrStr = baseVitaOrStr;
 
-        var baseSkillNames = SplitCodes(entry.SavedSkills);
         var currentSkillNames = SplitCodes(entry.SavedSkills);
-        var baseCharacteristicNames = SplitCodes(entry.SavedCharacteristics);
         var currentCharacteristicNames = SplitCodes(entry.SavedCharacteristics);
-        var baseEquipmentNames = SplitCodes(entry.SavedEquipment);
         var currentEquipmentNames = SplitCodes(entry.SavedEquipment);
-        var baseWeaponNames = SplitCodes(string.Join(Environment.NewLine, [entry.SavedRangedWeapons, entry.SavedCcWeapons]));
         var currentWeaponNames = SplitCodes(string.Join(Environment.NewLine, [entry.SavedRangedWeapons, entry.SavedCcWeapons]));
 
         // Persist Lieutenant explicitly for founded companies when this entry is the Lieutenant.
@@ -162,45 +153,22 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
                 improvedCaptainStats.EquipmentChoice3);
         }
 
-        List<int> baseLookupFactions = [entry.SourceFactionId];
-        List<int> currentLookupFactions = entry.IsLieutenant && improvedCaptainStats.OptionFactionId > 0
+        List<int> lookupFactions = entry.IsLieutenant && improvedCaptainStats.OptionFactionId > 0
             ? [entry.SourceFactionId, improvedCaptainStats.OptionFactionId]
             : [entry.SourceFactionId];
 
-        var baseSkillResolution = encoder.Encode(baseSkillNames, ProfileEntryKind.Skills, baseLookupFactions);
-        var currentSkillResolution = encoder.Encode(currentSkillNames, ProfileEntryKind.Skills, currentLookupFactions);
-        var baseCharacteristicResolution = encoder.Encode(baseCharacteristicNames, ProfileEntryKind.Chars, baseLookupFactions);
-        var currentCharacteristicResolution = encoder.Encode(currentCharacteristicNames, ProfileEntryKind.Chars, currentLookupFactions);
-        var baseEquipmentResolution = encoder.Encode(baseEquipmentNames, ProfileEntryKind.Equip, baseLookupFactions);
-        var currentEquipmentResolution = encoder.Encode(currentEquipmentNames, ProfileEntryKind.Equip, currentLookupFactions);
-        var baseWeaponResolution = encoder.Encode(baseWeaponNames, ProfileEntryKind.Weapons, baseLookupFactions);
-        var currentWeaponResolution = encoder.Encode(currentWeaponNames, ProfileEntryKind.Weapons, currentLookupFactions);
-        var resolvedUnitTypeCode = ResolveUnitTypeCode(entry);
+        var skills = encoder.Encode(currentSkillNames, ProfileEntryKind.Skills, lookupFactions);
+        var characteristics = encoder.Encode(currentCharacteristicNames, ProfileEntryKind.Chars, lookupFactions);
+        var equipment = encoder.Encode(currentEquipmentNames, ProfileEntryKind.Equip, lookupFactions);
+        var weapons = encoder.Encode(currentWeaponNames, ProfileEntryKind.Weapons, lookupFactions);
 
-        var customSkills = baseSkillResolution.CustomNames
-            .Concat(currentSkillResolution.CustomNames)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        var customCharacteristics = baseCharacteristicResolution.CustomNames
-            .Concat(currentCharacteristicResolution.CustomNames)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        var customEquipment = baseEquipmentResolution.CustomNames
-            .Concat(currentEquipmentResolution.CustomNames)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        var customWeapons = baseWeaponResolution.CustomNames
-            .Concat(currentWeaponResolution.CustomNames)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        return new SerializedCompanyEntry
+        return new SavedCompanyEntry
         {
             EntryIndex = entryIndex,
             Name = entry.Name,
             BaseUnitName = string.IsNullOrWhiteSpace(entry.BaseUnitName) ? entry.Name : entry.BaseUnitName,
             CustomName = entry.IsLieutenant ? normalizedCaptainName : entry.Name,
-            UnitTypeCode = resolvedUnitTypeCode,
+            UnitTypeCode = ResolveUnitTypeCode(entry),
             ProfileKey = entry.ProfileKey,
             SourceFactionId = entry.SourceFactionId,
             SourceUnitId = entry.SourceUnitId,
@@ -212,40 +180,8 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
             IsLieutenant = entry.IsLieutenant,
             CarriesCaptainUpgrades = entry.IsLieutenant,
             IsLoneWolf = entry.IsLoneWolf,
-            // Persist peripherals as dedicated child entries only.
-            HasPeripheralStatBlock = false,
-            PeripheralNameHeading = string.Empty,
-            PeripheralMov = "-",
-            PeripheralCc = "-",
-            PeripheralBs = "-",
-            PeripheralPh = "-",
-            PeripheralWip = "-",
-            PeripheralArm = "-",
-            PeripheralBts = "-",
-            PeripheralVitalityHeader = Stat.Vita.Key(),
-            PeripheralVitality = "-",
-            PeripheralS = "-",
-            PeripheralAva = "-",
-            SavedPeripheralEquipment = "-",
-            SavedPeripheralSkills = "-",
             ExperiencePoints = Math.Max(0, entry.ExperiencePoints),
             Perks = CompanyPerkProgressionService.Normalize(entry.Perks),
-            BaseProfileHumanReadable = string.IsNullOrWhiteSpace(entry.BaseUnitName) ? entry.Name : entry.BaseUnitName,
-            IsCaptain = entry.IsLieutenant,
-            FactionId = entry.SourceFactionId,
-            ProfileId = entry.SourceUnitId,
-            Renown = 0,
-            BaseCr = entry.CostValue,
-            CalculatedCr = entry.CostValue,
-            BaseMov = baseMov,
-            BaseCc = baseCc,
-            BaseBs = baseBs,
-            BasePh = basePh,
-            BaseWip = baseWip,
-            BaseArm = baseArm,
-            BaseBts = baseBts,
-            BaseVitaOrStr = baseVitaOrStr,
-            BaseS = baseS,
             CurrentMov = baseMov,
             CurrentMoveFirstCm = entry.UnitMoveFirstCm,
             CurrentMoveSecondCm = entry.UnitMoveSecondCm,
@@ -257,24 +193,19 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
             CurrentBts = currentBts,
             CurrentVitaOrStr = currentVitaOrStr,
             CurrentS = baseS,
-            Xp = Math.Max(0, entry.ExperiencePoints),
-            BaseSkillCodes = baseSkillResolution.Codes,
-            CurrentSkillCodes = currentSkillResolution.Codes,
-            BaseCharacteristicCodes = baseCharacteristicResolution.Codes,
-            CurrentCharacteristicCodes = currentCharacteristicResolution.Codes,
-            BaseEquipmentCodes = baseEquipmentResolution.Codes,
-            CurrentEquipmentCodes = currentEquipmentResolution.Codes,
-            BaseWeaponCodes = baseWeaponResolution.Codes,
-            CurrentWeaponCodes = currentWeaponResolution.Codes,
-            CustomSkills = customSkills,
-            CustomCharacteristics = customCharacteristics,
-            CustomEquipment = customEquipment,
-            CustomWeapons = customWeapons,
+            CurrentSkillCodes = skills.Codes,
+            CurrentCharacteristicCodes = characteristics.Codes,
+            CurrentEquipmentCodes = equipment.Codes,
+            CurrentWeaponCodes = weapons.Codes,
+            CustomSkills = skills.CustomNames,
+            CustomCharacteristics = characteristics.CustomNames,
+            CustomEquipment = equipment.CustomNames,
+            CustomWeapons = weapons.CustomNames,
             SpecOpsPurchases = [.. entry.SpecOpsPurchases]
         };
     }
 
-    private SerializedCompanyEntry CreatePeripheralEntry<TEntry>(
+    private SavedCompanyEntry CreatePeripheralEntry<TEntry>(
         TEntry entry,
         int entryIndex,
         int parentEntryIndex,
@@ -302,7 +233,7 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
             peripheralWeaponNames,
             ProfileEntryKind.Weapons,
             [entry.SourceFactionId]);
-        return new SerializedCompanyEntry
+        return new SavedCompanyEntry
         {
             EntryIndex = entryIndex,
             Name = peripheralName,
@@ -316,41 +247,6 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
             LogoSourceUnitId = entry.LogoSourceUnitId,
             IsPeripheralUnit = true,
             ParentEntryIndex = parentEntryIndex,
-            Cost = 0,
-            IsLieutenant = false,
-            HasPeripheralStatBlock = false,
-            PeripheralNameHeading = string.Empty,
-            PeripheralMov = "-",
-            PeripheralCc = "-",
-            PeripheralBs = "-",
-            PeripheralPh = "-",
-            PeripheralWip = "-",
-            PeripheralArm = "-",
-            PeripheralBts = "-",
-            PeripheralVitalityHeader = Stat.Vita.Key(),
-            PeripheralVitality = "-",
-            PeripheralS = "-",
-            PeripheralAva = "-",
-            SavedPeripheralEquipment = "-",
-            SavedPeripheralSkills = "-",
-            ExperiencePoints = 0,
-            Perks = [],
-            BaseProfileHumanReadable = peripheralName,
-            IsCaptain = false,
-            FactionId = entry.SourceFactionId,
-            ProfileId = entry.SourceUnitId,
-            Renown = 0,
-            BaseCr = 0,
-            CalculatedCr = 0,
-            BaseMov = entry.PeripheralMov,
-            BaseCc = entry.PeripheralCc,
-            BaseBs = entry.PeripheralBs,
-            BasePh = entry.PeripheralPh,
-            BaseWip = entry.PeripheralWip,
-            BaseArm = entry.PeripheralArm,
-            BaseBts = entry.PeripheralBts,
-            BaseVitaOrStr = entry.PeripheralVitality,
-            BaseS = entry.PeripheralS,
             CurrentMov = entry.PeripheralMov,
             CurrentMoveFirstCm = entry.PeripheralMoveFirstCm,
             CurrentMoveSecondCm = entry.PeripheralMoveSecondCm,
@@ -362,14 +258,9 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
             CurrentBts = entry.PeripheralBts,
             CurrentVitaOrStr = entry.PeripheralVitality,
             CurrentS = entry.PeripheralS,
-            Xp = 0,
-            BaseSkillCodes = peripheralSkillResolution.Codes,
             CurrentSkillCodes = peripheralSkillResolution.Codes,
-            BaseCharacteristicCodes = peripheralCharacteristicResolution.Codes,
             CurrentCharacteristicCodes = peripheralCharacteristicResolution.Codes,
-            BaseEquipmentCodes = peripheralEquipmentResolution.Codes,
             CurrentEquipmentCodes = peripheralEquipmentResolution.Codes,
-            BaseWeaponCodes = peripheralWeaponResolution.Codes,
             CurrentWeaponCodes = peripheralWeaponResolution.Codes,
             CustomSkills = peripheralSkillResolution.CustomNames,
             CustomCharacteristics = peripheralCharacteristicResolution.CustomNames,

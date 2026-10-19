@@ -8,6 +8,7 @@ using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.Loot;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Presentation.Season;
+using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.UnitTests.Season.Armor;
@@ -27,7 +28,7 @@ public sealed class DeploymentRosterTests : IDisposable
     private readonly IStoreProvider _stores = Substitute.For<IStoreProvider>();
     private readonly DeploymentRoster _roster;
 
-    public DeploymentRosterTests() => _roster = new DeploymentRoster(Army101Data.Create(), _seasonFiles, new StoreCatalog(_stores));
+    public DeploymentRosterTests() => _roster = new DeploymentRoster(Army101Data.Create(), new CompanyFileStore(), _seasonFiles, new StoreCatalog(_stores));
 
     public void Dispose() => _records.Dispose();
 
@@ -284,7 +285,7 @@ public sealed class DeploymentRosterTests : IDisposable
     {
         var data = Army101Data.Create();
         data.GetWeaponNames().Returns(["HMG"]);
-        var roster = new DeploymentRoster(data, _seasonFiles, new StoreCatalog(_stores));
+        var roster = new DeploymentRoster(data, new CompanyFileStore(), _seasonFiles, new StoreCatalog(_stores));
         var season = new SeasonFile();
         season.UnitGear[2] = [new SeasonUnitGear { ItemName = "Irmandihno Wetsuit (LI) [HMG]", Slot = GearSlot.Armor.Key() }];
         _seasonFiles.LoadAsync(SeasonPath).Returns(season);

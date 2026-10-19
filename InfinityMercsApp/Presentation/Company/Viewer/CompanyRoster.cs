@@ -11,7 +11,6 @@ using InfinityMercsApp.Presentation.Units;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
-using InfinityMercsApp.Services.CompanySelection.Profiles;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;
@@ -150,7 +149,6 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             SavedCharacteristics = ProfileText.JoinOrDash(profile.Characteristics),
             SavedRangedWeapons = ranged,
             SavedCcWeapons = melee,
-            SavedPeripheralNameHeading = entry.PeripheralNameHeading,
             UnitMov = profile.Move,
             UnitCc = profile.Cc,
             UnitBs = profile.Bs,
@@ -215,7 +213,6 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
             UniqueSkills = skills,
             UniqueSkillsFormatted = Simple(skills, SkillsColor),
             Characteristics = InUnits(SavedUnitText.Section(item.SavedCharacteristics)),
-            Peripherals = PeripheralText(item.SavedPeripheralNameHeading),
             Cost = item.Cost.ToString(System.Globalization.CultureInfo.InvariantCulture),
             Swc = "-",
             SwcDisplay = string.Empty,
@@ -305,13 +302,5 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
         var formatted = new FormattedString();
         formatted.Spans.Add(new Span { Text = string.IsNullOrWhiteSpace(text) ? "-" : text, TextColor = color });
         return formatted;
-    }
-
-    private static string PeripheralText(string? peripheralHeading)
-    {
-        var name = string.IsNullOrWhiteSpace(peripheralHeading)
-            ? string.Empty
-            : PeripheralNames.FirstOf(peripheralHeading);
-        return string.IsNullOrWhiteSpace(name) ? "-" : $"{name} (1)";
     }
 }
