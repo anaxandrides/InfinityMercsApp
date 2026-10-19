@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:seasonViewModels="clr-namespace:InfinityMercsApp.ViewModels.Season"
              xmlns:seasonItems="clr-namespace:InfinityMercsApp.ViewModels.Season.Items"
+             xmlns:inducements="clr-namespace:InfinityMercsApp.ViewModels.Season.Inducements"
+             xmlns:inducementItems="clr-namespace:InfinityMercsApp.ViewModels.Season.Inducements.Items"
              xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:season="clr-namespace:InfinityMercsApp.Views.Season"
@@ -11,6 +13,38 @@
              x:Name="PageRoot"
              Title="Play Round"
              BackgroundColor="{StaticResource Void}">
+
+    <ContentPage.Resources>
+        <Style x:Key="ShopHeading" TargetType="Label">
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
+            <Setter Property="Margin" Value="0,10,0,2" />
+        </Style>
+        <Style x:Key="ShopRow" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="{StaticResource Plate}" />
+            <Setter Property="Stroke" Value="{StaticResource Hairline}" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 4" />
+        </Style>
+        <Style x:Key="ShopCost" TargetType="Label">
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="TextColor" Value="{StaticResource Signal}" />
+            <Setter Property="VerticalTextAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="ShopRemove" TargetType="Button">
+            <Setter Property="Text" Value="✕" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="BorderColor" Value="Transparent" />
+            <Setter Property="TextColor" Value="{StaticResource Danger}" />
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="WidthRequest" Value="36" />
+            <Setter Property="HeightRequest" Value="36" />
+        </Style>
+    </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,*,Auto">
 
@@ -213,7 +247,46 @@
         </Grid>
 
         <!-- Deploy area -->
-        <VerticalStackLayout Grid.Row="2" Spacing="4" Padding="0,8,0,12" HorizontalOptions="Center">
+        <VerticalStackLayout Grid.Row="2" Spacing="4" Padding="16,8,16,12">
+            <!-- Inducements: the underdog gets half the renown difference, rounded down to 5. -->
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                <Label Text="{Binding DeployedRenown, StringFormat='Deployed renown: {0}'}"
+                       FontSize="{DynamicResource FontSizeBody}"
+                       TextColor="{StaticResource TextSecondary}"
+                       VerticalTextAlignment="Center" />
+                <Entry Grid.Column="1"
+                       Text="{Binding OpponentRenownText}"
+                       Placeholder="Opponent's renown"
+                       Keyboard="Numeric"
+                       FontSize="{DynamicResource FontSizeBody}"
+                       MinimumWidthRequest="150" />
+                <HorizontalStackLayout Grid.Column="2" Spacing="0" VerticalOptions="Center">
+                    <CheckBox IsChecked="{Binding IsCooperative}" Color="{StaticResource Signal}" />
+                    <Label Text="Co-op"
+                           FontSize="{DynamicResource FontSizeBody}"
+                           TextColor="{StaticResource TextMuted}"
+                           VerticalTextAlignment="Center" />
+                </HorizontalStackLayout>
+            </Grid>
+            <Label Text="{Binding InducementText}"
+                   FontSize="{DynamicResource FontSizeBody}"
+                   TextColor="{StaticResource TextMuted}"
+                   HorizontalTextAlignment="Center" />
+            <Button Text="{Binding Shop.LeftText, StringFormat='INDUCEMENTS · {0}'}"
+                    IsVisible="{Binding CanSpendInducements}"
+                    Command="{Binding Shop.OpenCommand}"
+                    BackgroundColor="{StaticResource PlateRaised}"
+                    BorderColor="{StaticResource Signal}"
+                    BorderWidth="1"
+                    TextColor="{StaticResource Signal}"
+                    FontAttributes="Bold"
+                    HorizontalOptions="Center" />
+            <Label Text="{Binding Shop.Summary}"
+                   IsVisible="{Binding Shop.HasPurchases}"
+                   FontSize="{DynamicResource FontSizeCaption}"
+                   TextColor="{StaticResource TextSecondary}"
+                   HorizontalTextAlignment="Center"
+                   LineBreakMode="WordWrap" />
             <!-- A Proxy Pack picks the loadout its Lone Wolf starts in; the others deploy as Aspects. -->
             <HorizontalStackLayout Spacing="8" HorizontalOptions="Center" IsVisible="{Binding IsProxyPack}">
                 <Label Text="Deploy as the Lone Wolf:"
@@ -245,6 +318,154 @@
                     WidthRequest="200"
                     Command="{Binding DeployCommand}" />
         </VerticalStackLayout>
+
+        <!-- The inducements pop-up: hire troops, buy command tokens and rent gear for this contract. -->
+        <ScrollView Grid.RowSpan="3"
+                    BackgroundColor="{StaticResource Void}"
+                    IsVisible="{Binding Shop.IsOpen}">
+            <VerticalStackLayout Padding="16,12" Spacing="6" BindingContext="{Binding Shop}" x:DataType="inducements:InducementShopViewModel">
+                <Label Text="INDUCEMENTS"
+                       FontSize="{DynamicResource FontSizeSubHeadline}"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource TextPrimary}"
+                       HorizontalTextAlignment="Center" />
+                <Label Text="{Binding LeftText}"
+                       FontSize="{DynamicResource FontSizeBody}"
+                       TextColor="{StaticResource Signal}"
+                       HorizontalTextAlignment="Center" />
+                <Label Text="Everything bought lasts for this contract only."
+                       FontSize="{DynamicResource FontSizeCaption}"
+                       TextColor="{StaticResource TextMuted}"
+                       HorizontalTextAlignment="Center" />
+
+                <!-- Hired so far, then the Troops for Hire table. -->
+                <Label Text="TROOPS FOR HIRE · up to 7 troopers; those past 6 give only impetuous orders" Style="{StaticResource ShopHeading}" />
+                <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Hired}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="inducementItems:HiredTroopRow">
+                            <Border Style="{StaticResource ShopRow}" Stroke="{StaticResource Signal}">
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                    <Label Text="{Binding Name}"
+                                           FontSize="{DynamicResource FontSizeBody}"
+                                           TextColor="{StaticResource TextPrimary}"
+                                           VerticalTextAlignment="Center"
+                                           LineBreakMode="WordWrap" />
+                                    <Label Grid.Column="1" Text="{Binding Cost}" Style="{StaticResource ShopCost}" />
+                                    <Button Grid.Column="2"
+                                            Style="{StaticResource ShopRemove}"
+                                            Command="{Binding ViewModel.Shop.DismissCommand, Source={x:Reference PageRoot}, x:DataType=season:PlayModePage}"
+                                            CommandParameter="{Binding .}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding HireOffers}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="inducementItems:HireOfferItem">
+                            <Border Style="{StaticResource ShopRow}">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ViewModel.Shop.HireCommand, Source={x:Reference PageRoot}, x:DataType=season:PlayModePage}"
+                                                          CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <Border.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsEnabled}" Value="False">
+                                        <Setter Property="Opacity" Value="0.4" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <Label Text="{Binding Name}"
+                                           FontSize="{DynamicResource FontSizeBody}"
+                                           TextColor="{StaticResource TextSecondary}"
+                                           VerticalTextAlignment="Center" />
+                                    <Label Grid.Column="1" Text="{Binding CostText}" Style="{StaticResource ShopCost}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <!-- Command tokens: 10 each, two at most. -->
+                <Label Text="COMMAND TOKENS · 10 each, up to 2" Style="{StaticResource ShopHeading}" />
+                <HorizontalStackLayout Spacing="12" HorizontalOptions="Center">
+                    <Button Text="−"
+                            Command="{Binding ReturnCommandTokenCommand}"
+                            BackgroundColor="{StaticResource PlateRaised}"
+                            TextColor="{StaticResource TextPrimary}"
+                            WidthRequest="48" />
+                    <Label Text="{Binding CommandTokens}"
+                           FontSize="{DynamicResource FontSizeSubHeadline}"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}"
+                           VerticalTextAlignment="Center" />
+                    <Button Text="+"
+                            Command="{Binding BuyCommandTokenCommand}"
+                            BackgroundColor="{StaticResource PlateRaised}"
+                            TextColor="{StaticResource TextPrimary}"
+                            WidthRequest="48" />
+                </HorizontalStackLayout>
+
+                <!-- Rented so far, then the Rented Equipment table. -->
+                <Label Text="RENTED EQUIPMENT · replaces what the slot holds, for this contract" Style="{StaticResource ShopHeading}" />
+                <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Rentals}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="inducementItems:RentalRow">
+                            <Border Style="{StaticResource ShopRow}" Stroke="{StaticResource Signal}">
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                    <Label Text="{Binding Text}"
+                                           FontSize="{DynamicResource FontSizeBody}"
+                                           TextColor="{StaticResource TextPrimary}"
+                                           VerticalTextAlignment="Center"
+                                           LineBreakMode="WordWrap" />
+                                    <Label Grid.Column="1" Text="{Binding Rental.Cost}" Style="{StaticResource ShopCost}" />
+                                    <Button Grid.Column="2"
+                                            Style="{StaticResource ShopRemove}"
+                                            Command="{Binding ViewModel.Shop.ReturnRentalCommand, Source={x:Reference PageRoot}, x:DataType=season:PlayModePage}"
+                                            CommandParameter="{Binding .}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+                <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding RentalOffers}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="inducementItems:RentalOfferItem">
+                            <Border Style="{StaticResource ShopRow}">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ViewModel.Shop.RentCommand, Source={x:Reference PageRoot}, x:DataType=season:PlayModePage}"
+                                                          CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <Border.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsEnabled}" Value="False">
+                                        <Setter Property="Opacity" Value="0.4" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <VerticalStackLayout VerticalOptions="Center">
+                                        <Label Text="{Binding Name}"
+                                               FontSize="{DynamicResource FontSizeBody}"
+                                               TextColor="{StaticResource TextSecondary}" />
+                                        <Label Text="{Binding Detail}"
+                                               FontSize="{DynamicResource FontSizeMicro}"
+                                               TextColor="{StaticResource TextMuted}" />
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="1" Text="{Binding CostText}" Style="{StaticResource ShopCost}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <Button Text="DONE"
+                        Command="{Binding CloseCommand}"
+                        BackgroundColor="{StaticResource Signal}"
+                        TextColor="{StaticResource Void}"
+                        FontAttributes="Bold"
+                        HorizontalOptions="Center"
+                        WidthRequest="200"
+                        Margin="0,12,0,0" />
+            </VerticalStackLayout>
+        </ScrollView>
 
     </Grid>
 

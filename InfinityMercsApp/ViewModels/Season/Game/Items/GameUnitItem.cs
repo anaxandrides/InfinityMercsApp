@@ -25,10 +25,12 @@ public sealed partial class GameUnitItem : ObservableObject
 
     private readonly IReadOnlyList<GameWeaponCard> _weaponCards;
 
-    public GameUnitItem(DeploymentUnitItem unit, bool hasTacticalToken, IReadOnlyList<GameWeaponCard> weaponCards)
+    /// <param name="isOverTrooperLimit">A hired troop beyond the six-trooper limit, which gives only an impetuous order.</param>
+    public GameUnitItem(DeploymentUnitItem unit, bool hasTacticalToken, IReadOnlyList<GameWeaponCard> weaponCards, bool isOverTrooperLimit = false)
     {
         Unit = unit;
         HasTacticalToken = hasTacticalToken;
+        IsOverTrooperLimit = isOverTrooperLimit;
         _weaponCards = weaponCards;
         HostsLoneWolf = unit.IsLoneWolf;
         Skills = AttackModifiers.NormalizeSkills(unit.Skills);
@@ -40,6 +42,14 @@ public sealed partial class GameUnitItem : ObservableObject
     public DeploymentUnitItem Unit { get; }
 
     public string Name => Unit.Name;
+
+    /// <summary>A hired troop beyond the six-trooper limit: it gives an impetuous order, if it has one, but no other.</summary>
+    public bool IsOverTrooperLimit { get; }
+
+    /// <summary>"HIRED" on a hired troop's row, saying when it gives no order; nothing on the company's own.</summary>
+    public string HiredRole => !Unit.IsHired ? string.Empty
+        : IsOverTrooperLimit ? (Unit.IsImpetuous ? "HIRED · IMPETUOUS ORDER ONLY" : "HIRED · NO ORDER")
+        : "HIRED";
 
     /// <summary>One of a Proxy Pack's loadouts: the Lone Wolf's own or an Aspect's.</summary>
     public bool IsPartOfLoneWolf => Unit.IsLoneWolf || Unit.AspectOf is not null;
@@ -121,10 +131,14 @@ public sealed partial class GameUnitItem : ObservableObject
         IsPartOfLoneWolf ? HostsLoneWolf : Unit.IsLieutenant,
         !ShowsAspect && Unit.IsImpetuous,
         !ShowsAspect && Unit.IsIrregular,
-        IsConscious);
+        IsConscious,
+        IsOverTrooperLimit);
 
-    /// <summary>Whether this row takes the injury check when it dies: anyone but an Aspect the Lone Wolf isn't in.</summary>
-    public bool ChecksForInjury => !ShowsAspect;
+    /// <summary>
+    /// Whether this row takes the injury check when it dies: anyone but an Aspect the Lone Wolf isn't in, or a hired
+    /// troop, which leaves after the contract.
+    /// </summary>
+    public bool ChecksForInjury => !ShowsAspect && !Unit.IsHired;
 
     [RelayCommand]
     private void TakeWound() => Unit.TakeWound();

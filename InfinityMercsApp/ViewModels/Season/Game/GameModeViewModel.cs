@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Experience;
 using InfinityMercsApp.Domain.Season.Game;
+using InfinityMercsApp.Domain.Season.Inducements;
 using InfinityMercsApp.Domain.Season.Injuries;
 using InfinityMercsApp.Domain.Season.Loot;
 using InfinityMercsApp.Infrastructure.Providers;
@@ -15,12 +16,14 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Base;
 using InfinityMercsApp.ViewModels.Season.Game.Items;
+using InfinityMercsApp.ViewModels.Season.Items;
 
 namespace InfinityMercsApp.ViewModels.Season.Game;
 
 /// <summary>
 /// The game in progress: the round, each kind of order token spent and left, and every deployed trooper's
-/// wounds, XP and weapons. Ending the game records the mission and moves on to injuries or the outcome.
+/// wounds, XP and weapons. Troops hired with inducements play alongside, and gear rented with them is carried, for this
+/// game only. Ending the game records the mission and moves on to injuries or the outcome.
 /// </summary>
 public partial class GameModeViewModel(
     INavigationService navigationService,
@@ -42,6 +45,7 @@ public partial class GameModeViewModel(
     private string? _loadedFilePath;
     private IReadOnlySet<int>? _deployedEntryIndices;
     private int? _loneWolfStart;
+    private ContractInducements _inducements = new();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(RoundText), nameof(CanEndGame), nameof(HasNextRound))]
@@ -63,6 +67,9 @@ public partial class GameModeViewModel(
     public partial XpSheet? OpenXpSheet { get; set; }
 
     public ObservableCollection<GameUnitItem> Units { get; } = [];
+
+    /// <summary>The command tokens bought with inducements; shown only when there are some.</summary>
+    public CommandTokenPool CommandTokens { get; } = new();
 
     /// <summary>Lieutenant, impetuous, irregular and regular orders, in the order they are shown.</summary>
     public IReadOnlyList<OrderPoolItem> Orders { get; } =
@@ -90,6 +97,9 @@ public partial class GameModeViewModel(
         _deployedEntryIndices = NavigationParameters.GetIntSet(query, NavigationParameters.DeployedIndices);
         _loneWolfStart = NavigationParameters.GetInt(query, NavigationParameters.LoneWolfStart);
         IsEliteDeployment = NavigationParameters.GetFlag(query, NavigationParameters.EliteDeployment);
+        _inducements = query.TryGetValue(NavigationParameters.Inducements, out var value) && value is ContractInducements inducements
+            ? inducements
+            : new ContractInducements();
     }
 
     /// <summary>Loads the deployed troopers the first time the page appears for a company.</summary>
@@ -108,14 +118,19 @@ public partial class GameModeViewModel(
         try
         {
             var weapons = new GameWeaponCatalog(metadata, SeasonLoot.Items(await seasonFiles.LoadAsync(_seasonFilePath)));
-            var troopers = await roster.LoadAsync(_companyFilePath, _seasonFilePath, ShowUnitsInInches, _deployedEntryIndices);
+            var troopers = await roster.LoadAsync(
+                _companyFilePath, _seasonFilePath, ShowUnitsInInches, _deployedEntryIndices, _inducements.Rentals);
             foreach (var trooper in troopers)
             {
-                var skills = AttackModifiers.NormalizeSkills(trooper.Skills);
-                var modifiers = AttackModifiers.From(skills, trooper.Equipment);
-                var hasTacticalToken = EliteDeployment.HasTacticalAwareness(
-                    DeploymentRoster.HasLine(trooper.Skills, "Tactical Awareness"), trooper.IsLieutenant, IsEliteDeployment);
-                Units.Add(new GameUnitItem(trooper, hasTacticalToken, weapons.CardsFor(trooper.RangedWeapons, trooper.MeleeWeapons, modifiers)));
+                Units.Add(Row(trooper, weapons, isOverTrooperLimit: false));
+            }
+
+            // Hired troops deploy after the company's own, so the last of them are the ones over the six-trooper limit.
+            var hired = roster.HiredUnits(_inducements, ShowUnitsInInches);
+            var overLimit = InducementRules.HiresBeyondLimit(troopers.Sum(trooper => trooper.SlotCost), hired.Count);
+            for (var i = 0; i < hired.Count; i++)
+            {
+                Units.Add(Row(hired[i], weapons, isOverTrooperLimit: i >= hired.Count - overLimit));
             }
         }
         catch (Exception ex)
@@ -125,6 +140,16 @@ public partial class GameModeViewModel(
 
         PlaceLoneWolf();
         ResetOrders();
+        CommandTokens.Reset(_inducements.CommandTokens);
+    }
+
+    private GameUnitItem Row(DeploymentUnitItem trooper, GameWeaponCatalog weapons, bool isOverTrooperLimit)
+    {
+        var skills = AttackModifiers.NormalizeSkills(trooper.Skills);
+        var modifiers = AttackModifiers.From(skills, trooper.Equipment);
+        var hasTacticalToken = EliteDeployment.HasTacticalAwareness(
+            DeploymentRoster.HasLine(trooper.Skills, "Tactical Awareness"), trooper.IsLieutenant, IsEliteDeployment);
+        return new GameUnitItem(trooper, hasTacticalToken, weapons.CardsFor(trooper.RangedWeapons, trooper.MeleeWeapons, modifiers), isOverTrooperLimit);
     }
 
     // A Proxy Pack's Lone Wolf starts in the loadout picked at deployment, else its own, else the first deployed.
@@ -215,8 +240,9 @@ public partial class GameModeViewModel(
     // ── Ending the game ─────────────────────────────────────────────────────
 
     /// <summary>
-    /// After confirming, records the mission on a new season round, hands every trooper's result to the
-    /// debrief, and goes to injury checks when anyone died, otherwise to the mission outcome.
+    /// After confirming, records the mission and its inducements on a new season round, hands every company trooper's
+    /// result to the debrief, and goes to injury checks when anyone died, otherwise to the mission outcome. Hired troops
+    /// and rented gear leave with the contract.
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanEndGame))]
     private async Task EndGameAsync()
@@ -235,15 +261,19 @@ public partial class GameModeViewModel(
                 RoundIndex = missionNumber,
                 MissionResults = new SeasonMissionResult
                 {
-                    UnitsDeployed = Units.Count,
+                    UnitsDeployed = Units.Count(unit => !unit.Unit.IsHired),
                     EliteDeploymentMet = IsEliteDeployment,
-                    MissionRound = CurrentRound
+                    MissionRound = CurrentRound,
+                    Inducements = _inducements
                 }
             });
             await seasonFiles.SaveAsync(_seasonFilePath, seasonFile);
         }
 
-        debrief.Units = Units.Select(unit => unit.Unit.ToResult(missionNumber, IsEliteDeployment, wasDeployed: true)).ToList();
+        debrief.Units = Units
+            .Where(unit => !unit.Unit.IsHired)
+            .Select(unit => unit.Unit.ToResult(missionNumber, IsEliteDeployment, wasDeployed: true))
+            .ToList();
         debrief.Troopers = await CompanyTroopersAsync(debrief.Units);
         // Only the Lone Wolf checks for injury, wherever it ended; its Aspects never do. It goes by its own name even
         // when it ended in an Aspect and its own loadout stayed home.

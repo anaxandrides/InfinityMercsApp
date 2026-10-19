@@ -35,7 +35,7 @@ public sealed class GameModeViewModelTests : IDisposable
     public void Dispose() => _records.Dispose();
 
     // A lieutenant (entry 0), a regular trooper with Tactical Awareness skills, and an irregular impetuous one.
-    private async Task<GameModeViewModel> OpenAsync(bool elite = false)
+    private async Task<GameModeViewModel> OpenAsync(bool elite = false, ContractInducements? inducements = null)
     {
         var entries = new List<object>
         {
@@ -55,6 +55,11 @@ public sealed class GameModeViewModelTests : IDisposable
             _navigation, _dialogs, _seasonFiles, new DeploymentRoster(Army101Data.Create(), new CompanyFileStore(), _seasonFiles, new StoreCatalog(Substitute.For<IStoreProvider>())), _debrief, _settings);
         var query = NavigationParameters.ForCompany(companyPath, SeasonPath);
         query[NavigationParameters.EliteDeployment] = elite;
+        if (inducements is not null)
+        {
+            query[NavigationParameters.Inducements] = inducements;
+        }
+
         viewModel.ApplyQueryAttributes(query);
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         return viewModel;
@@ -275,5 +280,92 @@ public sealed class GameModeViewModelTests : IDisposable
 
         Assert.Empty(_debrief.PendingInjuries);
         await _navigation.Received(1).PushAsync("InjuriesPage", Arg.Any<IDictionary<string, object>>());
+    }
+
+    // An Authorized Bounty Hunter (PanOceania 10049, the SMG loadout) hired for each index given.
+    private static ContractInducements Hiring(params IEnumerable<int> entryIndices) => new()
+    {
+        Received = 100,
+        Hired = entryIndices
+            .Select(index => new HiredTroop
+            {
+                EntryIndex = index, Offer = "Authorized Bounty Hunter", FactionId = Army101Data.PanOceania, UnitId = 10049, GroupId = 1, OptionId = 5, Cost = 10
+            })
+            .ToList()
+    };
+
+    [Fact]
+    public async Task InitializeAsyncCommand_HiredTroop_PlaysAfterTheCompany()
+    {
+        var viewModel = await OpenAsync(inducements: Hiring(-1));
+
+        var hired = viewModel.Units[^1];
+        Assert.Equal((true, "HIRED", "Authorized Bounty Hunter"), (hired.Unit.IsHired, hired.HiredRole, hired.Name));
+        Assert.Contains("Submachine Gun", hired.Unit.RangedWeapons);
+        Assert.Equal(4, viewModel.Orders.Single(pool => pool.Kind == OrderKind.Regular).Available);
+    }
+
+    // Three company troopers and four hires make seven: the last hire gives no order.
+    [Fact]
+    public async Task InitializeAsyncCommand_SeventhTrooperHired_GivesNoOrder()
+    {
+        var viewModel = await OpenAsync(inducements: Hiring(-1, -2, -3, -4));
+
+        Assert.Equal([false, false, false, true], viewModel.Units.Where(unit => unit.Unit.IsHired).Select(unit => unit.IsOverTrooperLimit));
+        Assert.Equal("HIRED · NO ORDER", viewModel.Units[^1].HiredRole);
+        Assert.Equal(6, viewModel.Orders.Single(pool => pool.Kind == OrderKind.Regular).Available);
+    }
+
+    [Fact]
+    public async Task InitializeAsyncCommand_RentedGear_IsCarriedThisGame()
+    {
+        var inducements = new ContractInducements
+        {
+            Received = 20,
+            CommandTokens = 1,
+            Rentals = [new RentedGear { ItemName = "Spitfire", Slot = "Primary", EntryIndex = 1, Cost = 10 }]
+        };
+
+        var viewModel = await OpenAsync(inducements: inducements);
+
+        Assert.Contains("Spitfire", viewModel.Units[1].Unit.RangedWeapons);
+        Assert.Equal((1, true), (viewModel.CommandTokens.Available, viewModel.CommandTokens.HasTokens));
+    }
+
+    [Fact]
+    public async Task EndGameCommand_HiredTroop_LeavesWithTheContract()
+    {
+        var season = new SeasonFile();
+        _seasonFiles.LoadAsync(SeasonPath).Returns(season);
+        _dialogs.ConfirmAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(true);
+        var inducements = Hiring(-1);
+        var viewModel = await OpenAsync(inducements: inducements);
+        var hired = viewModel.Units[^1];
+        hired.TakeWoundCommand.Execute(null);
+        hired.TakeWoundCommand.Execute(null);
+        viewModel.NextRoundCommand.Execute(null);
+        viewModel.NextRoundCommand.Execute(null);
+
+        await viewModel.EndGameCommand.ExecuteAsync(null);
+
+        var result = season.Rounds[^1].MissionResults;
+        Assert.Equal(3, result.UnitsDeployed);
+        Assert.Same(inducements, result.Inducements);
+        Assert.Equal(["Lt", "Bolt", "Zero"], _debrief.Units.Select(unit => unit.Name));
+        Assert.Empty(_debrief.PendingInjuries);
+    }
+
+    [Fact]
+    public void UseCommand_CommandTokens_SpendAndComeBack()
+    {
+        var tokens = new CommandTokenPool();
+        tokens.Reset(2);
+
+        tokens.UseCommand.Execute(null);
+        tokens.UseCommand.Execute(null);
+
+        Assert.False(tokens.UseCommand.CanExecute(null));
+        tokens.RestoreCommand.Execute(null);
+        Assert.Equal((1, 1), (tokens.Available, tokens.Used));
     }
 }

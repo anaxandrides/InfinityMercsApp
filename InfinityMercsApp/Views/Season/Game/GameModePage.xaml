@@ -78,7 +78,7 @@
         </DataTemplate>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="0">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Padding="0">
 
         <!-- Round header band -->
         <Border BackgroundColor="{StaticResource Plate}"
@@ -165,8 +165,36 @@
             </BindableLayout.ItemTemplate>
         </FlexLayout>
 
+        <!-- Command tokens bought with inducements, for the whole game: tap the left count to spend one, the right to take it back. -->
+        <HorizontalStackLayout Grid.Row="3"
+                               Spacing="8"
+                               Padding="8,0,8,4"
+                               HorizontalOptions="Center"
+                               IsVisible="{Binding CommandTokens.HasTokens}">
+            <Label Text="COMMAND TOKENS"
+                   TextColor="{StaticResource TextMuted}"
+                   FontSize="{DynamicResource FontSizeCaption}"
+                   FontAttributes="Bold"
+                   VerticalTextAlignment="Center" />
+            <Border Style="{StaticResource Chip}">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding CommandTokens.UseCommand}" />
+                </Border.GestureRecognizers>
+                <Label Text="{Binding CommandTokens.Available, StringFormat='{0} left'}"
+                       TextColor="#FBBF24"
+                       FontAttributes="Bold" />
+            </Border>
+            <Border Style="{StaticResource Chip}">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding CommandTokens.RestoreCommand}" />
+                </Border.GestureRecognizers>
+                <Label Text="{Binding CommandTokens.Used, StringFormat='{0} used'}"
+                       TextColor="{StaticResource TextMuted}" />
+            </Border>
+        </HorizontalStackLayout>
+
         <!-- Unit accordion: one row open at a time. -->
-        <ScrollView Grid.Row="3">
+        <ScrollView Grid.Row="4">
             <VerticalStackLayout Spacing="0" Padding="0,8,0,0" BindableLayout.ItemsSource="{Binding Units}">
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="gameItems:GameUnitItem">
@@ -196,6 +224,11 @@
                                     <Label Text="{Binding LoneWolfRole}"
                                            IsVisible="{Binding IsPartOfLoneWolf}"
                                            TextColor="#34D399"
+                                           FontSize="{DynamicResource FontSizeMicro}"
+                                           FontAttributes="Bold" />
+                                    <Label Text="{Binding HiredRole}"
+                                           IsVisible="{Binding Unit.IsHired}"
+                                           TextColor="#60A5FA"
                                            FontSize="{DynamicResource FontSizeMicro}"
                                            FontAttributes="Bold" />
                                     <Label Text="{Binding FormName}"
@@ -361,7 +394,7 @@
         </ScrollView>
 
         <!-- Every mode of the tapped weapon in full. -->
-        <ScrollView Grid.RowSpan="4" BackgroundColor="#161B22" IsVisible="{Binding IsShowingWeapon}">
+        <ScrollView Grid.RowSpan="5" BackgroundColor="#161B22" IsVisible="{Binding IsShowingWeapon}">
             <VerticalStackLayout Padding="12,8" Spacing="8">
                 <Label Text="{Binding OpenWeaponCard.Title, FallbackValue=''}"
                        TextColor="#E6EBF2"
@@ -386,7 +419,7 @@
         </ScrollView>
 
         <!-- The tapped trooper's XP sheet. -->
-        <ScrollView Grid.RowSpan="4" BackgroundColor="#161B22" IsVisible="{Binding IsShowingXp}">
+        <ScrollView Grid.RowSpan="5" BackgroundColor="#161B22" IsVisible="{Binding IsShowingXp}">
             <VerticalStackLayout Padding="12,6" Spacing="0" BindingContext="{Binding OpenXpSheet}" x:DataType="gameItems:XpSheet">
                 <Label Text="{Binding UnitName}" TextColor="#E6EBF2" FontAttributes="Bold" FontSize="{DynamicResource FontSizeCardTitleCompact}" HorizontalTextAlignment="Center" />
                 <Label Text="{Binding TotalText}" TextColor="#34D399" FontSize="{DynamicResource FontSizeCaption}" FontAttributes="Bold" HorizontalTextAlignment="Center" Margin="0,2,0,0" />

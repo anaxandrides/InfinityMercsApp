@@ -35,6 +35,9 @@ public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListIt
     public bool IsInCoreFireteam { get; init; }
     public bool IsImpetuous { get; init; }
     public bool IsTagFromTagCompany { get; init; }
+
+    /// <summary>A trooper hired with inducements for this contract only: it gains no XP and takes no injuries.</summary>
+    public bool IsHired { get; init; }
     public int SlotCost => IsTagFromTagCompany ? 2 : 1;
 
     /// <summary>One of a Proxy Pack's loadouts: the Lone Wolf's own or an Aspect's.</summary>

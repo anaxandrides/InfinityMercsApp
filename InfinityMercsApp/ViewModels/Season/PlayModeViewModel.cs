@@ -1,13 +1,19 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Domain.Season.Inducements;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Presentation.Season;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Services.Season.Inducements;
 using InfinityMercsApp.ViewModels.Base;
+using InfinityMercsApp.ViewModels.Season.Inducements;
+using InfinityMercsApp.ViewModels.Season.Inducements.Items;
 using InfinityMercsApp.ViewModels.Season.Items;
 using InfinityMercsApp.Views.Season.Game;
 
@@ -17,11 +23,14 @@ namespace InfinityMercsApp.ViewModels.Season;
 /// Chooses which units deploy for a mission. The lieutenant always deploys; at most six slots can be
 /// filled (a TAG Company TAG takes two), and four or fewer is an elite deployment. A Proxy Pack deploys any of the
 /// Lone Wolf's loadouts, at least one, and picks the one the Lone Wolf starts in; the rest deploy as Aspects.
+/// With the opponent's deployed renown, the underdog gets inducements; the company spends its own in the
+/// inducements pop-up, and hired troops take the deployment up to seven troopers.
 /// </summary>
 public partial class PlayModeViewModel(
     INavigationService navigationService,
     IDialogService dialogs,
     DeploymentRoster roster,
+    HiredTroops hiredTroops,
     IAppSettingsProvider? settings = null) : ViewModelBase(navigationService)
 {
     public const int MaxSlots = 6;
@@ -57,11 +66,47 @@ public partial class PlayModeViewModel(
     [NotifyPropertyChangedFor(nameof(IsEliteDeployment), nameof(DeploymentStatusText))]
     public partial int DeployedSlotCount { get; set; }
 
-    public bool IsEliteDeployment => DeployedSlotCount is > 0 and <= MaxEliteSlots;
+    /// <summary>Troops hired with inducements; they count toward the elite deployment's four.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEliteDeployment), nameof(DeploymentStatusText))]
+    public partial int HiredCount { get; set; }
 
-    public string DeploymentStatusText => IsEliteDeployment
-        ? $"{DeployedSlotCount} / {MaxSlots} slots · ELITE"
-        : $"{DeployedSlotCount} / {MaxSlots} slots";
+    public bool IsEliteDeployment => DeployedSlotCount + HiredCount is > 0 and <= MaxEliteSlots;
+
+    public string DeploymentStatusText =>
+        $"{DeployedSlotCount} / {MaxSlots} slots" +
+        (HiredCount > 0 ? $" + {HiredCount} hired" : string.Empty) +
+        (IsEliteDeployment ? " · ELITE" : string.Empty);
+
+    /// <summary>The renown of the troopers ticked to deploy.</summary>
+    [ObservableProperty]
+    public partial int DeployedRenown { get; set; }
+
+    /// <summary>The opponent's deployed renown as typed; blank until the opponent gives it.</summary>
+    [ObservableProperty]
+    public partial string OpponentRenownText { get; set; } = string.Empty;
+
+    /// <summary>A cooperative contract, which gives neither side inducements.</summary>
+    [ObservableProperty]
+    public partial bool IsCooperative { get; set; }
+
+    /// <summary>Who gets inducements, and how many.</summary>
+    [ObservableProperty]
+    public partial string InducementText { get; set; } = string.Empty;
+
+    /// <summary>The company gets inducements, or still has something bought with them, so the pop-up opens.</summary>
+    [ObservableProperty]
+    public partial bool CanSpendInducements { get; set; }
+
+    /// <summary>Both sides' deployed renown and what the company got and bought with its inducements.</summary>
+    public ContractInducements Inducements { get; } = new();
+
+    /// <summary>The inducements pop-up.</summary>
+    public InducementShopViewModel Shop { get; } = new(dialogs, hiredTroops);
+
+    partial void OnOpponentRenownTextChanged(string value) => RefreshInducements();
+
+    partial void OnIsCooperativeChanged(bool value) => RefreshInducements();
 
     public override void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -102,6 +147,9 @@ public partial class PlayModeViewModel(
         IsProxyPack = DeploymentUnits.Any(unit => unit.IsLoneWolf);
         RefreshLoneWolfLoadouts();
         SelectUnit(DeploymentUnits.FirstOrDefault());
+        Shop.PropertyChanged -= OnShopPropertyChanged;
+        Shop.PropertyChanged += OnShopPropertyChanged;
+        RefreshInducements();
     }
 
     [RelayCommand]
@@ -125,9 +173,18 @@ public partial class PlayModeViewModel(
             return;
         }
 
+        if (InducementShop.Left(Inducements) < 0)
+        {
+            await dialogs.ShowAlertAsync(
+                "Too Many Inducements Spent",
+                $"This deployment gets {Inducements.Received} inducements, but {InducementShop.Spent(Inducements)} are spent. Return something first.");
+            return;
+        }
+
         var parameters = NavigationParameters.ForCompany(_companyFilePath, _seasonFilePath);
         parameters[NavigationParameters.DeployedIndices] = deployed.Select(u => u.EntryIndex).ToList();
         parameters[NavigationParameters.EliteDeployment] = IsEliteDeployment;
+        parameters[NavigationParameters.Inducements] = Inducements;
         if (StartingLoneWolf is { } start)
         {
             parameters[NavigationParameters.LoneWolfStart] = start.EntryIndex;
@@ -152,7 +209,9 @@ public partial class PlayModeViewModel(
             return;
         }
 
-        if (unit.IsChecked && CountDeployedSlots() > MaxSlots)
+        // Hired troops take the room up to seven troopers, but the company's own still fill at most six slots.
+        if (unit.IsChecked &&
+            (CountDeployedSlots() > MaxSlots || CountDeployedSlots() + Inducements.Hired.Count > InducementRules.TrooperLimitWithHired))
         {
             unit.IsChecked = false;
             return;
@@ -160,6 +219,46 @@ public partial class PlayModeViewModel(
 
         DeployedSlotCount = CountDeployedSlots();
         RefreshLoneWolfLoadouts();
+        RefreshInducements();
+    }
+
+    private void OnShopPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(InducementShopViewModel.HiredCount))
+        {
+            HiredCount = Shop.HiredCount;
+        }
+        else if (e.PropertyName == nameof(InducementShopViewModel.Left))
+        {
+            CanSpendInducements = Inducements.Received > 0 || InducementShop.Spent(Inducements) > 0;
+        }
+    }
+
+    // The deployed renown, the inducements it brings against the opponent's, and the pop-up's view of them. Gear rented
+    // for a trooper no longer deploying goes back.
+    private void RefreshInducements()
+    {
+        var deployed = DeploymentUnits.Where(u => u.IsChecked).ToList();
+        InducementShop.KeepDeployed(Inducements, deployed.Select(u => u.EntryIndex).ToHashSet());
+        DeployedRenown = deployed.Sum(u => u.Renown);
+        var hasOpponentRenown = int.TryParse(OpponentRenownText, NumberStyles.Integer, CultureInfo.CurrentCulture, out var opponentRenown) &&
+                                opponentRenown >= 0;
+        Inducements.DeployedRenown = DeployedRenown;
+        Inducements.OpponentRenown = hasOpponentRenown ? opponentRenown : 0;
+        Inducements.IsCooperative = IsCooperative;
+        Inducements.Received = hasOpponentRenown ? InducementRules.For(DeployedRenown, opponentRenown, IsCooperative) : 0;
+        var opponentGets = hasOpponentRenown ? InducementRules.For(opponentRenown, DeployedRenown, IsCooperative) : 0;
+        InducementText =
+            !hasOpponentRenown ? "Enter the opponent's deployed renown for inducements."
+            : IsCooperative ? "A cooperative contract gives no inducements."
+            : Inducements.Received > 0 ? $"You get {Inducements.Received} inducements."
+            : opponentGets > 0 ? $"Your opponent gets {opponentGets} inducements."
+            : "No inducements: the renown is too close.";
+        CanSpendInducements = Inducements.Received > 0 || InducementShop.Spent(Inducements) > 0;
+        Shop.Update(
+            Inducements,
+            deployed.Select(u => new ContractTrooper(u.EntryIndex, u.Name)).ToList(),
+            DeployedSlotCount);
     }
 
     // The deployed loadouts offered for the Lone Wolf's start, keeping the pick while it stays deployed; the Lone

@@ -17,6 +17,7 @@ using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Rolls;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Services.Season.Inducements;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.Services.Wiki;
 using InfinityMercsApp.ViewModels.About;
@@ -164,6 +165,7 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<CompanyRoster>()
                 .AddTransient<PeripheralTrades>()
                 .AddSingleton<DeploymentRoster>()
+                .AddSingleton<HiredTroops>()
                 .AddSingleton<MissionDebrief>()
                 .AddSingleton<CaptainChange>()
                 .AddSingleton<IDice, Dice>()

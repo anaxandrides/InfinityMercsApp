@@ -6,6 +6,7 @@ using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Services.Season.Inducements;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Season;
@@ -30,10 +31,11 @@ public sealed class LoneWolfDeploymentTests : IDisposable
             new { entryIndex = 2, name = "Kestrel (Aspect 3)", aspectOf = 0, sourceFactionId = 101 }
         };
         var companyPath = _records.WriteCompany("c.json", JsonSerializer.Serialize(new { companyType = "Proxy Pack", entries }));
+        var armyData = Army101Data.Create();
         var viewModel = new PlayModeViewModel(
             _navigation, Substitute.For<IDialogService>(),
-            new DeploymentRoster(Army101Data.Create(), new CompanyFileStore(), Substitute.For<ISeasonFileService>(), new StoreCatalog(Substitute.For<IStoreProvider>())),
-            Substitute.For<IAppSettingsProvider>());
+            new DeploymentRoster(armyData, new CompanyFileStore(), Substitute.For<ISeasonFileService>(), new StoreCatalog(Substitute.For<IStoreProvider>())),
+            new HiredTroops(armyData), Substitute.For<IAppSettingsProvider>());
         viewModel.ApplyQueryAttributes(NavigationParameters.ForCompany(companyPath, "/s.json"));
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         return viewModel;

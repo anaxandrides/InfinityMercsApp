@@ -24,6 +24,12 @@ public static class NavigationParameters
     /// <summary>The entry of the deployed loadout a Proxy Pack's Lone Wolf starts the game in (int).</summary>
     public const string LoneWolfStart = "loneWolfStart";
 
+    /// <summary>
+    /// The renown both sides deployed and what the company bought with inducements
+    /// (<see cref="Domain.Models.Season.ContractInducements"/>).
+    /// </summary>
+    public const string Inducements = "inducements";
+
     /// <summary>Present when LoadCompanyPage is opened to start a season (bool).</summary>
     public const string SeasonMode = "seasonMode";
 

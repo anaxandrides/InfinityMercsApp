@@ -4,10 +4,12 @@ using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Army.Stats;
+using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Armor;
 using InfinityMercsApp.Domain.Season.Game;
+using InfinityMercsApp.Domain.Season.Inducements;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.Loot;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
@@ -18,6 +20,7 @@ using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Services.Season.Inducements;
 using InfinityMercsApp.Services.Season.Peripherals;
 using InfinityMercsApp.Services.Stores;
 using InfinityMercsApp.ViewModels.Season.Items;
@@ -43,18 +46,21 @@ public sealed partial class DeploymentRoster(
 
     private readonly ServantPeripherals _servants = new(armyData);
     private readonly TransmutedForms _transmuted = new(armyData);
+    private readonly HiredTroops _hired = new(armyData);
 
     /// <summary>
     /// The company's units, lieutenant first then in company order; Servant peripherals, uncontrolled peripherals
     /// and retired troopers are left out.
     /// </summary>
     /// <param name="deployedEntryIndices">When given, only these entries are included.</param>
+    /// <param name="rentals">Gear rented for the contract, which takes the place of what its slot holds.</param>
     /// <returns>No units when the company file is missing or unreadable.</returns>
     public async Task<IReadOnlyList<DeploymentUnitItem>> LoadAsync(
         string companyFilePath,
         string? seasonFilePath,
         bool showUnitsInInches,
-        IReadOnlySet<int>? deployedEntryIndices = null)
+        IReadOnlySet<int>? deployedEntryIndices = null,
+        IReadOnlyList<RentedGear>? rentals = null)
     {
         SavedCompanyFile? company;
         try
@@ -89,7 +95,9 @@ public sealed partial class DeploymentRoster(
             .Select(entry => BuildUnit(
                 entry,
                 captain,
-                seasonGear.GetValueOrDefault(entry.EntryIndex),
+                InducementShop.WithRentals(
+                    seasonGear.GetValueOrDefault(entry.EntryIndex) ?? [],
+                    rentals?.Where(rental => rental.EntryIndex == entry.EntryIndex) ?? []),
                 SeasonTroopers.ArmorOf(entry, season, catalog),
                 catalog,
                 SeasonTroopers.CaptainBonusesOf(entry, company.ImprovedCaptainStats),
@@ -102,10 +110,69 @@ public sealed partial class DeploymentRoster(
             .ToList();
     }
 
+    /// <summary>
+    /// The contract's hired troops in the loadouts they were hired in, with the gear rented for them. One the army data
+    /// no longer has is left out.
+    /// </summary>
+    public IReadOnlyList<DeploymentUnitItem> HiredUnits(ContractInducements inducements, bool showUnitsInInches) =>
+        inducements.Hired
+            .Select(troop => HiredUnit(troop, inducements.Rentals.Where(rental => rental.EntryIndex == troop.EntryIndex), showUnitsInInches))
+            .OfType<DeploymentUnitItem>()
+            .ToList();
+
+    private DeploymentUnitItem? HiredUnit(HiredTroop troop, IEnumerable<RentedGear> rentals, bool showUnitsInInches)
+    {
+        if (_hired.ProfileOf(troop, showUnitsInInches) is not { } hired)
+        {
+            return null;
+        }
+
+        var profile = new UnitProfile
+        {
+            Skills = ProfileText.JoinOrDash(hired.Skills),
+            Equipment = ProfileText.JoinOrDash(hired.Equipment),
+            RangedWeapons = ProfileText.JoinOrDash(hired.RangedWeapons),
+            MeleeWeapons = ProfileText.JoinOrDash(hired.MeleeWeapons)
+        };
+        ApplySeasonGear(profile, InducementShop.WithRentals([], rentals), InventoryCatalog.Empty);
+
+        return new DeploymentUnitItem
+        {
+            EntryIndex = troop.EntryIndex,
+            IsChecked = true,
+            IsHired = true,
+            Name = troop.Offer,
+            BaseUnitDisplayName = troop.Offer,
+            Subtitle = "Hired",
+            IsIrregular = hired.IsIrregular,
+            IsImpetuous = hired.IsImpetuous,
+            CachedLogoPath = logos?.TryGetCachedUnitLogoPath(troop.FactionId, troop.UnitId),
+            PackagedLogoPath = logos?.GetPackagedUnitLogoPath(troop.FactionId, troop.UnitId)
+                               ?? $"SVGCache/units/{troop.FactionId}-{troop.UnitId}.svg",
+            UnitMov = hired.Move,
+            UnitCc = hired.Cc,
+            UnitBs = hired.Bs,
+            UnitPh = hired.Ph,
+            UnitWip = hired.Wip,
+            UnitArm = hired.Arm,
+            UnitBts = hired.Bts,
+            UnitVitality = hired.Vitality.Value,
+            UnitS = hired.S,
+            VitalityStat = hired.Vitality.Stat,
+            StartingVitality = Math.Max(1, int.TryParse(hired.Vitality.Value, out var vitality) ? vitality : 1),
+            HasNwi = HasLine(profile.Skills, "No Wound Incapacitation"),
+            HasRemotePresence = HasLine(profile.Skills, "Remote Presence"),
+            Equipment = profile.Equipment,
+            Skills = profile.Skills,
+            RangedWeapons = profile.RangedWeapons,
+            MeleeWeapons = profile.MeleeWeapons
+        };
+    }
+
     private DeploymentUnitItem BuildUnit(
         SavedCompanyEntry entry,
         CaptainUpgrades captain,
-        IReadOnlyList<SeasonUnitGear>? gear,
+        IReadOnlyList<SeasonUnitGear> gear,
         StoreTroopType? armor,
         InventoryCatalog catalog,
         CaptainStatBonuses captainBonuses,
@@ -137,7 +204,7 @@ public sealed partial class DeploymentRoster(
             captain.ApplyTo(profile);
         }
 
-        ApplySeasonGear(profile, gear ?? [], catalog);
+        ApplySeasonGear(profile, gear, catalog);
 
         // Armour changes the underlying line; injuries, perks, rank skills and services then add on top, and Booty
         // and Metachemistry come last of all.
@@ -202,7 +269,7 @@ public sealed partial class DeploymentRoster(
             VitalityStat = StatKeys.VitalityFor(worn.UnitTypeCode),
             StartingVitality = startingVitality,
             TransmutesTo = _transmuted.For(entry, factionId, armor?.ArmorName, startingVitality, showUnitsInInches)?
-                .Carrying(CarriedGearOf(gear ?? [], catalog, changed.Skills, rolled.Equipment)),
+                .Carrying(CarriedGearOf(gear, catalog, changed.Skills, rolled.Equipment)),
             HasNwi = HasLine(profile.Skills, "No Wound Incapacitation"),
             HasRemotePresence = HasLine(profile.Skills, "Remote Presence"),
             Equipment = TextDistances.Convert(profile.Equipment, showUnitsInInches),
