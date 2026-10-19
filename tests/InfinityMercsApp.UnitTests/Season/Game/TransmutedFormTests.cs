@@ -15,21 +15,13 @@ public sealed class TransmutedFormTests
     [Fact]
     public void Carrying_Gear_AddsItsSkillsAndEquipment()
     {
-        var form = BattleRavaged.Carrying(new CarriedGear(["Forward Observer", "courage"], ["Medikit"], []));
+        var form = BattleRavaged.Carrying(new CarriedGear(["Forward Observer", "courage"], ["Medikit"]));
 
         Assert.Equal(["Courage", "Forward Observer"], form.Skills);
         Assert.Equal(["Multispectral Visor (L1)", "Medikit"], form.Equipment);
     }
 
     [Fact]
-    public void Carrying_StatAugments_SetTheirStatButNotVita()
-    {
-        var form = BattleRavaged.Carrying(new CarriedGear([], [], [new StatOverride(Stat.Bs, 14), new StatOverride(Stat.Vita, 3)]));
-
-        Assert.Equal([new(Stat.Bs, "14"), new(Stat.Arm, "2"), new(Stat.Vita, "2")], form.Statline);
-    }
-
-    [Fact]
-    public void Carrying_Nothing_LeavesTheFormAsPrinted() =>
-        Assert.Equal(BattleRavaged.Statline, BattleRavaged.Carrying(CarriedGear.None).Statline);
+    public void Carrying_Gear_LeavesTheStatlineAsPrinted() =>
+        Assert.Equal(BattleRavaged.Statline, BattleRavaged.Carrying(new CarriedGear(["Forward Observer"], ["Medikit"])).Statline);
 }

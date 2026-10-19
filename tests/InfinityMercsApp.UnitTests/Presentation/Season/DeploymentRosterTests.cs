@@ -151,7 +151,7 @@ public sealed class DeploymentRosterTests : IDisposable
     }
 
     [Fact]
-    public void CarriedGearOf_SeasonGear_KeepsRolesAugmentsBootyAndNeurocinetics()
+    public void CarriedGearOf_SeasonGear_KeepsRolesSkillAugmentsBootyAndNeurocinetics()
     {
         List<SeasonUnitGear> gear =
         [
@@ -167,7 +167,6 @@ public sealed class DeploymentRosterTests : IDisposable
 
         Assert.Equal(["Mimetism (-3)", "Forward Observer", "Neurocinetics (B2 in Active)"], carried.Skills);
         Assert.Equal(["Medikit"], carried.Equipment);
-        Assert.Equal([new StatOverride(Stat.Bs, 14)], carried.Overrides);
     }
 
     [Fact]

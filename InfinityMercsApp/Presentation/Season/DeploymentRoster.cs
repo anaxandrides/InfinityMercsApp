@@ -255,28 +255,19 @@ public sealed partial class DeploymentRoster(
     }
 
     /// <summary>
-    /// What a Transmutation (X) trooper keeps in its second profile: its season gear's roles and augments, its Booty
-    /// equipment, and Neurocinetics wherever it came from. Weapons stay on the row anyway, and armour stays behind.
+    /// What a Transmutation (X) trooper keeps in its second profile: its season gear's roles and skill augments, its
+    /// Booty equipment, and Neurocinetics wherever it came from. Weapons stay on the row anyway; stat augments and
+    /// armour stay with the first profile.
     /// </summary>
     internal static CarriedGear CarriedGearOf(
         IEnumerable<SeasonUnitGear> gear, InventoryCatalog catalog, IEnumerable<string> skills, IReadOnlyList<string> rolledEquipment)
     {
-        var gearSkills = new List<string>();
-        var overrides = new List<StatOverride>();
-        foreach (var item in EquippedItem.In(gear, catalog).Where(item => item.Slot is GearSlot.Roles or GearSlot.Augments))
-        {
-            if (item.Slot == GearSlot.Augments && StatOverride.TryParse(item.Name, out var statOverride))
-            {
-                overrides.Add(statOverride);
-            }
-            else
-            {
-                gearSkills.Add(item.Name);
-            }
-        }
-
-        gearSkills.AddRange(skills.Where(skill => skill.Contains(Neurocinetics, StringComparison.OrdinalIgnoreCase)));
-        return new CarriedGear(gearSkills, rolledEquipment, overrides);
+        var gearSkills = EquippedItem.In(gear, catalog)
+            .Where(item => item.Slot is GearSlot.Roles || item.Slot is GearSlot.Augments && !StatOverride.TryParse(item.Name, out _))
+            .Select(item => item.Name)
+            .Concat(skills.Where(skill => skill.Contains(Neurocinetics, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+        return new CarriedGear(gearSkills, rolledEquipment);
     }
 
     // The movement in centimetres when the entry has both values, so it reads back unambiguously; otherwise as saved.
