@@ -1,12 +1,16 @@
 namespace InfinityMercsApp.Infrastructure.API.ArmyMirror;
 
 /// <summary>
-/// What the army data mirror holds: the metadata and every army it copied from Corvus Belli, each with the hash of its
-/// payload, so a client downloads only what changed.
+/// A snapshot of the army data mirror: the metadata and every army it copied from Corvus Belli, each with the hash of
+/// its payload, so a client downloads only what changed. Each distinct set of payloads is a snapshot that is kept for
+/// good, so a company can pin the army data it was built with.
 /// </summary>
 public sealed record ArmyMirrorManifest
 {
-    /// <summary>When the mirror last checked Corvus Belli.</summary>
+    /// <summary>The snapshot's id, worked out from its payloads' hashes: the same army data always has the same id.</summary>
+    public string SnapshotId { get; init; } = string.Empty;
+
+    /// <summary>When the mirror last checked Corvus Belli; for a pinned snapshot, when it was taken.</summary>
     public DateTimeOffset CheckedAt { get; init; }
 
     /// <summary>The metadata payload; null until it was first copied.</summary>

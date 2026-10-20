@@ -1,5 +1,5 @@
 // Cosmos DB for companies, seasons and leagues: serverless, with key access off so only Entra identities get in.
-// The containers come with the features that use them.
+// Each container comes with the feature that uses it.
 param location string
 param name string
 param tags object
@@ -41,6 +41,22 @@ resource account 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' = {
     properties: {
       resource: {
         id: databaseName
+      }
+    }
+
+    // Army data snapshots (InfinityMercsApp.Api CosmosNames): a few small documents in one partition.
+    resource army 'containers' = {
+      name: 'army'
+      properties: {
+        resource: {
+          id: 'army'
+          partitionKey: {
+            paths: [
+              '/partition'
+            ]
+            kind: 'Hash'
+          }
+        }
       }
     }
   }

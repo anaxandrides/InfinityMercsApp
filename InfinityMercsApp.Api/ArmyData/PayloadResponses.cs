@@ -8,10 +8,13 @@ namespace InfinityMercsApp.Api.ArmyData;
 /// <summary>How a mirrored payload goes back to a client: gzipped when it takes gzip, and not at all when its copy is current.</summary>
 public static class PayloadResponses
 {
-    /// <summary>Clients may reuse a payload for an hour before asking again; asking again is cheap with the ETag.</summary>
-    public const string CacheControl = "public, max-age=3600";
+    /// <summary>For the current army data: clients may reuse it for an hour, and asking again is cheap with the ETag.</summary>
+    public const string CurrentCacheControl = "public, max-age=3600";
 
-    public static IActionResult For(HttpRequest request, StoredPayload? payload)
+    /// <summary>For a snapshot's army data, which never changes.</summary>
+    public const string SnapshotCacheControl = "public, max-age=31536000, immutable";
+
+    public static IActionResult For(HttpRequest request, StoredPayload? payload, string cacheControl)
     {
         if (payload is null)
         {
@@ -21,7 +24,7 @@ public static class PayloadResponses
         var etag = new EntityTagHeaderValue($"\"{payload.Hash}\"");
         var response = request.HttpContext.Response;
         response.Headers.ETag = etag.ToString();
-        response.Headers.CacheControl = CacheControl;
+        response.Headers.CacheControl = cacheControl;
         response.Headers.Vary = HeaderNames.AcceptEncoding;
         if (request.GetTypedHeaders().IfNoneMatch.Any(match => match.Compare(etag, useStrongComparison: false)))
         {

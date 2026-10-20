@@ -1,5 +1,6 @@
 using Azure.Identity;
 using InfinityMercsApp.Api.ArmyData;
+using InfinityMercsApp.Api.Cosmos;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
@@ -25,7 +26,9 @@ builder.Services.AddAzureClients(clients =>
 builder.Services.AddHttpClient<IArmyPayloadSource, CorvusBelliPayloadSource>();
 builder.Services
     .AddSingleton(TimeProvider.System)
-    .AddSingleton<IArmyMirrorStore, BlobArmyMirrorStore>()
+    .AddSingleton(_ => CosmosClients.Create(builder.Configuration))
+    .AddSingleton<IArmyPayloadStore, BlobArmyPayloadStore>()
+    .AddSingleton<IArmySnapshotStore, CosmosArmySnapshotStore>()
     .AddTransient<ArmyMirror>();
 
 builder.Build().Run();

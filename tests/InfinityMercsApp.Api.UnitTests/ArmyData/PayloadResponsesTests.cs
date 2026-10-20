@@ -46,14 +46,14 @@ public sealed class PayloadResponsesTests
     }
 
     [Fact]
-    public void For_NoPayload_IsNotFound() => Assert.IsType<NotFoundResult>(PayloadResponses.For(Request(), null));
+    public void For_NoPayload_IsNotFound() => Assert.IsType<NotFoundResult>(PayloadResponses.For(Request(), null, PayloadResponses.CurrentCacheControl));
 
     [Fact]
     public void For_ClientHasTheSameCopy_IsNotModified()
     {
         var request = Request("gzip", $"\"{Hash}\"");
 
-        var result = PayloadResponses.For(request, Payload());
+        var result = PayloadResponses.For(request, Payload(), PayloadResponses.CurrentCacheControl);
 
         Assert.Equal(StatusCodes.Status304NotModified, Assert.IsType<StatusCodeResult>(result).StatusCode);
         Assert.Equal($"\"{Hash}\"", request.HttpContext.Response.Headers.ETag.ToString());
@@ -62,7 +62,7 @@ public sealed class PayloadResponsesTests
     [Fact]
     public void For_ClientHasAnOlderCopy_SendsThePayload()
     {
-        var result = PayloadResponses.For(Request("gzip", "\"older\""), Payload());
+        var result = PayloadResponses.For(Request("gzip", "\"older\""), Payload(), PayloadResponses.CurrentCacheControl);
 
         Assert.IsType<FileStreamResult>(result);
     }
@@ -72,11 +72,11 @@ public sealed class PayloadResponsesTests
     {
         var request = Request("gzip, deflate, br");
 
-        var result = Assert.IsType<FileStreamResult>(PayloadResponses.For(request, Payload()));
+        var result = Assert.IsType<FileStreamResult>(PayloadResponses.For(request, Payload(), PayloadResponses.CurrentCacheControl));
 
         var response = request.HttpContext.Response;
         Assert.Equal("gzip", response.Headers.ContentEncoding.ToString());
-        Assert.Equal(PayloadResponses.CacheControl, response.Headers.CacheControl.ToString());
+        Assert.Equal(PayloadResponses.CurrentCacheControl, response.Headers.CacheControl.ToString());
         Assert.Equal("application/json", result.ContentType);
         Assert.Equal(Json, Read(new GZipStream(result.FileStream, CompressionMode.Decompress)));
     }
@@ -89,7 +89,7 @@ public sealed class PayloadResponsesTests
     {
         var request = Request(acceptEncoding);
 
-        var result = Assert.IsType<FileStreamResult>(PayloadResponses.For(request, Payload()));
+        var result = Assert.IsType<FileStreamResult>(PayloadResponses.For(request, Payload(), PayloadResponses.CurrentCacheControl));
 
         Assert.Empty(request.HttpContext.Response.Headers.ContentEncoding.ToString());
         Assert.Equal(Json, Read(result.FileStream));

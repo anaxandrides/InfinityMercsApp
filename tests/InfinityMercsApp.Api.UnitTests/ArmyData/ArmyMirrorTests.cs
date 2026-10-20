@@ -18,7 +18,8 @@ public sealed class ArmyMirrorTests
     private static readonly DateTimeOffset Now = new(2026, 10, 20, 6, 0, 0, TimeSpan.Zero);
 
     private readonly IArmyPayloadSource _source = Substitute.For<IArmyPayloadSource>();
-    private readonly IArmyMirrorStore _store = Substitute.For<IArmyMirrorStore>();
+    private readonly IArmyPayloadStore _payloads = Substitute.For<IArmyPayloadStore>();
+    private readonly IArmySnapshotStore _snapshots = Substitute.For<IArmySnapshotStore>();
     private readonly TimeProvider _time = Substitute.For<TimeProvider>();
     private readonly ArmyMirror _mirror;
     private ArmyMirrorManifest? _written;
@@ -29,21 +30,27 @@ public sealed class ArmyMirrorTests
         _source.GetMetadataAsync(Arg.Any<CancellationToken>()).Returns(Metadata);
         _source.GetArmyAsync(101, Arg.Any<CancellationToken>()).Returns(PanOceania);
         _source.GetArmyAsync(201, Arg.Any<CancellationToken>()).Returns(YuJing);
-        _store.WriteManifestAsync(Arg.Do<ArmyMirrorManifest>(manifest => _written = manifest), Arg.Any<CancellationToken>());
-        _mirror = new ArmyMirror(_source, _store, _time, NullLogger<ArmyMirror>.Instance);
+        _snapshots.SetLatestAsync(Arg.Do<ArmyMirrorManifest>(manifest => _written = manifest), Arg.Any<CancellationToken>());
+        _mirror = new ArmyMirror(_source, _payloads, _snapshots, _time, NullLogger<ArmyMirror>.Instance);
     }
 
-    // The manifest a refresh would leave when every payload was copied earlier, as served now.
-    private static ArmyMirrorManifest Current() => new()
+    // The current snapshot when every payload was copied earlier, as served now.
+    private static ArmyMirrorManifest Current()
     {
-        CheckedAt = Earlier,
-        Metadata = new MirroredPayload(ArmyPayloads.Hash(Metadata), Earlier),
-        Armies =
+        var metadata = new MirroredPayload(ArmyPayloads.Hash(Metadata), Earlier);
+        List<MirroredArmy> armies =
         [
             new MirroredArmy(101, "1.0", ArmyPayloads.Hash(PanOceania), Earlier),
             new MirroredArmy(201, "2.0", ArmyPayloads.Hash(YuJing), Earlier)
-        ]
-    };
+        ];
+        return new ArmyMirrorManifest
+        {
+            SnapshotId = ArmySnapshots.IdFor(metadata, armies),
+            CheckedAt = Earlier,
+            Metadata = metadata,
+            Armies = armies
+        };
+    }
 
     private ArmyMirrorManifest Written() => _written ?? throw new InvalidOperationException("No manifest was written.");
 
@@ -55,11 +62,15 @@ public sealed class ArmyMirrorTests
         Assert.True(refresh.MetadataUpdated);
         Assert.Equal([101, 201], refresh.UpdatedFactionIds);
         Assert.Empty(refresh.FailedFactionIds);
-        await _store.Received(1).WritePayloadAsync(MirrorBlobNames.Metadata, Metadata, ArmyPayloads.Hash(Metadata), Arg.Any<CancellationToken>());
-        await _store.Received(1).WritePayloadAsync(MirrorBlobNames.Army(101), PanOceania, ArmyPayloads.Hash(PanOceania), Arg.Any<CancellationToken>());
-        await _store.Received(1).WritePayloadAsync(MirrorBlobNames.Army(201), YuJing, ArmyPayloads.Hash(YuJing), Arg.Any<CancellationToken>());
+        await _payloads.Received(1).SaveAsync(ArmyPayloads.Hash(Metadata), Metadata, Arg.Any<CancellationToken>());
+        await _payloads.Received(1).SaveAsync(ArmyPayloads.Hash(PanOceania), PanOceania, Arg.Any<CancellationToken>());
+        await _payloads.Received(1).SaveAsync(ArmyPayloads.Hash(YuJing), YuJing, Arg.Any<CancellationToken>());
         var manifest = Written();
         Assert.Equal(Now, manifest.CheckedAt);
+        Assert.Equal(ArmySnapshots.IdFor(manifest.Metadata, manifest.Armies), manifest.SnapshotId);
+        Assert.Equal(manifest.SnapshotId, refresh.SnapshotId);
+        Assert.True(refresh.NewSnapshot);
+        await _snapshots.Received(1).SaveAsync(manifest, Arg.Any<CancellationToken>());
         Assert.Equal(new MirroredPayload(ArmyPayloads.Hash(Metadata), Now), manifest.Metadata);
         Assert.Equal(
             [new MirroredArmy(101, "1.0", ArmyPayloads.Hash(PanOceania), Now), new MirroredArmy(201, "2.0", ArmyPayloads.Hash(YuJing), Now)],
@@ -69,15 +80,18 @@ public sealed class ArmyMirrorTests
     [Fact]
     public async Task RefreshAsync_NothingChanged_WritesOnlyTheManifest()
     {
-        _store.ReadManifestAsync(Arg.Any<CancellationToken>()).Returns(Current());
+        _snapshots.ReadLatestAsync(Arg.Any<CancellationToken>()).Returns(Current());
 
         var refresh = await _mirror.RefreshAsync();
 
         Assert.False(refresh.MetadataUpdated);
         Assert.Empty(refresh.UpdatedFactionIds);
-        await _store.DidNotReceive().WritePayloadAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _payloads.DidNotReceive().SaveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         var manifest = Written();
         Assert.Equal(Now, manifest.CheckedAt);
+        Assert.Equal(Current().SnapshotId, manifest.SnapshotId);
+        Assert.False(refresh.NewSnapshot);
+        await _snapshots.DidNotReceive().SaveAsync(Arg.Any<ArmyMirrorManifest>(), Arg.Any<CancellationToken>());
         Assert.Equal(Current().Metadata, manifest.Metadata);
         Assert.Equal(Current().Armies, manifest.Armies);
     }
@@ -85,22 +99,25 @@ public sealed class ArmyMirrorTests
     [Fact]
     public async Task RefreshAsync_OneArmyChanged_CopiesOnlyThatArmy()
     {
-        _store.ReadManifestAsync(Arg.Any<CancellationToken>()).Returns(Current());
+        _snapshots.ReadLatestAsync(Arg.Any<CancellationToken>()).Returns(Current());
         const string newYuJing = """{"version":"2.1","units":[]}""";
         _source.GetArmyAsync(201, Arg.Any<CancellationToken>()).Returns(newYuJing);
 
         var refresh = await _mirror.RefreshAsync();
 
         Assert.Equal([201], refresh.UpdatedFactionIds);
-        await _store.Received(1).WritePayloadAsync(MirrorBlobNames.Army(201), newYuJing, ArmyPayloads.Hash(newYuJing), Arg.Any<CancellationToken>());
-        await _store.DidNotReceive().WritePayloadAsync(MirrorBlobNames.Army(101), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _payloads.Received(1).SaveAsync(ArmyPayloads.Hash(newYuJing), newYuJing, Arg.Any<CancellationToken>());
+        await _payloads.DidNotReceive().SaveAsync(ArmyPayloads.Hash(PanOceania), Arg.Any<string>(), Arg.Any<CancellationToken>());
         Assert.Equal(new MirroredArmy(201, "2.1", ArmyPayloads.Hash(newYuJing), Now), Written().Armies[1]);
+        Assert.True(refresh.NewSnapshot);
+        Assert.NotEqual(Current().SnapshotId, refresh.SnapshotId);
+        await _snapshots.Received(1).SaveAsync(Written(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task RefreshAsync_ArmyDownloadFails_KeepsItsEarlierCopy()
     {
-        _store.ReadManifestAsync(Arg.Any<CancellationToken>()).Returns(Current());
+        _snapshots.ReadLatestAsync(Arg.Any<CancellationToken>()).Returns(Current());
         _source.GetArmyAsync(201, Arg.Any<CancellationToken>()).ThrowsAsync(new HttpRequestException("403"));
 
         var refresh = await _mirror.RefreshAsync();
@@ -130,13 +147,13 @@ public sealed class ArmyMirrorTests
         var refresh = await _mirror.RefreshAsync();
 
         Assert.Equal([201], refresh.FailedFactionIds);
-        await _store.DidNotReceive().WritePayloadAsync(MirrorBlobNames.Army(201), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _payloads.DidNotReceive().SaveAsync(Arg.Any<string>(), payload, Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task RefreshAsync_FactionNoLongerListed_DropsIt()
     {
-        _store.ReadManifestAsync(Arg.Any<CancellationToken>()).Returns(Current());
+        _snapshots.ReadLatestAsync(Arg.Any<CancellationToken>()).Returns(Current());
         const string metadata = """{"factions":[{"id":101}]}""";
         _source.GetMetadataAsync(Arg.Any<CancellationToken>()).Returns(metadata);
 
@@ -154,7 +171,8 @@ public sealed class ArmyMirrorTests
         await Assert.ThrowsAsync<HttpRequestException>(() => _mirror.RefreshAsync());
 
         Assert.Null(_written);
-        await _store.DidNotReceive().WritePayloadAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _snapshots.DidNotReceive().SaveAsync(Arg.Any<ArmyMirrorManifest>(), Arg.Any<CancellationToken>());
+        await _payloads.DidNotReceive().SaveAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -165,5 +183,17 @@ public sealed class ArmyMirrorTests
         await Assert.ThrowsAnyAsync<JsonException>(() => _mirror.RefreshAsync());
 
         Assert.Null(_written);
+    }
+
+    [Fact]
+    public async Task RefreshAsync_NewSnapshot_IsKeptBeforeItBecomesCurrent()
+    {
+        await _mirror.RefreshAsync();
+
+        Received.InOrder(() =>
+        {
+            _snapshots.SaveAsync(Arg.Any<ArmyMirrorManifest>(), Arg.Any<CancellationToken>());
+            _snapshots.SetLatestAsync(Arg.Any<ArmyMirrorManifest>(), Arg.Any<CancellationToken>());
+        });
     }
 }

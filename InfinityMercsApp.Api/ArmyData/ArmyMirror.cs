@@ -8,22 +8,27 @@ namespace InfinityMercsApp.Api.ArmyData;
 
 /// <summary>
 /// Copies Corvus Belli's army data, so the app and the web site read it from here: the metadata and each faction's
-/// army, kept exactly as served, with a manifest of their hashes.
+/// army, kept exactly as served under their hashes. Each distinct set of them is a snapshot, kept for good.
 /// </summary>
-public sealed class ArmyMirror(IArmyPayloadSource source, IArmyMirrorStore store, TimeProvider time, ILogger<ArmyMirror> logger)
+public sealed class ArmyMirror(
+    IArmyPayloadSource source,
+    IArmyPayloadStore payloads,
+    IArmySnapshotStore snapshots,
+    TimeProvider time,
+    ILogger<ArmyMirror> logger)
 {
     private const int ConcurrentDownloads = 4;
 
     /// <summary>
     /// Downloads the metadata and every army it lists and keeps those that changed. An army that fails keeps its
-    /// earlier copy; a faction no longer listed is dropped from the manifest.
+    /// earlier copy; a faction no longer listed is left out. When anything changed, the result is a new snapshot.
     /// </summary>
     /// <exception cref="HttpRequestException">The metadata couldn't be downloaded; nothing changes.</exception>
     /// <exception cref="JsonException">The metadata wasn't readable; nothing changes.</exception>
     public async Task<ArmyMirrorRefresh> RefreshAsync(CancellationToken cancellationToken = default)
     {
         var now = time.GetUtcNow();
-        var previous = await store.ReadManifestAsync(cancellationToken) ?? new ArmyMirrorManifest();
+        var previous = await snapshots.ReadLatestAsync(cancellationToken) ?? new ArmyMirrorManifest();
 
         var metadataJson = await source.GetMetadataAsync(cancellationToken);
         var factionIds = ArmyPayloads.FactionIds(metadataJson);
@@ -32,7 +37,7 @@ public sealed class ArmyMirror(IArmyPayloadSource source, IArmyMirrorStore store
         var metadataUpdated = metadata?.Hash != metadataHash;
         if (metadataUpdated)
         {
-            await store.WritePayloadAsync(MirrorBlobNames.Metadata, metadataJson, metadataHash, cancellationToken);
+            await payloads.SaveAsync(metadataHash, metadataJson, cancellationToken);
             metadata = new MirroredPayload(metadataHash, now);
         }
 
@@ -66,14 +71,24 @@ public sealed class ArmyMirror(IArmyPayloadSource source, IArmyMirrorStore store
             }
         }));
 
-        await store.WriteManifestAsync(new ArmyMirrorManifest
+        var kept = armies.OfType<MirroredArmy>().OrderBy(army => army.FactionId).ToList();
+        var manifest = new ArmyMirrorManifest
         {
+            SnapshotId = ArmySnapshots.IdFor(metadata, kept),
             CheckedAt = now,
             Metadata = metadata,
-            Armies = armies.OfType<MirroredArmy>().OrderBy(army => army.FactionId).ToList()
-        }, cancellationToken);
+            Armies = kept
+        };
 
-        return new ArmyMirrorRefresh(metadataUpdated, updated.Order().ToList(), failed.Order().ToList());
+        // The snapshot is kept before it becomes current, so the current one can always be read by its id.
+        var newSnapshot = manifest.SnapshotId != previous.SnapshotId;
+        if (newSnapshot)
+        {
+            await snapshots.SaveAsync(manifest, cancellationToken);
+        }
+
+        await snapshots.SetLatestAsync(manifest, cancellationToken);
+        return new ArmyMirrorRefresh(manifest.SnapshotId, newSnapshot, metadataUpdated, updated.Order().ToList(), failed.Order().ToList());
     }
 
     // The kept copy when the payload is unchanged, a new one when it changed, or null when it couldn't be downloaded.
@@ -94,7 +109,7 @@ public sealed class ArmyMirror(IArmyPayloadSource source, IArmyMirrorStore store
                 return kept;
             }
 
-            await store.WritePayloadAsync(MirrorBlobNames.Army(factionId), json, hash, cancellationToken);
+            await payloads.SaveAsync(hash, json, cancellationToken);
             return new MirroredArmy(factionId, version, hash, now);
         }
         catch (Exception ex) when ((ex is HttpRequestException or JsonException or TaskCanceledException) && !cancellationToken.IsCancellationRequested)
