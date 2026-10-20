@@ -85,7 +85,7 @@ public sealed class JwtUserAuthenticator : IUserAuthenticator
         return await _handler.ValidateTokenAsync(token, new TokenValidationParameters
         {
             ValidIssuer = configuration.Issuer,
-            ValidAudience = _settings.Audience,
+            ValidAudiences = _settings.ValidAudiences,
             IssuerSigningKeys = configuration.SigningKeys,
             ValidateLifetime = true
         });

@@ -31,11 +31,19 @@ public static class MauiProgram
 			});
 
 #if WINDOWS
-		// The unpackaged Windows build keeps its data under the manifest's publisher name, which was the template's
-		// "User Name" until it became infinitymercsteam; data there is copied across once.
-		DataFolderMove.CopyIfNew(
-			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "User Name", AppInfo.Current.PackageName, "Data"),
-			FileSystem.Current.AppDataDirectory);
+		// The unpackaged Windows build keeps its data under the publisher name and the app id. The publisher was the
+		// template's "User Name" until it became infinitymercsteam, and the app id was com.companyname.infinitymercsapp
+		// until it became com.infinitymercsteam.infinitymercs; the newest old folder is copied across once.
+		var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+		foreach (var publisher in (IReadOnlyList<string>)["infinitymercsteam", "User Name"])
+		{
+			if (DataFolderMove.CopyIfNew(
+				Path.Combine(localAppData, publisher, "com.companyname.infinitymercsapp", "Data"),
+				FileSystem.Current.AppDataDirectory))
+			{
+				break;
+			}
+		}
 #endif
 
 		// A database from before the typed-table layout is discarded; the network import rebuilds it.

@@ -132,9 +132,16 @@ the API, the app and the web site always agree on their shape.
 - **Sign-in:** every route needs `Authorization: Bearer <token>` from the sign-in tenant, issued for the API. Until
   `authAuthority` and `authAudience` are set in `infra/main.bicepparam`, every request gets `401 Unauthorized`.
 
-## Later: sign-in setup
+## Sign-in
 
-Sign-in uses an Entra External ID tenant with Google as a provider. That tenant and its app registrations are set up
-by hand once the API is deployed, because the web app's redirect address only exists after the first deploy. The API
-then needs two values in `infra/main.bicepparam`: `authAuthority` (the tenant's
-`https://{tenant}.ciamlogin.com/{tenantId}/v2.0`) and `authAudience` (the API app registration's client id).
+Sign-in uses the Entra External ID tenant `infinitymercs.onmicrosoft.com` (tenant id
+`36af320a-cd91-43b1-8c24-f1c21c798455`), with Google as a provider and one sign-up/sign-in user flow.
+
+| App registration | Client id | Notes |
+| --- | --- | --- |
+| Infinity Mercs API | `6d09c3c6-41d1-4c53-a256-d65e8e4af405` | Exposes `access_as_user`; access tokens version 2. The API accepts tokens for the client id or `api://` + client id. |
+| Infinity Mercs Android | (to come) | Public client; Android platform for `com.infinitymercsteam.infinitymercs`, signed with the debug key `MZ3PK/hRgcAfKig9Q//Ng4a6G3E=` for now. Add Google Play's app signing key hash when the app is published. |
+| Web site | (to come) | Registered once the Blazor site is deployed and has its address. |
+
+`infra/main.bicepparam` sets `authAuthority` (`https://infinitymercs.ciamlogin.com/{tenant id}/v2.0`) and
+`authAudience` (the API's client id).

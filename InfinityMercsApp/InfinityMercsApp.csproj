@@ -47,7 +47,7 @@
 		<ApplicationTitle>InfinityMercsApp</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.infinitymercsapp</ApplicationId>
+		<ApplicationId>com.infinitymercsteam.infinitymercs</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>

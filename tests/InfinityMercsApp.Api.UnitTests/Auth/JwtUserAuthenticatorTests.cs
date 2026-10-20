@@ -91,6 +91,14 @@ public sealed class JwtUserAuthenticatorTests : IDisposable
     }
 
     [Fact]
+    public async Task AuthenticateAsync_ForTheApplicationIdUri_IsItsObjectId()
+    {
+        var user = await _authenticator.AuthenticateAsync(Request($"Bearer {Token(audience: $"api://{Audience}")}"));
+
+        Assert.Equal(new SignedInUser("user-1"), user);
+    }
+
+    [Fact]
     public async Task AuthenticateAsync_ForAnotherAudience_IsNobody() =>
         Assert.Null(await _authenticator.AuthenticateAsync(Request($"Bearer {Token(audience: "someone-else")}")));
 

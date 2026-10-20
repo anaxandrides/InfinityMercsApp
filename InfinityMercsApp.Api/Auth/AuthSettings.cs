@@ -9,6 +9,12 @@ public sealed class AuthSettings
     /// <summary>The API's application (client) id, which tokens must be issued for.</summary>
     public string Audience { get; init; } = string.Empty;
 
+    /// <summary>
+    /// The audiences a token may carry: the client id, as version 2 tokens give it, or the Application ID URI
+    /// (api://{client id}), as version 1 tokens do.
+    /// </summary>
+    public IReadOnlyList<string> ValidAudiences => [Audience, $"api://{Audience}"];
+
     /// <summary>Whether sign-in is set up; until it is, every request that needs a user is refused.</summary>
     public bool IsConfigured => Authority.Length > 0 && Audience.Length > 0;
 
