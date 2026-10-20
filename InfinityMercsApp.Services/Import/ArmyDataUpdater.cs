@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using InfinityMercsApp.Domain.Models.Metadata;
+using InfinityMercsApp.Infrastructure.API.ArmyMirror;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
@@ -12,6 +13,7 @@ namespace InfinityMercsApp.Services.Import;
 /// <inheritdoc/>
 internal sealed class ArmyDataUpdater(
     IInfinityArmyAPI infinityArmyAPI,
+    IArmyMirror armyMirror,
     IFactionProvider factionProvider,
     IMetadataProvider metadataProvider,
     IArmyImportProvider armyImportProvider,
@@ -55,6 +57,10 @@ internal sealed class ArmyDataUpdater(
             .OrderBy(faction => faction.Id)
             .ToList();
 
+        // The copy's manifest says which versions it holds, so an army already stored at that version isn't downloaded.
+        var mirroredVersions = (await armyMirror.GetManifestAsync(cancellationToken))?.Armies
+            .ToDictionary(army => army.FactionId, army => army.Version) ?? [];
+
         var failed = new ConcurrentBag<string>();
         var checkedCount = 0;
         using var gate = new SemaphoreSlim(ConcurrentDownloads);
@@ -63,6 +69,11 @@ internal sealed class ArmyDataUpdater(
             await gate.WaitAsync(cancellationToken);
             try
             {
+                if (IsStoredAt(faction.Id, mirroredVersions.GetValueOrDefault(faction.Id)))
+                {
+                    return null;
+                }
+
                 var army = await DownloadAsync(faction, cancellationToken);
                 if (army is null)
                 {
@@ -80,7 +91,7 @@ internal sealed class ArmyDataUpdater(
         }));
 
         var armies = downloads.OfType<DownloadedArmy>().ToList();
-        if (armies.Count == 0)
+        if (armies.Count == 0 && failed.Count == factions.Count)
         {
             return ArmyDataCheck.Failed("None of the Infinity Army armies could be downloaded.");
         }
@@ -136,6 +147,12 @@ internal sealed class ArmyDataUpdater(
         Generate("TAG Company", tagCompanyFactionGenerator.Generate, cancellationToken);
         return failed;
     }
+
+    // True when the army is stored, usably, at the version the copy holds.
+    private bool IsStoredAt(int factionId, string? mirroredVersion) =>
+        mirroredVersion is not null &&
+        factionProvider.GetFactionSnapshot(factionId)?.Version == mirroredVersion &&
+        factionProvider.GetResumeByFaction(factionId).Count > 0;
 
     // An army with no version can't be compared with the stored one, so it counts as not downloaded.
     private async Task<DownloadedArmy?> DownloadAsync(Faction faction, CancellationToken cancellationToken)

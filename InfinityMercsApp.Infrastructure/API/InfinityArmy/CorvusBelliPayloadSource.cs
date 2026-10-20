@@ -25,6 +25,6 @@ public sealed class CorvusBelliPayloadSource(HttpClient httpClient) : IArmyPaylo
             throw new HttpRequestException($"{url} answered {(int)response.StatusCode}.", null, response.StatusCode);
         }
 
-        return await CorvusBelliHttp.ReadBodyAsync(response, timeout.Token);
+        return await HttpBodies.ReadAsync(response, timeout.Token);
     }
 }

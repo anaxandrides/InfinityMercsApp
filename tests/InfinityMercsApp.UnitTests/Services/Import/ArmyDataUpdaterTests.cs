@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Domain.Models.Metadata;
+using InfinityMercsApp.Infrastructure.API.ArmyMirror;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
@@ -26,6 +27,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     private const string StoredFingerprint = "metadata-v1";
 
     private readonly IInfinityArmyAPI _api = Substitute.For<IInfinityArmyAPI>();
+    private readonly IArmyMirror _mirror = Substitute.For<IArmyMirror>();
     private readonly IFactionProvider _factions = Substitute.For<IFactionProvider>();
     private readonly IMetadataProvider _metadata = Substitute.For<IMetadataProvider>();
     private readonly IArmyImportProvider _armyImport = Substitute.For<IArmyImportProvider>();
@@ -41,6 +43,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
     {
         _updater = new ArmyDataUpdater(
             _api,
+            _mirror,
             _factions,
             _metadata,
             _armyImport,
@@ -161,6 +164,50 @@ public sealed class ArmyDataUpdaterTests : IDisposable
         var army = Assert.Single(check.Armies);
         Assert.Equal(stored, army.StoredVersion);
         Assert.Equal(isUpdate, army.IsUpdate);
+    }
+
+    [Fact]
+    public async Task CheckAsync_CopyHoldsTheStoredVersion_SkipsThatArmy()
+    {
+        Download(PanOceania, YuJing);
+        Mirror(new MirroredVersion(PanOceania, "7.1"), new MirroredVersion(YuJing, "3.0"));
+        StoreArmy(PanOceania, "7.1", hasUnits: true);
+        Serve(YuJing, "3.0");
+
+        var check = await _updater.CheckAsync();
+
+        Assert.True(check.Succeeded);
+        await _api.DidNotReceive().GetArmyDataAsync(PanOceania, Arg.Any<CancellationToken>());
+        Assert.Equal([YuJing], check.Armies.Select(army => army.FactionId));
+    }
+
+    [Theory]
+    [InlineData("7.2", true)]
+    [InlineData("7.1", false)]
+    public async Task CheckAsync_CopyHoldsAnotherVersionOrNothingUsableIsStored_DownloadsTheArmy(string mirrored, bool hasUnits)
+    {
+        Download(PanOceania);
+        Mirror(new MirroredVersion(PanOceania, mirrored));
+        StoreArmy(PanOceania, "7.1", hasUnits);
+        Serve(PanOceania, mirrored);
+
+        await _updater.CheckAsync();
+
+        await _api.Received(1).GetArmyDataAsync(PanOceania, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task CheckAsync_EveryArmyCurrent_SucceedsWithoutUpdates()
+    {
+        Download(PanOceania);
+        Mirror(new MirroredVersion(PanOceania, "7.1"));
+        StoreArmy(PanOceania, "7.1", hasUnits: true);
+
+        var check = await _updater.CheckAsync();
+
+        Assert.True(check.Succeeded);
+        Assert.False(check.HasUpdates);
+        Assert.Empty(check.FailedFactions);
     }
 
     [Fact]
@@ -304,6 +351,12 @@ public sealed class ArmyDataUpdaterTests : IDisposable
         _api.GetArmyDataAsync(factionId, Arg.Any<CancellationToken>()).Returns(army);
         return army;
     }
+
+    private void Mirror(params IEnumerable<MirroredVersion> armies) =>
+        _mirror.GetManifestAsync(Arg.Any<CancellationToken>()).Returns(new ArmyMirrorManifest
+        {
+            Armies = armies.Select(army => new MirroredArmy(army.FactionId, army.Version, "hash", DateTimeOffset.UnixEpoch)).ToList()
+        });
 
     private void StoreArmy(int factionId, string version, bool hasUnits)
     {

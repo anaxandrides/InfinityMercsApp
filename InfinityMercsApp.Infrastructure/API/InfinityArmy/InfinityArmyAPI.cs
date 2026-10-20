@@ -23,7 +23,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 /// <inheritdoc/>
-public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyAPI> logger, IArmyJsonReader armyJsonReader) : IInfinityArmyAPI
+public sealed class InfinityArmyAPI(IArmyPayloadSource payloads, ILogger<InfinityArmyAPI> logger, IArmyJsonReader armyJsonReader) : IInfinityArmyAPI
 {
     internal const string ArmyUrlBase = CorvusBelliHttp.ArmyUrlBase;
     internal const string MetadataUrl = CorvusBelliHttp.MetadataUrl;
@@ -39,8 +39,8 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
     /// <inheritdoc/>
     public async Task<DomainMetadataDocument?> GetMetaDataAsync(CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Fetching metadata from: {Url}", MetadataUrl);
-        var payload = await GetAsync(MetadataUrl, cancellationToken);
+        logger.LogInformation("Reading the metadata.");
+        var payload = await payloads.GetMetadataAsync(cancellationToken);
         if (!LooksLikeJsonObject(payload))
         {
             var dumpPath = await SaveFailedPayloadAsync("metadata-non-json-payload", MetadataUrl, payload);
@@ -74,9 +74,9 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
     public async Task<ArmyDefinition?> GetArmyDataAsync(int factionId, CancellationToken cancellationToken = default)
     {
         var fullUrl = CorvusBelliHttp.ArmyUrl(factionId);
-        logger.LogInformation("Fetching army data from: {Url}", fullUrl);
+        logger.LogInformation("Reading the army of faction {FactionId}.", factionId);
 
-        var payload = await GetAsync(fullUrl, cancellationToken);
+        var payload = await payloads.GetArmyAsync(factionId, cancellationToken);
         if (!LooksLikeJsonObject(payload))
         {
             var dumpPath = await SaveFailedPayloadAsync($"army-{factionId}-non-json-payload", fullUrl, payload);
@@ -194,34 +194,6 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
         return bands is null || bands.Count == 0 ? null : new WeaponDistance { Bands = bands };
     }
 
-    private async Task<string> GetAsync(string url, CancellationToken cancellationToken)
-    {
-        using var request = CorvusBelliHttp.NewRequest(url);
-
-        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeoutCts.CancelAfter(TimeSpan.FromSeconds(80));
-
-        using var response = await httpClient.SendAsync(
-            request,
-            HttpCompletionOption.ResponseHeadersRead,
-            timeoutCts.Token);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            var responseBody = await TryReadResponseBodyAsync(response, timeoutCts.Token);
-            var dumpPath = await SaveFailedPayloadAsync($"http-{(int)response.StatusCode}", url, responseBody);
-            logger.LogError(
-                "Request failed for {Url}. Status={StatusCode}. Failure dump saved to: {DumpPath}",
-                url,
-                (int)response.StatusCode,
-                dumpPath);
-
-            throw new HttpRequestException($"Request failed. Status={(int)response.StatusCode}. Failure dump: {dumpPath}");
-        }
-
-        return await CorvusBelliHttp.ReadBodyAsync(response, timeoutCts.Token);
-    }
-
     private async Task<string> SaveFailedPayloadAsync(string category, string url, string payload)
     {
         try
@@ -248,18 +220,6 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
         var directory = Path.Combine(appData, "InfinityMercsApp", "debug", DebugDumpFolderName);
         Directory.CreateDirectory(directory);
         return directory;
-    }
-
-    private static async Task<string> TryReadResponseBodyAsync(HttpResponseMessage response, CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await response.Content.ReadAsStringAsync(cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            return $"<failed-to-read-response-body: {ex.Message}>";
-        }
     }
 
     private static string SanitizeForFileName(string value)

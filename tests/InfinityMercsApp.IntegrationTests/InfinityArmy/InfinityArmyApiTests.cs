@@ -25,7 +25,7 @@ public sealed class InfinityArmyApiTests : IDisposable
         // Android's HTTP stack sends a User-Agent and desktop .NET sends none. The API refuses any request that
         // has a User-Agent unless its Origin is Corvus Belli's site, so the tests send one as a phone does.
         _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", AndroidUserAgent);
-        _api = new InfinityArmyAPI(_httpClient, NullLogger<InfinityArmyAPI>.Instance, new ArmyJsonReader());
+        _api = new InfinityArmyAPI(new CorvusBelliPayloadSource(_httpClient), NullLogger<InfinityArmyAPI>.Instance, new ArmyJsonReader());
     }
 
     /// <summary>Every vanilla army; each sectorial is a subset of one of them.</summary>

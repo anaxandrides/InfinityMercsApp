@@ -43,7 +43,8 @@ module cosmos 'cosmos.bicep' = {
 module functions 'functions.bicep' = {
   params: {
     location: location
-    name: 'func-${appName}-${suffix}'
+    // A fixed name, so the phone app knows its address (ArmyMirrorEndpoint.Production); it must be unique in Azure.
+    name: 'func-${appName}-${environmentName}'
     planName: 'plan-${appName}-${environmentName}'
     tags: tags
     identityId: identity.id

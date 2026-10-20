@@ -8,8 +8,9 @@ once by hand.
 
 `infra/main.bicep` creates the resource group `rg-infmercs-prod` in East US, holding:
 
-- **Function app** (Flex Consumption, .NET 10): the API in `InfinityMercsApp.Api`. One instance is kept warm
-  (`alwaysReadyInstances`).
+- **Function app** `func-infmercs-prod` (Flex Consumption, .NET 10): the API in `InfinityMercsApp.Api`, at
+  `https://func-infmercs-prod.azurewebsites.net/api/`. One instance is kept warm (`alwaysReadyInstances`). The phone
+  app has this address in `ArmyMirrorEndpoint.Production`, so renaming the app means changing it there too.
 - **Managed identity** `id-infmercs-api-prod`: the Function app runs as it. It is the only thing with access to the
   storage account, Cosmos DB and Application Insights, so there are no keys or connection strings anywhere.
 - **Storage account**: the Functions host's state, the deployment package (`app-package`) and the army data mirror
@@ -77,7 +78,9 @@ merged.
 ## The army data API
 
 The mirror copies Corvus Belli's army data every six hours, keeping each payload exactly as served, so the app's
-existing readers work on it unchanged.
+existing readers work on it unchanged. The phone reads from it first and checks its manifest, so it only downloads
+armies whose version changed; when the mirror can't be reached it goes to Corvus Belli directly, and leaves the mirror
+alone for ten minutes.
 
 | Route | What |
 | --- | --- |

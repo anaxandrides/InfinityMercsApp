@@ -1,9 +1,8 @@
-using System.IO.Compression;
 using System.Net.Http.Headers;
 
 namespace InfinityMercsApp.Infrastructure.API.InfinityArmy;
 
-/// <summary>How a request to Corvus Belli's army API has to look, and how its gzipped answers are read.</summary>
+/// <summary>Where Corvus Belli's army API is, and how a request to it has to look.</summary>
 public static class CorvusBelliHttp
 {
     public const string ArmyUrlBase = "https://api.corvusbelli.com/army/units/en/";
@@ -22,20 +21,5 @@ public static class CorvusBelliHttp
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
         return request;
-    }
-
-    /// <summary>The answer's body as text, unzipped when it came gzipped.</summary>
-    public static async Task<string> ReadBodyAsync(HttpResponseMessage response, CancellationToken cancellationToken)
-    {
-        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        if (response.Content.Headers.ContentEncoding.Any(encoding => encoding.Equals("gzip", StringComparison.OrdinalIgnoreCase)))
-        {
-            await using var gzip = new GZipStream(stream, CompressionMode.Decompress);
-            using var reader = new StreamReader(gzip);
-            return await reader.ReadToEndAsync(cancellationToken);
-        }
-
-        using var plainReader = new StreamReader(stream);
-        return await plainReader.ReadToEndAsync(cancellationToken);
     }
 }
