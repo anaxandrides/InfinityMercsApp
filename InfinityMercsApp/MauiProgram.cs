@@ -33,7 +33,7 @@ public static class MauiProgram
 #if WINDOWS
 		// The unpackaged Windows build keeps its data under the manifest's publisher name, which was the template's
 		// "User Name" until it became infinitymercsteam; data there is copied across once.
-		DataFolderMove.CopyIfNew(
+		InfinityMercsApp.Services.Records.DataFolderMove.CopyIfNew(
 			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "User Name", AppInfo.Current.PackageName, "Data"),
 			FileSystem.Current.AppDataDirectory);
 #endif
