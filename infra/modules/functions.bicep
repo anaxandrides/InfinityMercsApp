@@ -11,6 +11,8 @@ param deploymentContainer string
 param appInsightsConnectionString string
 param cosmosEndpoint string
 param alwaysReadyInstances int
+param authAuthority string
+param authAudience string
 
 resource plan 'Microsoft.Web/serverfarms@2024-04-01' = {
   name: planName
@@ -84,6 +86,8 @@ resource site 'Microsoft.Web/sites@2024-04-01' = {
       ArmyStorage__credential: 'managedidentity'
       ArmyStorage__clientId: identityClientId
       Cosmos__accountEndpoint: cosmosEndpoint
+      Auth__Authority: authAuthority
+      Auth__Audience: authAudience
     }
   }
 }

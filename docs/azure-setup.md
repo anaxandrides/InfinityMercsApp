@@ -104,7 +104,33 @@ snapshot id and read exactly that army data for good.
 Payloads are sent gzipped to clients that take gzip. Their ETag is their hash, so a client that sends `If-None-Match`
 gets `304 Not Modified` when its copy is current. A snapshot's routes are cached for a year, since they never change.
 
-## Later: sign-in
+## The companies and seasons API
+
+Each signed-in user keeps their own companies and seasons, in the Cosmos DB `user-data` container, partitioned by
+their user id. The server keeps each file as the app saves it and doesn't read inside it, so the app's file format can
+change without the API changing.
+
+| Route | What |
+| --- | --- |
+| `GET /api/me/{companies\|seasons}` | The user's files, without their content, deleted ones included. |
+| `GET /api/me/{companies\|seasons}/{id}` | One file. |
+| `PUT /api/me/{companies\|seasons}/{id}` | Saves a file: `{ "baseRevision": n, "armySnapshotId": "...", "content": { ... } }`. |
+| `DELETE /api/me/{companies\|seasons}/{id}?baseRevision=n` | Deletes a file. |
+
+- **Ids** are chosen by the app that creates the file (a GUID), so a phone can create files offline.
+- **Revisions:** each save adds one to the file's revision, and says which revision it builds on (`0` for a new
+  file). If another device saved since, the save is refused with `409 Conflict` and the current file, for the app to
+  merge with. Saves are checked against Cosmos DB's ETag as well, so two saves at once can't both win.
+- **Deleting** keeps the file as an empty, deleted revision, so the user's other devices learn of it. Saving on its
+  revision brings it back.
+- **Pinning:** `armySnapshotId` records the army data snapshot the file was built with.
+- **Size:** files of up to 1.5 MB are accepted.
+- **Sign-in:** every route needs `Authorization: Bearer <token>` from the sign-in tenant, issued for the API. Until
+  `authAuthority` and `authAudience` are set in `infra/main.bicepparam`, every request gets `401 Unauthorized`.
+
+## Later: sign-in setup
 
 Sign-in uses an Entra External ID tenant with Google as a provider. That tenant and its app registrations are set up
-by hand when the companies API is built, because the web app's redirect address only exists after the first deploy.
+by hand once the API is deployed, because the web app's redirect address only exists after the first deploy. The API
+then needs two values in `infra/main.bicepparam`: `authAuthority` (the tenant's
+`https://{tenant}.ciamlogin.com/{tenantId}/v2.0`) and `authAudience` (the API app registration's client id).

@@ -1,12 +1,15 @@
 using Azure.Identity;
 using InfinityMercsApp.Api.ArmyData;
+using InfinityMercsApp.Api.Auth;
 using InfinityMercsApp.Api.Cosmos;
+using InfinityMercsApp.Api.UserDocuments;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 builder.ConfigureFunctionsWebApplication();
@@ -29,6 +32,14 @@ builder.Services
     .AddSingleton(_ => CosmosClients.Create(builder.Configuration))
     .AddSingleton<IArmyPayloadStore, BlobArmyPayloadStore>()
     .AddSingleton<IArmySnapshotStore, CosmosArmySnapshotStore>()
-    .AddTransient<ArmyMirror>();
+    .AddTransient<ArmyMirror>()
+    .AddSingleton<IUserDocumentStore, CosmosUserDocumentStore>()
+    .AddSingleton<UserDocumentService>();
+
+// Sign-in: tokens from the Entra External ID tenant named by "Auth". Until it is set, requests needing a user are refused.
+var auth = builder.Configuration.GetSection("Auth").Get<AuthSettings>() ?? new AuthSettings();
+builder.Services
+    .AddSingleton(auth)
+    .AddSingleton<IUserAuthenticator, JwtUserAuthenticator>();
 
 builder.Build().Run();

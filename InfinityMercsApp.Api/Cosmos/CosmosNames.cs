@@ -9,4 +9,7 @@ public static class CosmosNames
     public const string ArmyContainer = "army";
 
     public const string ArmyPartition = "snapshots";
+
+    /// <summary>Users' companies and seasons, partitioned by user (/userId).</summary>
+    public const string UserDataContainer = "user-data";
 }

@@ -3,6 +3,8 @@ param location string
 param environmentName string
 param appName string
 param alwaysReadyInstances int
+param authAuthority string
+param authAudience string
 param tags object
 
 var suffix = uniqueString(subscription().id, appName, environmentName)
@@ -55,6 +57,8 @@ module functions 'functions.bicep' = {
     appInsightsConnectionString: monitoring.outputs.connectionString
     cosmosEndpoint: cosmos.outputs.endpoint
     alwaysReadyInstances: alwaysReadyInstances
+    authAuthority: authAuthority
+    authAudience: authAudience
   }
 }
 

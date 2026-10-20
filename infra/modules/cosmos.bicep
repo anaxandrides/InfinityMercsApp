@@ -44,6 +44,22 @@ resource account 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' = {
       }
     }
 
+    // Users' companies and seasons (InfinityMercsApp.Api CosmosNames), each user's in their own partition.
+    resource userData 'containers' = {
+      name: 'user-data'
+      properties: {
+        resource: {
+          id: 'user-data'
+          partitionKey: {
+            paths: [
+              '/userId'
+            ]
+            kind: 'Hash'
+          }
+        }
+      }
+    }
+
     // Army data snapshots (InfinityMercsApp.Api CosmosNames): a few small documents in one partition.
     resource army 'containers' = {
       name: 'army'

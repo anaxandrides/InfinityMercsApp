@@ -15,6 +15,12 @@ param appName string = 'infmercs'
 @minValue(0)
 param alwaysReadyInstances int = 1
 
+@description('Sign-in: the Entra External ID tenant\'s authority, e.g. https://{tenant}.ciamlogin.com/{tenantId}/v2.0. Empty until the tenant exists, which refuses every request that needs a user.')
+param authAuthority string = ''
+
+@description('Sign-in: the API app registration\'s client id, which tokens must be issued for.')
+param authAudience string = ''
+
 var tags = {
   app: 'InfinityMercsApp'
   environment: environmentName
@@ -33,6 +39,8 @@ module resources 'modules/resources.bicep' = {
     environmentName: environmentName
     appName: appName
     alwaysReadyInstances: alwaysReadyInstances
+    authAuthority: authAuthority
+    authAudience: authAudience
     tags: tags
   }
 }
