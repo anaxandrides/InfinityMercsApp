@@ -399,3 +399,6 @@ _build_out/*
 
 # Characterization snapshot output (approved files are committed, received files are not)
 *.received.txt
+
+# Azure Functions local settings (copy local.settings.sample.json)
+local.settings.json

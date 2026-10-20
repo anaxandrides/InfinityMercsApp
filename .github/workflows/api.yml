@@ -1,0 +1,88 @@
+# Tests the API, and on main deploys it to the Function app and refreshes the army data mirror.
+name: API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - InfinityMercsApp.Api/**
+      - InfinityMercsApp.Infrastructure/**
+      - InfinityMercsApp.Domain/**
+      - tests/InfinityMercsApp.Api.UnitTests/**
+      - .github/workflows/api.yml
+  pull_request:
+    paths:
+      - InfinityMercsApp.Api/**
+      - InfinityMercsApp.Infrastructure/**
+      - InfinityMercsApp.Domain/**
+      - tests/InfinityMercsApp.Api.UnitTests/**
+      - .github/workflows/api.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # The resource group infra/main.bicep creates.
+  RESOURCE_GROUP: rg-infmercs-prod
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Test
+        run: dotnet test tests/InfinityMercsApp.Api.UnitTests
+
+      - name: Publish
+        run: dotnet publish InfinityMercsApp.Api -c Release -o publish
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api
+          path: publish
+          include-hidden-files: true
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      id-token: write
+      contents: read
+    concurrency: api-deploy
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: api
+          path: publish
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Find the Function app
+        id: app
+        run: echo "name=$(az functionapp list -g "$RESOURCE_GROUP" --query '[0].name' -o tsv)" >> "$GITHUB_OUTPUT"
+
+      - uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ steps.app.outputs.name }}
+          package: publish
+          sku: flexconsumption
+
+      # Fills the mirror straight away instead of waiting up to six hours for the timer.
+      - name: Refresh the army data
+        run: |
+          key=$(az functionapp keys list -g "$RESOURCE_GROUP" -n "${{ steps.app.outputs.name }}" --query masterKey -o tsv)
+          host=$(az functionapp show -g "$RESOURCE_GROUP" -n "${{ steps.app.outputs.name }}" --query defaultHostName -o tsv)
+          curl --fail-with-body -sS -X POST "https://$host/admin/functions/RefreshArmyData" \
+            -H "x-functions-key: $key" -H "Content-Type: application/json" -d '{"input":""}'

@@ -17,8 +17,6 @@ using DomainMetadataWeapon = InfinityMercsApp.Domain.Models.Metadata.Weapon;
 using ApiMetadataDocument = InfinityMercsApp.Infrastructure.Models.API.Metadata.MetadataDocument;
 using ApiMetadataWeapon = InfinityMercsApp.Infrastructure.Models.API.Metadata.Weapon;
 using Microsoft.Extensions.Logging;
-using System.IO.Compression;
-using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -27,8 +25,8 @@ using System.Text.Json.Serialization;
 /// <inheritdoc/>
 public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyAPI> logger, IArmyJsonReader armyJsonReader) : IInfinityArmyAPI
 {
-    internal const string ArmyUrlBase = "https://api.corvusbelli.com/army/units/en/";
-    internal const string MetadataUrl = "https://api.corvusbelli.com/army/infinity/en/metadata";
+    internal const string ArmyUrlBase = CorvusBelliHttp.ArmyUrlBase;
+    internal const string MetadataUrl = CorvusBelliHttp.MetadataUrl;
     private const string DebugDumpFolderName = "external-read-failures";
 
     private static readonly JsonSerializerOptions jsonOptions = new()
@@ -75,7 +73,7 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
     /// <inheritdoc/>
     public async Task<ArmyDefinition?> GetArmyDataAsync(int factionId, CancellationToken cancellationToken = default)
     {
-        var fullUrl = $"{ArmyUrlBase}{factionId}";
+        var fullUrl = CorvusBelliHttp.ArmyUrl(factionId);
         logger.LogInformation("Fetching army data from: {Url}", fullUrl);
 
         var payload = await GetAsync(fullUrl, cancellationToken);
@@ -198,12 +196,7 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
 
     private async Task<string> GetAsync(string url, CancellationToken cancellationToken)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        // The API refuses (403) any request with a User-Agent, which Android always sends, unless the Origin is
-        // Corvus Belli's own site; the site moved from infinitytheuniverse.com in October 2026.
-        request.Headers.TryAddWithoutValidation("Origin", "https://infinityuniverse.com");
-        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+        using var request = CorvusBelliHttp.NewRequest(url);
 
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutCts.CancelAfter(TimeSpan.FromSeconds(80));
@@ -226,18 +219,7 @@ public sealed class InfinityArmyAPI(HttpClient httpClient, ILogger<InfinityArmyA
             throw new HttpRequestException($"Request failed. Status={(int)response.StatusCode}. Failure dump: {dumpPath}");
         }
 
-        await using var stream = await response.Content.ReadAsStreamAsync(timeoutCts.Token);
-        var contentEncodings = response.Content.Headers.ContentEncoding;
-
-        if (contentEncodings.Any(e => e.Equals("gzip", StringComparison.OrdinalIgnoreCase)))
-        {
-            await using var gzip = new GZipStream(stream, CompressionMode.Decompress);
-            using var reader = new StreamReader(gzip);
-            return await reader.ReadToEndAsync(timeoutCts.Token);
-        }
-
-        using var plainReader = new StreamReader(stream);
-        return await plainReader.ReadToEndAsync(timeoutCts.Token);
+        return await CorvusBelliHttp.ReadBodyAsync(response, timeoutCts.Token);
     }
 
     private async Task<string> SaveFailedPayloadAsync(string category, string url, string payload)
