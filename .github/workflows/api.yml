@@ -82,7 +82,9 @@ jobs:
       # Fills the mirror straight away instead of waiting up to six hours for the timer.
       - name: Refresh the army data
         run: |
+          # The host's master key, read with the deploy identity's sign-in and masked in the log.
           key=$(az functionapp keys list -g "$RESOURCE_GROUP" -n "${{ steps.app.outputs.name }}" --query masterKey -o tsv)
+          echo "::add-mask::$key"
           host=$(az functionapp show -g "$RESOURCE_GROUP" -n "${{ steps.app.outputs.name }}" --query defaultHostName -o tsv)
           curl --fail-with-body -sS -X POST "https://$host/admin/functions/RefreshArmyData" \
             -H "x-functions-key: $key" -H "Content-Type: application/json" -d '{"input":""}'
