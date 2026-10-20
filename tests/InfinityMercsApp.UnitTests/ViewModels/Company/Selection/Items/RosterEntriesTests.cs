@@ -1,4 +1,4 @@
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.Season.Peripherals;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 

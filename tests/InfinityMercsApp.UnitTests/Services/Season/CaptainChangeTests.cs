@@ -1,5 +1,5 @@
 using InfinityMercsApp.Domain.Models.Season;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.UnitTests.Support;
 

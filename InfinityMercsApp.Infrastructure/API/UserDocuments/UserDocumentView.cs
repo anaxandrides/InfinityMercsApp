@@ -1,14 +1,11 @@
-using System.Text.Json;
-
 namespace InfinityMercsApp.Infrastructure.API.UserDocuments;
 
-/// <summary>One of the user's files as the API keeps it.</summary>
-public sealed record UserDocumentView
+/// <summary>One of the user's files, a company or a season, as the API keeps it.</summary>
+public sealed record UserDocumentView<TContent>
+    where TContent : class
 {
     /// <summary>The file's id, chosen by the app that created it.</summary>
     public string DocumentId { get; init; } = string.Empty;
-
-    public UserDocumentKind Kind { get; init; }
 
     /// <summary>How many times the file was saved; each save adds one.</summary>
     public int Revision { get; init; }
@@ -21,5 +18,5 @@ public sealed record UserDocumentView
     public string? ArmySnapshotId { get; init; }
 
     /// <summary>The file; null when deleted, or in a listing.</summary>
-    public JsonElement? Content { get; init; }
+    public TContent? Content { get; init; }
 }

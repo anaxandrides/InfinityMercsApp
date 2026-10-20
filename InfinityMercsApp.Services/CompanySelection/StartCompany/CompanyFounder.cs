@@ -8,7 +8,7 @@ using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Factions;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.Records;
 using TagGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.TagCompanyFactionGenerator;
 

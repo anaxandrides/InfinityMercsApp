@@ -1,7 +1,7 @@
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Inventory;
 using InfinityMercsApp.Domain.Season.Retirement;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 
 namespace InfinityMercsApp.Services.Season;
 

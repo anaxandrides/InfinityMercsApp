@@ -1,5 +1,5 @@
 using InfinityMercsApp.Services.CompanySelection.Captain;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection;
 using InfinityMercsApp.ViewModels.Company.Selection.Rules;

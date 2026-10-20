@@ -10,6 +10,7 @@ using InfinityMercsApp.Presentation.Themes;
 using InfinityMercsApp.Presentation.Units;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Factions;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Packaging;

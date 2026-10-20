@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.ArmyData;
 
 namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;

@@ -1,4 +1,4 @@
-namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
+namespace InfinityMercsApp.Domain.Models.Company;
 
 /// <summary>One of the factions a company recruits from.</summary>
 public sealed class SavedCompanyFaction

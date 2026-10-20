@@ -13,7 +13,7 @@ using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Presentation.Company.Viewer;
 using InfinityMercsApp.Presentation.Season.Overview;
 using InfinityMercsApp.Services.CompanyProfiles;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;

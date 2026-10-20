@@ -1,7 +1,9 @@
 using System.Text.Json.Serialization;
+using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Perks;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
 
-namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
+namespace InfinityMercsApp.Domain.Models.Company;
 
 /// <summary>A trooper or peripheral as the company file saves it.</summary>
 public sealed class SavedCompanyEntry

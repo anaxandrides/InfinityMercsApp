@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
 namespace InfinityMercsApp.Services.Season.Peripherals;

@@ -1,7 +1,7 @@
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Presentation.Company.Selection;
 using InfinityMercsApp.Services.CompanyProfiles;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection.Items;
 

@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Domain.Models.Company;
 
 namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
 

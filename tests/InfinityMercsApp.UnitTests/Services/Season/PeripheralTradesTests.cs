@@ -1,6 +1,6 @@
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Services.ArmyData;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;

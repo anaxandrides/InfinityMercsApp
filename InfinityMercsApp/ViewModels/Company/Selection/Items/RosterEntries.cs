@@ -1,5 +1,5 @@
 using InfinityMercsApp.Presentation.Company.Selection;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.Season.Peripherals;
 
 namespace InfinityMercsApp.ViewModels.Company.Selection.Items;

@@ -1,7 +1,7 @@
 using InfinityMercsApp.Presentation.Company.Selection;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Factions;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Navigation;

@@ -34,7 +34,10 @@ builder.Services
     .AddSingleton<IArmySnapshotStore, CosmosArmySnapshotStore>()
     .AddTransient<ArmyMirror>()
     .AddSingleton<IUserDocumentStore, CosmosUserDocumentStore>()
-    .AddSingleton<UserDocumentService>();
+    .AddSingleton<UserDocumentService>()
+    .AddSingleton<UserDocumentEndpoints>()
+    .AddSingleton<CompanyFileChecks>()
+    .AddSingleton<SeasonFileChecks>();
 
 // Sign-in: tokens from the Entra External ID tenant named by "Auth". Until it is set, requests needing a user are refused.
 var auth = builder.Configuration.GetSection("Auth").Get<AuthSettings>() ?? new AuthSettings();

@@ -2,7 +2,7 @@ using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 
-namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
+namespace InfinityMercsApp.Domain.Models.Company;
 
 /// <summary>
 /// The captain upgrades chosen when a company is founded (or the TAG company's spec-ops build), as saved

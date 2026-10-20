@@ -4,7 +4,7 @@ using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Presentation.Company.Viewer;
 using InfinityMercsApp.Services.ArmyData;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.ViewModels.Company.Viewer.Items;

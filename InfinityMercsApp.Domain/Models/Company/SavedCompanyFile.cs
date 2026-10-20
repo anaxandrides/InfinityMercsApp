@@ -1,15 +1,20 @@
 using System.Text.Json.Serialization;
+using InfinityMercsApp.Domain.Fireteams;
 
-namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
+namespace InfinityMercsApp.Domain.Models.Company;
 
 /// <summary>
 /// A saved company, as every company type writes it and every page reads it: its type, founding points, factions
-/// and troopers.
+/// and troopers. A file without its name, type, identifier, factions or troopers isn't read at all, so a save from an
+/// app that left them out can't wipe them.
 /// </summary>
 public sealed class SavedCompanyFile
 {
+    [JsonRequired]
     public string CompanyName { get; init; } = string.Empty;
+    [JsonRequired]
     public string CompanyType { get; init; } = string.Empty;
+    [JsonRequired]
     public string CompanyIdentifier { get; init; } = string.Empty;
     public int CompanyIndex { get; init; }
     public string CreatedUtc { get; init; } = string.Empty;
@@ -30,6 +35,8 @@ public sealed class SavedCompanyFile
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SavedImprovedCaptainStats? ImprovedCaptainStats { get; init; }
+    [JsonRequired]
     public List<SavedCompanyFaction> SourceFactions { get; init; } = [];
+    [JsonRequired]
     public List<SavedCompanyEntry> Entries { get; init; } = [];
 }

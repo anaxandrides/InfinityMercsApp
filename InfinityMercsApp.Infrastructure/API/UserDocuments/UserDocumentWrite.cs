@@ -1,9 +1,8 @@
-using System.Text.Json;
-
 namespace InfinityMercsApp.Infrastructure.API.UserDocuments;
 
-/// <summary>A save of one of the user's files.</summary>
-public sealed record UserDocumentWrite
+/// <summary>A save of one of the user's files: a company or a season.</summary>
+public sealed record UserDocumentWrite<TContent>
+    where TContent : class
 {
     /// <summary>
     /// The revision the client last read, which the save builds on: 0 for a new file. When another device saved since,
@@ -14,6 +13,6 @@ public sealed record UserDocumentWrite
     /// <summary>The army data snapshot the file was built with, if it pins one.</summary>
     public string? ArmySnapshotId { get; init; }
 
-    /// <summary>The file itself, as the app saves it: a JSON object.</summary>
-    public JsonElement Content { get; init; }
+    /// <summary>The file itself.</summary>
+    public required TContent Content { get; init; }
 }

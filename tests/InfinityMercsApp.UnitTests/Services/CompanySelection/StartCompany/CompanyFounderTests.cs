@@ -3,7 +3,7 @@ using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Fireteams;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.CompanySelection.Captain;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Records;

@@ -12,12 +12,13 @@ public sealed class CosmosUserDocumentStore(CosmosClient cosmos) : IUserDocument
     private readonly Container _container = cosmos.GetContainer(CosmosNames.Database, CosmosNames.UserDataContainer);
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<UserDocument>> ListAsync(string userId, UserDocumentKind kind, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<UserDocument<TContent>>> ListAsync<TContent>(string userId, UserDocumentKind kind, CancellationToken cancellationToken = default)
+        where TContent : class
     {
         var query = new QueryDefinition("SELECT * FROM c WHERE c.kind = @kind").WithParameter("@kind", kind.ToString());
-        using var pages = _container.GetItemQueryIterator<UserDocument>(
+        using var pages = _container.GetItemQueryIterator<UserDocument<TContent>>(
             query, requestOptions: new QueryRequestOptions { PartitionKey = new PartitionKey(userId) });
-        var documents = new List<UserDocument>();
+        var documents = new List<UserDocument<TContent>>();
         while (pages.HasMoreResults)
         {
             documents.AddRange(await pages.ReadNextAsync(cancellationToken));
@@ -27,13 +28,18 @@ public sealed class CosmosUserDocumentStore(CosmosClient cosmos) : IUserDocument
     }
 
     /// <inheritdoc/>
-    public async Task<StoredUserDocument?> ReadAsync(string userId, UserDocumentKind kind, string documentId, CancellationToken cancellationToken = default)
+    public async Task<StoredUserDocument<TContent>?> ReadAsync<TContent>(
+        string userId,
+        UserDocumentKind kind,
+        string documentId,
+        CancellationToken cancellationToken = default)
+        where TContent : class
     {
         try
         {
-            var response = await _container.ReadItemAsync<UserDocument>(
-                UserDocument.IdFor(kind, documentId), new PartitionKey(userId), cancellationToken: cancellationToken);
-            return new StoredUserDocument(response.Resource, response.ETag);
+            var response = await _container.ReadItemAsync<UserDocument<TContent>>(
+                UserDocumentIds.For(kind, documentId), new PartitionKey(userId), cancellationToken: cancellationToken);
+            return new StoredUserDocument<TContent>(response.Resource, response.ETag);
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -42,7 +48,8 @@ public sealed class CosmosUserDocumentStore(CosmosClient cosmos) : IUserDocument
     }
 
     /// <inheritdoc/>
-    public async Task<bool> TryCreateAsync(UserDocument document, CancellationToken cancellationToken = default)
+    public async Task<bool> TryCreateAsync<TContent>(UserDocument<TContent> document, CancellationToken cancellationToken = default)
+        where TContent : class
     {
         try
         {
@@ -56,7 +63,8 @@ public sealed class CosmosUserDocumentStore(CosmosClient cosmos) : IUserDocument
     }
 
     /// <inheritdoc/>
-    public async Task<bool> TryReplaceAsync(UserDocument document, string etag, CancellationToken cancellationToken = default)
+    public async Task<bool> TryReplaceAsync<TContent>(UserDocument<TContent> document, string etag, CancellationToken cancellationToken = default)
+        where TContent : class
     {
         try
         {

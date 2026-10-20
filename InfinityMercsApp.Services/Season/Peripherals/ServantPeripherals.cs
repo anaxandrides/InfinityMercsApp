@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
 namespace InfinityMercsApp.Services.Season.Peripherals;

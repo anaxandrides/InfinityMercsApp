@@ -2,7 +2,7 @@ using InfinityMercsApp.Domain.Models.Filtering;
 using InfinityMercsApp.Presentation.Company.Selection;
 using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Services.CompanySelection.Captain;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company.Selection;

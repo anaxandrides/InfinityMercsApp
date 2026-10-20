@@ -1,3 +1,5 @@
+using InfinityMercsApp.Domain.Models.Company;
+
 namespace InfinityMercsApp.Services.CompanySelection.Models.Saved;
 
 /// <summary>

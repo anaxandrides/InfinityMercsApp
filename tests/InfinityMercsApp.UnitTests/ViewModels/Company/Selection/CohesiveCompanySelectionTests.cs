@@ -1,6 +1,6 @@
 using InfinityMercsApp.Domain.Fireteams;
 using InfinityMercsApp.Domain.Models.Filtering;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection;

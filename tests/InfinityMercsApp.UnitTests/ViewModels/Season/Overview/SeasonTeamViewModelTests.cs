@@ -7,7 +7,7 @@ using InfinityMercsApp.Domain.Season.RecruitRolls;
 using InfinityMercsApp.Domain.Season.Troopers;
 using InfinityMercsApp.Presentation.Company.Viewer;
 using InfinityMercsApp.Presentation.Season.Overview;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.Season.Peripherals;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.UnitTests.Presentation.Company.Viewer;

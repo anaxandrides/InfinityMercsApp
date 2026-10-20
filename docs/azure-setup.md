@@ -107,16 +107,20 @@ gets `304 Not Modified` when its copy is current. A snapshot's routes are cached
 ## The companies and seasons API
 
 Each signed-in user keeps their own companies and seasons, in the Cosmos DB `user-data` container, partitioned by
-their user id. The server keeps each file as the app saves it and doesn't read inside it, so the app's file format can
-change without the API changing.
+their user id. Files are the app's own types (`SavedCompanyFile` and `SeasonFile` in `InfinityMercsApp.Domain`), so
+the API, the app and the web site always agree on their shape.
 
 | Route | What |
 | --- | --- |
-| `GET /api/me/{companies\|seasons}` | The user's files, without their content, deleted ones included. |
-| `GET /api/me/{companies\|seasons}/{id}` | One file. |
-| `PUT /api/me/{companies\|seasons}/{id}` | Saves a file: `{ "baseRevision": n, "armySnapshotId": "...", "content": { ... } }`. |
-| `DELETE /api/me/{companies\|seasons}/{id}?baseRevision=n` | Deletes a file. |
+| `GET /api/me/companies`, `GET /api/me/seasons` | The user's files, without their content, deleted ones included. |
+| `GET /api/me/companies/{id}`, `GET /api/me/seasons/{id}` | One file. |
+| `PUT /api/me/companies/{id}`, `PUT /api/me/seasons/{id}` | Saves a file: `{ "baseRevision": n, "armySnapshotId": "...", "content": { ... } }`. |
+| `DELETE /api/me/companies/{id}?baseRevision=n` (and seasons) | Deletes a file. |
 
+- **Checks:** a file missing a required field (`[JsonRequired]` on the model, e.g. a company's name, factions or
+  troopers) or with a null where none is allowed is refused with `400`, so a save from an app that left something
+  out can't wipe it. A company also needs exactly one Captain and unique entry indexes; a season needs its company's
+  name and identifier. The `400` lists the problems.
 - **Ids** are chosen by the app that creates the file (a GUID), so a phone can create files offline.
 - **Revisions:** each save adds one to the file's revision, and says which revision it builds on (`0` for a new
   file). If another device saved since, the save is refused with `409 Conflict` and the current file, for the app to
@@ -124,7 +128,7 @@ change without the API changing.
 - **Deleting** keeps the file as an empty, deleted revision, so the user's other devices learn of it. Saving on its
   revision brings it back.
 - **Pinning:** `armySnapshotId` records the army data snapshot the file was built with.
-- **Size:** files of up to 1.5 MB are accepted.
+- **Size:** bodies of up to 1.5 MB are accepted.
 - **Sign-in:** every route needs `Authorization: Bearer <token>` from the sign-in tenant, issued for the API. Until
   `authAuthority` and `authAudience` are set in `infra/main.bicepparam`, every request gets `401 Unauthorized`.
 

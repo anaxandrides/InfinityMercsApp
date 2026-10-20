@@ -1,5 +1,5 @@
 using System.Text.Json;
-using InfinityMercsApp.Services.CompanySelection.Models.Saved;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.Season;
 
 namespace InfinityMercsApp.Services.Records;

@@ -1,16 +1,24 @@
+using System.Text.Json.Serialization;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 
 namespace InfinityMercsApp.Domain.Models.Season;
 
+/// <summary>
+/// A company's season. A file without its company's name and identifier, or its rounds, isn't read at all, so a save
+/// from an app that left them out can't wipe them.
+/// </summary>
 public class SeasonFile
 {
+    [JsonRequired]
     public string CompanyName { get; set; } = string.Empty;
+    [JsonRequired]
     public string CompanyIdentifier { get; set; } = string.Empty;
     public string CompanyFilePath { get; set; } = string.Empty;
     public string CreatedDate { get; set; } = string.Empty;
     // Set when the season is first opened; null in a file that has not been opened since this was added.
     public SeasonStartingFunds? StartingFunds { get; set; }
     public SeasonMarketplace InitialPurchases { get; set; } = new();
+    [JsonRequired]
     public List<SeasonRound> Rounds { get; set; } = [];
     public SeasonStatus CurrentStatus { get; set; } = new();
     // Key = SavedCompanyEntry.EntryIndex; value = assigned gear slots for that unit.
