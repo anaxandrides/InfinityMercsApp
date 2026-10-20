@@ -4,17 +4,24 @@ using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Import;
 using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.Services.SignIn;
 using InfinityMercsApp.ViewModels.Base;
 
 namespace InfinityMercsApp.ViewModels.Settings;
 
-/// <summary>The display-units preference, and a check for army data updates like the one at startup.</summary>
+/// <summary>
+/// The display-units preference, a check for army data updates like the one at startup, and signing in to the app's
+/// online side.
+/// </summary>
 public partial class SettingsViewModel(
     INavigationService navigationService,
     IAppSettingsProvider appSettings,
     IArmyDataUpdater updater,
-    IDialogService dialogs) : ViewModelBase(navigationService)
+    IDialogService dialogs,
+    ISignInService signIn) : ViewModelBase(navigationService)
 {
+    public const string SignedOutText = "Not signed in.";
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowUnitsInCentimeters))]
     public partial bool ShowUnitsInInches { get; set; } = true;
@@ -29,6 +36,25 @@ public partial class SettingsViewModel(
     [NotifyCanExecuteChangedFor(nameof(UpdateAllDataCommand))]
     public partial bool IsUpdateInProgress { get; set; }
 
+    [ObservableProperty]
+    public partial string AccountText { get; set; } = SignedOutText;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowSignIn), nameof(ShowSignOut))]
+    [NotifyCanExecuteChangedFor(nameof(SignInCommand), nameof(SignOutCommand))]
+    public partial bool IsSignedIn { get; set; }
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SignInCommand), nameof(SignOutCommand))]
+    public partial bool IsSigningIn { get; set; }
+
+    /// <summary>Whether this device can sign in at all; the account section is hidden where it can't.</summary>
+    public bool CanSignInHere => signIn.IsAvailable;
+
+    public bool ShowSignIn => CanSignInHere && !IsSignedIn;
+
+    public bool ShowSignOut => CanSignInHere && IsSignedIn;
+
     // Loading the stored preference must not write it straight back.
     private bool _loading;
 
@@ -38,7 +64,7 @@ public partial class SettingsViewModel(
         set => ShowUnitsInInches = !value;
     }
 
-    public override Task InitializeAsync()
+    public override async Task InitializeAsync()
     {
         try
         {
@@ -54,7 +80,47 @@ public partial class SettingsViewModel(
             _loading = false;
         }
 
-        return Task.CompletedTask;
+        ShowAccount(await signIn.GetAccountAsync());
+    }
+
+    private bool CanSignIn() => CanSignInHere && !IsSignedIn && !IsSigningIn;
+
+    /// <summary>Opens the sign-in page; a cancelled sign-in changes nothing, and a failed one says why.</summary>
+    [RelayCommand(CanExecute = nameof(CanSignIn))]
+    private async Task SignInAsync()
+    {
+        try
+        {
+            IsSigningIn = true;
+            var outcome = await signIn.SignInAsync();
+            if (outcome.Account is { } account)
+            {
+                ShowAccount(account);
+            }
+            else if (outcome.Status is SignInStatus.Failed or SignInStatus.Unavailable)
+            {
+                await dialogs.ShowAlertAsync("Not Signed In", outcome.Message);
+            }
+        }
+        finally
+        {
+            IsSigningIn = false;
+        }
+    }
+
+    private bool CanSignOut() => IsSignedIn && !IsSigningIn;
+
+    [RelayCommand(CanExecute = nameof(CanSignOut))]
+    private async Task SignOutAsync()
+    {
+        await signIn.SignOutAsync();
+        ShowAccount(null);
+    }
+
+    private void ShowAccount(SignedInAccount? account)
+    {
+        IsSignedIn = account is not null;
+        AccountText = account is null ? SignedOutText : $"Signed in as {account.Username}.";
     }
 
     partial void OnShowUnitsInInchesChanged(bool value)

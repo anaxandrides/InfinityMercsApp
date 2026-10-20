@@ -33,6 +33,25 @@
             <Label
                 Text="{Binding UpdateStatus}"
                 LineBreakMode="WordWrap" />
+
+            <VerticalStackLayout Spacing="8" IsVisible="{Binding CanSignInHere}">
+                <Label
+                    Text="Account:"
+                    FontAttributes="Bold" />
+                <Label
+                    Text="{Binding AccountText}"
+                    LineBreakMode="WordWrap" />
+                <Button
+                    Text="Sign in"
+                    Command="{Binding SignInCommand}"
+                    IsVisible="{Binding ShowSignIn}"
+                    HorizontalOptions="Fill" />
+                <Button
+                    Text="Sign out"
+                    Command="{Binding SignOutCommand}"
+                    IsVisible="{Binding ShowSignOut}"
+                    HorizontalOptions="Fill" />
+            </VerticalStackLayout>
         </VerticalStackLayout>
 
         <Grid

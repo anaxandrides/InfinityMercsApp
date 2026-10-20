@@ -57,6 +57,8 @@ using InfinityMercsApp.Views.Season.RankUp;
 using InfinityMercsApp.Views.Settings;
 using InfinityMercsApp.Views.Splash;
 using InfinityMercsApp.Views.UnitBrowser;
+using InfinityMercsApp.Services.SignIn;
+using Microsoft.Identity.Client;
 
 namespace InfinityMercsApp;
 
@@ -179,6 +181,18 @@ public static class ServiceRegistryExtensions
             return client;
         });
         services.AddSingleton<IWikiDescriptionService, WikiDescriptionService>();
+
+        // Sign-in to the app's online side, with the Entra External ID tenant.
+        services.AddSingleton(SignInSettings.Production)
+                .AddSingleton(provider =>
+                {
+                    var settings = provider.GetRequiredService<SignInSettings>();
+                    return PublicClientApplicationBuilder.Create(settings.ClientId)
+                        .WithAuthority(settings.Authority)
+                        .WithRedirectUri(settings.RedirectUri)
+                        .Build();
+                })
+                .AddSingleton<ISignInService, MsalSignInService>();
 
         return services;
     }

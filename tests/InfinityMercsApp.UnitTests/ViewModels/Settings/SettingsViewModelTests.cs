@@ -2,6 +2,7 @@ using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Import;
 using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.Services.SignIn;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Settings;
 using NSubstitute;
@@ -13,11 +14,14 @@ public sealed class SettingsViewModelTests
     private readonly IAppSettingsProvider _settings = Substitute.For<IAppSettingsProvider>();
     private readonly IArmyDataUpdater _updater = Substitute.For<IArmyDataUpdater>();
     private readonly IDialogService _dialogs = Substitute.For<IDialogService>();
+    private readonly ISignInService _signIn = Substitute.For<ISignInService>();
 
-    private async Task<SettingsViewModel> OpenAsync(bool storedInches)
+    public SettingsViewModelTests() => _signIn.IsAvailable.Returns(true);
+
+    private async Task<SettingsViewModel> OpenAsync(bool storedInches = true)
     {
         _settings.GetShowUnitsInInches().Returns(storedInches);
-        var viewModel = new SettingsViewModel(Substitute.For<INavigationService>(), _settings, _updater, _dialogs);
+        var viewModel = new SettingsViewModel(Substitute.For<INavigationService>(), _settings, _updater, _dialogs, _signIn);
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         return viewModel;
     }
@@ -126,4 +130,93 @@ public sealed class SettingsViewModelTests
 
     private void Checks(ArmyDataCheck check) =>
         _updater.CheckAsync(Arg.Any<IProgress<ArmyDataProgress>>(), Arg.Any<CancellationToken>()).Returns(check);
+
+    [Fact]
+    public async Task InitializeAsync_RememberedAccount_ShowsItSignedIn()
+    {
+        _signIn.GetAccountAsync(Arg.Any<CancellationToken>()).Returns(new SignedInAccount("kestrel@example.com"));
+
+        var viewModel = await OpenAsync();
+
+        Assert.True(viewModel.IsSignedIn);
+        Assert.Equal("Signed in as kestrel@example.com.", viewModel.AccountText);
+        Assert.True(viewModel.ShowSignOut);
+        Assert.False(viewModel.ShowSignIn);
+        Assert.False(viewModel.SignInCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task InitializeAsync_SignedOut_OffersSigningIn()
+    {
+        var viewModel = await OpenAsync();
+
+        Assert.False(viewModel.IsSignedIn);
+        Assert.Equal(SettingsViewModel.SignedOutText, viewModel.AccountText);
+        Assert.True(viewModel.ShowSignIn);
+        Assert.True(viewModel.SignInCommand.CanExecute(null));
+        Assert.False(viewModel.SignOutCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task CanSignInHere_PlatformCannotSignIn_HidesTheAccount()
+    {
+        _signIn.IsAvailable.Returns(false);
+
+        var viewModel = await OpenAsync();
+
+        Assert.False(viewModel.CanSignInHere);
+        Assert.False(viewModel.ShowSignIn);
+        Assert.False(viewModel.ShowSignOut);
+        Assert.False(viewModel.SignInCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task SignInCommand_SignedIn_ShowsTheAccount()
+    {
+        _signIn.SignInAsync(Arg.Any<CancellationToken>()).Returns(SignInOutcome.SignedIn(new SignedInAccount("kestrel@example.com")));
+        var viewModel = await OpenAsync();
+
+        await viewModel.SignInCommand.ExecuteAsync(null);
+
+        Assert.True(viewModel.IsSignedIn);
+        Assert.Equal("Signed in as kestrel@example.com.", viewModel.AccountText);
+        Assert.False(viewModel.IsSigningIn);
+    }
+
+    [Fact]
+    public async Task SignInCommand_Cancelled_ChangesNothingQuietly()
+    {
+        _signIn.SignInAsync(Arg.Any<CancellationToken>()).Returns(SignInOutcome.Cancelled);
+        var viewModel = await OpenAsync();
+
+        await viewModel.SignInCommand.ExecuteAsync(null);
+
+        Assert.False(viewModel.IsSignedIn);
+        await _dialogs.DidNotReceive().ShowAlertAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task SignInCommand_Failed_SaysWhy()
+    {
+        _signIn.SignInAsync(Arg.Any<CancellationToken>()).Returns(SignInOutcome.Failed("Signing in failed: no network."));
+        var viewModel = await OpenAsync();
+
+        await viewModel.SignInCommand.ExecuteAsync(null);
+
+        Assert.False(viewModel.IsSignedIn);
+        await _dialogs.Received(1).ShowAlertAsync("Not Signed In", "Signing in failed: no network.", Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task SignOutCommand_SignedIn_ForgetsTheAccount()
+    {
+        _signIn.GetAccountAsync(Arg.Any<CancellationToken>()).Returns(new SignedInAccount("kestrel@example.com"));
+        var viewModel = await OpenAsync();
+
+        await viewModel.SignOutCommand.ExecuteAsync(null);
+
+        await _signIn.Received(1).SignOutAsync(Arg.Any<CancellationToken>());
+        Assert.False(viewModel.IsSignedIn);
+        Assert.Equal(SettingsViewModel.SignedOutText, viewModel.AccountText);
+    }
 }

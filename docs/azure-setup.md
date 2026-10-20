@@ -140,8 +140,9 @@ Sign-in uses the Entra External ID tenant `infinitymercs.onmicrosoft.com` (tenan
 | App registration | Client id | Notes |
 | --- | --- | --- |
 | Infinity Mercs API | `6d09c3c6-41d1-4c53-a256-d65e8e4af405` | Exposes `access_as_user`; access tokens version 2. The API accepts tokens for the client id or `api://` + client id. |
-| Infinity Mercs Android | (to come) | Public client; Android platform for `com.infinitymercsteam.infinitymercs`, signed with the debug key `MZ3PK/hRgcAfKig9Q//Ng4a6G3E=` for now. Add Google Play's app signing key hash when the app is published. |
+| Infinity Mercs Android | `0bbba93d-840e-48ce-b2d2-8007f227ba8d` | Public client with the API's `access_as_user` permission (admin consent granted). Its **Mobile and desktop applications** redirect URI `msal0bbba93d-840e-48ce-b2d2-8007f227ba8d://auth` is the one the app uses (MSAL.NET, system browser), so it doesn't depend on the signing key. Windows will need `http://localhost` added. |
 | Web site | (to come) | Registered once the Blazor site is deployed and has its address. |
 
 `infra/main.bicepparam` sets `authAuthority` (`https://infinitymercs.ciamlogin.com/{tenant id}/v2.0`) and
-`authAudience` (the API's client id).
+`authAudience` (the API's client id). The phone's side is `SignInSettings.Production` in `InfinityMercsApp.Services`,
+and `MsalActivity` on Android catches the redirect.
