@@ -37,7 +37,7 @@ public static class MauiProgram
 		var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 		foreach (var publisher in (IReadOnlyList<string>)["infinitymercsteam", "User Name"])
 		{
-			if (DataFolderMove.CopyIfNew(
+			if (InfinityMercsApp.Services.Records.DataFolderMove.CopyIfNew(
 				Path.Combine(localAppData, publisher, "com.companyname.infinitymercsapp", "Data"),
 				FileSystem.Current.AppDataDirectory))
 			{
