@@ -31,6 +31,7 @@ public sealed class SplashPageViewModelTests
         await _navigation.Received(1).NavigateToAsync(HomeRoute);
         await NoDialogsShownAsync();
         await _updater.DidNotReceive().ApplyAsync(Arg.Any<ArmyDataCheck>(), Arg.Any<IProgress<ArmyDataProgress>>(), Arg.Any<CancellationToken>());
+        _updater.Received(1).RebuildOutdatedGeneratedCompanies(Arg.Any<IProgress<ArmyDataProgress>>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

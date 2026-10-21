@@ -33,6 +33,8 @@ public partial class SplashPageViewModel(
         {
         }
 
+        // Generated companies built by older rules are rebuilt, even when the army data hasn't changed.
+        updater.RebuildOutdatedGeneratedCompanies(progress);
         WeakReferenceMessenger.Default.Send(new SplashCompletedMessage());
         await NavigationService.NavigateToAsync("//MercsSeasonPage");
     }

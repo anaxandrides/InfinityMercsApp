@@ -273,6 +273,42 @@ public sealed class ArmyDataUpdaterTests : IDisposable
         _airborne.Received(1).Generate(Arg.Any<CancellationToken>());
         _inspiring.Received(1).Generate(Arg.Any<CancellationToken>());
         _tag.Received(1).Generate(Arg.Any<CancellationToken>());
+        _settings.Received(1).SetGeneratedCompaniesVersion(ArmyDataUpdater.GeneratedCompaniesVersion);
+    }
+
+    [Fact]
+    public void RebuildOutdatedGeneratedCompanies_OlderRules_RebuildsThem()
+    {
+        _factions.HasAnyFactionData().Returns(true);
+        _settings.GetGeneratedCompaniesVersion().Returns("1");
+
+        Assert.True(_updater.RebuildOutdatedGeneratedCompanies());
+
+        _airborne.Received(1).Generate(Arg.Any<CancellationToken>());
+        _inspiring.Received(1).Generate(Arg.Any<CancellationToken>());
+        _tag.Received(1).Generate(Arg.Any<CancellationToken>());
+        _settings.Received(1).SetGeneratedCompaniesVersion(ArmyDataUpdater.GeneratedCompaniesVersion);
+    }
+
+    [Fact]
+    public void RebuildOutdatedGeneratedCompanies_CurrentRules_LeavesThem()
+    {
+        _factions.HasAnyFactionData().Returns(true);
+        _settings.GetGeneratedCompaniesVersion().Returns(ArmyDataUpdater.GeneratedCompaniesVersion);
+
+        Assert.False(_updater.RebuildOutdatedGeneratedCompanies());
+
+        _airborne.DidNotReceive().Generate(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public void RebuildOutdatedGeneratedCompanies_NothingStored_BuildsNothing()
+    {
+        _factions.HasAnyFactionData().Returns(false);
+
+        Assert.False(_updater.RebuildOutdatedGeneratedCompanies());
+
+        _airborne.DidNotReceive().Generate(Arg.Any<CancellationToken>());
     }
 
     [Fact]

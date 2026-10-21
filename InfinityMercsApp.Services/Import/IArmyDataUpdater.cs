@@ -15,4 +15,11 @@ public interface IArmyDataUpdater
     /// <summary>Stores a successful check's changes and rebuilds the generated company factions.</summary>
     /// <returns>The factions whose army could not be stored.</returns>
     Task<IReadOnlyList<string>> ApplyAsync(ArmyDataCheck check, IProgress<ArmyDataProgress>? progress = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Rebuilds the generated company factions from the stored armies when they were built with older rules than
+    /// the app's, so a fix to who may join them reaches the app without waiting for new army data.
+    /// </summary>
+    /// <returns>True when they were rebuilt.</returns>
+    bool RebuildOutdatedGeneratedCompanies(IProgress<ArmyDataProgress>? progress = null, CancellationToken cancellationToken = default);
 }

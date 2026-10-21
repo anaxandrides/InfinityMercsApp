@@ -11,6 +11,7 @@ public sealed class AppSettingsProvider(ISQLiteRepository sqliteRepository) : IA
     private const string DisplayUnitsCentimeters = "centimeters";
     private const string FeedbackApiEndpointKey = "feedback_api_endpoint";
     private const string MetadataFingerprintKey = "metadata_fingerprint";
+    private const string GeneratedCompaniesVersionKey = "generated_companies_version";
 
     /// <inheritdoc/>
     public bool GetShowUnitsInInches()
@@ -96,6 +97,32 @@ public sealed class AppSettingsProvider(ISQLiteRepository sqliteRepository) : IA
         }
 
         existing.Value = fingerprint;
+        sqliteRepository.Update(existing);
+    }
+
+    /// <inheritdoc/>
+    public string? GetGeneratedCompaniesVersion()
+    {
+        var setting = sqliteRepository.FirstOrDefault<AppSetting>(x => x.Key == GeneratedCompaniesVersionKey);
+        return string.IsNullOrWhiteSpace(setting?.Value) ? null : setting.Value;
+    }
+
+    /// <inheritdoc/>
+    public void SetGeneratedCompaniesVersion(string version)
+    {
+        var existing = sqliteRepository.FirstOrDefault<AppSetting>(x => x.Key == GeneratedCompaniesVersionKey);
+
+        if (existing is null)
+        {
+            sqliteRepository.Insert([new AppSetting
+            {
+                Key = GeneratedCompaniesVersionKey,
+                Value = version
+            }]);
+            return;
+        }
+
+        existing.Value = version;
         sqliteRepository.Update(existing);
     }
 }
