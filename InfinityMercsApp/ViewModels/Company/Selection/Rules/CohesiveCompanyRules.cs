@@ -1,4 +1,5 @@
 using System.Globalization;
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
@@ -22,7 +23,7 @@ public sealed class CohesiveCompanyRules(ArmySourceSelectionMode mode) : Company
 
     public override string Heading => "Choose your sectorial:";
 
-    public override string CompanyTypeLabel => "Cohesive Company";
+    public override string CompanyTypeLabel => CompanyTypes.Cohesive;
 
     public override bool TracksCoreFireteam => true;
 

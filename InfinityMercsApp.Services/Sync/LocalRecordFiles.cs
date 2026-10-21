@@ -1,6 +1,8 @@
 using System.Text.Json;
 using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Domain.Validation.Company;
+using InfinityMercsApp.Domain.Validation.Season;
 using InfinityMercsApp.Infrastructure.API.UserDocuments;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.Records;
@@ -44,6 +46,14 @@ internal sealed class LocalRecordFiles(RecordPaths paths)
     public static bool Same<TContent>(TContent here, TContent other)
         where TContent : class =>
         JsonSerializer.Serialize(here, RecordJson.CompanyWriteOptions) == JsonSerializer.Serialize(other, RecordJson.CompanyWriteOptions);
+
+    /// <summary>Each way the file breaks the rules the API checks; empty when it can be sent.</summary>
+    public static IReadOnlyList<string> ProblemsWith(object content) => (content switch
+    {
+        SavedCompanyFile company => SavedCompanyFileValidator.Instance.Validate(company).Errors,
+        SeasonFile season => SeasonFileValidator.Instance.Validate(season).Errors,
+        _ => []
+    }).Select(error => error.ErrorMessage).ToList();
 
     /// <summary>The company's name, which names a company or a season to the user.</summary>
     public static string NameOf(object? content) => content switch

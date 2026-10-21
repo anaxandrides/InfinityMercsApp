@@ -1,5 +1,6 @@
 using System.Text.Json;
 using InfinityMercsApp.Api.Auth;
+using InfinityMercsApp.Domain.Validation;
 using InfinityMercsApp.Infrastructure.API.UserDocuments;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -32,7 +33,7 @@ public sealed class UserDocumentEndpoints(IUserAuthenticator authenticator, User
             return new UnauthorizedResult();
         }
 
-        return UserDocumentIds.IsValid(documentId) &&
+        return DocumentIdentifiers.IsValid(documentId) &&
                await documents.GetAsync<TContent>(user.UserId, kind, documentId, cancellationToken) is { } document
             ? Json(document)
             : new NotFoundResult();
@@ -52,7 +53,7 @@ public sealed class UserDocumentEndpoints(IUserAuthenticator authenticator, User
             return new UnauthorizedResult();
         }
 
-        if (!UserDocumentIds.IsValid(documentId))
+        if (!DocumentIdentifiers.IsValid(documentId))
         {
             return new NotFoundResult();
         }
@@ -67,7 +68,7 @@ public sealed class UserDocumentEndpoints(IUserAuthenticator authenticator, User
             return new BadRequestObjectResult(new List<string> { "The body must be { baseRevision, armySnapshotId?, content } with every part of the file present." });
         }
 
-        if (checks.ProblemsWith(write.Content) is { Count: > 0 } problems)
+        if (checks.ProblemsWith(documentId, write.Content) is { Count: > 0 } problems)
         {
             return new BadRequestObjectResult(problems);
         }
@@ -84,7 +85,7 @@ public sealed class UserDocumentEndpoints(IUserAuthenticator authenticator, User
             return new UnauthorizedResult();
         }
 
-        if (!UserDocumentIds.IsValid(documentId))
+        if (!DocumentIdentifiers.IsValid(documentId))
         {
             return new NotFoundResult();
         }

@@ -37,7 +37,7 @@ public sealed class SeasonFunctionsTests
     public async Task SaveAsync_NewSeason_IsSavedAsASeason()
     {
         var result = await _functions.SaveAsync(
-            Request("""{"baseRevision":0,"content":{"companyName":"Red Team","companyIdentifier":"red","rounds":[{"roundIndex":1}]}}"""),
+            Request("""{"baseRevision":0,"content":{"seasonIdentifier":"5ea5011","companyName":"Red Team","companyIdentifier":"red","rounds":[{"roundIndex":1}]}}"""),
             DocumentId,
             CancellationToken.None);
 

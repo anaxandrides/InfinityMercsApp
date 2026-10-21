@@ -130,6 +130,14 @@ public sealed class DocumentSync
         {
             if (LocalRecordFiles.Read<TContent>(filePath) is { } content)
             {
+                // The API would refuse it; it is sent once a save puts it right.
+                if (LocalRecordFiles.ProblemsWith(content) is { Count: > 0 } problems)
+                {
+                    Console.Error.WriteLine($"'{filePath}' isn't sent: {string.Join(" ", problems)}");
+                    _ledger.Refused(document.Key, document.Change);
+                    return SyncStep.Unchanged;
+                }
+
                 return await SaveAsync(document, content, token, cancellationToken);
             }
 

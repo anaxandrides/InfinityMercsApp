@@ -19,7 +19,7 @@ namespace InfinityMercsApp.Services.CompanySelection.StartCompany;
 public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entries, RecordPaths paths, ICompanyFileService companyFiles)
 {
     /// <summary>The company type a TAG Company is saved with; its TAG, when captain, gets the TAG Spec-Ops popup.</summary>
-    public const string TagCompanyType = "TAG Company";
+    public const string TagCompanyType = CompanyTypes.Tag;
 
     public async Task<FoundingResult> FoundAsync<TFaction, TEntry>(CompanyFoundingRequest<TFaction, TEntry> request)
         where TFaction : class, ICompanySourceFaction

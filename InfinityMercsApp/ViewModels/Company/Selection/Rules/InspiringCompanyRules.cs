@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
 using InspiringGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.InspiringCompanyFactionGenerator;
@@ -10,7 +11,7 @@ public sealed class InspiringCompanyRules() : GeneratedFactionCompanyRules(Inspi
     public const string InspiringLeadershipSkill = "Inspiring Leadership";
     public const string LogoPath = "SVGCache/MercsIcons/noun-leadership-7195245.svg";
 
-    public override string CompanyTypeLabel => "Inspiring Leader";
+    public override string CompanyTypeLabel => CompanyTypes.InspiringLeader;
 
     public override IReadOnlyCollection<string> CommonSkillsFor(
         ArmyUnitSelectionItem unit, ViewerProfileItem profile, IReadOnlyList<string> commonSkills)

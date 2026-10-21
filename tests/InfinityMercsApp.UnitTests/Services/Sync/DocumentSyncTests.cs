@@ -60,6 +60,23 @@ public sealed class DocumentSyncTests : IDisposable
     }
 
     [Fact]
+    public async Task RunAsync_CompanyBreakingTheRules_IsNotSent()
+    {
+        LocalRecordFiles.Write(WolvesPath, new SavedCompanyFile
+        {
+            CompanyName = "Iron Wolves",
+            CompanyType = "Standard Company - Vanilla",
+            CompanyIdentifier = "c1",
+            SourceFactions = [new SavedCompanyFaction { FactionId = 101 }]
+        });
+
+        await _sync.RunAsync();
+
+        await _api.DidNotReceiveWithAnyArgs().SaveAsync<SavedCompanyFile>(default, default!, default!, default!, default);
+        Assert.Equal(SyncOperation.None, _ledger.Find(Wolves)?.Pending);
+    }
+
+    [Fact]
     public async Task RunAsync_SeasonWithoutAnId_IsGivenOneAndSent()
     {
         var path = Path.Combine(_records.Paths.SeasonsDirectory, "old.json");

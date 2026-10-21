@@ -11,6 +11,7 @@ using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using NSubstitute;
+using InfinityMercsApp.Domain.Validation.Company;
 
 namespace InfinityMercsApp.UnitTests.Services.CompanySelection.StartCompany;
 
@@ -128,6 +129,17 @@ public sealed class CompanyFounderTests : IDisposable
         Assert.Equal((true, 1), (company.ImprovedCaptainStats?.IsEnabled, company.ImprovedCaptainStats?.ArmBonus));
         Assert.Equal(["2", "1"], company.Entries.Select(entry => entry.CurrentArm));
         Assert.Equal([true, false], company.Entries.Select(entry => entry.CarriesCaptainUpgrades));
+    }
+
+    // A new company must pass the rules the API checks, or it could never be kept online.
+    [Fact]
+    public async Task FoundAsync_AnyCompany_PassesTheCompanyRules()
+    {
+        var result = await _founder.FoundAsync(Request(CompanyTypes.StandardVanilla, Trooper("Alpha", isLieutenant: true), Trooper("Bravo")));
+
+        var company = await new CompanyFileStore(Substitute.For<ISyncOutbox>()).LoadAsync(result.FilePath);
+        Assert.NotNull(company);
+        Assert.Empty(SavedCompanyFileValidator.Instance.Validate(company).Errors);
     }
 
     // The company is kept online under its identifier, so two devices must never pick the same one.

@@ -9,10 +9,10 @@ internal static class SyncTestFiles
     public static SavedCompanyFile Company(string identifier, string name = "Iron Wolves") => new()
     {
         CompanyName = name,
-        CompanyType = "Standard Company",
+        CompanyType = "Standard Company - Vanilla",
         CompanyIdentifier = identifier,
         SourceFactions = [new SavedCompanyFaction { FactionId = 101, FactionName = "PanOceania" }],
-        Entries = [new SavedCompanyEntry { EntryIndex = 0, IsLieutenant = true }]
+        Entries = [new SavedCompanyEntry { EntryIndex = 0, Name = "Fusilier", SourceFactionId = 101, SourceUnitId = 1, IsLieutenant = true }]
     };
 
     public static SeasonFile Season(string identifier, string companyIdentifier, string companyName = "Iron Wolves") => new()
