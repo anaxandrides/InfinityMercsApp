@@ -194,8 +194,11 @@
 
                         <ScrollView Grid.Row="3">
                             <VerticalStackLayout Spacing="8">
-                                <!-- Two stat pickers per row. -->
+                                <!-- Two stat pickers per row; their text shrinks together when a picker is too narrow for it. -->
                                 <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding StatUpgrades}">
+                                    <FlexLayout.Behaviors>
+                                        <behaviors:FitTextToCellsBehavior FontSizeKey="FontSizeBody" />
+                                    </FlexLayout.Behaviors>
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="captainItems:CaptainStatUpgrade">
                                             <Picker FlexLayout.Basis="50%"
@@ -218,12 +221,16 @@
                                                        Style="{StaticResource LabelBody}"
                                                        TextColor="{StaticResource TextMuted}"
                                                        IsVisible="{Binding HasOptions, Converter={StaticResource InvertedBoolConverter}}" />
+                                                <!-- The width cap sits on the list, so each picker can say how wide its text wants to be. -->
                                                 <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Slots}"
+                                                                     MaximumWidthRequest="280"
                                                                      IsVisible="{Binding HasOptions}">
+                                                    <VerticalStackLayout.Behaviors>
+                                                        <behaviors:FitTextToCellsBehavior FontSizeKey="FontSizeBody" />
+                                                    </VerticalStackLayout.Behaviors>
                                                     <BindableLayout.ItemTemplate>
                                                         <DataTemplate x:DataType="captainItems:CaptainChoiceSlot">
-                                                            <Picker MaximumWidthRequest="280"
-                                                                    HorizontalOptions="Fill"
+                                                            <Picker HorizontalOptions="Fill"
                                                                     HorizontalTextAlignment="Center"
                                                                     ItemsSource="{Binding Options}"
                                                                     SelectedItem="{Binding SelectedChoice}" />

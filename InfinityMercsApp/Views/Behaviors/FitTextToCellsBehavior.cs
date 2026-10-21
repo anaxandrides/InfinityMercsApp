@@ -3,10 +3,11 @@ using InfinityMercsApp.Presentation.Layouts;
 namespace InfinityMercsApp.Views.Behaviors;
 
 /// <summary>
-/// Gives every label in a packed row (a stat line, say) one font size: the row's usual size from
-/// <see cref="FontSizeKey"/> when there is room, smaller when a cell's text would not fit its width. The labels
-/// should fill their cells and not wrap. The row is fitted again whenever it or a label is resized, so it follows
-/// the window and the window's font sizes.
+/// Gives every label and picker in a packed row (a stat line, a row of upgrade pickers) one font size: the row's
+/// usual size from <see cref="FontSizeKey"/> when there is room, smaller when a cell's text would not fit its width.
+/// The labels and pickers should fill their cells, labels should not wrap, and neither should have a maximum width,
+/// which would hide how wide the text wants to be. The row is fitted again whenever it or a cell is resized, or a
+/// picker's choice changes, so it follows the window and the window's font sizes.
 /// </summary>
 public sealed class FitTextToCellsBehavior : Behavior<Layout>
 {
@@ -38,9 +39,9 @@ public sealed class FitTextToCellsBehavior : Behavior<Layout>
         _row = row;
         row.SizeChanged += OnResized;
         row.DescendantAdded += OnDescendantAdded;
-        foreach (var label in Labels(row))
+        foreach (var cell in Cells(row))
         {
-            label.SizeChanged += OnResized;
+            Watch(cell);
         }
     }
 
@@ -48,9 +49,13 @@ public sealed class FitTextToCellsBehavior : Behavior<Layout>
     {
         row.SizeChanged -= OnResized;
         row.DescendantAdded -= OnDescendantAdded;
-        foreach (var label in Labels(row))
+        foreach (var cell in Cells(row))
         {
-            label.SizeChanged -= OnResized;
+            cell.SizeChanged -= OnResized;
+            if (cell is Picker picker)
+            {
+                picker.SelectedIndexChanged -= OnResized;
+            }
         }
 
         _row = null;
@@ -59,37 +64,46 @@ public sealed class FitTextToCellsBehavior : Behavior<Layout>
 
     private void OnDescendantAdded(object? sender, ElementEventArgs e)
     {
-        if (e.Element is Label label)
+        if (e.Element is Label or Picker)
         {
-            label.SizeChanged += OnResized;
+            Watch((View)e.Element);
         }
 
         Fit();
+    }
+
+    private void Watch(View cell)
+    {
+        cell.SizeChanged += OnResized;
+        if (cell is Picker picker)
+        {
+            picker.SelectedIndexChanged += OnResized;
+        }
     }
 
     private void OnResized(object? sender, EventArgs e) => Fit();
 
     private void Fit()
     {
-        // Changing the size resizes the labels, which lands back here; that pass is skipped.
+        // Changing the size resizes the cells, which lands back here; that pass is skipped.
         if (_fitting || _row is null)
         {
             return;
         }
 
-        var labels = Labels(_row);
-        if (labels.Count == 0)
+        var cells = Cells(_row);
+        if (cells.Count == 0)
         {
             return;
         }
 
-        var usual = Application.Current?.Resources.TryGetValue(FontSizeKey, out var value) == true && value is double size ? size : labels[0].FontSize;
-        var current = labels[0].FontSize;
-        var cells = labels
-            .Select(label => new CellText(label.Width, ((IView)label).Measure(double.PositiveInfinity, double.PositiveInfinity).Width))
+        var current = FontSizeOf(cells[0]);
+        var usual = Application.Current?.Resources.TryGetValue(FontSizeKey, out var value) == true && value is double size ? size : current;
+        var widths = cells
+            .Select(cell => new CellText(cell.Width, ((IView)cell).Measure(double.PositiveInfinity, double.PositiveInfinity).Width))
             .ToList();
-        var fitted = TextFit.SizeFor(usual, current, cells, SmallestFontSize);
-        if (labels.All(label => Math.Abs(label.FontSize - fitted) < 0.25))
+        var fitted = TextFit.SizeFor(usual, current, widths, SmallestFontSize);
+        if (cells.All(cell => Math.Abs(FontSizeOf(cell) - fitted) < 0.25))
         {
             return;
         }
@@ -97,9 +111,9 @@ public sealed class FitTextToCellsBehavior : Behavior<Layout>
         _fitting = true;
         try
         {
-            foreach (var label in labels)
+            foreach (var cell in cells)
             {
-                label.FontSize = fitted;
+                SetFontSize(cell, fitted);
             }
         }
         finally
@@ -108,5 +122,25 @@ public sealed class FitTextToCellsBehavior : Behavior<Layout>
         }
     }
 
-    private static IReadOnlyList<Label> Labels(Layout row) => row.GetVisualTreeDescendants().OfType<Label>().ToList();
+    private static double FontSizeOf(View cell) => cell switch
+    {
+        Picker picker => picker.FontSize,
+        Label label => label.FontSize,
+        _ => 0
+    };
+
+    private static void SetFontSize(View cell, double size)
+    {
+        if (cell is Picker picker)
+        {
+            picker.FontSize = size;
+        }
+        else if (cell is Label label)
+        {
+            label.FontSize = size;
+        }
+    }
+
+    private static IReadOnlyList<View> Cells(Layout row) =>
+        row.GetVisualTreeDescendants().OfType<View>().Where(view => view is Label or Picker).ToList();
 }
