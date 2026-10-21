@@ -1,12 +1,13 @@
 using System.Text.Json;
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Fireteams;
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.CompanySelection.Captain;
-using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Records;
+using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using NSubstitute;
@@ -30,7 +31,7 @@ public sealed class CompanyFounderTests : IDisposable
     {
         var armyData = Army101Data.Create();
         var captains = new CaptainSetup(_dialog, new CaptainOptionCatalog(armyData, Substitute.For<ISpecOpsProvider>()), armyData);
-        _founder = new CompanyFounder(captains, new SavedEntryWriter(armyData), _records.Paths, new CompanyFileStore());
+        _founder = new CompanyFounder(captains, new SavedEntryWriter(armyData), _records.Paths, new CompanyFileStore(Substitute.For<ISyncOutbox>()));
         _dialog.ShowAsync(Arg.Any<CaptainUpgradePopupContext>())
             .Returns(new SavedImprovedCaptainStats { IsEnabled = true, CaptainName = "Kestrel" });
     }
@@ -122,11 +123,28 @@ public sealed class CompanyFounderTests : IDisposable
 
         var result = await _founder.FoundAsync(Request("Standard Company", Trooper("Alpha", isLieutenant: true), Trooper("Bravo")));
 
-        var company = await new CompanyFileStore().LoadAsync(result.FilePath);
+        var company = await new CompanyFileStore(Substitute.For<ISyncOutbox>()).LoadAsync(result.FilePath);
         Assert.NotNull(company);
         Assert.Equal((true, 1), (company.ImprovedCaptainStats?.IsEnabled, company.ImprovedCaptainStats?.ArmBonus));
         Assert.Equal(["2", "1"], company.Entries.Select(entry => entry.CurrentArm));
         Assert.Equal([true, false], company.Entries.Select(entry => entry.CarriesCaptainUpgrades));
+    }
+
+    // The company is kept online under its identifier, so two devices must never pick the same one.
+    [Fact]
+    public async Task FoundAsync_TwoCompaniesOfOneName_GetDifferentIdentifiers()
+    {
+        var store = new CompanyFileStore(Substitute.For<ISyncOutbox>());
+        var first = await _founder.FoundAsync(Request("Standard Company", Trooper("Alpha", isLieutenant: true)));
+        var firstIdentifier = (await store.LoadAsync(first.FilePath))?.CompanyIdentifier;
+        File.Delete(first.FilePath);
+
+        var second = await _founder.FoundAsync(Request("Standard Company", Trooper("Alpha", isLieutenant: true)));
+
+        Assert.Equal(first.FilePath, second.FilePath);
+        var secondIdentifier = (await store.LoadAsync(second.FilePath))?.CompanyIdentifier;
+        Assert.Equal(32, secondIdentifier?.Length);
+        Assert.NotEqual(firstIdentifier, secondIdentifier);
     }
 
     [Fact]

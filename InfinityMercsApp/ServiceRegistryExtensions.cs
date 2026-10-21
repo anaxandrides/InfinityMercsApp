@@ -20,6 +20,7 @@ using InfinityMercsApp.Services.Rolls;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Season.Inducements;
 using InfinityMercsApp.Services.Stores;
+using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.Services.Wiki;
 using InfinityMercsApp.ViewModels.About;
 using InfinityMercsApp.ViewModels.Armory;
@@ -193,6 +194,12 @@ public static class ServiceRegistryExtensions
                         .Build();
                 })
                 .AddSingleton<ISignInService, MsalSignInService>();
+
+        // Companies and seasons kept online: every save goes in the outbox, which the coordinator sends.
+        services.AddSingleton<SyncLedger>()
+                .AddSingleton<ISyncOutbox>(provider => provider.GetRequiredService<SyncLedger>())
+                .AddSingleton<DocumentSync>()
+                .AddSingleton<ISyncCoordinator, SyncCoordinator>();
 
         return services;
     }

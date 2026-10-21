@@ -2,6 +2,9 @@ using System.Collections;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
+using CommunityToolkit.Mvvm.Messaging;
+using InfinityMercsApp.Messages;
+using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.Views.Adaptive;
 using InfinityMercsApp.Views.Splash;
 
@@ -11,10 +14,13 @@ public partial class App : Application
 {
 	private readonly SplashPage _splashPage;
 
-	public App(SplashPage splashPage)
+	public App(SplashPage splashPage, ISyncCoordinator sync)
 	{
 		_splashPage = splashPage;
 		CrashLog.Initialize();
+
+		// Sync starts once the army data is in and the app has opened.
+		WeakReferenceMessenger.Default.Register<SplashCompletedMessage>(this, (_, _) => sync.Start());
 
 		// Datapad identity is dark-only; pin the theme so system-drawn
 		// controls (pickers, dialogs) don't flip to a light variant.

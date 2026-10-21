@@ -1,14 +1,18 @@
+using InfinityMercsApp.Infrastructure.API.UserDocuments;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.UnitTests.Support;
+using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.Services.Season;
 
 public sealed class SeasonFileStoreTests : IDisposable
 {
     private readonly TempRecords _records = new();
+    private readonly ISyncOutbox _outbox = Substitute.For<ISyncOutbox>();
     private readonly SeasonFileStore _store;
 
-    public SeasonFileStoreTests() => _store = new SeasonFileStore(_records.Paths);
+    public SeasonFileStoreTests() => _store = new SeasonFileStore(_records.Paths, _outbox);
 
     public void Dispose() => _records.Dispose();
 
@@ -39,6 +43,29 @@ public sealed class SeasonFileStoreTests : IDisposable
         Assert.True(await _store.SaveAsync(path, season));
 
         Assert.Equal("Steel Wolves", (await _store.LoadAsync(path))?.CompanyName);
+    }
+
+    [Fact]
+    public async Task CreateAsync_NewSeason_GetsAnIdAndIsNotedForSync()
+    {
+        var path = await _store.CreateAsync("Iron Wolves", "company-1", "company.json");
+
+        var identifier = (await _store.LoadAsync(path))?.SeasonIdentifier;
+        Assert.Equal(32, identifier?.Length);
+        _outbox.Received(1).RecordSave(UserDocumentKind.Season, identifier ?? string.Empty, path);
+    }
+
+    [Fact]
+    public async Task SaveAsync_SeasonWithoutAnId_GivesItOne()
+    {
+        var path = _records.WriteSeason("old.json", """{"companyName":"Iron Wolves","companyIdentifier":"company-1"}""");
+        var season = await _store.LoadAsync(path);
+        Assert.NotNull(season);
+
+        Assert.True(await _store.SaveAsync(path, season));
+
+        Assert.False(string.IsNullOrEmpty((await _store.LoadAsync(path))?.SeasonIdentifier));
+        _outbox.Received(1).RecordSave(UserDocumentKind.Season, season.SeasonIdentifier, path);
     }
 
     [Fact]

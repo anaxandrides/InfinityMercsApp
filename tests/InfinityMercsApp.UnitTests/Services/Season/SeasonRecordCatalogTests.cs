@@ -38,6 +38,18 @@ public sealed class SeasonRecordCatalogTests : IDisposable
         Assert.Equal("Unnamed-1", record.CompanyName);
     }
 
+    // A season fetched from another device names that device's company file.
+    [Fact]
+    public async Task ListAsync_CompanyPathFromAnotherDevice_FindsTheCompanyByIdentifier()
+    {
+        var company = _records.WriteCompany("mine.json", """{"companyIdentifier":"ABC"}""");
+        _records.WriteSeason("s.json", """{"companyIdentifier":"ABC","companyFilePath":"C:/Users/someone/mine.json"}""");
+
+        var record = Assert.Single(await new SeasonRecordCatalog(_records.Paths).ListAsync());
+
+        Assert.Equal(company, record.CompanyFilePath);
+    }
+
     [Fact]
     public async Task ListAsync_NoSeasonsFolder_ReturnsNone()
     {

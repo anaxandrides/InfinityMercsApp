@@ -1,10 +1,12 @@
+using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Season.Inventory;
-using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.UnitTests.Season.Inventory;
+using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.Services.Season;
 
@@ -97,7 +99,7 @@ public sealed class LoneWolfAspectsTests
         LoneWolfAspects.Sync(company, season: null);
         company.Entries[0].CustomName = "Ghost";
         var path = Path.Combine(Path.GetTempPath(), $"lone-wolf-{Guid.NewGuid():N}.json");
-        var store = new CompanyFileStore();
+        var store = new CompanyFileStore(Substitute.For<ISyncOutbox>());
         try
         {
             await store.SaveAsync(path, company);

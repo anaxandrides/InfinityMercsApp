@@ -5,20 +5,22 @@ using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Import;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.SignIn;
+using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.ViewModels.Base;
 
 namespace InfinityMercsApp.ViewModels.Settings;
 
 /// <summary>
 /// The display-units preference, a check for army data updates like the one at startup, and signing in to the app's
-/// online side.
+/// online side, where companies and seasons are kept in sync.
 /// </summary>
 public partial class SettingsViewModel(
     INavigationService navigationService,
     IAppSettingsProvider appSettings,
     IArmyDataUpdater updater,
     IDialogService dialogs,
-    ISignInService signIn) : ViewModelBase(navigationService)
+    ISignInService signIn,
+    ISyncCoordinator sync) : ViewModelBase(navigationService)
 {
     public const string SignedOutText = "Not signed in.";
 
@@ -41,12 +43,16 @@ public partial class SettingsViewModel(
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowSignIn), nameof(ShowSignOut))]
-    [NotifyCanExecuteChangedFor(nameof(SignInCommand), nameof(SignOutCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SignInCommand), nameof(SignOutCommand), nameof(SyncNowCommand))]
     public partial bool IsSignedIn { get; set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SignInCommand), nameof(SignOutCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SignInCommand), nameof(SignOutCommand), nameof(SyncNowCommand))]
     public partial bool IsSigningIn { get; set; }
+
+    /// <summary>How the last sync from this page went.</summary>
+    [ObservableProperty]
+    public partial string SyncStatus { get; set; } = string.Empty;
 
     /// <summary>Whether this device can sign in at all; the account section is hidden where it can't.</summary>
     public bool CanSignInHere => signIn.IsAvailable;
@@ -96,6 +102,7 @@ public partial class SettingsViewModel(
             if (outcome.Account is { } account)
             {
                 ShowAccount(account);
+                await SyncNowAsync();
             }
             else if (outcome.Status is SignInStatus.Failed or SignInStatus.Unavailable)
             {
@@ -110,11 +117,22 @@ public partial class SettingsViewModel(
 
     private bool CanSignOut() => IsSignedIn && !IsSigningIn;
 
+    private bool CanSync() => CanSignOut();
+
+    /// <summary>Sends and fetches companies and seasons now, asking again about any conflicts put off.</summary>
+    [RelayCommand(CanExecute = nameof(CanSync))]
+    private async Task SyncNowAsync()
+    {
+        SyncStatus = "Syncing...";
+        SyncStatus = (await sync.SyncNowAsync()).Summary;
+    }
+
     [RelayCommand(CanExecute = nameof(CanSignOut))]
     private async Task SignOutAsync()
     {
         await signIn.SignOutAsync();
         ShowAccount(null);
+        SyncStatus = string.Empty;
     }
 
     private void ShowAccount(SignedInAccount? account)

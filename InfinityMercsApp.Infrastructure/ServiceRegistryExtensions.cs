@@ -1,5 +1,6 @@
 using InfinityMercsApp.Infrastructure.API.ArmyMirror;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
+using InfinityMercsApp.Infrastructure.API.UserDocuments;
 using InfinityMercsApp.Infrastructure.Data;
 using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Infrastructure.Providers;
@@ -27,6 +28,9 @@ public static class ServiceRegistryExtensions
                     provider.GetRequiredService<ArmyMirrorClient>(),
                     provider.GetRequiredService<CorvusBelliPayloadSource>(),
                     TimeProvider.System))
+                // The signed-in user's companies and seasons, kept by the same API.
+                .AddSingleton(UserDocumentsEndpoint.Production)
+                .AddSingleton<IUserDocumentsApi, UserDocumentsClient>()
                 .AddSingleton<IAppSettingsProvider, AppSettingsProvider>()
                 .AddSingleton<IArmyImportProvider, ArmyImportProvider>()
                 .AddSingleton<IFactionProvider, FactionProvider>()

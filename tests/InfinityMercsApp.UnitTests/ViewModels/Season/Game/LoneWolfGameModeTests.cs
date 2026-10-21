@@ -9,6 +9,7 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Stores;
+using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Season.Game;
 using InfinityMercsApp.ViewModels.Season.Game.Items;
@@ -46,7 +47,7 @@ public sealed class LoneWolfGameModeTests : IDisposable
         var seasonFiles = Substitute.For<ISeasonFileService>();
         var viewModel = new GameModeViewModel(
             Substitute.For<INavigationService>(), _dialogs, seasonFiles,
-            new DeploymentRoster(Army101Data.Create(), new CompanyFileStore(), seasonFiles, new StoreCatalog(Substitute.For<IStoreProvider>())),
+            new DeploymentRoster(Army101Data.Create(), new CompanyFileStore(Substitute.For<ISyncOutbox>()), seasonFiles, new StoreCatalog(Substitute.For<IStoreProvider>())),
             _debrief, Substitute.For<IAppSettingsProvider>());
         var query = NavigationParameters.ForCompany(companyPath, SeasonPath);
         query[NavigationParameters.EliteDeployment] = true;

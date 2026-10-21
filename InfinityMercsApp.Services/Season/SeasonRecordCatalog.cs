@@ -10,8 +10,8 @@ public sealed class SeasonRecordCatalog(RecordPaths paths)
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     /// <summary>
-    /// Every readable season file, newest first. A season without a company path is matched to a saved
-    /// company by identifier; malformed files are skipped.
+    /// Every readable season file, newest first. A season whose company path is missing or names no file here, as
+    /// for a season made on another device, is matched to a saved company by identifier; malformed files are skipped.
     /// </summary>
     public async Task<IReadOnlyList<SeasonRecord>> ListAsync()
     {
@@ -36,7 +36,7 @@ public sealed class SeasonRecordCatalog(RecordPaths paths)
                     : header.CompanyName;
 
                 var companyFilePath = header.CompanyFilePath;
-                if (string.IsNullOrWhiteSpace(companyFilePath) && !string.IsNullOrWhiteSpace(header.CompanyIdentifier))
+                if ((string.IsNullOrWhiteSpace(companyFilePath) || !File.Exists(companyFilePath)) && !string.IsNullOrWhiteSpace(header.CompanyIdentifier))
                 {
                     companyFilePath = await FindCompanyFileAsync(header.CompanyIdentifier);
                 }

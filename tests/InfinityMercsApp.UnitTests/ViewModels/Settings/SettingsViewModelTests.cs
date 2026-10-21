@@ -3,6 +3,7 @@ using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Import;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.SignIn;
+using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Settings;
 using NSubstitute;
@@ -15,13 +16,18 @@ public sealed class SettingsViewModelTests
     private readonly IArmyDataUpdater _updater = Substitute.For<IArmyDataUpdater>();
     private readonly IDialogService _dialogs = Substitute.For<IDialogService>();
     private readonly ISignInService _signIn = Substitute.For<ISignInService>();
+    private readonly ISyncCoordinator _sync = Substitute.For<ISyncCoordinator>();
 
-    public SettingsViewModelTests() => _signIn.IsAvailable.Returns(true);
+    public SettingsViewModelTests()
+    {
+        _signIn.IsAvailable.Returns(true);
+        _sync.SyncNowAsync().Returns(new SyncReport(SyncRunStatus.Synced, 2, 1, []));
+    }
 
     private async Task<SettingsViewModel> OpenAsync(bool storedInches = true)
     {
         _settings.GetShowUnitsInInches().Returns(storedInches);
-        var viewModel = new SettingsViewModel(Substitute.For<INavigationService>(), _settings, _updater, _dialogs, _signIn);
+        var viewModel = new SettingsViewModel(Substitute.For<INavigationService>(), _settings, _updater, _dialogs, _signIn, _sync);
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         return viewModel;
     }
@@ -181,6 +187,38 @@ public sealed class SettingsViewModelTests
         Assert.True(viewModel.IsSignedIn);
         Assert.Equal("Signed in as kestrel@example.com.", viewModel.AccountText);
         Assert.False(viewModel.IsSigningIn);
+    }
+
+    [Fact]
+    public async Task SignInCommand_SignedIn_SyncsAndSaysHowItWent()
+    {
+        _signIn.SignInAsync(Arg.Any<CancellationToken>()).Returns(SignInOutcome.SignedIn(new SignedInAccount("kestrel@example.com")));
+        var viewModel = await OpenAsync();
+
+        await viewModel.SignInCommand.ExecuteAsync(null);
+
+        await _sync.Received(1).SyncNowAsync();
+        Assert.Equal("Synced: 2 sent, 1 received.", viewModel.SyncStatus);
+    }
+
+    [Fact]
+    public async Task SyncNowCommand_SignedOut_CannotRun()
+    {
+        var viewModel = await OpenAsync();
+
+        Assert.False(viewModel.SyncNowCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task SyncNowCommand_SignedIn_ShowsTheSummary()
+    {
+        _signIn.GetAccountAsync(Arg.Any<CancellationToken>()).Returns(new SignedInAccount("kestrel@example.com"));
+        _sync.SyncNowAsync().Returns(new SyncReport(SyncRunStatus.Offline, 0, 0, []));
+        var viewModel = await OpenAsync();
+
+        await viewModel.SyncNowCommand.ExecuteAsync(null);
+
+        Assert.Equal("Couldn't reach the server; changes will be sent later.", viewModel.SyncStatus);
     }
 
     [Fact]

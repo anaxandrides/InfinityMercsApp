@@ -47,6 +47,14 @@
                     IsVisible="{Binding ShowSignIn}"
                     HorizontalOptions="Fill" />
                 <Button
+                    Text="Sync now"
+                    Command="{Binding SyncNowCommand}"
+                    IsVisible="{Binding ShowSignOut}"
+                    HorizontalOptions="Fill" />
+                <Label
+                    Text="{Binding SyncStatus}"
+                    LineBreakMode="WordWrap" />
+                <Button
                     Text="Sign out"
                     Command="{Binding SignOutCommand}"
                     IsVisible="{Binding ShowSignOut}"

@@ -1,6 +1,7 @@
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Records;
+using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company;
 using NSubstitute;
@@ -17,7 +18,7 @@ public sealed class LoadCompanyViewModelTests : IDisposable
 
     private async Task<LoadCompanyViewModel> OpenAsync(bool seasonMode = false)
     {
-        var viewModel = new LoadCompanyViewModel(_navigation, _dialogs, new CompanyRecordCatalog(_records.Paths));
+        var viewModel = new LoadCompanyViewModel(_navigation, _dialogs, new CompanyRecordCatalog(_records.Paths, Substitute.For<ISyncOutbox>()));
         if (seasonMode)
         {
             viewModel.ApplyQueryAttributes(new Dictionary<string, object> { [NavigationParameters.SeasonMode] = true });
