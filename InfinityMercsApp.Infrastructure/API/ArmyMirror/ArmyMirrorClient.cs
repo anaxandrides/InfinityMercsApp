@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
+using InfinityMercsApp.ApiClient;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
 
 namespace InfinityMercsApp.Infrastructure.API.ArmyMirror;

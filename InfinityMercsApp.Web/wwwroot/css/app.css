@@ -1,0 +1,152 @@
+/* The phone app's look: dark plates, a green signal colour and Exo 2 (wwwroot/fonts, SIL OFL 1.1). */
+@font-face { font-family: "Exo 2"; src: url("../fonts/Exo2-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Exo 2"; src: url("../fonts/Exo2-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Exo 2"; src: url("../fonts/Exo2-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+
+:root {
+    --void: #0E1116;
+    --plate: #161B22;
+    --plate-raised: #1E2530;
+    --hairline: #2C3440;
+    --signal: #34D399;
+    --signal-dim: #2A6B57;
+    --danger: #F87171;
+    --text: #E6EBF2;
+    --text-secondary: #B5C0CE;
+    --text-muted: #8A97A8;
+    color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    background: var(--void);
+    color: var(--text);
+    font-family: "Exo 2", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+}
+
+a { color: var(--signal); }
+
+h1, h2 { font-weight: 700; letter-spacing: 0.04em; margin: 1.2em 0 0.4em; }
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.2rem; color: var(--text-secondary); }
+
+.muted { color: var(--text-muted); }
+
+.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--hairline);
+    background: var(--plate);
+}
+
+.brand { color: var(--text); font-weight: 700; letter-spacing: 0.2em; text-decoration: none; }
+.account { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.account .muted { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+main { max-width: 960px; margin: 0 auto; padding: 8px 16px 48px; }
+
+.button, button.link {
+    font: inherit;
+    cursor: pointer;
+}
+
+.button {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 4px;
+    background: var(--signal);
+    color: var(--void);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+button.link { background: none; border: none; color: var(--signal); padding: 0; }
+
+.cards {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 14px 16px;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    background: var(--plate);
+    color: var(--text);
+    text-decoration: none;
+}
+
+.card:hover, .card:focus-visible { border-color: var(--signal-dim); background: var(--plate-raised); }
+
+.title { font-weight: 700; }
+
+.troopers { list-style: none; padding: 0; display: grid; gap: 10px; }
+
+.trooper {
+    padding: 12px 16px;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    background: var(--plate);
+}
+
+.trooper .heading { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.trooper .cost { margin-left: auto; color: var(--text-secondary); }
+.trooper .attributes { margin: 4px 0; color: var(--text-secondary); overflow-wrap: anywhere; }
+
+.tag {
+    padding: 0 8px;
+    border: 1px solid var(--signal-dim);
+    border-radius: 999px;
+    color: var(--signal);
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+}
+
+.contracts { width: 100%; border-collapse: collapse; margin-top: 12px; }
+.contracts th, .contracts td { padding: 8px 10px; border-bottom: 1px solid var(--hairline); text-align: left; }
+.contracts th { color: var(--text-muted); font-weight: 600; }
+.contracts .number { text-align: right; }
+.contracts .won { color: var(--signal); }
+.contracts .lost { color: var(--danger); }
+
+/* Blazor's own: the error bar, and the progress ring while the app downloads. */
+#blazor-error-ui {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--plate-raised);
+    color: var(--text);
+    border-top: 1px solid var(--danger);
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss { cursor: pointer; position: absolute; right: 16px; top: 10px; }
+
+.blazor-error-boundary { padding: 12px 16px; border: 1px solid var(--danger); color: var(--danger); }
+.blazor-error-boundary::after { content: "Something went wrong."; }
+
+.loading-progress { position: relative; display: block; width: 8rem; height: 8rem; margin: 20vh auto 1rem auto; }
+.loading-progress circle { fill: none; stroke: var(--hairline); stroke-width: 0.6rem; transform-origin: 50% 50%; transform: rotate(-90deg); }
+.loading-progress circle:last-child {
+    stroke: var(--signal);
+    stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+    transition: stroke-dasharray 0.05s ease-in-out;
+}
+.loading-progress-text { position: absolute; text-align: center; font-weight: 700; inset: calc(20vh + 3.25rem) 0 auto 0.2rem; color: var(--text-muted); }
+.loading-progress-text:after { content: var(--blazor-load-percentage-text, "Loading"); }

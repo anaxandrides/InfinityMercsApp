@@ -1,6 +1,6 @@
 using System.Text.Json;
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Models.Company;
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Sync;
 

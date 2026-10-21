@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Models.Season;
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Sync;
 

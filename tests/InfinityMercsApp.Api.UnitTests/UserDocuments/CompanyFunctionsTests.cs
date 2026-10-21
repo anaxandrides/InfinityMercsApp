@@ -1,8 +1,8 @@
 using System.Text;
 using InfinityMercsApp.Api.Auth;
 using InfinityMercsApp.Api.UserDocuments;
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Models.Company;
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;

@@ -1,9 +1,9 @@
 using System.Text.Json;
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Validation.Company;
 using InfinityMercsApp.Domain.Validation.Season;
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.Records;
 

@@ -14,6 +14,9 @@ param alwaysReadyInstances int
 param authAuthority string
 param authAudience string
 
+@description('Web pages allowed to call the API from a browser: the web app, and its local development server.')
+param allowedOrigins array
+
 resource plan 'Microsoft.Web/serverfarms@2024-04-01' = {
   name: planName
   location: location
@@ -44,6 +47,9 @@ resource site 'Microsoft.Web/sites@2024-04-01' = {
     httpsOnly: true
     siteConfig: {
       minTlsVersion: '1.2'
+      cors: {
+        allowedOrigins: allowedOrigins
+      }
     }
     functionAppConfig: {
       deployment: {

@@ -1,6 +1,6 @@
 using InfinityMercsApp.Api.UserDocuments;
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Models.Company;
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
 using NSubstitute;
 
 namespace InfinityMercsApp.Api.UnitTests.UserDocuments;

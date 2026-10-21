@@ -1,7 +1,7 @@
 using System.Text.Json;
 using InfinityMercsApp.Api.Auth;
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Validation;
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

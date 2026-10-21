@@ -1,6 +1,6 @@
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Infrastructure.API.ArmyMirror;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
 using InfinityMercsApp.Infrastructure.Data;
 using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Infrastructure.Providers;

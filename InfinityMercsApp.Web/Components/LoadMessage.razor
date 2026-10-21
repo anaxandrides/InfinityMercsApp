@@ -1,0 +1,20 @@
+@* Why a page or list has nothing to show. *@
+@switch (Status)
+{
+    case LoadStatus.SignInNeeded:
+        <p role="alert">Your sign-in has run out. <a href="authentication/login">Sign in again</a>.</p>
+        break;
+    case LoadStatus.NotFound:
+        <p role="alert">There's no such @What; it may have been deleted on another device.</p>
+        break;
+    case LoadStatus.Unavailable:
+        <p role="alert">Couldn't reach the server. Try again in a moment.</p>
+        break;
+}
+
+@code {
+    [Parameter, EditorRequired] public LoadStatus Status { get; set; }
+
+    /// <summary>What was asked for, e.g. "company".</summary>
+    [Parameter] public string What { get; set; } = "file";
+}

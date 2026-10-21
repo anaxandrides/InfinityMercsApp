@@ -1,6 +1,6 @@
 # Azure setup
 
-The app's online side (the API, and later the web site) runs in Azure. Everything in Azure is created by the Bicep
+The app's online side (the API and the web site) runs in Azure. Everything in Azure is created by the Bicep
 in `infra/`, deployed from GitHub Actions. A few things have to exist before the first deploy, and they're set up
 once by hand.
 
@@ -18,6 +18,10 @@ once by hand.
 - **Cosmos DB** (serverless): the `mercs` database, holding the army data snapshots (`army`) and later companies,
   seasons and leagues. Key access is off.
 - **Application Insights** with a Log Analytics workspace.
+- **Static Web App** `stapp-infmercs-prod` (Free, East US 2, since Static Web Apps run in only a few regions): the
+  Blazor WebAssembly site in `InfinityMercsApp.Web`. Its address is `https://{generated name}.azurestaticapps.net`;
+  the Infrastructure workflow prints it as `webHostName`, and the API allows calls from it (CORS) along with the web
+  project's local dev server.
 
 None of the IDs below are secrets: tenant, subscription and client IDs are identifiers, and the phone and web apps ship
 some of them to every user anyway. Access is protected by the identities and their roles, not by hiding the IDs.
@@ -66,6 +70,8 @@ Then in the GitHub repository, under **Settings**:
   Actions tab. Run it first.
 - **API** (`.github/workflows/api.yml`): tests on every pull request that touches the API or the projects it uses; on
   `main` it also deploys and refreshes the army data mirror.
+- **Web** (`.github/workflows/web.yml`): tests and publishes the site on every pull request that touches it; on `main`
+  it also deploys it, reading the Static Web App's deployment token with the deploy identity at deploy time.
 
 GitHub only offers "Run workflow" for workflows that are on `main`, so the first run happens after this branch is
 merged.
@@ -143,9 +149,8 @@ Sign-in uses the Entra External ID tenant `infinitymercs.onmicrosoft.com` (tenan
 | App registration | Client id | Notes |
 | --- | --- | --- |
 | Infinity Mercs API | `6d09c3c6-41d1-4c53-a256-d65e8e4af405` | Exposes `access_as_user`; access tokens version 2. The API accepts tokens for the client id or `api://` + client id. |
-| Infinity Mercs Android | `0bbba93d-840e-48ce-b2d2-8007f227ba8d` | Public client with the API's `access_as_user` permission (admin consent granted). Its **Mobile and desktop applications** redirect URI `msal0bbba93d-840e-48ce-b2d2-8007f227ba8d://auth` is the one the app uses (MSAL.NET, system browser), so it doesn't depend on the signing key. Windows will need `http://localhost` added. |
-| Web site | (to come) | Registered once the Blazor site is deployed and has its address. |
+| Infinity Mercs Android | `0bbba93d-840e-48ce-b2d2-8007f227ba8d` | Public client with the API's `access_as_user` permission (admin consent granted), used by the phone app, the Windows app and the web site. **Mobile and desktop applications** redirect URIs: `msal0bbba93d-840e-48ce-b2d2-8007f227ba8d://auth` (Android, MSAL.NET through the system browser, so it doesn't depend on the signing key) and `http://localhost` (Windows). **Single-page application** redirect URIs (the web site): `https://{web host}/authentication/login-callback` and `https://{web host}/authentication/logout-callback`, plus the same two on `https://localhost:7154` for local runs. |
 
 `infra/main.bicepparam` sets `authAuthority` (`https://infinitymercs.ciamlogin.com/{tenant id}/v2.0`) and
 `authAudience` (the API's client id). The phone's side is `SignInSettings.Production` in `InfinityMercsApp.Services`,
-and `MsalActivity` on Android catches the redirect.
+and `MsalActivity` on Android catches the redirect. The web site's is `InfinityMercsApp.Web/wwwroot/appsettings.json`.

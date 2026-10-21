@@ -1,0 +1,35 @@
+@inject UserFiles Files
+
+@if (_companies is null)
+{
+    <p class="muted">Loading…</p>
+}
+else if (_companies.Value is not { } companies)
+{
+    <LoadMessage Status="_companies.Status" />
+}
+else if (companies.Count == 0)
+{
+    <p class="muted">No companies yet. Companies you found in the app appear here once it has synced.</p>
+}
+else
+{
+    <ul class="cards">
+        @foreach (var company in companies)
+        {
+            <li>
+                <a class="card" href="companies/@company.Id">
+                    <span class="title">@company.Name</span>
+                    <span class="muted">@company.Type · @company.Armies</span>
+                    <span class="muted">@company.Troopers @(company.Troopers == 1 ? "trooper" : "troopers")</span>
+                </a>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private Loaded<IReadOnlyList<CompanySummary>>? _companies;
+
+    protected override async Task OnInitializedAsync() => _companies = await Files.CompaniesAsync();
+}

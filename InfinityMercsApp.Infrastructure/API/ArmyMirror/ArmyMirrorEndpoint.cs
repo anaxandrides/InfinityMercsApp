@@ -1,3 +1,5 @@
+using InfinityMercsApp.ApiClient;
+
 namespace InfinityMercsApp.Infrastructure.API.ArmyMirror;
 
 /// <summary>Where the app's own copy of the army data is served.</summary>
@@ -5,7 +7,7 @@ namespace InfinityMercsApp.Infrastructure.API.ArmyMirror;
 public sealed record ArmyMirrorEndpoint(Uri BaseAddress)
 {
     /// <summary>The army data API that infra/main.bicep deploys.</summary>
-    public static ArmyMirrorEndpoint Production { get; } = new(new Uri("https://func-infmercs-prod.azurewebsites.net/api/"));
+    public static ArmyMirrorEndpoint Production { get; } = new(ApiAddress.Production);
 
     public Uri Manifest => new(BaseAddress, "army/manifest");
 

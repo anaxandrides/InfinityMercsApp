@@ -1,4 +1,4 @@
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.UnitTests.Support;

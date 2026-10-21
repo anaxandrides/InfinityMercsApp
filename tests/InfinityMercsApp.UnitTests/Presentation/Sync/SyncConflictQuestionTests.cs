@@ -1,4 +1,4 @@
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Presentation.Sync;
 using InfinityMercsApp.Services.Sync;
 

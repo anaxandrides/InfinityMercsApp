@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
+using InfinityMercsApp.ApiClient.UserDocuments;
 
 namespace InfinityMercsApp.Services.Sync;
 

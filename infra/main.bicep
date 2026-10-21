@@ -4,6 +4,9 @@ targetScope = 'subscription'
 @description('Region for every resource.')
 param location string = 'eastus'
 
+@description('Region for the web app; Static Web Apps run in only a few regions.')
+param webLocation string = 'eastus2'
+
 @description('Short environment name, used in resource names.')
 param environmentName string = 'prod'
 
@@ -36,6 +39,7 @@ module resources 'modules/resources.bicep' = {
   scope: group
   params: {
     location: location
+    webLocation: webLocation
     environmentName: environmentName
     appName: appName
     alwaysReadyInstances: alwaysReadyInstances
@@ -49,3 +53,5 @@ output resourceGroupName string = group.name
 output functionAppName string = resources.outputs.functionAppName
 output functionAppHostName string = resources.outputs.functionAppHostName
 output cosmosEndpoint string = resources.outputs.cosmosEndpoint
+output webAppName string = resources.outputs.webAppName
+output webHostName string = resources.outputs.webHostName

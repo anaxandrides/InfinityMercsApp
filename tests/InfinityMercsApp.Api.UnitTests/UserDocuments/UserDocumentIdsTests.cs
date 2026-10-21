@@ -1,5 +1,5 @@
 using InfinityMercsApp.Api.UserDocuments;
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
+using InfinityMercsApp.ApiClient.UserDocuments;
 
 namespace InfinityMercsApp.Api.UnitTests.UserDocuments;
 

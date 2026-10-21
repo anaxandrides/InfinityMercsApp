@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Models.Company;
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
 using InfinityMercsApp.Services.Sync;
 
 namespace InfinityMercsApp.Services.Records;
