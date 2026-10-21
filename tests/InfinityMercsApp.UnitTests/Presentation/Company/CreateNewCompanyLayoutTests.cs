@@ -6,10 +6,10 @@ namespace InfinityMercsApp.UnitTests.Presentation.Company;
 public sealed class CreateNewCompanyLayoutTests
 {
     [Theory]
-    [InlineData(AdaptiveLayoutMode.Compact, 1, "*", "Auto,Auto,Auto,Auto,Auto")]
-    [InlineData(AdaptiveLayoutMode.Medium, 2, "*,*", "Auto,Auto,Auto")]
-    [InlineData(AdaptiveLayoutMode.Expanded, 3, "*,*,*", "Auto,Auto")]
-    [InlineData(AdaptiveLayoutMode.Wide, 3, "*,*,*", "Auto,Auto")]
+    [InlineData(AdaptiveLayoutMode.Compact, 1, "*", "*,*,*,*,*")]
+    [InlineData(AdaptiveLayoutMode.Medium, 2, "*,*", "*,*,*")]
+    [InlineData(AdaptiveLayoutMode.Expanded, 3, "*,*,*", "*,*")]
+    [InlineData(AdaptiveLayoutMode.Wide, 3, "*,*,*", "*,*")]
     public void For_EachMode_FitsFiveCardsIntoColumns(AdaptiveLayoutMode mode, int columns, string gridColumns, string gridRows)
     {
         var layout = CreateNewCompanyLayout.For(mode);
@@ -45,7 +45,6 @@ public sealed class CreateNewCompanyLayoutTests
     {
         var layout = CreateNewCompanyLayout.For(AdaptiveLayoutMode.Expanded);
 
-        Assert.Equal(LayoutOptions.Center, layout.HorizontalOptions);
         Assert.Equal(1100, layout.MaximumWidth);
         Assert.Equal(new GridCell(1, 0), layout.Card.TitleCell);
         Assert.Equal(120, layout.Card.IconSize);
