@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<layout:AdaptiveContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:companyViewModels="clr-namespace:InfinityMercsApp.ViewModels.Company"
+             xmlns:companyPresentation="clr-namespace:InfinityMercsApp.Presentation.Company"
+    xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+    xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    x:Class="InfinityMercsApp.Views.Company.CreateNewCompanyPage"
+    x:Name="CreateNewCompanyRoot"
+    x:DataType="companyViewModels:CreateNewCompanyPageViewModel"
+    Title="Create New Company">
+
+    <ContentPage.Behaviors>
+        <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference CreateNewCompanyRoot}, x:DataType=ContentPage}"
+                                        x:DataType="companyViewModels:CreateNewCompanyPageViewModel"
+                                        EventName="LayoutModeChanged"
+                                        Command="{Binding ApplyLayoutCommand}"
+                                        CommandParameter="{Binding LayoutMode, Source={x:Reference CreateNewCompanyRoot}, x:DataType=layout:AdaptiveContentPage}" />
+    </ContentPage.Behaviors>
+
+    <Grid Padding="24" RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Scrollable card grid; the ViewModel places each card for the width. The stack gives the grid only the
+             height it measured, so its star rows all take the tallest card's height rather than stretching to fill
+             the screen. -->
+        <ScrollView Grid.Row="0" HorizontalOptions="Fill">
+            <VerticalStackLayout>
+                <Grid BindableLayout.ItemsSource="{Binding Choices}"
+                      layout:GridLayout.Columns="{Binding Layout.GridColumns}"
+                      layout:GridLayout.Rows="{Binding ChoiceRows}"
+                      RowSpacing="12"
+                      ColumnSpacing="12"
+                      MaximumWidthRequest="{Binding Layout.MaximumWidth}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="companyPresentation:CompanyChoice">
+                            <Grid layout:GridLayout.Cell="{Binding Cell}"
+                                  MinimumHeightRequest="{Binding Style.MinimumHeight}"
+                                  VerticalOptions="Fill">
+                                <Button Text=""
+                                        Command="{Binding Command}"
+                                        BackgroundColor="Transparent"
+                                        BorderColor="{StaticResource Signal}"
+                                        BorderWidth="2"
+                                        CornerRadius="4"
+                                        VerticalOptions="Fill" />
+                                <Grid layout:GridLayout.Columns="{Binding Style.Columns}"
+                                      layout:GridLayout.Rows="{Binding Style.Rows}"
+                                      ColumnSpacing="{Binding Style.ColumnSpacing}"
+                                      RowSpacing="{Binding Style.RowSpacing}"
+                                      Padding="10">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Command}" />
+                                    </Grid.GestureRecognizers>
+
+                                    <controls:SvgIcon layout:GridLayout.Cell="{Binding Style.IconCell}"
+                                                      HeightRequest="{Binding Style.IconSize}"
+                                                      WidthRequest="{Binding Style.IconSize}"
+                                                      HorizontalOptions="Center"
+                                                      VerticalOptions="Center"
+                                                      InputTransparent="True"
+                                                      Source="{Binding IconSource}" />
+
+                                    <Label layout:GridLayout.Cell="{Binding Style.TitleCell}"
+                                           Text="{Binding Title}"
+                                           FontSize="{DynamicResource FontSizeHeadline}"
+                                           VerticalOptions="{Binding Style.TitleVerticalOptions}"
+                                           HorizontalOptions="{Binding Style.TitleHorizontalOptions}"
+                                           HorizontalTextAlignment="{Binding Style.TitleTextAlignment}"
+                                           InputTransparent="True">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Style.UsesCompactTitle}" Value="True">
+                                                <Setter Property="FontSize" Value="{DynamicResource FontSizeCardTitleCompact}" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                </Grid>
+                            </Grid>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </Grid>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Grid Grid.Row="1" VerticalOptions="End">
+            <Button
+                Text="← BACK"
+                HorizontalOptions="Start"
+                Command="{Binding NavigateBackCommand}" />
+        </Grid>
+    </Grid>
+
+</layout:AdaptiveContentPage>

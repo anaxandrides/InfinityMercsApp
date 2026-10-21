@@ -1,0 +1,62 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using InfinityMercsApp.Domain.Models.Season.Gear;
+using InfinityMercsApp.Presentation.Season.Overview;
+
+namespace InfinityMercsApp.ViewModels.Season.Overview.Items;
+
+/// <summary>
+/// The picker for one gear slot of the selected trooper. Choosing an option reports it; refilling the
+/// options (which makes a picker forget its choice) does not.
+/// </summary>
+public sealed partial class GearSlotPicker(GearSlot slot, Action<GearSlot, GearOption> picked) : ObservableObject
+{
+    private bool _refilling;
+
+    public GearSlot Slot { get; } = slot;
+
+    /// <summary>The slot's heading, e.g. "SIDEARM".</summary>
+    public string Title { get; } = slot == GearSlot.Extra ? "EXTRA (BELTS AND POUCHES)" : slot.Key().ToUpperInvariant();
+
+    /// <summary>Whether the trooper has this slot: only Belts and Pouches gives the extra one.</summary>
+    [ObservableProperty]
+    public partial bool IsAvailable { get; set; } = true;
+
+    /// <summary>The perk filling the slot, e.g. "Holomask", which leaves no room for gear; empty when none does.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsFilledByPerk), nameof(FilledByPerkText))]
+    public partial string FilledByPerk { get; set; } = string.Empty;
+
+    public bool IsFilledByPerk => FilledByPerk.Length > 0;
+
+    public string FilledByPerkText => $"Filled by the {FilledByPerk} perk";
+
+    [ObservableProperty]
+    public partial IReadOnlyList<GearOption> Options { get; set; } = [GearOption.None];
+
+    [ObservableProperty]
+    public partial GearOption? SelectedOption { get; set; } = GearOption.None;
+
+    /// <summary>Replaces the options and shows <paramref name="selected"/> as chosen, without reporting a pick.</summary>
+    public void Show(IReadOnlyList<GearOption> options, GearOption selected)
+    {
+        _refilling = true;
+        try
+        {
+            Options = options;
+            SelectedOption = selected;
+        }
+        finally
+        {
+            _refilling = false;
+        }
+    }
+
+    // A picker clears its choice (to null) when its options change; only a real choice counts.
+    partial void OnSelectedOptionChanged(GearOption? value)
+    {
+        if (!_refilling && value is not null)
+        {
+            picked(Slot, value);
+        }
+    }
+}

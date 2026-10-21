@@ -2,28 +2,28 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:selectionItems="clr-namespace:InfinityMercsApp.ViewModels.Company.Selection.Items"
              x:Class="InfinityMercsApp.Views.Controls.FactionSelectionStripView"
              x:Name="FactionSelectionStripRoot">
 
     <!-- Virtualized horizontal list: only the on-screen faction tiles are realised, so opening the
          picker no longer builds a Skia canvas for every faction up-front. The per-item tap command is
-         bound via RelativeSource (not x:Reference) so it resolves inside the CollectionView template. -->
+         bound through x:Reference, a fixed source: a RelativeSource binding is re-applied with a null
+         source when its tile leaves the tree, and MAUI 10's compiled getter then throws. -->
     <CollectionView x:Name="FactionCollectionView"
                     HeightRequest="100"
                     SelectionMode="None"
                     HorizontalScrollBarVisibility="Always"
                     VerticalScrollBarVisibility="Never"
-                    ItemsSource="{Binding Source={x:Reference FactionSelectionStripRoot}, Path=EffectiveItemsSource}">
+                    ItemsSource="{Binding Source={x:Reference FactionSelectionStripRoot}, Path=ItemsSource, x:DataType=controls:FactionSelectionStripView}">
         <CollectionView.ItemsLayout>
             <LinearItemsLayout Orientation="Horizontal" ItemSpacing="2" />
         </CollectionView.ItemsLayout>
         <CollectionView.ItemTemplate>
-            <DataTemplate>
+            <DataTemplate x:DataType="selectionItems:ArmyFactionSelectionItem">
                 <controls:FactionListItemView
                     WidthRequest="138"
-                    UseVerticalTileLayout="True"
-                    ItemTappedCommand="{Binding Source={RelativeSource AncestorType={x:Type controls:FactionSelectionStripView}}, Path=SelectFactionCommand}"
-                    ItemTappedCommandParameter="{Binding .}" />
+                    ItemTappedCommand="{Binding SelectFactionCommand, Source={x:Reference FactionSelectionStripRoot}, x:DataType=controls:FactionSelectionStripView}" />
             </DataTemplate>
         </CollectionView.ItemTemplate>
     </CollectionView>

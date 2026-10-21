@@ -1,6 +1,5 @@
 using InfinityMercsApp.Infrastructure.Models.App;
 using InfinityMercsApp.Infrastructure.Repositories;
-using System.Globalization;
 
 namespace InfinityMercsApp.Infrastructure.Providers;
 
@@ -11,7 +10,8 @@ public sealed class AppSettingsProvider(ISQLiteRepository sqliteRepository) : IA
     private const string DisplayUnitsInches = "inches";
     private const string DisplayUnitsCentimeters = "centimeters";
     private const string FeedbackApiEndpointKey = "feedback_api_endpoint";
-    private const string StartupUpdateLastAttemptUtcKey = "startup_update_last_attempt_utc";
+    private const string MetadataFingerprintKey = "metadata_fingerprint";
+    private const string GeneratedCompaniesVersionKey = "generated_companies_version";
 
     /// <inheritdoc/>
     public bool GetShowUnitsInInches()
@@ -75,44 +75,54 @@ public sealed class AppSettingsProvider(ISQLiteRepository sqliteRepository) : IA
     }
 
     /// <inheritdoc/>
-    public DateTimeOffset? GetStartupUpdateLastAttemptUtc()
+    public string? GetMetadataFingerprint()
     {
-        var setting = sqliteRepository.FirstOrDefault<AppSetting>(x => x.Key == StartupUpdateLastAttemptUtcKey);
-
-        if (setting is null || string.IsNullOrWhiteSpace(setting.Value))
-        {
-            return null;
-        }
-
-        if (!DateTimeOffset.TryParse(
-                setting.Value,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
-                out var lastAttemptUtc))
-        {
-            return null;
-        }
-
-        return lastAttemptUtc;
+        var setting = sqliteRepository.FirstOrDefault<AppSetting>(x => x.Key == MetadataFingerprintKey);
+        return string.IsNullOrWhiteSpace(setting?.Value) ? null : setting.Value;
     }
 
     /// <inheritdoc/>
-    public void SetStartupUpdateLastAttemptUtc(DateTimeOffset attemptedAtUtc)
+    public void SetMetadataFingerprint(string fingerprint)
     {
-        var value = attemptedAtUtc.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture);
-        var existing = sqliteRepository.FirstOrDefault<AppSetting>(x => x.Key == StartupUpdateLastAttemptUtcKey);
+        var existing = sqliteRepository.FirstOrDefault<AppSetting>(x => x.Key == MetadataFingerprintKey);
 
         if (existing is null)
         {
             sqliteRepository.Insert([new AppSetting
             {
-                Key = StartupUpdateLastAttemptUtcKey,
-                Value = value
+                Key = MetadataFingerprintKey,
+                Value = fingerprint
             }]);
             return;
         }
 
-        existing.Value = value;
+        existing.Value = fingerprint;
+        sqliteRepository.Update(existing);
+    }
+
+    /// <inheritdoc/>
+    public string? GetGeneratedCompaniesVersion()
+    {
+        var setting = sqliteRepository.FirstOrDefault<AppSetting>(x => x.Key == GeneratedCompaniesVersionKey);
+        return string.IsNullOrWhiteSpace(setting?.Value) ? null : setting.Value;
+    }
+
+    /// <inheritdoc/>
+    public void SetGeneratedCompaniesVersion(string version)
+    {
+        var existing = sqliteRepository.FirstOrDefault<AppSetting>(x => x.Key == GeneratedCompaniesVersionKey);
+
+        if (existing is null)
+        {
+            sqliteRepository.Insert([new AppSetting
+            {
+                Key = GeneratedCompaniesVersionKey,
+                Value = version
+            }]);
+            return;
+        }
+
+        existing.Value = version;
         sqliteRepository.Update(existing);
     }
 }

@@ -1,17 +1,88 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="InfinityMercsApp.Views.Controls.WeaponDetailCardView">
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:weaponsPresentation="clr-namespace:InfinityMercsApp.Presentation.Weapons"
+             x:Class="InfinityMercsApp.Views.Controls.WeaponDetailCardView"
+             x:Name="WeaponCardRoot">
+    <ContentView.Resources>
+        <DataTemplate x:Key="StatRow" x:DataType="weaponsPresentation:WeaponCardStat">
+            <Grid ColumnDefinitions="Auto,*">
+                <Label Text="{Binding Label}" Style="{StaticResource LabelCaption}" TextColor="#8A97A8" VerticalTextAlignment="Center" Margin="0,0,6,0" />
+                <Label Grid.Column="1" Text="{Binding Value}" Style="{StaticResource LabelCaption}" FontAttributes="Bold" TextColor="#E6EBF2"
+                       VerticalTextAlignment="Center" HorizontalTextAlignment="End" HorizontalOptions="Fill" />
+            </Grid>
+        </DataTemplate>
+        <Style x:Key="RuleLink" TargetType="Label" BasedOn="{StaticResource LabelBody}">
+            <Setter Property="TextColor" Value="#34D399" />
+            <Setter Property="TextDecorations" Value="Underline" />
+            <Setter Property="LineBreakMode" Value="WordWrap" />
+        </Style>
+    </ContentView.Resources>
 
-    <Border x:Name="CardBorder"
-            BackgroundColor="{StaticResource Void}"
+    <Border BackgroundColor="{StaticResource Void}"
             Stroke="{StaticResource HairlineBright}"
             StrokeThickness="1"
             Padding="10,8">
+        <Border.Triggers>
+            <DataTrigger TargetType="Border" Binding="{Binding Card, Source={x:Reference WeaponCardRoot}, x:DataType=controls:WeaponDetailCardView}" Value="{x:Null}">
+                <Setter Property="IsVisible" Value="False" />
+            </DataTrigger>
+        </Border.Triggers>
         <Border.StrokeShape>
             <RoundRectangle CornerRadius="4" />
         </Border.StrokeShape>
-        <VerticalStackLayout x:Name="ContentStack" Spacing="4" />
-    </Border>
+        <VerticalStackLayout Spacing="4"
+                             x:DataType="weaponsPresentation:WeaponCard"
+                             BindingContext="{Binding Card, Source={x:Reference WeaponCardRoot}, x:DataType=controls:WeaponDetailCardView}">
+            <!-- Firing mode header, for a weapon with several modes. -->
+            <Label Text="{Binding Mode}" IsVisible="{Binding HasMode}" Style="{StaticResource LabelBody}"
+                   TextColor="#E6EBF2" FontAttributes="Bold" Margin="0,0,0,4" />
 
+            <!-- Burst, Damage and Ammo on the left; Saving and Saving Rolls on the right. -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" IsVisible="{Binding HasStats}">
+                <VerticalStackLayout Spacing="2" BindableLayout.ItemsSource="{Binding LeftStats}" BindableLayout.ItemTemplate="{StaticResource StatRow}" />
+                <VerticalStackLayout Grid.Column="1" Spacing="2" BindableLayout.ItemsSource="{Binding RightStats}" BindableLayout.ItemTemplate="{StaticResource StatRow}" />
+            </Grid>
+
+            <Label Text="SPECIAL RULES" IsVisible="{Binding HasSpecialRules}" Style="{StaticResource LabelCaption}"
+                   FontAttributes="Bold" TextColor="#8A97A8" Margin="0,6,0,2" />
+            <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding RuleRows}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="weaponsPresentation:WeaponCardRuleRow">
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Label Text="{Binding Left.Text}" Style="{StaticResource RuleLink}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenLinkCommand, Source={x:Reference WeaponCardRoot}, x:DataType=controls:WeaponDetailCardView}"
+                                                          CommandParameter="{Binding Left.Url}" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Grid.Column="1" Text="{Binding Right.Text}" IsVisible="{Binding HasRight}" Style="{StaticResource RuleLink}">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenLinkCommand, Source={x:Reference WeaponCardRoot}, x:DataType=controls:WeaponDetailCardView}"
+                                                          CommandParameter="{Binding Right.Url}" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                        </Grid>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <controls:WeaponRangeBandBarView
+                x:DataType="controls:WeaponDetailCardView"
+                BindingContext="{x:Reference WeaponCardRoot}"
+                Distance="{Binding Weapon.Distance}"
+                ShowUnitsInInches="{Binding ShowUnitsInInches}"
+                BarHeightRequest="{Binding RangeBandHeightRequest}"
+                XVisorActive="{Binding XVisorActive}"
+                Margin="0,6,0,0"
+                HorizontalOptions="Fill">
+                <controls:WeaponRangeBandBarView.Triggers>
+                    <DataTrigger TargetType="controls:WeaponRangeBandBarView" Binding="{Binding Weapon.Distance}" Value="{x:Null}">
+                        <Setter Property="IsVisible" Value="False" />
+                    </DataTrigger>
+                </controls:WeaponRangeBandBarView.Triggers>
+            </controls:WeaponRangeBandBarView>
+        </VerticalStackLayout>
+    </Border>
 </ContentView>

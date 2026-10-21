@@ -31,7 +31,7 @@ public sealed class FactionResolverTests
 
     [Theory]
     [MemberData(nameof(AllFactionResolveCases))]
-    public void ResolveToVanilla_UsesMetadataFactionParentDefinitions(
+    public void ResolveToVanilla_Faction_FollowsMetadataParents(
         int factionId,
         string factionName,
         int expectedVanillaId,

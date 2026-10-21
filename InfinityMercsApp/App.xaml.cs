@@ -1,8 +1,9 @@
-using InfinityMercsApp.Views;
 using System.Collections;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
+using InfinityMercsApp.Views.Adaptive;
+using InfinityMercsApp.Views.Splash;
 
 namespace InfinityMercsApp;
 
@@ -40,6 +41,7 @@ public partial class App : Application
 	protected override Window CreateWindow(IActivationState? activationState)
 	{
 		var window = new Window(_splashPage);
+		WindowFontScaler.Follow(window);
 #if WINDOWS
 		window.HandlerChanged += OnWindowHandlerChanged;
 #endif

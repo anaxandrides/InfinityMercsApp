@@ -31,21 +31,4 @@ public partial class FactionSelectionStripView : ContentView
         get => (ICommand?)GetValue(SelectFactionCommandProperty);
         set => SetValue(SelectFactionCommandProperty, value);
     }
-
-    /// <summary>
-    /// The item source actually bound to the inner list. Faction tiles are SVG-heavy, so a hidden
-    /// strip binds nothing and pays no build cost until it is shown.
-    /// </summary>
-    public IEnumerable? EffectiveItemsSource => IsVisible ? ItemsSource : null;
-
-    protected override void OnPropertyChanged(string? propertyName = null)
-    {
-        base.OnPropertyChanged(propertyName);
-
-        if (propertyName == IsVisibleProperty.PropertyName ||
-            propertyName == ItemsSourceProperty.PropertyName)
-        {
-            OnPropertyChanged(nameof(EffectiveItemsSource));
-        }
-    }
 }

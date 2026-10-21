@@ -10,7 +10,8 @@ public class CCFactionFireteamValidityRecord
 
     public bool HasValidCoreFireteams { get; set; }
 
-    public string? ValidCoreFireteamsJson { get; set; }
+    /// <summary>The CORE fireteam names found valid for this faction filter.</summary>
+    public IReadOnlyList<string> ValidCoreFireteams { get; set; } = [];
 
     public long EvaluatedAtUnixSeconds { get; set; }
 }

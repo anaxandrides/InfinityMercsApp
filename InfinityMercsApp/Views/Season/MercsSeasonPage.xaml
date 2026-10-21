@@ -1,18 +1,29 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:seasonViewModels="clr-namespace:InfinityMercsApp.ViewModels.Season"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="InfinityMercsApp.Views.Season.MercsSeasonPage"
+             x:DataType="seasonViewModels:MercsSeasonPageViewModel"
              x:Name="SeasonRoot"
              Title="Home"
              Shell.NavBarIsVisible="False"
              BackgroundColor="{StaticResource Void}">
 
-    <Grid x:Name="RootGrid" RowDefinitions="*,Auto" RowSpacing="0">
+    <ContentPage.Behaviors>
+        <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference SeasonRoot}, x:DataType=ContentPage}"
+                                        x:DataType="seasonViewModels:MercsSeasonPageViewModel"
+                                        EventName="LayoutModeChanged"
+                                        Command="{Binding ApplyLayoutCommand}"
+                                        CommandParameter="{Binding LayoutMode, Source={x:Reference SeasonRoot}, x:DataType=layout:AdaptiveContentPage}" />
+    </ContentPage.Behaviors>
+
+    <Grid layout:GridLayout.Columns="{Binding Layout.Columns}" layout:GridLayout.Rows="{Binding Layout.Rows}" RowSpacing="0">
 
         <!-- Logo and title -->
-        <VerticalStackLayout x:Name="BrandPanel"
-                             Grid.Row="0"
+        <VerticalStackLayout Grid.Row="0"
                              Spacing="{DynamicResource SpacingLarge}"
                              VerticalOptions="Center"
                              Padding="24,0">
@@ -34,25 +45,28 @@
         </VerticalStackLayout>
 
         <!-- Action panel -->
-        <Grid x:Name="ActionArea" Grid.Row="1" Padding="24,0,24,40">
+        <Grid layout:GridLayout.Cell="{Binding Layout.ActionCell}"
+              Padding="{Binding Layout.ActionPadding}"
+              VerticalOptions="{Binding Layout.ActionVerticalOptions}"
+              HorizontalOptions="{Binding Layout.ActionHorizontalOptions}"
+              MaximumWidthRequest="{Binding Layout.ActionMaximumWidth}">
 
             <!-- Main actions -->
-            <VerticalStackLayout x:Name="MainActionsPanel" Spacing="{DynamicResource SpacingMedium}">
+            <VerticalStackLayout IsVisible="{Binding IsChoosingNewSeason, Converter={StaticResource InvertedBoolConverter}}" Spacing="{DynamicResource SpacingMedium}">
                 <Button Text="LOAD SEASON"
-                        Clicked="OnLoadSeasonClicked"
+                        Command="{Binding LoadSeasonCommand}"
                         HorizontalOptions="Fill" />
                 <Button Text="START NEW SEASON"
                         BackgroundColor="{StaticResource Signal}"
                         TextColor="{StaticResource Void}"
                         BorderColor="{StaticResource Signal}"
                         FontAttributes="Bold"
-                        Clicked="OnStartNewSeasonClicked"
+                        Command="{Binding StartNewSeasonCommand}"
                         HorizontalOptions="Fill" />
             </VerticalStackLayout>
 
             <!-- New-season sub-choices (hidden until Start New Season is tapped) -->
-            <VerticalStackLayout x:Name="NewSeasonChoicePanel"
-                                 IsVisible="False"
+            <VerticalStackLayout IsVisible="{Binding IsChoosingNewSeason}"
                                  Spacing="{DynamicResource SpacingMedium}">
                 <Label Text="Choose your starting point:"
                        FontSize="{DynamicResource FontSizeBody}"
@@ -60,21 +74,21 @@
                        HorizontalTextAlignment="Center"
                        Margin="0,0,0,4" />
                 <Button Text="LOAD A COMPANY"
-                        Clicked="OnLoadCompanyClicked"
+                        Command="{Binding LoadCompanyCommand}"
                         HorizontalOptions="Fill" />
                 <Button Text="CREATE A NEW TEAM"
                         BackgroundColor="{StaticResource Signal}"
                         TextColor="{StaticResource Void}"
                         BorderColor="{StaticResource Signal}"
                         FontAttributes="Bold"
-                        Clicked="OnCreateNewTeamClicked"
+                        Command="{Binding CreateNewTeamCommand}"
                         HorizontalOptions="Fill" />
                 <Button Text="CANCEL"
                         BackgroundColor="Transparent"
                         BorderColor="Transparent"
                         BorderWidth="0"
                         TextColor="{StaticResource TextMuted}"
-                        Clicked="OnCancelNewSeasonClicked"
+                        Command="{Binding CancelNewSeasonCommand}"
                         HorizontalOptions="Fill" />
             </VerticalStackLayout>
 

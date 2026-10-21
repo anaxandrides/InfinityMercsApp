@@ -1,16 +1,16 @@
-using InfinityMercsApp.Domain.Models.Metadata;
+using InfinityMercsApp.Domain.Models.Metadata.Ranges;
+using InfinityMercsApp.Presentation.Weapons;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
-using System.Text.Json;
 
 namespace InfinityMercsApp.Views.Controls;
 
 public partial class WeaponRangeBandBarView : ContentView
 {
-    public static readonly BindableProperty DistanceJsonProperty =
+    public static readonly BindableProperty DistanceProperty =
         BindableProperty.Create(
-            nameof(DistanceJson),
-            typeof(string),
+            nameof(Distance),
+            typeof(WeaponDistance),
             typeof(WeaponRangeBandBarView),
             null,
             propertyChanged: (bindable, _, _) => ((WeaponRangeBandBarView)bindable).Canvas.InvalidateSurface());
@@ -45,10 +45,10 @@ public partial class WeaponRangeBandBarView : ContentView
         InitializeComponent();
     }
 
-    public string? DistanceJson
+    public WeaponDistance? Distance
     {
-        get => (string?)GetValue(DistanceJsonProperty);
-        set => SetValue(DistanceJsonProperty, value);
+        get => (WeaponDistance?)GetValue(DistanceProperty);
+        set => SetValue(DistanceProperty, value);
     }
 
     public bool ShowUnitsInInches
@@ -74,12 +74,8 @@ public partial class WeaponRangeBandBarView : ContentView
         var canvas = e.Surface.Canvas;
         canvas.Clear();
 
-        var bands = ParseBands(DistanceJson);
-        if (bands.Count == 0)
-            return;
-
-        float totalRange = bands[^1].RangeEnd;
-        if (totalRange <= 0)
+        var bar = RangeBar.From(Distance, XVisorActive, ShowUnitsInInches);
+        if (bar.Bands.Count == 0)
             return;
 
         float canvasWidth = e.Info.Width;
@@ -106,110 +102,47 @@ public partial class WeaponRangeBandBarView : ContentView
         using var modFont = new SKFont(SKTypeface.Default, coloredHeight * 0.52f) { Embolden = true };
         using var labelFont = new SKFont(SKTypeface.Default, labelBarHeight * 0.58f);
 
-        // Collect band boundary x-positions as we draw
-        var boundaries = new List<(float X, int Cm)> { (0f, 0) };
-        float x = 0f;
-
-        // Draw colored bands
-        for (int i = 0; i < bands.Count; i++)
+        // Colored bands, each with its modifier centred
+        foreach (var band in bar.Bands)
         {
-            var band = bands[i];
-            float bandWidth = (band.RangeEnd - band.RangeStart) / totalRange * canvasWidth;
-
-            var displayMod = ApplyXVisorMod(band.Mod, XVisorActive);
-            fillPaint.Color = GetBandColor(displayMod);
-            canvas.DrawRect(new SKRect(x, 0, x + bandWidth, coloredHeight), fillPaint);
-
-            // Modifier text centered in the colored area
-            float centerX = x + bandWidth / 2f;
-            float centerY = coloredHeight / 2f + modFont.Size * 0.38f;
-            canvas.DrawText(displayMod, centerX, centerY, SKTextAlign.Center, modFont, modPaint);
-
-            x += bandWidth;
-            boundaries.Add((x, band.RangeEnd));
+            float left = (float)band.StartFraction * canvasWidth;
+            float right = (float)band.EndFraction * canvasWidth;
+            fillPaint.Color = ColorOf(band.Tone);
+            canvas.DrawRect(new SKRect(left, 0, right, coloredHeight), fillPaint);
+            canvas.DrawText(band.Modifier, (left + right) / 2f, coloredHeight / 2f + modFont.Size * 0.38f, SKTextAlign.Center, modFont, modPaint);
         }
 
         // White label strip
         canvas.DrawRect(new SKRect(0, coloredHeight, canvasWidth, canvasHeight), whitePaint);
 
-        // Draw thin vertical divider lines and distance labels in the white strip
+        // Thin dividers between bands, and the distance at each band edge
         float textY = coloredHeight + labelBarHeight / 2f + labelFont.Size * 0.38f;
         float edgePadding = 3f * density;
-
-        for (int i = 0; i < boundaries.Count; i++)
+        var lastMark = bar.Marks.Count - 1;
+        for (int i = 0; i <= lastMark; i++)
         {
-            var (bx, cm) = boundaries[i];
-            string label = FormatDistanceLabel(cm, ShowUnitsInInches);
-
-            // Thin divider line through the full height at interior boundaries
-            if (i > 0 && i < boundaries.Count - 1)
-                canvas.DrawLine(bx, 0, bx, coloredHeight, dividerPaint);
+            var mark = bar.Marks[i];
+            float markX = (float)mark.Fraction * canvasWidth;
+            if (i > 0 && i < lastMark)
+                canvas.DrawLine(markX, 0, markX, coloredHeight, dividerPaint);
 
             // Number alignment: left-edge → left-align, right-edge → right-align, interior → center
-            SKTextAlign align;
-            float drawX;
-            if (i == 0)
-            {
-                align = SKTextAlign.Left;
-                drawX = bx + edgePadding;
-            }
-            else if (i == boundaries.Count - 1)
-            {
-                align = SKTextAlign.Right;
-                drawX = bx - edgePadding;
-            }
-            else
-            {
-                align = SKTextAlign.Center;
-                drawX = bx;
-            }
-
-            canvas.DrawText(label, drawX, textY, align, labelFont, labelPaint);
+            var (align, drawX) = i == 0
+                ? (SKTextAlign.Left, markX + edgePadding)
+                : i == lastMark
+                    ? (SKTextAlign.Right, markX - edgePadding)
+                    : (SKTextAlign.Center, markX);
+            canvas.DrawText(mark.Label, drawX, textY, align, labelFont, labelPaint);
         }
 
         canvas.Restore();
     }
 
-    private static IReadOnlyList<(string Label, int RangeStart, int RangeEnd, string Mod)> ParseBands(string? json)
+    private static SKColor ColorOf(RangeBandTone tone) => tone switch
     {
-        if (string.IsNullOrWhiteSpace(json))
-            return [];
-
-        try
-        {
-            var distance = JsonSerializer.Deserialize<WeaponDistance>(json);
-            return distance?.GetOrderedBands() ?? [];
-        }
-        catch
-        {
-            return [];
-        }
-    }
-
-    private static string ApplyXVisorMod(string mod, bool xVisorActive)
-    {
-        if (!xVisorActive || !int.TryParse(mod, out var val) || val >= 0) return mod;
-        return Math.Min(0, val + 3).ToString();
-    }
-
-    private static SKColor GetBandColor(string mod)
-    {
-        if (!int.TryParse(mod, out int value))
-            return new SKColor(107, 114, 128);
-
-        return value switch
-        {
-            > 0 => new SKColor(34, 197, 94),   // green
-            0 => new SKColor(107, 114, 128),    // grey
-            >= -3 => new SKColor(245, 158, 11), // amber
-            _ => new SKColor(220, 38, 38)       // red
-        };
-    }
-
-    private static string FormatDistanceLabel(int cm, bool showUnitsInInches)
-    {
-        return showUnitsInInches
-            ? $"{(int)Math.Round(cm / 2.5, MidpointRounding.AwayFromZero)}\""
-            : $"{cm}cm";
-    }
+        RangeBandTone.Bonus => new SKColor(34, 197, 94),    // green
+        RangeBandTone.Penalty => new SKColor(245, 158, 11), // amber
+        RangeBandTone.Severe => new SKColor(220, 38, 38),   // red
+        _ => new SKColor(107, 114, 128)                     // grey
+    };
 }

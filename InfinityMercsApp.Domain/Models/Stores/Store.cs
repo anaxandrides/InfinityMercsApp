@@ -9,4 +9,17 @@ public class Store
     public IReadOnlyList<StoreItem> Items { get; set; } = [];
     public IReadOnlyList<StoreTroopType> TroopTypes { get; set; } = [];
     public IReadOnlyList<StoreAugment> Augments { get; set; } = [];
+
+    public bool IsLawful => HasAlignment(StoreAlignments.Lawful);
+    public bool IsChaotic => HasAlignment(StoreAlignments.Chaotic);
+    public bool IsNeutral => HasAlignment(StoreAlignments.Neutral);
+    public bool IsAlwaysAvailable => HasAlignment(StoreAlignments.AlwaysAvailable);
+
+    /// <summary>Medical Services or Additional Recruitment.</summary>
+    public bool IsServiceStore => ServiceStoreNames.Contains(Name);
+
+    /// <summary>A War Market belongs to factions; the Base Market and the services belong to none.</summary>
+    public bool IsWarMarket => AssociatedFactions.Count > 0;
+
+    private bool HasAlignment(string alignment) => string.Equals(Alignment, alignment, StringComparison.OrdinalIgnoreCase);
 }

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views.Reference"
+             xmlns:glossary="clr-namespace:InfinityMercsApp.Services.Glossary;assembly=InfinityMercsApp.Services"
+             xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels.Reference"
+             x:Class="InfinityMercsApp.Views.Reference.MercsGlossaryPage"
+             x:Name="MercsGlossaryRoot"
+             x:DataType="viewModels:MercsGlossaryViewModel"
+             Title="Mercs Glossary">
+
+    <ContentPage.Behaviors>
+        <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference MercsGlossaryRoot}, x:DataType=ContentPage}"
+                                        x:DataType="viewModels:MercsGlossaryViewModel"
+                                        EventName="LayoutModeChanged"
+                                        Command="{Binding ApplyLayoutCommand}"
+                                        CommandParameter="{Binding LayoutMode, Source={x:Reference MercsGlossaryRoot}, x:DataType=layout:AdaptiveContentPage}" />
+    </ContentPage.Behaviors>
+
+    <Grid Padding="16" layout:GridLayout.Columns="{Binding Layout.Columns}" ColumnSpacing="{Binding Layout.ColumnSpacing}">
+        <Border IsVisible="{Binding IsIndexPaneVisible}" StrokeThickness="1" Padding="12">
+            <Grid RowDefinitions="Auto,Auto,*" RowSpacing="10">
+                <Label Grid.Row="0"
+                       Text="Rules Index"
+                       HorizontalTextAlignment="Center"
+                       FontSize="{DynamicResource FontSizeTitleSmall}"
+                       FontAttributes="Bold" />
+                <HorizontalStackLayout Grid.Row="1" Spacing="6" VerticalOptions="Center">
+                    <controls:SvgIcon Source="SVGCache/NonCBIcons/noun-delta.svg"
+                                      WidthRequest="20"
+                                      HeightRequest="20"
+                                      VerticalOptions="Center" />
+                    <Label Text=" - Rules Changed From Base"
+                           VerticalTextAlignment="Center"
+                           LineBreakMode="WordWrap"
+                           FontSize="{Binding ListFontSize}" />
+                </HorizontalStackLayout>
+                <CollectionView Grid.Row="2"
+                                VerticalOptions="Fill"
+                                ItemsSource="{Binding GlossaryItems}"
+                                SelectionMode="Single"
+                                SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="glossary:GlossaryEntry">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Padding="6,4">
+                                <Grid.Triggers>
+                                    <DataTrigger TargetType="Grid" Binding="{Binding IsHeader}" Value="True">
+                                        <Setter Property="Padding" Value="2,14,2,6" />
+                                        <Setter Property="ColumnSpacing" Value="0" />
+                                    </DataTrigger>
+                                </Grid.Triggers>
+                                <Label Grid.Column="0"
+                                       Text="{Binding Title}"
+                                       VerticalTextAlignment="Center"
+                                       LineBreakMode="WordWrap"
+                                       FontSize="{Binding ViewModel.ListFontSize, Source={x:Reference MercsGlossaryRoot}, x:DataType=view:MercsGlossaryPage}">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsHeader}" Value="True">
+                                            <Setter Property="FontAttributes" Value="Bold" />
+                                            <Setter Property="TextColor" Value="{StaticResource Signal}" />
+                                            <Setter Property="CharacterSpacing" Value="2" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                                <controls:SvgIcon Grid.Column="1"
+                                                  Source="SVGCache/NonCBIcons/noun-delta.svg"
+                                                  WidthRequest="18"
+                                                  HeightRequest="18"
+                                                  VerticalOptions="Center"
+                                                  IsVisible="{Binding ShowDeltaIcon}" />
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </Border>
+
+        <Border layout:GridLayout.Cell="{Binding Layout.DetailCell}" IsVisible="{Binding IsDetailPaneVisible}" StrokeThickness="1" Padding="14">
+            <Grid RowDefinitions="Auto,Auto,*" RowSpacing="10">
+                <!-- Compact-only return to the rules index -->
+                <Button
+                        Grid.Row="0"
+                        Text="← Rules Index"
+                        IsVisible="{Binding Layout.StacksPanes}"
+                        HorizontalOptions="Start"
+                        BackgroundColor="Transparent"
+                        BorderColor="Transparent"
+                        TextColor="{StaticResource Signal}"
+                        FontAttributes="Bold"
+                        Padding="0"
+                        Command="{Binding CloseDetailCommand}" />
+                <Label Grid.Row="1"
+                       Text="{Binding SelectedTitle}"
+                       FontSize="{DynamicResource FontSizeSubHeadline}"
+                       FontAttributes="Bold" />
+                <Grid Grid.Row="2">
+                    <!-- The WebView has no width of its own, so it stays Fill and is capped rather than centred. -->
+                    <WebView Grid.Row="0"
+                             MaximumWidthRequest="{Binding Layout.ReadingMaxWidth}"
+                             Source="{Binding ContentSource}"
+                             VerticalOptions="Fill"
+                             HorizontalOptions="Fill" />
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+
+</layout:AdaptiveContentPage>

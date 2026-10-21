@@ -3,9 +3,17 @@
     x:Class="InfinityMercsApp.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:views="clr-namespace:InfinityMercsApp.Views"
-    xmlns:unitEncyclopediaViews="clr-namespace:InfinityMercsApp.Views.UnitEncyclopedia"
+    xmlns:aboutViews="clr-namespace:InfinityMercsApp.Views.About"
+    xmlns:feedbackViews="clr-namespace:InfinityMercsApp.Views.Feedback"
+    xmlns:referenceViews="clr-namespace:InfinityMercsApp.Views.Reference"
+    xmlns:settingsViews="clr-namespace:InfinityMercsApp.Views.Settings"
+    xmlns:marketplacesViews="clr-namespace:InfinityMercsApp.Views.Marketplaces"
+    xmlns:companyViewerViews="clr-namespace:InfinityMercsApp.Views.Company.Viewer"
+    xmlns:companyViews="clr-namespace:InfinityMercsApp.Views.Company"
+    xmlns:armoryViews="clr-namespace:InfinityMercsApp.Views.Armory"
+    xmlns:unitBrowserViews="clr-namespace:InfinityMercsApp.Views.UnitBrowser"
     xmlns:seasonViews="clr-namespace:InfinityMercsApp.Views.Season"
+    xmlns:seasonOverviewViews="clr-namespace:InfinityMercsApp.Views.Season.Overview"
     Shell.FlyoutBehavior="Flyout"
     Title="InfinityMercsApp">
 
@@ -15,38 +23,20 @@
         Route="MercsSeasonPage" />
 
     <ShellContent
-        Title="Home (Classic)"
-        FlyoutItemIsVisible="False"
-        ContentTemplate="{DataTemplate views:ModeSelectionPage}"
-        Route="ModeSelectionPage" />
-
-    <ShellContent
         Title="Create New Company"
         FlyoutItemIsVisible="False"
-        ContentTemplate="{DataTemplate views:CreateNewCompanyPage}"
+        ContentTemplate="{DataTemplate companyViews:CreateNewCompanyPage}"
         Route="CreateNewCompanyPage" />
 
     <ShellContent
         Title="Standard Company"
         FlyoutItemIsVisible="False"
-        ContentTemplate="{DataTemplate views:StandardCompanySourcePopupPage}"
+        ContentTemplate="{DataTemplate companyViews:StandardCompanySourcePopupPage}"
         Route="StandardCompanySourcePopupPage" />
 
     <ShellContent
-        Title="TAG Company"
-        FlyoutItemIsVisible="False"
-        ContentTemplate="{DataTemplate views:TagCompanySourcePopupPage}"
-        Route="TagCompanySourcePopupPage" />
-
-    <ShellContent
-        Title="Lone Wolf Company"
-        FlyoutItemIsVisible="False"
-        ContentTemplate="{DataTemplate views:LoneWolfCompanySourcePopupPage}"
-        Route="LoneWolfCompanySourcePopupPage" />
-
-    <ShellContent
         Title="Settings"
-        ContentTemplate="{DataTemplate views:SettingsPage}"
+        ContentTemplate="{DataTemplate settingsViews:SettingsPage}"
         Route="SettingsPage" />
 
     <FlyoutItem
@@ -54,23 +44,23 @@
         Route="MercsReference">
         <ShellContent
             Title="Mercs Glossary"
-            ContentTemplate="{DataTemplate views:MercsGlossaryPage}"
+            ContentTemplate="{DataTemplate referenceViews:MercsGlossaryPage}"
             Route="MercsGlossaryPage" />
         <ShellContent
             Title="Perks Tables"
-            ContentTemplate="{DataTemplate views:PerksTablesPage}"
+            ContentTemplate="{DataTemplate referenceViews:PerksTablesPage}"
             Route="PerksTablesPage" />
         <ShellContent
             Title="Armory"
-            ContentTemplate="{DataTemplate views:ArmoryPage}"
+            ContentTemplate="{DataTemplate armoryViews:ArmoryPage}"
             Route="ArmoryPage" />
         <ShellContent
             Title="Marketplaces"
-            ContentTemplate="{DataTemplate views:MarketplacesPage}"
+            ContentTemplate="{DataTemplate marketplacesViews:MarketplacesPage}"
             Route="MarketplacesPage" />
         <ShellContent
             Title="Unit Encyclopedia"
-            ContentTemplate="{DataTemplate unitEncyclopediaViews:UnitEncyclopediaPage}"
+            ContentTemplate="{DataTemplate unitBrowserViews:UnitEncyclopediaPage}"
             Route="UnitEncyclopediaPage" />
     </FlyoutItem>
 
@@ -78,37 +68,29 @@
         Title="Debug"
         Route="Debug">
         <ShellContent
-            Title="Debug"
-            ContentTemplate="{DataTemplate views:DebugPage}"
-            Route="DebugPage" />
-        <ShellContent
-            Title="Perk Tester"
-            ContentTemplate="{DataTemplate views:PerkTesterPage}"
-            Route="PerkTesterPage" />
-        <ShellContent
             Title="Load Company"
-            ContentTemplate="{DataTemplate views:LoadCompanyPage}"
+            ContentTemplate="{DataTemplate companyViews:LoadCompanyPage}"
             Route="LoadCompanyPage" />
         <ShellContent
             Title="Company Viewer"
-            ContentTemplate="{DataTemplate views:CompanyViewerPage}"
+            ContentTemplate="{DataTemplate companyViewerViews:CompanyViewerPage}"
             Route="CompanyViewerPage" />
     </FlyoutItem>
 
     <ShellContent
         Title="About"
-        ContentTemplate="{DataTemplate views:AboutPage}"
+        ContentTemplate="{DataTemplate aboutViews:AboutPage}"
         Route="AboutPage" />
 
     <ShellContent
         Title="Season"
         FlyoutItemIsVisible="False"
-        ContentTemplate="{DataTemplate seasonViews:SeasonPage}"
+        ContentTemplate="{DataTemplate seasonOverviewViews:SeasonPage}"
         Route="SeasonPage" />
 
     <!-- <ShellContent
         Title="Feedback/Bugs"
-        ContentTemplate="{DataTemplate views:FeedbackBugsPage}"
+        ContentTemplate="{DataTemplate feedbackViews:FeedbackBugsPage}"
         Route="FeedbackBugsPage" /> -->
 
 

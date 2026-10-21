@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              x:Class="InfinityMercsApp.Views.Controls.SeasonStartPointsView"
+             x:DataType="controls:SeasonStartPointsView"
              x:Name="SeasonStartPointsRoot">
-    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-        <Label
-            WidthRequest="70"
-            Text="{Binding Source={x:Reference SeasonStartPointsRoot}, Path=SeasonPointsCapText}"
-            VerticalOptions="Center" />
+    <HorizontalStackLayout Spacing="8" VerticalOptions="Center" BindingContext="{x:Reference SeasonStartPointsRoot}">
+        <Label WidthRequest="70" Text="{Binding SeasonPointsCapText}" VerticalOptions="Center" />
         <Label Text="/" VerticalOptions="Center" />
-        <Picker
-            WidthRequest="80"
-            SelectedItem="{Binding Source={x:Reference SeasonStartPointsRoot}, Path=SelectedStartSeasonPoints, Mode=TwoWay}">
+        <Picker WidthRequest="80" SelectedItem="{Binding SelectedStartSeasonPoints, Mode=TwoWay}">
             <Picker.ItemsSource>
                 <x:Array Type="{x:Type x:String}">
                     <x:String>60</x:String>
@@ -22,11 +18,13 @@
             </Picker.ItemsSource>
         </Picker>
         <Label Text="Points" VerticalOptions="Center" />
-        <skia:SKCanvasView
-            x:Name="SeasonValidationCanvas"
-            WidthRequest="24"
-            HeightRequest="24"
-            VerticalOptions="Center"
-            PaintSurface="OnSeasonValidationCanvasPaintSurface" />
+        <!-- A check while the company can start, a cross while it can't. -->
+        <controls:SvgIcon WidthRequest="24" HeightRequest="24" VerticalOptions="Center" Source="SVGCache/NonCBIcons/noun-x-1890844.svg">
+            <controls:SvgIcon.Triggers>
+                <DataTrigger TargetType="controls:SvgIcon" Binding="{Binding IsCompanyValid}" Value="True">
+                    <Setter Property="Source" Value="SVGCache/NonCBIcons/noun-check-3612574.svg" />
+                </DataTrigger>
+            </controls:SvgIcon.Triggers>
+        </controls:SvgIcon>
     </HorizontalStackLayout>
 </ContentView>

@@ -1,4 +1,4 @@
-﻿namespace InfinityMercsApp.Infrastructure.Models.API.Metadata;
+namespace InfinityMercsApp.Infrastructure.Models.API.Metadata;
 
 using System.Text.Json.Serialization;
 
@@ -40,6 +40,7 @@ public class Weapon
     [JsonPropertyName("properties")]
     public List<string>? Properties { get; set; }
 
+    /// <summary>Range bands by name (<c>short</c>, <c>med</c>, <c>long</c>, <c>max</c>...), in payload order.</summary>
     [JsonPropertyName("distance")]
-    public object? Distance { get; set; }
+    public Dictionary<string, WeaponDistanceBand?>? Distance { get; set; }
 }

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views.Season.Bye"
+             xmlns:bye="clr-namespace:InfinityMercsApp.ViewModels.Season.Bye"
+             xmlns:byeItems="clr-namespace:InfinityMercsApp.ViewModels.Season.Bye.Items"
+             xmlns:byes="clr-namespace:InfinityMercsApp.Domain.Season.Byes;assembly=InfinityMercsApp.Domain"
+             xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
+             x:Class="InfinityMercsApp.Views.Season.Bye.ByeRoundPage"
+             x:Name="ByeRoundPageRoot"
+             x:DataType="bye:ByeRoundViewModel"
+             Title="Bye Round"
+             BackgroundColor="{StaticResource Void}">
+
+    <ContentPage.Resources>
+        <Style x:Key="SplitButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="{StaticResource HairlineBright}" />
+            <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
+            <Setter Property="HeightRequest" Value="44" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style x:Key="SectionLabel" TargetType="Label">
+            <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16,12,16,16">
+
+        <VerticalStackLayout Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <Label Text="{Binding RoundNumber, StringFormat='ROUND {0} BYE'}"
+                   FontSize="{DynamicResource FontSizeTitleSmall}"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource TextPrimary}" />
+            <Label Text="{Binding Credits, StringFormat='Round rewards plus 3 OP worth of CR: {0} CR and 0.5 SWC.'}"
+                   FontSize="{DynamicResource FontSizeCaption}"
+                   TextColor="{StaticResource TextSecondary}" />
+        </VerticalStackLayout>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="16">
+
+                <!-- How the XP is shared -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Experience" Style="{StaticResource SectionLabel}" />
+                    <Grid ColumnSpacing="8" ColumnDefinitions="*,*">
+                        <Button Text="UP TO 4 · 7 XP"
+                                Style="{StaticResource SplitButton}"
+                                Command="{Binding SelectSplitCommand}"
+                                CommandParameter="{x:Static byes:ByeXpSplit.FourTroopers}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsFourTroopers}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Signal}" />
+                                    <Setter Property="TextColor" Value="{StaticResource Void}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Grid.Column="1"
+                                Text="UP TO 6 · 5 XP"
+                                Style="{StaticResource SplitButton}"
+                                Command="{Binding SelectSplitCommand}"
+                                CommandParameter="{x:Static byes:ByeXpSplit.SixTroopers}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsSixTroopers}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="{StaticResource Signal}" />
+                                    <Setter Property="TextColor" Value="{StaticResource Void}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                    </Grid>
+                    <Label Text="{Binding SelectionText}"
+                           FontSize="{DynamicResource FontSizeCaption}"
+                           TextColor="{StaticResource Signal}" />
+                    <Label Text="Too many troopers are ticked for this choice."
+                           IsVisible="{Binding IsValid, Converter={StaticResource InvertedBoolConverter}}"
+                           FontSize="{DynamicResource FontSizeCaption}"
+                           TextColor="{StaticResource Danger}" />
+                </VerticalStackLayout>
+
+                <!-- Troopers: tap to tick -->
+                <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Troopers}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="byeItems:ByeTrooperItem">
+                            <Border BackgroundColor="{StaticResource Plate}"
+                                    Stroke="Transparent"
+                                    StrokeShape="RoundRectangle 4"
+                                    Padding="10,6">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ViewModel.ToggleTrooperCommand, Source={x:Reference ByeRoundPageRoot}, x:DataType=view:ByeRoundPage}"
+                                                          CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                    <CheckBox IsChecked="{Binding IsSelected, Mode=OneWay}"
+                                              InputTransparent="True"
+                                              Color="{StaticResource Signal}" />
+                                    <Label Grid.Column="1"
+                                           Text="{Binding Name}"
+                                           TextColor="{StaticResource TextPrimary}"
+                                           FontSize="{DynamicResource FontSizeBody}"
+                                           VerticalTextAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+                <!-- The injury written off -->
+                <VerticalStackLayout Spacing="8" IsVisible="{Binding HasInjuries}">
+                    <Label Text="Write Off an Injury" Style="{StaticResource SectionLabel}" />
+                    <Picker Title="Injury to write off…"
+                            ItemsSource="{Binding InjuryOptions}"
+                            SelectedItem="{Binding SelectedInjury}"
+                            TextColor="{StaticResource TextPrimary}"
+                            BackgroundColor="{StaticResource HairlineBright}"
+                            HorizontalOptions="Fill" />
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Button Grid.Row="2"
+                Text="TAKE THE BYE"
+                BackgroundColor="{StaticResource Signal}"
+                TextColor="{StaticResource Void}"
+                FontAttributes="Bold"
+                Margin="0,12,0,0"
+                Command="{Binding ConfirmCommand}"
+                HorizontalOptions="Fill">
+            <Button.Triggers>
+                <Trigger TargetType="Button" Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.45" />
+                </Trigger>
+            </Button.Triggers>
+        </Button>
+    </Grid>
+</baseViews:ContentPageBase>

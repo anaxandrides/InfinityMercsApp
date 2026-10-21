@@ -1,9 +1,9 @@
-using SkiaSharp.Views.Maui;
 using System.Windows.Input;
-using InfinityMercsApp.Views.Common;
+using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 namespace InfinityMercsApp.Views.Controls;
 
+/// <summary>A roster entry on the selection screen: tap to select, X to remove, the chevron to show its details.</summary>
 public partial class MercsCompanyEntryCardView : ContentView
 {
     public static readonly BindableProperty SelectEntryCommandProperty =
@@ -48,15 +48,6 @@ public partial class MercsCompanyEntryCardView : ContentView
         set => SetValue(ShowOrderModifierBadgesProperty, value);
     }
 
-    public event EventHandler<SKPaintSurfaceEventArgs>? PeripheralIconCanvasPaintSurface;
-    public event EventHandler<SKPaintSurfaceEventArgs>? IrregularIconCanvasPaintSurface;
-    public event EventHandler<SKPaintSurfaceEventArgs>? RegularModifierIconCanvasPaintSurface;
-
-    private void OnCardTapped(object? sender, TappedEventArgs e)
-    {
-        ExecuteCommand(SelectEntryCommand);
-    }
-
     protected override void OnBindingContextChanged()
     {
         base.OnBindingContextChanged();
@@ -91,39 +82,10 @@ public partial class MercsCompanyEntryCardView : ContentView
 
         if (animated)
         {
-            await DetailsToggleButton.RotateTo(targetRotation, 140, Easing.CubicOut);
+            await DetailsToggleButton.RotateToAsync(targetRotation, 140, Easing.CubicOut);
             return;
         }
 
         DetailsToggleButton.Rotation = targetRotation;
-    }
-
-    private void OnRemoveButtonClicked(object? sender, EventArgs e)
-    {
-        ExecuteCommand(RemoveEntryCommand);
-    }
-
-    private void ExecuteCommand(ICommand? command)
-    {
-        var parameter = BindingContext;
-        if (command?.CanExecute(parameter) == true)
-        {
-            command.Execute(parameter);
-        }
-    }
-
-    private void OnPeripheralIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        PeripheralIconCanvasPaintSurface?.Invoke(sender, e);
-    }
-
-    private void OnIrregularIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        IrregularIconCanvasPaintSurface?.Invoke(sender, e);
-    }
-
-    private void OnRegularModifierIconCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        RegularModifierIconCanvasPaintSurface?.Invoke(sender, e);
     }
 }

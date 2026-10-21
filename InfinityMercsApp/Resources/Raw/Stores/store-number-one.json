@@ -15,10 +15,10 @@
     { "name": "Multispectral Visor Level 2", "costCr": 20, "costSwc": null, "category": "Accessories", "wikiUrl": "https://infinitythewiki.com/Multispectral_Visor", "wikiSection": "MULTISPECTRAL VISOR LEVEL 2" }
   ],
   "troopTypes": [
-    { "type": "LI", "costCr": 15, "armorName": "Blink Suit", "arm": 1, "bts": null, "abilities": "Hidden Deployment" },
-    { "type": "MI", "costCr": 20, "armorName": "Bagh Mari Suit", "arm": 2, "bts": null, "abilities": "Multispectral Visor Level 1, Mimetism (-3)" },
-    { "type": "HI", "costCr": 30, "armorName": "Superheavy Armor", "arm": 5, "bts": 6, "abilities": "2W, No Wound Incapacitation, S5" },
-    { "type": "HI", "costCr": 40, "armorName": "Swiss Order Armor", "arm": 5, "bts": 6, "abilities": "Religious, Mimetism (-6)" }
+    { "type": "LI", "costCr": 15, "armorName": "Blink Suit", "arm": 1, "bts": null, "abilities": "Hidden Deployment", "effects": {"skills": [{"name": "Hidden Deployment"}]} },
+    { "type": "MI", "costCr": 20, "armorName": "Bagh Mari Suit", "arm": 2, "bts": null, "abilities": "Multispectral Visor Level 1, Mimetism (-3)", "effects": {"skills": [{"name": "Mimetism (-3)"}], "equipment": ["Multispectral Visor L1"]} },
+    { "type": "HI", "costCr": 30, "armorName": "Superheavy Armor", "arm": 5, "bts": 6, "abilities": "2W, No Wound Incapacitation, S5", "effects": {"vitality": 2, "silhouette": 5, "move": "4-4", "skills": [{"name": "No Wound Incapacitation"}]} },
+    { "type": "HI", "costCr": 40, "armorName": "Swiss Order Armor", "arm": 5, "bts": 6, "abilities": "Religious, Mimetism (-6)", "effects": {"skills": [{"name": "Religious Troop"}, {"name": "Mimetism (-6)"}]} }
   ],
   "augments": [
     { "name": "BS=11", "requirement": "Cannot have the BS Attack (+#) skill", "costCr": 10, "costNote": null },

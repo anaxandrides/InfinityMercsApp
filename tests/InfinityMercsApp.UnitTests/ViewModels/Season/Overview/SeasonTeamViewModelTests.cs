@@ -1,0 +1,763 @@
+using InfinityMercsApp.Domain.Models.Metadata;
+using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Domain.Models.Season.Gear;
+using InfinityMercsApp.Domain.Models.Stores;
+using InfinityMercsApp.Domain.Season.Inventory;
+using InfinityMercsApp.Domain.Season.RecruitRolls;
+using InfinityMercsApp.Domain.Season.Troopers;
+using InfinityMercsApp.Presentation.Company.Viewer;
+using InfinityMercsApp.Presentation.Season.Overview;
+using InfinityMercsApp.Domain.Models.Company;
+using InfinityMercsApp.Services.Season.Peripherals;
+using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.UnitTests.Presentation.Company.Viewer;
+using InfinityMercsApp.ViewModels.Company.Viewer.Items;
+using InfinityMercsApp.ViewModels.Components;
+using InfinityMercsApp.ViewModels.Season.Overview;
+using InfinityMercsApp.ViewModels.Season.Overview.Items;
+using NSubstitute;
+
+namespace InfinityMercsApp.UnitTests.ViewModels.Season.Overview;
+
+public sealed class SeasonTeamViewModelTests
+{
+    private readonly SeasonTestKit _kit = new();
+    private readonly MarketplaceDetailViewModel _popup;
+    private readonly SeasonTeamViewModel _team;
+    private readonly Func<Task> _seasonChanged = Substitute.For<Func<Task>>();
+    private readonly ITeamChanges _changes = Substitute.For<ITeamChanges>();
+    private double _companySwc = 2;
+    private List<SeasonTransaction> _alsoBought = [];
+
+    public SeasonTeamViewModelTests()
+    {
+        _popup = _kit.Popup();
+
+        // As the season page does: the season is read again, and the tab shown again from it.
+        _seasonChanged().Returns(_ => ShowSeasonAsync());
+        _team = new SeasonTeamViewModel(new CompanyRoster(_kit.ArmyData), new UnitDetailViewModel(_kit.ArmyData, _kit.Settings), _kit.PackageFiles, _kit.SeasonFiles, _popup, _kit.Dialogs, _seasonChanged, _changes);
+    }
+
+    // The company's pistol, Spitfire, Light Armour, WIP and Courage augments and monofilament blade.
+    private SeasonInventory Owned() => SeasonInventory.From(
+        new SeasonFile
+        {
+            Rounds =
+            [
+                new SeasonRound
+                {
+                    RoundIndex = 1,
+                    Marketplace = new SeasonMarketplace
+                    {
+                        Transactions =
+                        [
+                            SeasonTestKit.Bought("Number One", "Pistol"),
+                            SeasonTestKit.Bought("Number One", "Spitfire"),
+                            SeasonTestKit.Bought("Number One", "Light Armour (LI)"),
+                            SeasonTestKit.Bought("Number One", "WIP=12"),
+                            SeasonTestKit.Bought("Number One", "Courage"),
+                            SeasonTestKit.Bought("Jade Temu", "Monofilament Blade"),
+                            .. _alsoBought
+                        ]
+                    }
+                }
+            ]
+        },
+        Catalog);
+
+    private static Store Armoury { get; } = new()
+    {
+        Name = "Armoury",
+        AssociatedFactions = ["PanOceania"],
+        TroopTypes =
+        [
+            new StoreTroopType { ArmorName = "Heavy Armour", Type = "HI", CostCr = 20, Arm = 4, Bts = 3, Effects = new ArmorEffects { WoundsSkill = 1 } },
+            new StoreTroopType { ArmorName = "Belts and Pouches", CostCr = 5, Effects = new ArmorEffects { ExtraSlot = true } },
+            new StoreTroopType { ArmorName = "Cuckoo Virus Infusion", CostCr = 20, Arm = 4, Effects = new ArmorEffects { NoPrimary = true } }
+        ],
+        Items = [new StoreItem { Name = "Engineer (+Gizmokit)", Category = "Roles", CostCr = 10 }],
+        Augments =
+        [
+            new StoreAugment { Name = "Armed Turret (MMR)", Requirement = "Engineer", CostCr = 10 },
+            new StoreAugment { Name = TohaaPeripherals.AugmentName, CostCr = 5 }
+        ]
+    };
+
+    private static InventoryCatalog Catalog { get; } = InventoryCatalog.From([SeasonTestKit.NumberOne, SeasonTestKit.JadeTemu, Armoury]);
+
+    // The Spitfire takes 1 SWC; the company has 2 unless a test says otherwise.
+    private async Task LoadAsync(CompanyLoadouts? loadouts = null, double companySwc = 2)
+    {
+        _kit.Season.UnitGear = (loadouts ?? new CompanyLoadouts()).ToSeasonGear();
+        _companySwc = companySwc;
+        await ShowSeasonAsync();
+    }
+
+    private async Task ShowSeasonAsync()
+    {
+        await _team.LoadAsync(SeasonTestKit.Company(), SeasonTestKit.SeasonPath, _kit.Season, Catalog);
+        _team.Gear.ShowOwned(Owned(), Catalog, _companySwc);
+    }
+
+    private CompanyLoadouts SavedLoadouts() => CompanyLoadouts.From(_kit.Season.UnitGear);
+
+    private GearSlotPicker Picker(GearSlot slot) => _team.Gear.Slots.Single(picker => picker.Slot == slot);
+
+    private CompanyViewerUnitListItem Unit(string name) => _team.Units.Single(unit => unit.Name == name);
+
+    // An army sheet lists what the captain's Spec-Ops XP bought among its perks.
+    [Fact]
+    public async Task LoadAsync_CaptainWithSpecOps_ListsBuysWithItsPerks()
+    {
+        var company = new SavedCompanyFile
+        {
+            Entries = SeasonTestKit.Company().Entries,
+            ImprovedCaptainStats = new SavedImprovedCaptainStats { IsEnabled = true, VitalityBonus = 1, WeaponChoice1 = "(+2) - Pistol", SkillChoice1 = "-" }
+        };
+
+        await _team.LoadAsync(company, SeasonTestKit.SeasonPath, _kit.Season, Catalog);
+
+        Assert.Equal(["Spec-Ops: +1 VITA", "Spec-Ops: Pistol"], _team.Perks);
+        Assert.True(_team.HasPerks);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        Assert.Empty(_team.Perks);
+    }
+
+    [Fact]
+    public async Task LoadAsync_RollsOwedOrMade_OffersRollAndListsResults()
+    {
+        var company = SeasonTestKit.Company();
+        company.Entries[0].CustomSkills.Add("Booty");
+        company.Entries[1].CustomSkills.Add("Metachemistry");
+        company.Entries[1].RecruitRolls = [new RecruitRoll(RecruitRollTable.Metachemistry, 4, "Super-Jump")];
+
+        await _team.LoadAsync(company, SeasonTestKit.SeasonPath, _kit.Season, Catalog);
+
+        Assert.Equal(["Metachemistry: Super-Jump (rolled 4)"], _team.Perks);
+        Assert.False(_team.HasOwedRoll);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        Assert.Equal("ROLL BOOTY", _team.OwedRollText);
+        await _team.RollOwedCommand.ExecuteAsync(null);
+        await _changes.Received(1).RollOwedAsync(1);
+    }
+
+    // The Armed Turret needs an Engineer: Bolt can't take it until the Engineer role is equipped.
+    [Fact]
+    public async Task SelectedOption_AugmentRequirementUnmet_IsRefused()
+    {
+        _alsoBought = [SeasonTestKit.Bought("Armoury", "Armed Turret (MMR)"), SeasonTestKit.Bought("Armoury", "Engineer (+Gizmokit)")];
+        await LoadAsync();
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        GearOption Turret() => Picker(GearSlot.Augments).Options.Single(option => option.ItemName == "Armed Turret (MMR)");
+        Assert.Equal("Armed Turret (MMR)  [Needs Engineer]", Turret().Display);
+
+        Picker(GearSlot.Augments).SelectedOption = Turret();
+
+        await _kit.Dialogs.Received(1).ShowAlertAsync("Can't Equip", "Bolt can't take Armed Turret (MMR). Needs Engineer.");
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Augments]);
+
+        Picker(GearSlot.Roles).SelectedOption = Picker(GearSlot.Roles).Options.Single(option => option.ItemName == "Engineer (+Gizmokit)");
+        Assert.Equal("Armed Turret (MMR)", Turret().Display);
+        Picker(GearSlot.Augments).SelectedOption = Turret();
+
+        Assert.Equal("Armed Turret (MMR)", SavedLoadouts().For(1)[GearSlot.Augments]);
+    }
+
+    // A TAG company TAG: its Spec-Ops buys are listed with its perks, and it has no armour slot.
+    [Fact]
+    public async Task LoadAsync_Tag_ListsSpecOpsAndWearsNoArmour()
+    {
+        var company = SeasonTestKit.Company();
+        company.Entries[0].UnitTypeCode = "TAG";
+        company.Entries[0].SpecOpsPurchases = ["Spec-Ops: +1 ARM"];
+
+        await _team.LoadAsync(company, SeasonTestKit.SeasonPath, _kit.Season, Catalog);
+        _team.Gear.ShowOwned(Owned(), Catalog, _companySwc);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        Assert.Equal(["Spec-Ops: +1 ARM"], _team.Perks);
+        Assert.False(Picker(GearSlot.Armor).IsAvailable);
+        _team.SelectUnitCommand.Execute(Unit("Captain"));
+        Assert.True(Picker(GearSlot.Armor).IsAvailable);
+    }
+
+    [Fact]
+    public async Task SelectUnitCommand_RolePerk_ShowsTheRolesSlotFilled()
+    {
+        _kit.Season.TrooperFor(1).Perks.Add("intelligence-track-4-tier-1");
+        await LoadAsync();
+
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        Assert.Equal("Filled by the Hacker (Role) No device perk", Picker(GearSlot.Roles).FilledByPerkText);
+        Assert.True(Picker(GearSlot.Roles).IsFilledByPerk);
+        Assert.False(Picker(GearSlot.Accessories).IsFilledByPerk);
+    }
+
+    private GearOption ControllerAugment() =>
+        Picker(GearSlot.Augments).Options.Single(option => option.ItemName == TohaaPeripherals.AugmentName);
+
+    [Fact]
+    public async Task SelectedOption_ControllerAugment_PicksItsPeripheral()
+    {
+        _alsoBought = [SeasonTestKit.Bought("Armoury", TohaaPeripherals.AugmentName)];
+        _changes.ChangePeripheralsAsync(Arg.Any<PeripheralChange>()).Returns(true);
+        await LoadAsync();
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        Picker(GearSlot.Augments).SelectedOption = ControllerAugment();
+
+        await _changes.Received(1).ChangePeripheralsAsync(Arg.Is<PeripheralChange>(change =>
+            change.LosingControl.Count == 0 && change.GainingControl == 1 && change.GainingName == "Bolt"));
+        Assert.Equal(TohaaPeripherals.AugmentName, SavedLoadouts().For(1)[GearSlot.Augments]);
+    }
+
+    [Fact]
+    public async Task SelectedOption_PeripheralPickCancelled_LeavesTheAugmentOff()
+    {
+        _alsoBought = [SeasonTestKit.Bought("Armoury", TohaaPeripherals.AugmentName)];
+        await LoadAsync();
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        Picker(GearSlot.Augments).SelectedOption = ControllerAugment();
+
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Augments]);
+    }
+
+    [Fact]
+    public async Task SelectedOption_ControllerAugmentRemoved_LeavesThePeripheralUncontrolled()
+    {
+        _alsoBought = [SeasonTestKit.Bought("Armoury", TohaaPeripherals.AugmentName)];
+        _changes.ChangePeripheralsAsync(Arg.Any<PeripheralChange>()).Returns(true);
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(1, GearSlot.Augments, TohaaPeripherals.AugmentName);
+        await LoadAsync(loadouts);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        Picker(GearSlot.Augments).SelectedOption = GearOption.None;
+
+        await _changes.Received(1).ChangePeripheralsAsync(Arg.Is<PeripheralChange>(change =>
+            change.LosingControl.SequenceEqual(new List<int> { 1 }) && change.GainingControl == null));
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Augments]);
+    }
+
+    // The Traktor Mul is a Servant, part of its trooper; a Synchronized peripheral is a trooper of its own.
+    [Fact]
+    public async Task CanRetireSelected_PeripheralTrooperOrServant_OnlyTheTrooper()
+    {
+        var company = SeasonTestKit.Company();
+        company.Entries.Add(CompanyRosterTests.Entry(8, "Drumbot", isPeripheral: true, skills: ["Peripheral (Synchronized)"], characteristics: ["Regular"]));
+        await _team.LoadAsync(company, SeasonTestKit.SeasonPath, _kit.Season, Catalog);
+
+        _team.SelectUnitCommand.Execute(Unit("Drumbot"));
+        Assert.True(_team.CanRetireSelected);
+        Assert.Contains("Irregular", Unit("Drumbot").SavedCharacteristics);
+        _team.SelectUnitCommand.Execute(Unit("Traktor Mul"));
+        Assert.False(_team.CanRetireSelected);
+    }
+
+    [Fact]
+    public async Task SellPeripheralCommand_UncontrolledPeripheral_SellsIt()
+    {
+        var company = SeasonTestKit.Company();
+        company.Entries.Add(new SavedCompanyEntry
+        {
+            EntryIndex = 7, Name = "Chaksa Peripheral B", IsPeripheralUnit = true, FromControllerAugment = true, Cost = 4, UnitTypeCode = "PERIPHERAL"
+        });
+        await _team.LoadAsync(company, SeasonTestKit.SeasonPath, _kit.Season, Catalog);
+
+        _team.SelectUnitCommand.Execute(Unit("Chaksa Peripheral B"));
+
+        Assert.True(_team.CanSellSelected);
+        Assert.Equal("SELL PERIPHERAL · 2 CR", _team.SellText);
+        Assert.Equal("Peripheral · No controller", Unit("Chaksa Peripheral B").Subtitle);
+        await _team.SellPeripheralCommand.ExecuteAsync(null);
+        await _changes.Received(1).SellPeripheralAsync(7);
+        _team.SelectUnitCommand.Execute(Unit("Traktor Mul"));
+        Assert.False(_team.CanSellSelected);
+    }
+
+    // Bolt as an Engineer carrying the Armed Turret.
+    private async Task LoadTurretEngineerAsync()
+    {
+        _alsoBought = [SeasonTestKit.Bought("Armoury", "Armed Turret (MMR)"), SeasonTestKit.Bought("Armoury", "Engineer (+Gizmokit)")];
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(1, GearSlot.Roles, "Engineer (+Gizmokit)");
+        loadouts.Assign(1, GearSlot.Augments, "Armed Turret (MMR)");
+        await LoadAsync(loadouts);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+    }
+
+    [Fact]
+    public async Task SelectedOption_RequirementRemovedAndConfirmed_TakesTheAugmentOff()
+    {
+        await LoadTurretEngineerAsync();
+        _kit.Dialogs.ConfirmAsync("Augments Come Off", Arg.Any<string>(), "Continue", "Cancel").Returns(true);
+
+        Picker(GearSlot.Roles).SelectedOption = GearOption.None;
+
+        await _kit.Dialogs.Received(1).ConfirmAsync("Augments Come Off", Arg.Is<string>(text => text.Contains("Bolt's Armed Turret (MMR) (Needs Engineer)")), "Continue", "Cancel");
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Roles]);
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Augments]);
+    }
+
+    [Fact]
+    public async Task SelectedOption_RequirementRemovalNotConfirmed_KeepsTheGear()
+    {
+        await LoadTurretEngineerAsync();
+
+        Picker(GearSlot.Roles).SelectedOption = GearOption.None;
+
+        Assert.Equal("Engineer (+Gizmokit)", SavedLoadouts().For(1)[GearSlot.Roles]);
+        Assert.Equal("Armed Turret (MMR)", SavedLoadouts().For(1)[GearSlot.Augments]);
+        Assert.Equal("Engineer (+Gizmokit)", Picker(GearSlot.Roles).SelectedOption?.ItemName);
+    }
+
+    [Fact]
+    public async Task LoadAsync_Company_SelectsTheLieutenant()
+    {
+        await LoadAsync();
+
+        Assert.Equal("Captain", _team.PickerTitle);
+        Assert.Equal("Fusilier", _team.SelectedBaseName);
+        Assert.True(_team.HasSelectedBaseName);
+        Assert.Equal("LI", _team.SelectedUnitType);
+        Assert.Equal(1, _team.Detail.Icons.Lieutenants);
+        Assert.Equal("Lieutenant", _team.Skills.Left[0].Text);
+        Assert.Equal(ProfileLine.None, _team.Equipment.Left.Single());
+    }
+
+    [Fact]
+    public async Task LoadAsync_Troopers_WorksOutEachLogo()
+    {
+        _kit.PackageFiles.ExistsAsync("SVGCache/units/101-11.svg").Returns(true);
+
+        await LoadAsync();
+
+        Assert.Equal("SVGCache/units/101-11.svg", Unit("Bolt").LogoSource);
+        Assert.Equal("SVGCache/units/101-12.svg", _team.Detail.LogoSource);
+    }
+
+    [Fact]
+    public async Task ToggleUnitPickerCommand_UnitSelected_Closes()
+    {
+        await LoadAsync();
+
+        _team.ToggleUnitPickerCommand.Execute(null);
+        Assert.True(_team.IsUnitPickerOpen);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        Assert.False(_team.IsUnitPickerOpen);
+        Assert.Equal("Bolt", _team.PickerTitle);
+        Assert.True(Unit("Bolt").IsSelected);
+        Assert.False(Unit("Captain").IsSelected);
+        Assert.False(_team.HasSelectedBaseName);
+        Assert.Equal("Combi Rifle", _team.RangedWeapons.Left.Single().Text);
+    }
+
+    [Fact]
+    public async Task CloseUnitPickerCommand_PickerOpen_ClosesIt()
+    {
+        await LoadAsync();
+        _team.ToggleUnitPickerCommand.Execute(null);
+
+        _team.CloseUnitPickerCommand.Execute(null);
+
+        Assert.False(_team.IsUnitPickerOpen);
+    }
+
+    [Fact]
+    public async Task GearSlots_OwnedGear_OffersWhatFitsEachSlot()
+    {
+        await LoadAsync();
+
+        Assert.Equal(["(none)", "Spitfire (1 SWC)"], Picker(GearSlot.Primary).Options.Select(option => option.Display));
+        Assert.Equal(["(none)", "Monofilament Blade"], Picker(GearSlot.Secondary).Options.Select(option => option.Display));
+        Assert.Equal(["(none)", "Light Armour (LI)"], Picker(GearSlot.Armor).Options.Select(option => option.Display));
+        Assert.Equal(["(none)"], Picker(GearSlot.Roles).Options.Select(option => option.Display));
+        Assert.All(_team.Gear.Slots, picker => Assert.Equal(GearOption.None, picker.SelectedOption));
+    }
+
+    [Fact]
+    public async Task SelectedOption_Weapon_AddsAndSavesIt()
+    {
+        await LoadAsync();
+
+        Picker(GearSlot.Primary).SelectedOption = Picker(GearSlot.Primary).Options[1];
+        Picker(GearSlot.Secondary).SelectedOption = Picker(GearSlot.Secondary).Options[1];
+
+        Assert.Equal("Spitfire", _team.RangedWeapons.Left.Single().Text);
+        Assert.Equal("Monofilament Blade", _team.MeleeWeapons.Left.Single().Text);
+        Assert.Equal("Spitfire", _kit.Season.UnitGear[2].Single(gear => gear.Slot == "Primary").ItemName);
+        await _kit.SeasonFiles.Received(2).UpdateAsync(SeasonTestKit.SeasonPath, Arg.Any<Action<SeasonFile>>());
+    }
+
+    [Fact]
+    public async Task SelectedOption_GearCarriedByAnother_MarksAndMovesIt()
+    {
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(1, GearSlot.Armor, "Light Armour (LI)");
+        await LoadAsync(loadouts);
+
+        var armor = Picker(GearSlot.Armor);
+        Assert.Equal("Light Armour (LI)  [Attached: Bolt]", armor.Options[1].Display);
+        armor.SelectedOption = armor.Options[1];
+
+        Assert.Equal("Light Armour (LI)", Picker(GearSlot.Armor).SelectedOption?.Display);
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Armor]);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        Assert.Equal("Light Armour (LI)  [Attached: Captain]", Picker(GearSlot.Armor).Options[1].Display);
+        Assert.Equal(GearOption.None, Picker(GearSlot.Armor).SelectedOption);
+    }
+
+    // With a second pistol bought and one carried by Bolt, the captain can take the other.
+    [Fact]
+    public async Task SelectedOption_SpareCopy_TakesNoOnesElse()
+    {
+        _alsoBought = [SeasonTestKit.Bought("Number One", "Pistol")];
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(1, GearSlot.Sidearm, "Pistol");
+        await LoadAsync(loadouts);
+
+        var sidearm = Picker(GearSlot.Sidearm);
+        Assert.Equal(["(none)", "Pistol"], sidearm.Options.Select(option => option.Display));
+        sidearm.SelectedOption = sidearm.Options[1];
+
+        Assert.Equal("Pistol", SavedLoadouts().For(1)[GearSlot.Sidearm]);
+        Assert.Equal("Pistol", SavedLoadouts().For(2)[GearSlot.Sidearm]);
+
+        // With both carried by others, each copy is offered as its carrier's.
+        loadouts = SavedLoadouts();
+        loadouts.Assign(1, GearSlot.Sidearm, null);
+        loadouts.Assign(3, GearSlot.Sidearm, "Pistol");
+        await LoadAsync(loadouts);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        Assert.Equal(
+            ["(none)", "Pistol  [Attached: Captain]", "Pistol  [Attached: Traktor Mul]"],
+            Picker(GearSlot.Sidearm).Options.Select(option => option.Display));
+    }
+
+    [Fact]
+    public async Task SelectedOption_None_EmptiesTheSlot()
+    {
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(2, GearSlot.Primary, "Spitfire");
+        await LoadAsync(loadouts);
+        Assert.Equal("Spitfire", Picker(GearSlot.Primary).SelectedOption?.ItemName);
+
+        Picker(GearSlot.Primary).SelectedOption = GearOption.None;
+
+        Assert.Null(SavedLoadouts().For(2)[GearSlot.Primary]);
+        Assert.Equal(ProfileLine.None, _team.RangedWeapons.Left.Single());
+    }
+
+    [Fact]
+    public async Task SwcText_GearEquipped_ShowsItAgainstTheCompanys()
+    {
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(1, GearSlot.Primary, "Spitfire");
+        await LoadAsync(loadouts, companySwc: 1.5);
+
+        Assert.Equal("SWC EQUIPPED 1 / 1.5", _team.Gear.SwcText);
+    }
+
+    [Fact]
+    public async Task SelectedOption_OverCompanySwc_IsRefused()
+    {
+        await LoadAsync(companySwc: 0.5);
+
+        Picker(GearSlot.Primary).SelectedOption = Picker(GearSlot.Primary).Options[1];
+
+        await _kit.Dialogs.Received(1).ShowAlertAsync("Not Enough SWC", Arg.Is<string>(text => text.Contains("Spitfire") && text.Contains("over its 0.5 SWC")));
+        Assert.Equal(GearOption.None, Picker(GearSlot.Primary).SelectedOption);
+        Assert.Empty(_kit.Season.UnitGear);
+        await _kit.SeasonFiles.DidNotReceive().UpdateAsync(Arg.Any<string?>(), Arg.Any<Action<SeasonFile>>());
+    }
+
+    [Fact]
+    public async Task SelectedOption_UpToCompanySwc_IsAllowed()
+    {
+        await LoadAsync(companySwc: 1);
+
+        Picker(GearSlot.Primary).SelectedOption = Picker(GearSlot.Primary).Options[1];
+
+        Assert.Equal("Spitfire", SavedLoadouts().For(2)[GearSlot.Primary]);
+        Assert.Equal("SWC EQUIPPED 1 / 1", _team.Gear.SwcText);
+        await _kit.Dialogs.DidNotReceive().ShowAlertAsync(Arg.Any<string>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task SelectedOption_MovedBetweenTroopers_TakesNoMoreSwc()
+    {
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(1, GearSlot.Primary, "Spitfire");
+        await LoadAsync(loadouts, companySwc: 1);
+
+        Picker(GearSlot.Primary).SelectedOption = Picker(GearSlot.Primary).Options[1];
+
+        Assert.Equal("Spitfire", SavedLoadouts().For(2)[GearSlot.Primary]);
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Primary]);
+    }
+
+    [Fact]
+    public async Task SelectedOption_NoneWhileOverSwc_TakesTheGearOff()
+    {
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(2, GearSlot.Primary, "Spitfire");
+        await LoadAsync(loadouts, companySwc: 0);
+
+        Picker(GearSlot.Primary).SelectedOption = GearOption.None;
+
+        Assert.Null(SavedLoadouts().For(2)[GearSlot.Primary]);
+        await _kit.Dialogs.DidNotReceive().ShowAlertAsync(Arg.Any<string>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task SelectedOption_StatAugment_ChangesTheStatLine()
+    {
+        await LoadAsync();
+
+        Picker(GearSlot.Augments).SelectedOption = Picker(GearSlot.Augments).Options.Single(option => option.ItemName == "WIP=12");
+
+        Assert.Equal("12", _team.Detail.Stats.Wip);
+        Assert.DoesNotContain(_team.Skills.Left.Concat(_team.Skills.Right), line => line.Text == "WIP=12");
+    }
+
+    [Fact]
+    public async Task SelectedOption_Armour_ChangesTheTroopersLine()
+    {
+        _alsoBought = [SeasonTestKit.Bought(Armoury.Name, "Heavy Armour (HI)")];
+        await LoadAsync();
+
+        Picker(GearSlot.Armor).SelectedOption = Picker(GearSlot.Armor).Options.Single(option => option.ItemName == "Heavy Armour (HI)");
+
+        Assert.Equal("Heavy Armour (HI)", SavedLoadouts().For(2)[GearSlot.Armor]);
+        Assert.Equal("HI", _team.SelectedUnitType);
+        Assert.Equal(("4", "3", "2"), (_team.Detail.Stats.Arm, _team.Detail.Stats.Bts, _team.Detail.Stats.Vitality));
+        Assert.Contains(_team.Skills.Left.Concat(_team.Skills.Right), line => line.Text == "Immunity (Shock)");
+        Assert.True(_team.Detail.Icons.Hackable);
+
+        Picker(GearSlot.Armor).SelectedOption = GearOption.None;
+
+        Assert.Equal(("LI", "-", "1"), (_team.SelectedUnitType, _team.Detail.Stats.Arm, _team.Detail.Stats.Vitality));
+    }
+
+    [Fact]
+    public async Task SelectedOption_BeltsAndPouches_OpensTheExtraSlot()
+    {
+        _alsoBought = [SeasonTestKit.Bought(Armoury.Name, "Belts and Pouches")];
+        await LoadAsync();
+        Assert.False(Picker(GearSlot.Extra).IsAvailable);
+
+        Picker(GearSlot.Armor).SelectedOption = Picker(GearSlot.Armor).Options.Single(option => option.ItemName == "Belts and Pouches");
+
+        var extra = Picker(GearSlot.Extra);
+        Assert.True(extra.IsAvailable);
+        Assert.DoesNotContain(extra.Options, option => option.ItemName == "Light Armour (LI)");
+        extra.SelectedOption = extra.Options.Single(option => option.ItemName == "Courage");
+        Assert.Contains(_team.Skills.Left.Concat(_team.Skills.Right), line => line.Text == "Courage");
+
+        // Taking the belt off empties its slot.
+        Picker(GearSlot.Armor).SelectedOption = GearOption.None;
+
+        Assert.False(Picker(GearSlot.Extra).IsAvailable);
+        Assert.Null(SavedLoadouts().For(2)[GearSlot.Extra]);
+        Assert.DoesNotContain(_team.Skills.Left.Concat(_team.Skills.Right), line => line.Text == "Courage");
+    }
+
+    [Fact]
+    public async Task SelectedOption_CuckooVirusInfusion_TakesThePrimaryAway()
+    {
+        _alsoBought = [SeasonTestKit.Bought(Armoury.Name, "Cuckoo Virus Infusion")];
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(2, GearSlot.Primary, "Spitfire");
+        await LoadAsync(loadouts);
+        _team.SelectUnitCommand.Execute(_team.Units.Single(unit => unit.EntryIndex == 2));
+
+        Picker(GearSlot.Armor).SelectedOption = Picker(GearSlot.Armor).Options.Single(option => option.ItemName == "Cuckoo Virus Infusion");
+
+        Assert.Null(SavedLoadouts().For(2)[GearSlot.Primary]);
+        Assert.False(Picker(GearSlot.Primary).IsAvailable);
+    }
+
+    [Fact]
+    public async Task SelectedOption_SkillAugment_JoinsTheSkills()
+    {
+        await LoadAsync();
+
+        Picker(GearSlot.Augments).SelectedOption = Picker(GearSlot.Augments).Options.Single(option => option.ItemName == "Courage");
+
+        Assert.Equal(["Lieutenant", "Courage"], _team.Skills.Left.Concat(_team.Skills.Right).Select(line => line.Text));
+    }
+
+    [Fact]
+    public async Task SelectedOption_SaveFails_KeepsTheGearAsItWas()
+    {
+        await LoadAsync();
+        _kit.SeasonFiles.UpdateAsync(SeasonTestKit.SeasonPath, Arg.Any<Action<SeasonFile>>()).Returns(false);
+
+        Picker(GearSlot.Primary).SelectedOption = Picker(GearSlot.Primary).Options[1];
+
+        await _kit.Dialogs.Received(1).ShowAlertAsync("Gear Not Saved", Arg.Any<string>());
+        Assert.Equal(GearOption.None, Picker(GearSlot.Primary).SelectedOption);
+        Assert.Equal("SWC EQUIPPED 0 / 2", _team.Gear.SwcText);
+        await _seasonChanged.DidNotReceive()();
+    }
+
+    [Fact]
+    public async Task SelectedOption_Null_SavesNothing()
+    {
+        await LoadAsync();
+
+        Picker(GearSlot.Primary).SelectedOption = null;
+
+        await _kit.SeasonFiles.DidNotReceive().UpdateAsync(Arg.Any<string?>(), Arg.Any<Action<SeasonFile>>());
+    }
+
+    [Fact]
+    public async Task ShowWeaponCommand_Weapon_ShowsItsProfiles()
+    {
+        _kit.Metadata.SearchWeaponsByName("Combi Rifle").Returns([new Weapon { Name = "Combi Rifle" }]);
+        await LoadAsync();
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        await _team.ShowWeaponCommand.ExecuteAsync(_team.RangedWeapons.Left[0]);
+
+        Assert.Equal("Combi Rifle", _popup.Detail?.Title);
+        Assert.Single(_popup.Detail?.Weapons ?? []);
+    }
+
+    [Fact]
+    public async Task ShowWeaponCommand_Placeholder_ShowsNothing()
+    {
+        await LoadAsync();
+
+        await _team.ShowWeaponCommand.ExecuteAsync(ProfileLine.None);
+
+        Assert.False(_popup.IsOpen);
+    }
+
+    [Fact]
+    public async Task RefreshDisplayUnits_UnitsChanged_RedrawsTheTrooper()
+    {
+        await LoadAsync();
+        _kit.Settings.GetShowUnitsInInches().Returns(false);
+
+        _team.RefreshDisplayUnits();
+
+        Assert.False(_team.Detail.ShowUnitsInInches);
+        Assert.False(_popup.ShowUnitsInInches);
+    }
+
+    [Fact]
+    public async Task Clear_Loaded_EmptiesTheTab()
+    {
+        await LoadAsync();
+
+        _team.Clear();
+
+        Assert.Empty(_team.Units);
+        Assert.Equal(SeasonTeamViewModel.NoUnitTitle, _team.PickerTitle);
+    }
+
+    [Fact]
+    public async Task SelectUnitCommand_Trooper_ShowsRankPerksAndInjuries()
+    {
+        _kit.Season.Rounds[0].MissionResults.UnitResults.Add(new SeasonMissionUnitResult { EntryIndex = 1, UnitName = "Bolt", XpGained = 16 });
+        _kit.Season.TrooperFor(1).Perks.Add("reflex-track-8-tier-2");
+        _kit.Season.TrooperFor(1).Injuries.Add(Injury.Arms);
+        await LoadAsync();
+
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        Assert.Equal("Hired Gun · 16 XP", _team.RankText);
+        Assert.Equal(["+1 BS"], _team.Perks);
+        Assert.Equal(["Arms: -1 BS"], _team.Injuries);
+        Assert.True(_team.HasPerks && _team.HasInjuries && _team.HasPerkPointsToSpend);
+        Assert.Contains(_team.Skills.Left.Concat(_team.Skills.Right), line => line.Text == "Courage");
+    }
+
+    [Fact]
+    public async Task LoadAsync_InjuredTrooper_ChangesTheStatLine()
+    {
+        _kit.Season.TrooperFor(2).Injuries.Add(Injury.BrainInjury);
+
+        await LoadAsync();
+
+        Assert.Equal("11", _team.Detail.Stats.Cc);
+    }
+
+    [Fact]
+    public async Task LoadAsync_Reloaded_KeepsTheTrooperShown()
+    {
+        await LoadAsync();
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+
+        await LoadAsync();
+
+        Assert.Equal("Bolt", _team.SelectedName);
+    }
+
+    [Theory]
+    [InlineData("Captain", false)]
+    [InlineData("Traktor Mul", false)]
+    [InlineData("Bolt", true)]
+    public async Task RetireCommand_Trooper_AnyoneButTheCaptain(string name, bool canRetire)
+    {
+        await LoadAsync();
+
+        _team.SelectUnitCommand.Execute(Unit(name));
+
+        Assert.Equal(canRetire, _team.CanRetireSelected);
+        Assert.Equal(canRetire, _team.RetireCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task RetireCommand_Confirmed_ReturnsGearAndKeepsRenown()
+    {
+        var loadouts = new CompanyLoadouts();
+        loadouts.Assign(1, GearSlot.Sidearm, "Pistol");
+        await LoadAsync(loadouts);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        _kit.Dialogs.ConfirmAsync("Retire Trooper", Arg.Any<string>(), "Retire", "Cancel").Returns(true);
+
+        await _team.RetireCommand.ExecuteAsync(null);
+
+        Assert.True(_kit.Season.IsRetired(1));
+        Assert.False(_kit.Season.UnitGear.ContainsKey(1));
+        Assert.Equal(20, _kit.Season.RetiredRenown);
+        await _seasonChanged.Received(1)();
+    }
+
+    [Fact]
+    public async Task RetireCommand_Cancelled_KeepsTheTrooper()
+    {
+        await LoadAsync();
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        _kit.Dialogs.ConfirmAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(false);
+
+        await _team.RetireCommand.ExecuteAsync(null);
+
+        Assert.Empty(_kit.Season.Retired);
+        await _seasonChanged.DidNotReceive()();
+    }
+
+    // A TAG may never gain the banned skills, so gear giving one is marked and refused.
+    [Fact]
+    public async Task SelectedOption_TagTakingBannedSkill_IsRefused()
+    {
+        _alsoBought = [SeasonTestKit.Bought("Armoury", "Engineer (+Gizmokit)")];
+        var company = SeasonTestKit.Company();
+        company.Entries[0].UnitTypeCode = "TAG";
+        await _team.LoadAsync(company, SeasonTestKit.SeasonPath, _kit.Season, Catalog);
+        _team.Gear.ShowOwned(Owned(), Catalog, _companySwc);
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        var engineer = Picker(GearSlot.Roles).Options.Single(option => option.ItemName == "Engineer (+Gizmokit)");
+        Assert.Equal("Engineer (+Gizmokit)  [A TAG can't have Engineer]", engineer.Display);
+
+        Picker(GearSlot.Roles).SelectedOption = engineer;
+
+        await _kit.Dialogs.Received(1).ShowAlertAsync("Can't Equip", "Bolt is a TAG, and a TAG may never have Engineer.");
+        Assert.Null(SavedLoadouts().For(1)[GearSlot.Roles]);
+    }
+}

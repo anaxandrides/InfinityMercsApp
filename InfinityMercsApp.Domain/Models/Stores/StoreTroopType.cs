@@ -8,4 +8,5 @@ public class StoreTroopType
     public int? Arm { get; set; }
     public int? Bts { get; set; }
     public string? Abilities { get; set; }
+    public ArmorEffects Effects { get; set; } = new();
 }

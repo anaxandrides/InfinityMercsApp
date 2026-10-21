@@ -16,19 +16,8 @@ public class Faction
 
     public long ImportedAtUnixSeconds { get; set; }
 
-    public string? ReinforcementsJson { get; set; }
-
-    public string? FiltersJson { get; set; }
-
-    public string? FireteamsJson { get; set; }
-
-    public string? RelationsJson { get; set; }
-
-    public string? SpecopsJson { get; set; }
-
-    public string? FireteamChartJson { get; set; }
-
-    public string RawJson { get; set; } = string.Empty;
+    /// <summary>The army that provides this army's reinforcements, when it has one.</summary>
+    public int? ReinforcementsFactionId { get; set; }
 
     public bool IsJsaFaction => DetermineIsJsaFaction(FactionId);
 

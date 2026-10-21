@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:selectionItems="clr-namespace:InfinityMercsApp.ViewModels.Company.Selection.Items"
              x:Class="InfinityMercsApp.Views.Controls.FactionListItemView"
+             x:DataType="selectionItems:ArmyFactionSelectionItem"
              x:Name="FactionListItemRoot">
 
-    <!-- Vertical tile: a centred logo above the faction name. The logo SVG is parsed off the UI
-         thread and drawn into a single SKCanvasView. Every call site uses this vertical tile, so the
-         control no longer carries the previously-hidden horizontal layout (which realised 3 extra
-         SKCanvasView GPU surfaces per item for no visible benefit). -->
-    <Border x:Name="ItemBorder" Padding="0" StrokeThickness="0">
+    <!-- A faction tile: its logo above its name, raised while selected. -->
+    <Border Padding="0" StrokeThickness="0">
         <Border.GestureRecognizers>
-            <TapGestureRecognizer Tapped="OnItemTapped" />
+            <TapGestureRecognizer Command="{Binding ItemTappedCommand, Source={x:Reference FactionListItemRoot}, x:DataType=controls:FactionListItemView}"
+                                  CommandParameter="{Binding .}" />
         </Border.GestureRecognizers>
         <Border.StrokeShape>
             <RoundRectangle CornerRadius="4" />
@@ -25,41 +25,17 @@
             </DataTrigger>
         </Border.Triggers>
 
-        <Grid
-            x:Name="VerticalLayoutRoot"
-            Padding="8,6"
-            MinimumHeightRequest="88"
-            RowDefinitions="Auto,Auto"
-            RowSpacing="6">
-            <skia:SKCanvasView
-                x:Name="LogoCanvasVertical"
-                Grid.Row="0"
-                WidthRequest="48"
-                HeightRequest="48"
-                HorizontalOptions="Center"
-                VerticalOptions="Center"
-                PaintSurface="OnLogoCanvasVerticalPaintSurface" />
-            <Grid Grid.Row="1">
-                <Label
-                    x:Name="VerticalNameLabel"
-                    Text="{Binding Name}"
-                    FontSize="{DynamicResource FontSizeBody}"
-                    TextColor="{StaticResource TextPrimary}"
-                    LineBreakMode="WordWrap"
-                    MaxLines="3"
-                    HorizontalTextAlignment="Center"
-                    HorizontalOptions="Fill" />
-                <Label
-                    x:Name="VerticalFormattedNameLabel"
-                    FormattedText="{Binding Source={x:Reference FactionListItemRoot}, Path=TitleFormatted}"
-                    FontSize="{DynamicResource FontSizeBody}"
-                    TextColor="{StaticResource TextPrimary}"
-                    LineBreakMode="WordWrap"
-                    MaxLines="3"
-                    HorizontalTextAlignment="Center"
-                    HorizontalOptions="Fill"
-                    IsVisible="False" />
-            </Grid>
+        <Grid Padding="8,6" MinimumHeightRequest="88" RowDefinitions="Auto,Auto" RowSpacing="6">
+            <controls:SvgIcon Grid.Row="0" WidthRequest="48" HeightRequest="48" HorizontalOptions="Center" VerticalOptions="Center"
+                              Sources="{Binding LogoCandidates}" />
+            <Label Grid.Row="1"
+                   Text="{Binding Name}"
+                   FontSize="{DynamicResource FontSizeBody}"
+                   TextColor="{StaticResource TextPrimary}"
+                   LineBreakMode="WordWrap"
+                   MaxLines="3"
+                   HorizontalTextAlignment="Center"
+                   HorizontalOptions="Fill" />
         </Grid>
     </Border>
 

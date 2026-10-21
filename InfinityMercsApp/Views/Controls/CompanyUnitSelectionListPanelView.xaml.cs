@@ -1,14 +1,11 @@
-using SkiaSharp.Views.Maui;
-using SkiaSharp.Views.Maui.Controls;
 using System.Collections;
 using System.Windows.Input;
 
 namespace InfinityMercsApp.Views.Controls;
 
+/// <summary>The selection screen's UNIT SELECTION panel: its header with the filter button, over the unit list.</summary>
 public partial class CompanyUnitSelectionListPanelView : ContentView
 {
-    private double _unitSelectionPanLastTotalY;
-
     public static readonly BindableProperty ItemsSourceProperty =
         BindableProperty.Create(
             nameof(ItemsSource),
@@ -111,50 +108,40 @@ public partial class CompanyUnitSelectionListPanelView : ContentView
         return fallback;
     }
 
-    public Border FilterButton => UnitSelectionFilterButton;
-    public SKCanvasView FilterCanvas => UnitSelectionFilterCanvas;
+    public static readonly BindableProperty FilterCommandProperty =
+        BindableProperty.Create(nameof(FilterCommand), typeof(ICommand), typeof(CompanyUnitSelectionListPanelView));
 
-    public event EventHandler<EventArgs>? HeaderBorderSizeChanged;
-    public event EventHandler<TappedEventArgs>? FilterButtonTapped;
-    public event EventHandler<SKPaintSurfaceEventArgs>? FilterCanvasPaintSurface;
+    public static readonly BindableProperty IsFilterActiveProperty =
+        BindableProperty.Create(nameof(IsFilterActive), typeof(bool), typeof(CompanyUnitSelectionListPanelView), false);
 
+    /// <summary>Runs when the filter button in the header is tapped.</summary>
+    public ICommand? FilterCommand
+    {
+        get => (ICommand?)GetValue(FilterCommandProperty);
+        set => SetValue(FilterCommandProperty, value);
+    }
+
+    /// <summary>Highlights the filter button while a filter is applied.</summary>
+    public bool IsFilterActive
+    {
+        get => (bool)GetValue(IsFilterActiveProperty);
+        set => SetValue(IsFilterActiveProperty, value);
+    }
+
+    // The filter button fills most of the header's height. Re-assigning an unchanged size would re-raise
+    // the header's SizeChanged and keep the layout spinning, so a size within a pixel is left alone.
     private void OnHeaderBorderSizeChanged(object? sender, EventArgs e)
     {
-        HeaderBorderSizeChanged?.Invoke(sender, e);
-    }
-
-    private void OnFilterButtonTapped(object? sender, TappedEventArgs e)
-    {
-        FilterButtonTapped?.Invoke(sender, e);
-    }
-
-    private void OnFilterCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        FilterCanvasPaintSurface?.Invoke(sender, e);
-    }
-
-    private async void OnUnitSelectionScrollPanUpdated(object? sender, PanUpdatedEventArgs e)
-    {
-        if (sender is not ScrollView scrollView)
+        var size = UnitSelectionHeaderBorder.Height * 0.8;
+        if (size <= 0 ||
+            (Math.Abs(UnitSelectionFilterButton.WidthRequest - size) < 1.0 && Math.Abs(UnitSelectionFilterButton.HeightRequest - size) < 1.0))
         {
             return;
         }
 
-        switch (e.StatusType)
-        {
-            case GestureStatus.Started:
-                _unitSelectionPanLastTotalY = 0d;
-                break;
-            case GestureStatus.Running:
-                var deltaY = e.TotalY - _unitSelectionPanLastTotalY;
-                _unitSelectionPanLastTotalY = e.TotalY;
-                var targetY = Math.Max(0d, scrollView.ScrollY - deltaY);
-                await scrollView.ScrollToAsync(0d, targetY, false);
-                break;
-            case GestureStatus.Completed:
-            case GestureStatus.Canceled:
-                _unitSelectionPanLastTotalY = 0d;
-                break;
-        }
+        UnitSelectionFilterButton.WidthRequest = size;
+        UnitSelectionFilterButton.HeightRequest = size;
+        UnitSelectionFilterIcon.WidthRequest = size;
+        UnitSelectionFilterIcon.HeightRequest = size;
     }
 }

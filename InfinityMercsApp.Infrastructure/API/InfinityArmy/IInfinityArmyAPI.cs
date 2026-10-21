@@ -21,5 +21,5 @@ public interface IInfinityArmyAPI
     /// <param name="factionId"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<ArmyImportFaction?> GetArmyDataAsync(int factionId, CancellationToken cancellationToken = default);
+    Task<ArmyDefinition?> GetArmyDataAsync(int factionId, CancellationToken cancellationToken = default);
 }

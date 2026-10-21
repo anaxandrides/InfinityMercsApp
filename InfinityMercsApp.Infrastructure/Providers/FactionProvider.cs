@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Models.Army;
+using InfinityMercsApp.Infrastructure.Data;
 using InfinityMercsApp.Infrastructure.Repositories;
 using DbFaction = InfinityMercsApp.Infrastructure.Models.Database.Army.Faction;
 using DbResume = InfinityMercsApp.Infrastructure.Models.Database.Army.Resume;
@@ -7,7 +8,7 @@ using DbUnit = InfinityMercsApp.Infrastructure.Models.Database.Army.Unit;
 namespace InfinityMercsApp.Infrastructure.Providers;
 
 /// <inheritdoc/>
-public sealed class FactionProvider(ISQLiteRepository sqliteRepository) : IFactionProvider
+public sealed class FactionProvider(ISQLiteRepository sqliteRepository, IArmyContentStore contentStore) : IFactionProvider
 {
     private const int CharacterCategory = 10;
     private const int TagType = 4;
@@ -29,8 +30,6 @@ public sealed class FactionProvider(ISQLiteRepository sqliteRepository) : IFacti
     /// <inheritdoc/>
     public IReadOnlyList<int> GetStoredFactionIds()
     {
-        // Projects only FactionId: loading whole Faction rows here pulls every faction's
-        // multi-MB JSON blob columns into memory just to read an int.
         return sqliteRepository.QueryColumn<DbFaction, int>(nameof(DbFaction.FactionId));
     }
 
@@ -115,25 +114,24 @@ public sealed class FactionProvider(ISQLiteRepository sqliteRepository) : IFacti
             .ToList();
     }
 
-    private static Faction MapFaction(DbFaction source)
+    private Faction MapFaction(DbFaction source)
     {
+        var content = contentStore.GetArmyContent(source.FactionId);
         return new Faction
         {
             FactionId = source.FactionId,
             Version = source.Version,
             ImportedAtUnixSeconds = source.ImportedAtUnixSeconds,
-            ReinforcementsJson = source.ReinforcementsJson,
-            FiltersJson = source.FiltersJson,
-            FireteamsJson = source.FireteamsJson,
-            RelationsJson = source.RelationsJson,
-            SpecopsJson = source.SpecopsJson,
-            FireteamChartJson = source.FireteamChartJson,
-            RawJson = source.RawJson
+            ReinforcementsFactionId = source.ReinforcementsFactionId,
+            Filters = content.Filters,
+            Relations = content.Relations,
+            FireteamChart = content.FireteamChart
         };
     }
 
-    private static Unit MapUnit(DbUnit source)
+    private Unit MapUnit(DbUnit source)
     {
+        var content = contentStore.GetUnitContent(source.FactionId, source.UnitKey);
         return new Unit
         {
             UnitKey = source.UnitKey,
@@ -145,10 +143,10 @@ public sealed class FactionProvider(ISQLiteRepository sqliteRepository) : IFacti
             IscAbbr = source.IscAbbr,
             Name = source.Name,
             Slug = source.Slug,
-            ProfileGroupsJson = source.ProfileGroupsJson,
-            OptionsJson = source.OptionsJson,
-            FiltersJson = source.FiltersJson,
-            FactionsJson = source.FactionsJson
+            ProfileGroups = content.ProfileGroups,
+            Options = content.Options,
+            Filters = content.Filters,
+            FactionIds = content.FactionIds
         };
     }
 

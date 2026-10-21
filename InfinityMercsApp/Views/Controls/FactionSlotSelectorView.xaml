@@ -1,48 +1,57 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              x:Class="InfinityMercsApp.Views.Controls.FactionSlotSelectorView"
              x:Name="FactionSlotSelectorRoot"
+             x:DataType="controls:FactionSlotSelectorView"
              Margin="30,0,0,0"
-             HorizontalOptions="FillAndExpand">
-    <Grid ColumnDefinitions="*,*" ColumnSpacing="0" VerticalOptions="Center" HorizontalOptions="FillAndExpand">
+             HorizontalOptions="Fill">
+    <Grid ColumnDefinitions="*,*" ColumnSpacing="0" VerticalOptions="Center" HorizontalOptions="Fill">
+        <!-- The slot the next pick goes to is outlined in green: the left one unless the right one is shown and active. -->
         <Border StrokeThickness="2"
-                Stroke="{Binding Source={x:Reference FactionSlotSelectorRoot}, Path=LeftSlotBorderColor}"
+                Stroke="#34D399"
                 Padding="8,4"
                 Margin="15,0"
-                Grid.Column="0"
-                HorizontalOptions="FillAndExpand">
+                HorizontalOptions="Fill">
+            <Border.Triggers>
+                <MultiTrigger TargetType="Border">
+                    <MultiTrigger.Conditions>
+                        <BindingCondition Binding="{Binding ActiveSlotIndex, Source={x:Reference FactionSlotSelectorRoot}}" Value="1" />
+                        <BindingCondition Binding="{Binding ShowRightSelectionBox, Source={x:Reference FactionSlotSelectorRoot}}" Value="True" />
+                    </MultiTrigger.Conditions>
+                    <Setter Property="Stroke" Value="#3A4554" />
+                </MultiTrigger>
+            </Border.Triggers>
             <Border.GestureRecognizers>
-                <TapGestureRecognizer Tapped="OnLeftSlotTapped" />
+                <TapGestureRecognizer Command="{Binding SlotTappedCommand, Source={x:Reference FactionSlotSelectorRoot}}" CommandParameter="{x:Int32 0}" />
             </Border.GestureRecognizers>
-            <Grid HorizontalOptions="Center">
-                <skia:SKCanvasView
-                    x:Name="LeftSlotCanvas"
-                    WidthRequest="28"
-                    HeightRequest="28"
-                    VerticalOptions="Center"
-                    PaintSurface="OnLeftSlotCanvasPaintSurface" />
-            </Grid>
+            <controls:SvgIcon Source="{Binding LeftSlotSource, Source={x:Reference FactionSlotSelectorRoot}}"
+                              WidthRequest="28"
+                              HeightRequest="28"
+                              HorizontalOptions="Center"
+                              VerticalOptions="Center" />
         </Border>
         <Border StrokeThickness="2"
-                Stroke="{Binding Source={x:Reference FactionSlotSelectorRoot}, Path=RightSlotBorderColor}"
+                Stroke="#3A4554"
                 Padding="8,4"
                 Margin="15,0"
                 Grid.Column="1"
-                HorizontalOptions="FillAndExpand"
-                IsVisible="{Binding Source={x:Reference FactionSlotSelectorRoot}, Path=ShowRightSelectionBox}">
+                HorizontalOptions="Fill"
+                IsVisible="{Binding ShowRightSelectionBox, Source={x:Reference FactionSlotSelectorRoot}}">
+            <Border.Triggers>
+                <DataTrigger TargetType="Border" Binding="{Binding ActiveSlotIndex, Source={x:Reference FactionSlotSelectorRoot}}" Value="1">
+                    <Setter Property="Stroke" Value="#34D399" />
+                </DataTrigger>
+            </Border.Triggers>
             <Border.GestureRecognizers>
-                <TapGestureRecognizer Tapped="OnRightSlotTapped" />
+                <TapGestureRecognizer Command="{Binding SlotTappedCommand, Source={x:Reference FactionSlotSelectorRoot}}" CommandParameter="{x:Int32 1}" />
             </Border.GestureRecognizers>
-            <Grid HorizontalOptions="Center">
-                <skia:SKCanvasView
-                    x:Name="RightSlotCanvas"
-                    WidthRequest="28"
-                    HeightRequest="28"
-                    VerticalOptions="Center"
-                    PaintSurface="OnRightSlotCanvasPaintSurface" />
-            </Grid>
+            <controls:SvgIcon Source="{Binding RightSlotSource, Source={x:Reference FactionSlotSelectorRoot}}"
+                              WidthRequest="28"
+                              HeightRequest="28"
+                              HorizontalOptions="Center"
+                              VerticalOptions="Center" />
         </Border>
     </Grid>
 </ContentView>

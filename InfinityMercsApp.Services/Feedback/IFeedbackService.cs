@@ -1,0 +1,6 @@
+namespace InfinityMercsApp.Services.Feedback;
+
+public interface IFeedbackService
+{
+    Task<FeedbackSubmitResult> SubmitAsync(FeedbackSubmission submission, CancellationToken cancellationToken = default);
+}

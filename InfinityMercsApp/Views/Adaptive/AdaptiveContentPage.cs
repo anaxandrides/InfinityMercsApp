@@ -1,3 +1,6 @@
+using InfinityMercsApp.Presentation.Layouts;
+using InfinityMercsApp.ViewModels.Base;
+
 namespace InfinityMercsApp.Views.Adaptive;
 
 /// <summary>
@@ -40,8 +43,15 @@ public abstract class AdaptiveContentPage : ContentPage
             OnPropertyChanged(nameof(IsMediumOrWider));
             OnPropertyChanged(nameof(IsExpandedOrWider));
             OnLayoutModeChanged(value);
+            LayoutModeChanged?.Invoke(this, EventArgs.Empty);
         }
     }
+
+    /// <summary>
+    /// Raised after <see cref="LayoutMode"/> changes, so a ViewModel can lay itself out through an
+    /// <c>EventToCommandBehavior</c> whose parameter is bound to <see cref="LayoutMode"/>.
+    /// </summary>
+    public event EventHandler? LayoutModeChanged;
 
     public bool IsCompact => _layoutMode == AdaptiveLayoutMode.Compact;
     public bool IsMedium => _layoutMode == AdaptiveLayoutMode.Medium;
@@ -60,6 +70,17 @@ public abstract class AdaptiveContentPage : ContentPage
         }
 
         LayoutMode = ResolveMode(width);
+    }
+
+    /// <summary>
+    /// Runs the page ViewModel's <see cref="IViewModelBase.InitializeAsyncCommand"/> (the
+    /// <c>ContentPageBase</c> contract). Subclasses call this from their own <c>OnAppearing</c>.
+    /// </summary>
+    protected Task InitializeViewModelAsync()
+    {
+        return BindingContext is IViewModelBase viewModel
+            ? viewModel.InitializeAsyncCommand.ExecuteAsync(null)
+            : Task.CompletedTask;
     }
 
     /// <summary>

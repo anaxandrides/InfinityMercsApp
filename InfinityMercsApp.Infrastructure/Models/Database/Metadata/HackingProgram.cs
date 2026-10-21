@@ -22,9 +22,4 @@ public class HackingProgram
 
     public int? Extra { get; set; }
 
-    public string? SkillTypeJson { get; set; }
-
-    public string? DevicesJson { get; set; }
-
-    public string? TargetJson { get; set; }
 }

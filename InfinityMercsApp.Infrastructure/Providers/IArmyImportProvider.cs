@@ -8,11 +8,8 @@ namespace InfinityMercsApp.Infrastructure.Providers;
 public interface IArmyImportProvider
 {
     /// <summary>
-    /// Imports Army data from the Army API.
+    /// Stores an army (as read from the Army API, or generated) under <paramref name="factionId"/>, replacing
+    /// whatever was stored for it before.
     /// </summary>
-    /// <param name="factionId"></param>
-    /// <param name="apiFaction"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    Task ImportAsync(int factionId, ArmyImportFaction apiFaction, CancellationToken cancellationToken = default);
+    void Import(int factionId, ArmyDefinition army, CancellationToken cancellationToken = default);
 }

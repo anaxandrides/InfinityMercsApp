@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
-             x:Class="InfinityMercsApp.Views.Controls.CompanyViewerUnitTileView">
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:components="clr-namespace:InfinityMercsApp.ViewModels.Components"
+             x:Class="InfinityMercsApp.Views.Controls.CompanyViewerUnitTileView"
+             x:DataType="components:IUnitTile"
+             x:Name="TileRoot">
 
-    <Border x:Name="TileBorder"
-            Padding="0"
-            Stroke="{Binding TileStroke}"
-            StrokeThickness="{Binding TileStrokeThickness}"
+    <Border Padding="0"
+            Stroke="{StaticResource HairlineBright}"
+            StrokeThickness="1"
             MinimumWidthRequest="126"
             MinimumHeightRequest="142">
         <Border.GestureRecognizers>
-            <TapGestureRecognizer Tapped="OnTileTapped" />
+            <TapGestureRecognizer Command="{Binding ItemTappedCommand, Source={x:Reference TileRoot}, x:DataType=controls:CompanyViewerUnitTileView}"
+                                  CommandParameter="{Binding .}" />
             <PanGestureRecognizer PanUpdated="OnTilePanUpdated" />
         </Border.GestureRecognizers>
         <Border.StrokeShape>
@@ -25,6 +28,11 @@
             <DataTrigger TargetType="Border" Binding="{Binding IsLieutenant}" Value="True">
                 <Setter Property="BackgroundColor" Value="{StaticResource PlateRaised}" />
             </DataTrigger>
+            <!-- The selected tile is outlined in SelectedStroke. -->
+            <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                <Setter Property="Stroke" Value="{Binding SelectedStroke, Source={x:Reference TileRoot}, x:DataType=controls:CompanyViewerUnitTileView}" />
+                <Setter Property="StrokeThickness" Value="2" />
+            </DataTrigger>
         </Border.Triggers>
 
         <Grid RowDefinitions="3,*" RowSpacing="0">
@@ -35,46 +43,31 @@
                      BackgroundColor="{Binding SelectionAccentColor}"
                      IsVisible="{Binding IsSelected}" />
             <VerticalStackLayout Grid.Row="1" Padding="6" Spacing="4" HorizontalOptions="Center" VerticalOptions="Center">
-            <Label Text="{Binding Name}"
-                   HorizontalTextAlignment="Center"
-                   FontAttributes="Bold"
-                   FontSize="{DynamicResource FontSizeBody}"
-                   MaxLines="2"
-                   WidthRequest="112"
-                   LineBreakMode="WordWrap" />
-            <Grid WidthRequest="56"
-                  HeightRequest="56"
-                  HorizontalOptions="Center"
-                  VerticalOptions="Center">
-                <skia:SKCanvasView
-                    x:Name="LogoCanvas"
-                    WidthRequest="46"
-                    HeightRequest="46"
-                    HorizontalOptions="Center"
-                    VerticalOptions="Center"
-                    PaintSurface="OnLogoCanvasPaintSurface" />
-                <skia:SKCanvasView
-                    x:Name="CaptainBadgeCanvas"
-                    WidthRequest="16"
-                    HeightRequest="16"
-                    HorizontalOptions="Start"
-                    VerticalOptions="Start"
-                    PaintSurface="OnCaptainBadgeCanvasPaintSurface" />
-                <skia:SKCanvasView
-                    x:Name="ExperienceBadgeCanvas"
-                    WidthRequest="16"
-                    HeightRequest="16"
-                    HorizontalOptions="End"
-                    VerticalOptions="Start"
-                    PaintSurface="OnExperienceBadgeCanvasPaintSurface" />
-            </Grid>
-            <Label Text="{Binding BaseUnitDisplayName}"
-                   HorizontalTextAlignment="Center"
-                   FontSize="{DynamicResource FontSizeCaption}"
-                   TextColor="{StaticResource TextSecondary}"
-                   MaxLines="3"
-                   WidthRequest="112"
-                   LineBreakMode="WordWrap" />
+                <Label Text="{Binding Name}"
+                       HorizontalTextAlignment="Center"
+                       FontAttributes="Bold"
+                       FontSize="{DynamicResource FontSizeBody}"
+                       MaxLines="2"
+                       WidthRequest="112"
+                       LineBreakMode="WordWrap" />
+                <Grid WidthRequest="56"
+                      HeightRequest="56"
+                      HorizontalOptions="Center"
+                      VerticalOptions="Center">
+                    <controls:SvgIcon WidthRequest="46" HeightRequest="46" HorizontalOptions="Center" VerticalOptions="Center"
+                                      Sources="{Binding LogoCandidates}" />
+                    <controls:SvgIcon WidthRequest="16" HeightRequest="16" HorizontalOptions="Start" VerticalOptions="Start"
+                                      Source="{Binding CaptainIconPackagedPath}" />
+                    <controls:SvgIcon WidthRequest="16" HeightRequest="16" HorizontalOptions="End" VerticalOptions="Start"
+                                      Source="{Binding ExperienceIconPackagedPath}" />
+                </Grid>
+                <Label Text="{Binding BaseUnitDisplayName}"
+                       HorizontalTextAlignment="Center"
+                       FontSize="{DynamicResource FontSizeCaption}"
+                       TextColor="{StaticResource TextSecondary}"
+                       MaxLines="3"
+                       WidthRequest="112"
+                       LineBreakMode="WordWrap" />
             </VerticalStackLayout>
         </Grid>
     </Border>

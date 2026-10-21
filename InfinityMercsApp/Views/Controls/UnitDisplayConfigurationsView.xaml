@@ -2,306 +2,247 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
-             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
+             xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
+             xmlns:components="clr-namespace:InfinityMercsApp.ViewModels.Components"
+             xmlns:unitBrowserItems="clr-namespace:InfinityMercsApp.ViewModels.UnitBrowser.Items"
              x:Class="InfinityMercsApp.Views.Controls.UnitDisplayConfigurationsView"
              x:Name="UnitDisplayConfigurationsRoot"
-             HorizontalOptions="FillAndExpand">
-    <!-- Shared UI shell for the selected-unit stat header and its configurations list. -->
-    <Border StrokeThickness="0" Padding="0" HorizontalOptions="FillAndExpand">
-        <Grid RowDefinitions="*" RowSpacing="8">
-            <Grid x:Name="ConfigurationsRootGrid" ColumnDefinitions="58,84,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*" RowSpacing="0" ColumnSpacing="2">
-                <Border
-                    Grid.Row="0"
-                    Grid.RowSpan="3"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="3"
-                    BackgroundColor="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitHeaderPrimaryColor}"
-                    StrokeThickness="0" />
-                <Border
-                    Grid.Row="3"
-                    Grid.RowSpan="2"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="3"
-                    BackgroundColor="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitHeaderSecondaryColor}"
-                    StrokeThickness="0" />
-                <skia:SKCanvasView
-                    x:Name="HeaderIconsCanvas"
-                    Grid.Column="0"
-                    Grid.Row="0"
-                    Grid.RowSpan="3"
-                    WidthRequest="50"
-                    HeightRequest="72"
+             HorizontalOptions="Fill">
+    <ContentView.Resources>
+        <Style x:Key="StatLabel" TargetType="Label">
+            <Setter Property="HorizontalTextAlignment" Value="Center" />
+            <Setter Property="VerticalTextAlignment" Value="Center" />
+            <Setter Property="VerticalOptions" Value="Fill" />
+            <Setter Property="TextColor" Value="#111827" />
+            <Setter Property="MaxLines" Value="1" />
+            <Setter Property="LineBreakMode" Value="NoWrap" />
+        </Style>
+        <Style x:Key="StatHeaderLabel" TargetType="Label" BasedOn="{StaticResource StatLabel}">
+            <Setter Property="FontAttributes" Value="Bold" />
+        </Style>
+        <Style x:Key="PeripheralStatLabel" TargetType="Label">
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeMicro}" />
+            <Setter Property="HorizontalTextAlignment" Value="Center" />
+            <Setter Property="TextColor" Value="#111827" />
+        </Style>
+        <Style x:Key="PeripheralStatHeaderLabel" TargetType="Label" BasedOn="{StaticResource PeripheralStatLabel}">
+            <Setter Property="FontAttributes" Value="Bold" />
+        </Style>
+        <Style x:Key="StatHeaderBorder" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#D1D5DB" />
+            <Setter Property="Stroke" Value="#9CA3AF" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="Padding" Value="8,2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 4" />
+        </Style>
+        <Style x:Key="StatValueBorder" TargetType="Border" BasedOn="{StaticResource StatHeaderBorder}">
+            <Setter Property="BackgroundColor" Value="#E5E7EB" />
+        </Style>
+        <Style x:Key="ProfileColumnLabel" TargetType="Label">
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}" />
+            <Setter Property="LineBreakMode" Value="WordWrap" />
+        </Style>
+    </ContentView.Resources>
+    <!-- The selected unit's header (icons, logo, name, statline, peripheral, summaries) and its profiles. -->
+    <Border StrokeThickness="0" Padding="0" HorizontalOptions="Fill">
+        <Grid x:Name="ConfigurationsRootGrid"
+              x:DataType="components:IUnitDisplay"
+              BindingContext="{Binding Unit, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}"
+              ColumnDefinitions="58,84,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*" RowSpacing="0" ColumnSpacing="2">
+            <Border Grid.Row="0" Grid.RowSpan="3" Grid.ColumnSpan="3" BackgroundColor="{Binding HeaderColors.Primary}" StrokeThickness="0" />
+            <Border Grid.Row="3" Grid.RowSpan="2" Grid.ColumnSpan="3" BackgroundColor="{Binding HeaderColors.Secondary}" StrokeThickness="0" />
+            <controls:SvgIconColumn
+                x:Name="HeaderIconsCanvas"
+                Grid.Row="0"
+                Grid.RowSpan="3"
+                WidthRequest="50"
+                HeightRequest="72"
+                VerticalOptions="Center"
+                HorizontalOptions="Center"
+                Sources="{Binding Icons.Sources}"
+                ToolTipProperties.Text="{Binding Icons.Meanings}"
+                IsVisible="{Binding Icons.HasAny}" />
+            <Border x:Name="LogoColumnBorder" Grid.Column="1" Grid.Row="0" Grid.RowSpan="3" BackgroundColor="Transparent" StrokeThickness="0" Padding="0" VerticalOptions="Center">
+                <controls:SvgIcon
+                    x:Name="SelectedUnitCanvas"
+                    WidthRequest="82"
+                    HeightRequest="82"
                     VerticalOptions="Center"
                     HorizontalOptions="Center"
-                    IsVisible="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=HasAnyHeaderIcons}"
-                    PaintSurface="OnHeaderIconsCanvasPaintSurface" />
-                <Border x:Name="LogoColumnBorder" Grid.Column="1" Grid.Row="0" Grid.RowSpan="3" BackgroundColor="Transparent" StrokeThickness="0" Padding="0" VerticalOptions="Center">
-                    <skia:SKCanvasView
-                        x:Name="SelectedUnitCanvas"
-                        WidthRequest="82"
-                        HeightRequest="82"
-                        VerticalOptions="Center"
-                        HorizontalOptions="Center"
-                        PaintSurface="OnSelectedUnitCanvasPaintSurface" />
-                </Border>
-                <Border Grid.Column="2" Grid.Row="0" BackgroundColor="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitHeaderPrimaryColor}" StrokeThickness="0" Padding="8,2"
-                        IsVisible="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=ShowUnitName}">
-                    <Label
-                        x:Name="UnitNameHeadingLabel"
-                        Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitNameHeading}"
-                        FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitNameHeadingFontSize}"
-                        FontAttributes="Bold"
-                        TextColor="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitHeaderPrimaryTextColor}"
-                        VerticalOptions="Center"
-                        HorizontalOptions="Fill"
-                        HorizontalTextAlignment="Start"
-                        LineBreakMode="NoWrap"
-                        MaxLines="1"
-                        SizeChanged="OnUnitNameHeadingLabelSizeChanged">
-                        <Label.Shadow>
-                            <Shadow Brush="#CC000000" Offset="1,1" Radius="2" Opacity="0.9" />
-                        </Label.Shadow>
-                    </Label>
-                </Border>
-                <Border Grid.Column="2" Grid.Row="1" BackgroundColor="#D1D5DB" Stroke="#9CA3AF" StrokeThickness="1" Padding="8,2" StrokeShape="RoundRectangle 4"
-                        SizeChanged="OnStatHeadersBorderSizeChanged">
-                    <Grid x:Name="MainStatHeadersGrid" ColumnSpacing="6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" Text="MOV" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatHeaderFontSize}" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="1" Text="CC" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatHeaderFontSize}" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="2" Text="BS" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatHeaderFontSize}" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="3" Text="PH" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatHeaderFontSize}" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="4" Text="WIP" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatHeaderFontSize}" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="5" Text="ARM" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatHeaderFontSize}" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="6" Text="BTS" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatHeaderFontSize}" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="7" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitVitalityHeader}" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatHeaderFontSize}" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="8" Text="S" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatHeaderFontSize}" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="9" Text="AVA" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatHeaderFontSize}" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap"
-                               IsVisible="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=ShowAva}" />
+                    Source="{Binding LogoSource}" />
+            </Border>
+            <Border Grid.Column="2" Grid.Row="0" BackgroundColor="{Binding HeaderColors.Primary}" StrokeThickness="0" Padding="8,2"
+                    IsVisible="{Binding ShowUnitName, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}">
+                <Label
+                    x:Name="UnitNameHeadingLabel"
+                    Text="{Binding UnitNameHeading}"
+                    FontAttributes="Bold"
+                    TextColor="{Binding HeaderColors.PrimaryText}"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Fill"
+                    HorizontalTextAlignment="Start"
+                    LineBreakMode="NoWrap"
+                    MaxLines="1"
+                    SizeChanged="OnUnitNameHeadingLabelSizeChanged">
+                    <Label.Shadow>
+                        <Shadow Brush="#CC000000" Offset="1,1" Radius="2" Opacity="0.9" />
+                    </Label.Shadow>
+                </Label>
+            </Border>
+            <Border Grid.Column="2" Grid.Row="1" Style="{StaticResource StatHeaderBorder}" SizeChanged="OnStatHeadersBorderSizeChanged">
+                <Grid x:Name="MainStatHeadersGrid" ColumnSpacing="6" ColumnDefinitions="*,*,*,*,*,*,*,*,*,*">
+                    <Label Grid.Column="0" Text="MOV" Style="{StaticResource StatHeaderLabel}" />
+                    <Label Grid.Column="1" Text="CC" Style="{StaticResource StatHeaderLabel}" />
+                    <Label Grid.Column="2" Text="BS" Style="{StaticResource StatHeaderLabel}" />
+                    <Label Grid.Column="3" Text="PH" Style="{StaticResource StatHeaderLabel}" />
+                    <Label Grid.Column="4" Text="WIP" Style="{StaticResource StatHeaderLabel}" />
+                    <Label Grid.Column="5" Text="ARM" Style="{StaticResource StatHeaderLabel}" />
+                    <Label Grid.Column="6" Text="BTS" Style="{StaticResource StatHeaderLabel}" />
+                    <Label Grid.Column="7" Text="{Binding Stats.VitalityHeader}" Style="{StaticResource StatHeaderLabel}" />
+                    <Label Grid.Column="8" Text="S" Style="{StaticResource StatHeaderLabel}" />
+                    <Label Grid.Column="9" Text="AVA" Style="{StaticResource StatHeaderLabel}" IsVisible="{Binding ShowAva, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}" />
+                </Grid>
+            </Border>
+            <Border Grid.Column="2" Grid.Row="2" Style="{StaticResource StatValueBorder}">
+                <Grid x:Name="MainStatValuesGrid" ColumnSpacing="6" ColumnDefinitions="*,*,*,*,*,*,*,*,*,*">
+                    <Label Grid.Column="0" Text="{Binding Stats.Mov}" Style="{StaticResource StatLabel}" />
+                    <Label Grid.Column="1" Text="{Binding Stats.Cc}" Style="{StaticResource StatLabel}" />
+                    <Label Grid.Column="2" Text="{Binding Stats.Bs}" Style="{StaticResource StatLabel}" />
+                    <Label Grid.Column="3" Text="{Binding Stats.Ph}" Style="{StaticResource StatLabel}" />
+                    <Label Grid.Column="4" Text="{Binding Stats.Wip}" Style="{StaticResource StatLabel}" />
+                    <Label Grid.Column="5" Text="{Binding Stats.Arm}" Style="{StaticResource StatLabel}" />
+                    <Label Grid.Column="6" Text="{Binding Stats.Bts}" Style="{StaticResource StatLabel}" />
+                    <Label Grid.Column="7" Text="{Binding Stats.Vitality}" Style="{StaticResource StatLabel}" />
+                    <Label Grid.Column="8" Text="{Binding Stats.S}" Style="{StaticResource StatLabel}" />
+                    <Label Grid.Column="9" Text="{Binding Stats.Ava}" Style="{StaticResource StatLabel}" IsVisible="{Binding ShowAva, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}" />
+                </Grid>
+            </Border>
+            <!-- Shown only with a peripheral: a DataTrigger on a null value doesn't hide it reliably. -->
+            <Border Grid.Row="3" Grid.Column="2" BackgroundColor="#111827" Stroke="#4B5563" StrokeThickness="1" Padding="6,4"
+                    IsVisible="{Binding HasPeripheral}">
+                <VerticalStackLayout Spacing="4">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                        <controls:SvgIcon Grid.Column="0" WidthRequest="18" HeightRequest="18" VerticalOptions="Center" Source="SVGCache/CBIcons/peripheral.svg" />
+                        <Label Grid.Column="1" Text="{Binding Peripheral.NameHeading}" FontSize="{DynamicResource FontSizeCaption}" FontAttributes="Bold" TextColor="White" VerticalOptions="Center" />
                     </Grid>
-                </Border>
-                <Border Grid.Column="2" Grid.Row="2" BackgroundColor="#E5E7EB" Stroke="#9CA3AF" StrokeThickness="1" Padding="8,2" StrokeShape="RoundRectangle 4">
-                    <Grid x:Name="MainStatValuesGrid" ColumnSpacing="6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitMov}" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatFontSize}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="1" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitCc}" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatFontSize}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="2" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitBs}" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatFontSize}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="3" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitPh}" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatFontSize}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="4" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitWip}" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatFontSize}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="5" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitArm}" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatFontSize}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="6" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitBts}" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatFontSize}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="7" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitVitality}" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatFontSize}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="8" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitS}" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatFontSize}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap" />
-                        <Label Grid.Column="9" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitAva}" FontSize="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=StatFontSize}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Fill" TextColor="#111827" MaxLines="1" LineBreakMode="NoWrap"
-                               IsVisible="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=ShowAva}" />
-                    </Grid>
-                </Border>
-                <Border Grid.Row="3" Grid.Column="2" BackgroundColor="#111827" Stroke="#4B5563" StrokeThickness="1" Padding="6,4" IsVisible="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=HasPeripheralStatBlock}">
-                    <VerticalStackLayout Spacing="4">
-                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
-                            <skia:SKCanvasView
-                                x:Name="PeripheralHeaderIconCanvas"
-                                Grid.Column="0"
-                                WidthRequest="18"
-                                HeightRequest="18"
-                                VerticalOptions="Center"
-                                PaintSurface="OnPeripheralIconCanvasPaintSurface" />
-                            <Label Grid.Column="1" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=PeripheralNameHeading}" FontSize="{DynamicResource FontSizeCaption}" FontAttributes="Bold" TextColor="White" VerticalOptions="Center" />
+                    <Border Style="{StaticResource StatHeaderBorder}">
+                        <Grid x:Name="PeripheralStatHeadersGrid" ColumnSpacing="6" ColumnDefinitions="*,*,*,*,*,*,*,*,*,*">
+                            <Label Grid.Column="0" Text="MOV" Style="{StaticResource PeripheralStatHeaderLabel}" />
+                            <Label Grid.Column="1" Text="CC" Style="{StaticResource PeripheralStatHeaderLabel}" />
+                            <Label Grid.Column="2" Text="BS" Style="{StaticResource PeripheralStatHeaderLabel}" />
+                            <Label Grid.Column="3" Text="PH" Style="{StaticResource PeripheralStatHeaderLabel}" />
+                            <Label Grid.Column="4" Text="WIP" Style="{StaticResource PeripheralStatHeaderLabel}" />
+                            <Label Grid.Column="5" Text="ARM" Style="{StaticResource PeripheralStatHeaderLabel}" />
+                            <Label Grid.Column="6" Text="BTS" Style="{StaticResource PeripheralStatHeaderLabel}" />
+                            <Label Grid.Column="7" Text="{Binding Peripheral.Stats.VitalityHeader}" Style="{StaticResource PeripheralStatHeaderLabel}" />
+                            <Label Grid.Column="8" Text="S" Style="{StaticResource PeripheralStatHeaderLabel}" />
+                            <Label Grid.Column="9" Text="AVA" Style="{StaticResource PeripheralStatHeaderLabel}" IsVisible="{Binding ShowAva, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}" />
                         </Grid>
-                        <Border BackgroundColor="#D1D5DB" Stroke="#9CA3AF" StrokeThickness="1" Padding="8,2" StrokeShape="RoundRectangle 4">
-                            <Grid x:Name="PeripheralStatHeadersGrid" ColumnSpacing="6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Label Grid.Column="0" Text="MOV" FontSize="{DynamicResource FontSizeMicro}" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="1" Text="CC" FontSize="{DynamicResource FontSizeMicro}" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="2" Text="BS" FontSize="{DynamicResource FontSizeMicro}" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="3" Text="PH" FontSize="{DynamicResource FontSizeMicro}" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="4" Text="WIP" FontSize="{DynamicResource FontSizeMicro}" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="5" Text="ARM" FontSize="{DynamicResource FontSizeMicro}" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="6" Text="BTS" FontSize="{DynamicResource FontSizeMicro}" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="7" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=PeripheralVitalityHeader}" FontSize="{DynamicResource FontSizeMicro}" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="8" Text="S" FontSize="{DynamicResource FontSizeMicro}" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="9" Text="AVA" FontSize="{DynamicResource FontSizeMicro}" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="#111827"
-                                       IsVisible="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=ShowAva}" />
-                            </Grid>
-                        </Border>
-                        <Border BackgroundColor="#E5E7EB" Stroke="#9CA3AF" StrokeThickness="1" Padding="8,2" StrokeShape="RoundRectangle 4">
-                            <Grid x:Name="PeripheralStatValuesGrid" ColumnSpacing="6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Label Grid.Column="0" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=PeripheralMov}" FontSize="{DynamicResource FontSizeMicro}" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="1" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=PeripheralCc}" FontSize="{DynamicResource FontSizeMicro}" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="2" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=PeripheralBs}" FontSize="{DynamicResource FontSizeMicro}" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="3" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=PeripheralPh}" FontSize="{DynamicResource FontSizeMicro}" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="4" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=PeripheralWip}" FontSize="{DynamicResource FontSizeMicro}" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="5" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=PeripheralArm}" FontSize="{DynamicResource FontSizeMicro}" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="6" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=PeripheralBts}" FontSize="{DynamicResource FontSizeMicro}" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="7" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=PeripheralVitality}" FontSize="{DynamicResource FontSizeMicro}" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="8" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=PeripheralS}" FontSize="{DynamicResource FontSizeMicro}" HorizontalTextAlignment="Center" TextColor="#111827" />
-                                <Label Grid.Column="9" Text="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=PeripheralAva}" FontSize="{DynamicResource FontSizeMicro}" HorizontalTextAlignment="Center" TextColor="#111827"
-                                       IsVisible="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=ShowAva}" />
-                            </Grid>
-                        </Border>
-                        <Label
-                            FormattedText="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=PeripheralEquipmentFormatted}"
-                            TextColor="White"
-                            FontSize="{DynamicResource FontSizeCaption}"
-                            LineBreakMode="WordWrap"
-                            IsVisible="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=HasPeripheralEquipment}" />
-                        <Label
-                            FormattedText="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=PeripheralSkillsFormatted}"
-                            TextColor="White"
-                            FontSize="{DynamicResource FontSizeCaption}"
-                            LineBreakMode="WordWrap"
-                            IsVisible="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=HasPeripheralSkills}" />
-                    </VerticalStackLayout>
-                </Border>
-                <Border Grid.Row="4" Grid.ColumnSpan="3" BackgroundColor="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitHeaderSecondaryColor}" StrokeThickness="0" Padding="6,2"
-                        IsVisible="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=ShowSummaryRows}">
-                    <Label FormattedText="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=EquipmentSummaryFormatted}" TextColor="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitHeaderSecondaryTextColor}" LineBreakMode="WordWrap">
-                        <Label.Shadow>
-                            <Shadow Brush="#CC000000" Offset="1,1" Radius="2" Opacity="0.9" />
-                        </Label.Shadow>
-                    </Label>
-                </Border>
-                <Border Grid.Row="5" Grid.ColumnSpan="3" BackgroundColor="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitHeaderSecondaryColor}" StrokeThickness="0" Padding="6,2"
-                        IsVisible="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=ShowSummaryRows}">
-                    <Label FormattedText="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=SpecialSkillsSummaryFormatted}" TextColor="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=UnitHeaderSecondaryTextColor}" LineBreakMode="WordWrap">
-                        <Label.Shadow>
-                            <Shadow Brush="#CC000000" Offset="1,1" Radius="2" Opacity="0.9" />
-                        </Label.Shadow>
-                    </Label>
-                </Border>
-                <Label Grid.Row="6" Grid.ColumnSpan="3" Text="Profiles" FontSize="{DynamicResource FontSizeTitleSmall}" FontAttributes="Bold" IsVisible="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=ShowConfigurationsSection}" />
-                <ScrollView
-                    x:Name="ProfilesScrollView"
-                    Grid.Row="7"
-                    Grid.ColumnSpan="3"
-                    VerticalOptions="FillAndExpand"
-                    IsVisible="{Binding Source={x:Reference UnitDisplayConfigurationsRoot}, Path=ShowConfigurationsSection}">
-                    <ScrollView.GestureRecognizers>
-                        <PanGestureRecognizer PanUpdated="OnProfilesScrollPanUpdated" />
-                    </ScrollView.GestureRecognizers>
-                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Profiles}" Spacing="6">
-                        <BindableLayout.ItemTemplate>
-                            <DataTemplate>
-                                <Border StrokeThickness="1" Padding="10" MinimumHeightRequest="50" IsVisible="{Binding IsVisible}">
-                                    <Border.Triggers>
-                                        <DataTrigger TargetType="Border" Binding="{Binding IsLieutenantBlocked}" Value="True">
-                                            <Setter Property="BackgroundColor" Value="#7F1D1D" />
-                                        </DataTrigger>
-                                        <DataTrigger TargetType="Border" Binding="{Binding IsLieutenantBlocked}" Value="False">
-                                            <Setter Property="BackgroundColor" Value="Transparent" />
-                                        </DataTrigger>
-                                    </Border.Triggers>
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer
-                                            Command="{Binding Source={RelativeSource AncestorType={x:Type controls:UnitDisplayConfigurationsView}}, Path=BindingContext.AddProfileToMercsCompanyCommand}"
-                                            CommandParameter="{Binding .}" />
-                                    </Border.GestureRecognizers>
-                                    <VerticalStackLayout Spacing="2">
-                                        <Grid ColumnSpacing="12">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="60" />
-                                            </Grid.ColumnDefinitions>
-                                            <Label Grid.Column="0" FormattedText="{Binding NameFormatted}" FontAttributes="Bold" />
-                                            <HorizontalStackLayout Grid.Column="1" Spacing="4" HorizontalOptions="End" VerticalOptions="Center">
-                                                <skia:SKCanvasView
-                                                    WidthRequest="14"
-                                                    HeightRequest="14"
-                                                    VerticalOptions="Center"
-                                                    IsVisible="{Binding ShowProfileTacticalAwarenessIcon}"
-                                                    PaintSurface="OnProfileTacticalIconCanvasPaintSurface" />
-                                                <Label Text="{Binding Cost, StringFormat='C {0}'}" FontSize="{DynamicResource FontSizeCaption}" HorizontalTextAlignment="End" VerticalOptions="Center" />
-                                            </HorizontalStackLayout>
-                                        </Grid>
-                                        <!-- Wide layout: ranged | melee | equipment | skills in a single row of four columns. -->
-                                        <Grid ColumnSpacing="8"
-                                              IsVisible="{Binding Source={RelativeSource AncestorType={x:Type controls:UnitDisplayConfigurationsView}}, Path=IsWideProfileLayout}">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <Label Grid.Column="0" FormattedText="{Binding RangedWeaponsFormatted}" FontSize="{DynamicResource FontSizeCaption}" TextColor="#EF4444" LineBreakMode="WordWrap" />
-                                            <Label Grid.Column="1" FormattedText="{Binding MeleeWeaponsFormatted}" FontSize="{DynamicResource FontSizeCaption}" TextColor="#22C55E" LineBreakMode="WordWrap" />
-                                            <Label Grid.Column="2" FormattedText="{Binding UniqueEquipmentFormatted}" FontSize="{DynamicResource FontSizeCaption}" TextColor="#06B6D4" LineBreakMode="WordWrap" />
-                                            <Label Grid.Column="3" FormattedText="{Binding UniqueSkillsFormatted}" FontSize="{DynamicResource FontSizeCaption}" TextColor="#F59E0B" LineBreakMode="WordWrap" />
-                                        </Grid>
-                                        <!-- Small-screen layout: 2x2 grid. Top row equipment | skills, bottom row ranged | close combat. -->
-                                        <Grid ColumnSpacing="8" RowSpacing="2"
-                                              IsVisible="{Binding Source={RelativeSource AncestorType={x:Type controls:UnitDisplayConfigurationsView}}, Path=IsCompactProfileLayout}">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                            </Grid.RowDefinitions>
-                                            <Label Grid.Row="0" Grid.Column="0" FormattedText="{Binding UniqueEquipmentFormatted}" FontSize="{DynamicResource FontSizeCaption}" TextColor="#06B6D4" LineBreakMode="WordWrap" />
-                                            <Label Grid.Row="0" Grid.Column="1" FormattedText="{Binding UniqueSkillsFormatted}" FontSize="{DynamicResource FontSizeCaption}" TextColor="#F59E0B" LineBreakMode="WordWrap" />
-                                            <Label Grid.Row="1" Grid.Column="0" FormattedText="{Binding RangedWeaponsFormatted}" FontSize="{DynamicResource FontSizeCaption}" TextColor="#EF4444" LineBreakMode="WordWrap" />
-                                            <Label Grid.Row="1" Grid.Column="1" FormattedText="{Binding MeleeWeaponsFormatted}" FontSize="{DynamicResource FontSizeCaption}" TextColor="#22C55E" LineBreakMode="WordWrap" />
-                                        </Grid>
-                                        <Label
-                                            Text="{Binding Peripherals, StringFormat='Peripheral: {0}'}"
-                                            FontSize="{DynamicResource FontSizeCaption}"
-                                            TextColor="#FACC15"
-                                            LineBreakMode="WordWrap"
-                                            Margin="12,4,0,0"
-                                            IsVisible="{Binding HasPeripherals}" />
-                                    </VerticalStackLayout>
-                                </Border>
-                            </DataTemplate>
-                        </BindableLayout.ItemTemplate>
-                    </VerticalStackLayout>
-                </ScrollView>
-            </Grid>
+                    </Border>
+                    <Border Style="{StaticResource StatValueBorder}">
+                        <Grid x:Name="PeripheralStatValuesGrid" ColumnSpacing="6" ColumnDefinitions="*,*,*,*,*,*,*,*,*,*">
+                            <Label Grid.Column="0" Text="{Binding Peripheral.Stats.Mov}" Style="{StaticResource PeripheralStatLabel}" />
+                            <Label Grid.Column="1" Text="{Binding Peripheral.Stats.Cc}" Style="{StaticResource PeripheralStatLabel}" />
+                            <Label Grid.Column="2" Text="{Binding Peripheral.Stats.Bs}" Style="{StaticResource PeripheralStatLabel}" />
+                            <Label Grid.Column="3" Text="{Binding Peripheral.Stats.Ph}" Style="{StaticResource PeripheralStatLabel}" />
+                            <Label Grid.Column="4" Text="{Binding Peripheral.Stats.Wip}" Style="{StaticResource PeripheralStatLabel}" />
+                            <Label Grid.Column="5" Text="{Binding Peripheral.Stats.Arm}" Style="{StaticResource PeripheralStatLabel}" />
+                            <Label Grid.Column="6" Text="{Binding Peripheral.Stats.Bts}" Style="{StaticResource PeripheralStatLabel}" />
+                            <Label Grid.Column="7" Text="{Binding Peripheral.Stats.Vitality}" Style="{StaticResource PeripheralStatLabel}" />
+                            <Label Grid.Column="8" Text="{Binding Peripheral.Stats.S}" Style="{StaticResource PeripheralStatLabel}" />
+                            <Label Grid.Column="9" Text="{Binding Peripheral.Stats.Ava}" Style="{StaticResource PeripheralStatLabel}" IsVisible="{Binding ShowAva, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}" />
+                        </Grid>
+                    </Border>
+                    <Label FormattedText="{Binding Peripheral.EquipmentFormatted}" TextColor="White" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap"
+                           IsVisible="{Binding Peripheral.HasEquipment}" />
+                    <Label FormattedText="{Binding Peripheral.SkillsFormatted}" TextColor="White" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap"
+                           IsVisible="{Binding Peripheral.HasSkills}" />
+                </VerticalStackLayout>
+            </Border>
+            <Border Grid.Row="4" Grid.ColumnSpan="3" BackgroundColor="{Binding HeaderColors.Secondary}" StrokeThickness="0" Padding="6,2"
+                    IsVisible="{Binding ShowSummaryRows, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}">
+                <Label FormattedText="{Binding EquipmentSummaryFormatted}" TextColor="{Binding HeaderColors.SecondaryText}" LineBreakMode="WordWrap">
+                    <Label.Shadow>
+                        <Shadow Brush="#CC000000" Offset="1,1" Radius="2" Opacity="0.9" />
+                    </Label.Shadow>
+                </Label>
+            </Border>
+            <Border Grid.Row="5" Grid.ColumnSpan="3" BackgroundColor="{Binding HeaderColors.Secondary}" StrokeThickness="0" Padding="6,2"
+                    IsVisible="{Binding ShowSummaryRows, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}">
+                <Label FormattedText="{Binding SpecialSkillsSummaryFormatted}" TextColor="{Binding HeaderColors.SecondaryText}" LineBreakMode="WordWrap">
+                    <Label.Shadow>
+                        <Shadow Brush="#CC000000" Offset="1,1" Radius="2" Opacity="0.9" />
+                    </Label.Shadow>
+                </Label>
+            </Border>
+            <Label Grid.Row="6" Grid.ColumnSpan="3" Text="Profiles" FontSize="{DynamicResource FontSizeTitleSmall}" FontAttributes="Bold"
+                   IsVisible="{Binding ShowConfigurationsSection, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}" />
+            <ScrollView
+                Grid.Row="7"
+                Grid.ColumnSpan="3"
+                VerticalOptions="Fill"
+                IsVisible="{Binding ShowConfigurationsSection, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}">
+                <ScrollView.Behaviors>
+                    <behaviors:DragToScrollBehavior />
+                </ScrollView.Behaviors>
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Profiles, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}" Spacing="6">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="unitBrowserItems:ViewerProfileItem">
+                            <Border StrokeThickness="1" Padding="10" MinimumHeightRequest="50" IsVisible="{Binding IsVisible}">
+                                <Border.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsLieutenantBlocked}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#7F1D1D" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsLieutenantBlocked}" Value="False">
+                                        <Setter Property="BackgroundColor" Value="Transparent" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding ProfileTappedCommand, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}"
+                                        CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <VerticalStackLayout Spacing="2">
+                                    <Grid ColumnSpacing="12" ColumnDefinitions="*,60">
+                                        <Label Grid.Column="0" FormattedText="{Binding NameFormatted}" FontAttributes="Bold" />
+                                        <HorizontalStackLayout Grid.Column="1" Spacing="4" HorizontalOptions="End" VerticalOptions="Center">
+                                            <controls:SvgIcon
+                                                WidthRequest="14"
+                                                HeightRequest="14"
+                                                VerticalOptions="Center"
+                                                Source="SVGCache/CBIcons/tactical.svg"
+                                                IsVisible="{Binding ShowProfileTacticalAwarenessIcon}" />
+                                            <Label Text="{Binding Cost, StringFormat='C {0}'}" FontSize="{DynamicResource FontSizeCaption}" HorizontalTextAlignment="End" VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
+                                    </Grid>
+                                    <!-- Wide layout: ranged | melee | equipment | skills in a single row of four columns. -->
+                                    <Grid ColumnSpacing="8" ColumnDefinitions="*,*,*,*"
+                                          IsVisible="{Binding IsCompactProfileLayout, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView, Converter={StaticResource InvertedBoolConverter}}">
+                                        <Label Grid.Column="0" FormattedText="{Binding RangedWeaponsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#EF4444" />
+                                        <Label Grid.Column="1" FormattedText="{Binding MeleeWeaponsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#22C55E" />
+                                        <Label Grid.Column="2" FormattedText="{Binding UniqueEquipmentFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#06B6D4" />
+                                        <Label Grid.Column="3" FormattedText="{Binding UniqueSkillsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#F59E0B" />
+                                    </Grid>
+                                    <!-- Small-screen layout: 2x2 grid. Top row equipment | skills, bottom row ranged | close combat. -->
+                                    <Grid ColumnSpacing="8" RowSpacing="2" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto"
+                                          IsVisible="{Binding IsCompactProfileLayout, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}">
+                                        <Label Grid.Row="0" Grid.Column="0" FormattedText="{Binding UniqueEquipmentFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#06B6D4" />
+                                        <Label Grid.Row="0" Grid.Column="1" FormattedText="{Binding UniqueSkillsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#F59E0B" />
+                                        <Label Grid.Row="1" Grid.Column="0" FormattedText="{Binding RangedWeaponsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#EF4444" />
+                                        <Label Grid.Row="1" Grid.Column="1" FormattedText="{Binding MeleeWeaponsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#22C55E" />
+                                    </Grid>
+                                    <Label
+                                        Text="{Binding Peripherals, StringFormat='Peripheral: {0}'}"
+                                        Style="{StaticResource ProfileColumnLabel}"
+                                        TextColor="#FACC15"
+                                        Margin="12,4,0,0"
+                                        IsVisible="{Binding HasPeripherals}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </ScrollView>
         </Grid>
     </Border>
 </ContentView>

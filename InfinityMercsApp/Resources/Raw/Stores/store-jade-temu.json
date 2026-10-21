@@ -16,10 +16,10 @@
     { "name": "Tinbot: Firewall (-6)", "costCr": 15, "costSwc": null, "category": "Accessories" }
   ],
   "troopTypes": [
-    { "type": "LI", "costCr": 5, "armorName": "Jumpsuit", "arm": null, "bts": null, "abilities": "Combat Jump (-3)" },
-    { "type": "MI", "costCr": 10, "armorName": "Ambush Suit", "arm": 2, "bts": 3, "abilities": "Decoy(2)" },
-    { "type": "HI", "costCr": 20, "armorName": "Haidao Armor", "arm": 3, "bts": 3, "abilities": "NCO" },
-    { "type": "HI", "costCr": 38, "armorName": "Hsien Armor", "arm": 4, "bts": 6, "abilities": "MSV2" }
+    { "type": "LI", "costCr": 5, "armorName": "Jumpsuit", "arm": null, "bts": null, "abilities": "Combat Jump (-3)", "effects": {"skills": [{"name": "Combat Jump (-3)"}]} },
+    { "type": "MI", "costCr": 10, "armorName": "Ambush Suit", "arm": 2, "bts": 3, "abilities": "Decoy(2)", "effects": {"skills": [{"name": "Decoy (2)"}]} },
+    { "type": "HI", "costCr": 20, "armorName": "Haidao Armor", "arm": 3, "bts": 3, "abilities": "NCO", "effects": {"skills": [{"name": "NCO"}]} },
+    { "type": "HI", "costCr": 38, "armorName": "Hsien Armor", "arm": 4, "bts": 6, "abilities": "MSV2", "effects": {"equipment": ["Multispectral Visor L2"]} }
   ],
   "augments": [
     { "name": "CC Attack (SR-1)", "requirement": null, "costCr": 6, "costNote": null },

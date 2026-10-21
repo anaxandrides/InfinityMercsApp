@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Models.Army;
+using InfinityMercsApp.Domain.Models.Army.SpecOps;
 
 namespace InfinityMercsApp.Infrastructure.Providers;
 
@@ -12,28 +13,28 @@ public interface ISpecOpsProvider
     /// </summary>
     /// <param name="factionId"></param>
     /// <returns></returns>
-    Task<IReadOnlyList<SpecopsSkill>> GetSpecopsSkillsByFactionAsync(int factionId, CancellationToken cancellationToken = default);
+    IReadOnlyList<SpecopsSkill> GetSpecopsSkillsByFaction(int factionId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all SpecOps equipment for a faction.
     /// </summary>
     /// <param name="factionId"></param>
     /// <returns></returns>
-    Task<IReadOnlyList<SpecopsEquipment>> GetSpecopsEquipsByFactionAsync(int factionId, CancellationToken cancellationToken = default);
+    IReadOnlyList<SpecopsEquipment> GetSpecopsEquipsByFaction(int factionId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all SpecOps weapons for a faction.
     /// </summary>
     /// <param name="factionId"></param>
     /// <returns></returns>
-    Task<IReadOnlyList<SpecopsWeapon>> GetSpecopsWeaponsByFactionAsync(int factionId, CancellationToken cancellationToken = default);
+    IReadOnlyList<SpecopsWeapon> GetSpecopsWeaponsByFaction(int factionId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all SpecOps units for a faction.
     /// </summary>
     /// <param name="factionId"></param>
     /// <returns></returns>
-    Task<IReadOnlyList<SpecopsUnit>> GetSpecopsUnitsByFactionAsync(int factionId, CancellationToken cancellationToken = default);
+    IReadOnlyList<SpecopsUnit> GetSpecopsUnitsByFaction(int factionId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets cached cohesive-company fireteam validity rows for one filter key and faction set.
@@ -42,7 +43,7 @@ public interface ISpecOpsProvider
     /// <param name="factionIds"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<IReadOnlyList<CCFactionFireteamValidityRecord>> GetCCFactionFireteamValidityAsync(
+    IReadOnlyList<CCFactionFireteamValidityRecord> GetCCFactionFireteamValidity(
         string filterKey,
         IReadOnlyCollection<int> factionIds,
         CancellationToken cancellationToken = default);
@@ -53,14 +54,14 @@ public interface ISpecOpsProvider
     /// <param name="factionId"></param>
     /// <param name="filterKey"></param>
     /// <param name="hasValidCoreFireteams"></param>
-    /// <param name="validCoreFireteamsJson"></param>
+    /// <param name="validCoreFireteams">The CORE fireteam names found valid.</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task UpsertCCFactionFireteamValidityAsync(
+    void UpsertCCFactionFireteamValidity(
         int factionId,
         string filterKey,
         bool hasValidCoreFireteams,
-        string? validCoreFireteamsJson,
+        IReadOnlyList<string> validCoreFireteams,
         CancellationToken cancellationToken = default);
 }
 

@@ -16,10 +16,10 @@
     { "name": "Holoprojector", "costCr": 10, "costSwc": null, "category": "Accessories" }
   ],
   "troopTypes": [
-    { "type": "LI", "costCr": 15, "armorName": "Bashi Holo Suit", "arm": 2, "bts": null, "abilities": "Holomask, Holoprojector, Surprise Attack (-3)" },
-    { "type": null, "costCr": 16, "armorName": "Motorcycle", "arm": null, "bts": null, "abilities": "Mov 8-4 Motorcycle (S4), Impetuous, Mimetism (-3), No Cover" },
-    { "type": "MI", "costCr": 18, "armorName": "Namurr Mobility Suit", "arm": 2, "bts": 6, "abilities": "Climbing Plus, Mov 6-2, +1 Wounds Skill" },
-    { "type": "HI", "costCr": 20, "armorName": "Hazmat Suit", "arm": null, "bts": 9, "abilities": "Immunity (Continuous)" }
+    { "type": "LI", "costCr": 15, "armorName": "Bashi Holo Suit", "arm": 2, "bts": null, "abilities": "Holomask, Holoprojector, Surprise Attack (-3)", "effects": {"skills": [{"name": "Surprise Attack (-3)"}], "equipment": ["Holomask", "Holoprojector"]} },
+    { "type": null, "costCr": 16, "armorName": "Motorcycle", "arm": null, "bts": null, "abilities": "Mov 8-4 Motorcycle (S4), Impetuous, Mimetism (-3), No Cover", "effects": {"move": "8-4", "silhouette": 4, "skills": [{"name": "Mimetism (-3)"}, {"name": "No Cover"}], "equipment": ["Motorcycle"], "characteristics": ["Impetuous"]} },
+    { "type": "MI", "costCr": 18, "armorName": "Namurr Mobility Suit", "arm": 2, "bts": 6, "abilities": "Climbing Plus, Mov 6-2, +1 Wounds Skill", "effects": {"woundsSkill": 1, "move": "6-2", "skills": [{"name": "Climbing Plus"}]} },
+    { "type": "HI", "costCr": 20, "armorName": "Hazmat Suit", "arm": null, "bts": 9, "abilities": "Immunity (Continuous)", "effects": {"skills": [{"name": "Immunity (Continuous)"}]} }
   ],
   "augments": [
     { "name": "Hacking UPGRADE: Cybermask", "requirement": "Hacker", "costCr": 6, "costNote": null },

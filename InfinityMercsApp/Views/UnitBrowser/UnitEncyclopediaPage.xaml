@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views.UnitBrowser"
+             xmlns:unitFilter="clr-namespace:InfinityMercsApp.Views.Controls.UnitFilter"
+             xmlns:unitBrowser="clr-namespace:InfinityMercsApp.ViewModels.UnitBrowser"
+             xmlns:unitBrowserItems="clr-namespace:InfinityMercsApp.ViewModels.UnitBrowser.Items"
+             xmlns:unitBrowserPresentation="clr-namespace:InfinityMercsApp.Presentation.UnitBrowser"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
+             xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="InfinityMercsApp.Views.UnitBrowser.UnitEncyclopediaPage"
+             x:Name="UnitEncyclopediaPageRoot"
+             x:DataType="unitBrowser:UnitEncyclopediaViewModel"
+             Title="Unit Encyclopedia">
+
+    <ContentPage.Behaviors>
+        <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference UnitEncyclopediaPageRoot}, x:DataType=ContentPage}"
+                                        x:DataType="unitBrowser:UnitEncyclopediaViewModel"
+                                        EventName="LayoutModeChanged"
+                                        Command="{Binding ApplyLayoutCommand}"
+                                        CommandParameter="{Binding LayoutMode, Source={x:Reference UnitEncyclopediaPageRoot}, x:DataType=layout:AdaptiveContentPage}" />
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference UnitEncyclopediaPageRoot}, x:DataType=ContentPage}"
+                                        x:DataType="unitBrowser:UnitEncyclopediaViewModel"
+                                        EventName="Disappearing"
+                                        Command="{Binding CloseUnitFilterCommand}" />
+    </ContentPage.Behaviors>
+
+    <Grid Padding="16"
+          layout:GridLayout.Columns="{Binding Layout.Columns}"
+          layout:GridLayout.Rows="{Binding Layout.Rows}"
+          ColumnSpacing="{Binding Layout.ColumnSpacing}"
+          RowSpacing="{Binding Layout.RowSpacing}">
+
+        <Border layout:GridLayout.Cell="{Binding Layout.FactionsCell}" IsVisible="{Binding IsFactionsPaneVisible}" StrokeThickness="1" Padding="10">
+            <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="8">
+                <Label
+                    Text="Factions"
+                    FontSize="{DynamicResource FontSizeTitleSmall}"
+                    FontAttributes="Bold" />
+
+                <HorizontalStackLayout Grid.Row="1" Spacing="8" VerticalOptions="Center">
+                    <RadioButton Content="All" IsChecked="{Binding ShowAllFactionEntries}" />
+                    <RadioButton Content="Factions" IsChecked="{Binding ShowFactionEntriesOnly}" />
+                    <RadioButton Content="Sectorials" IsChecked="{Binding ShowSectorialEntriesOnly}" />
+                </HorizontalStackLayout>
+
+                <VerticalStackLayout Grid.Row="2" Spacing="2">
+                    <ActivityIndicator
+                        IsRunning="{Binding IsLoading}"
+                        IsVisible="{Binding IsLoading}"
+                        HorizontalOptions="Start" />
+                    <Label
+                        Text="{Binding Status}"
+                        FontSize="{DynamicResource FontSizeCaption}"
+                        TextColor="{StaticResource TextMuted}" />
+                </VerticalStackLayout>
+
+                <ScrollView Grid.Row="3">
+                    <ScrollView.Behaviors>
+                        <behaviors:DragToScrollBehavior />
+                    </ScrollView.Behaviors>
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Factions}" Spacing="0">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="unitBrowserItems:ViewerFactionItem">
+                                <controls:ViewerListRowView
+                                    ItemTappedCommand="{Binding ViewModel.SelectFactionCommand, Source={x:Reference UnitEncyclopediaPageRoot}, x:DataType=view:UnitEncyclopediaPage}" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </ScrollView>
+            </Grid>
+        </Border>
+
+        <Border layout:GridLayout.Cell="{Binding Layout.BrowseCell}" IsVisible="{Binding IsBrowsePaneVisible}" StrokeThickness="1" Padding="12">
+            <Grid RowDefinitions="Auto,Auto,*" RowSpacing="8">
+                <!-- Compact-only return to the factions list -->
+                <Button
+                        Grid.Row="0"
+                        Text="← Factions"
+                        IsVisible="{Binding Layout.ShowsOneStep}"
+                        HorizontalOptions="Start"
+                        BackgroundColor="Transparent"
+                        BorderColor="Transparent"
+                        TextColor="{StaticResource Signal}"
+                        FontAttributes="Bold"
+                        Padding="0"
+                        Command="{Binding BackToFactionsCommand}" />
+
+                <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="8">
+                    <Button Grid.Column="0" Text="Units" Command="{Binding ShowUnitsCommand}" CornerRadius="8">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding ShowUnitsTab}" Value="True">
+                                <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                                <Setter Property="BorderColor" Value="{StaticResource Signal}" />
+                                <Setter Property="BorderWidth" Value="3" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Button" Binding="{Binding ShowUnitsTab}" Value="False">
+                                <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                                <Setter Property="BorderColor" Value="{StaticResource Signal}" />
+                                <Setter Property="BorderWidth" Value="2" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <Button Grid.Column="1" Text="Fireteams" Command="{Binding ShowFireteamsCommand}" CornerRadius="8">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding ShowUnitsTab}" Value="False">
+                                <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                                <Setter Property="BorderColor" Value="{StaticResource Signal}" />
+                                <Setter Property="BorderWidth" Value="3" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Button" Binding="{Binding ShowUnitsTab}" Value="True">
+                                <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                                <Setter Property="BorderColor" Value="{StaticResource Signal}" />
+                                <Setter Property="BorderWidth" Value="2" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                </Grid>
+
+                <Grid Grid.Row="2" RowDefinitions="Auto,Auto,*" RowSpacing="8" IsVisible="{Binding ShowUnitsTab}">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Label Grid.Column="0" Text="Units" FontSize="{DynamicResource FontSizeTitleSmall}" FontAttributes="Bold" VerticalOptions="Center" />
+                        <Border
+                            Grid.Column="1"
+                            x:Name="UnitSelectionFilterButton"
+                            StrokeThickness="0"
+                            BackgroundColor="Transparent"
+                            Padding="2"
+                            VerticalOptions="Center"
+                            HorizontalOptions="End">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenUnitFilterCommand}" />
+                            </Border.GestureRecognizers>
+                            <controls:SvgIcon
+                                Source="SVGCache/NonCBIcons/noun-filter.svg"
+                                WidthRequest="20"
+                                HeightRequest="20"
+                                VerticalOptions="Center"
+                                HorizontalOptions="Center" />
+                        </Border>
+                    </Grid>
+                    <Label Grid.Row="1" Text="{Binding UnitsStatus}" TextColor="{StaticResource TextMuted}" />
+                    <ScrollView Grid.Row="2">
+                        <ScrollView.Behaviors>
+                            <behaviors:DragToScrollBehavior />
+                        </ScrollView.Behaviors>
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Units}" Spacing="0">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="unitBrowserItems:ViewerUnitItem">
+                                <controls:ViewerListRowView
+                                    ItemTappedCommand="{Binding ViewModel.SelectUnitCommand, Source={x:Reference UnitEncyclopediaPageRoot}, x:DataType=view:UnitEncyclopediaPage}" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </ScrollView>
+            </Grid>
+
+                <Grid Grid.Row="2" RowDefinitions="Auto,Auto,Auto,*" RowSpacing="8" IsVisible="{Binding ShowUnitsTab, Converter={StaticResource InvertedBoolConverter}}">
+                    <Label Text="Fireteams" FontSize="{DynamicResource FontSizeTitleSmall}" FontAttributes="Bold" />
+                    <Grid Grid.Row="1" ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="DUO" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                            <Label Text="{Binding FireteamDuoCount}" FontSize="{DynamicResource FontSizeSubHeadline}" HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <Label Text="HARIS" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                            <Label Text="{Binding FireteamHarisCount}" FontSize="{DynamicResource FontSizeSubHeadline}" HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="2" Spacing="2">
+                            <Label Text="CORE" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                            <Label Text="{Binding FireteamCoreCount}" FontSize="{DynamicResource FontSizeSubHeadline}" HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Grid>
+                    <Label Grid.Row="2" Text="{Binding FireteamsStatus}" TextColor="{StaticResource TextMuted}" />
+                    <ScrollView Grid.Row="3">
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Fireteams}" Spacing="8">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="unitBrowserPresentation:FireteamTeamItem">
+                                    <Border StrokeThickness="1" Padding="10">
+                                        <VerticalStackLayout Spacing="6">
+                                            <Label Text="{Binding Name}" FontAttributes="Bold" />
+                                            <Label Text="{Binding TeamTypes, StringFormat='Types: {0}'}" />
+                                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                                                <Label Grid.Column="0" Text="Unit" FontAttributes="Bold" />
+                                                <Label Grid.Column="1" Text="Min" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                                                <Label Grid.Column="2" Text="Max" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                                            </Grid>
+                                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding UnitLimits}" Spacing="2">
+                                                <BindableLayout.ItemTemplate>
+                                                    <DataTemplate x:DataType="unitBrowserPresentation:FireteamUnitLimitItem">
+                                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                                                            <Label Grid.Column="0" Text="{Binding Name}" />
+                                                            <Label Grid.Column="1" Text="{Binding Min}" HorizontalTextAlignment="Center" />
+                                                            <Label Grid.Column="2" Text="{Binding Max}" HorizontalTextAlignment="Center" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </BindableLayout.ItemTemplate>
+                                            </VerticalStackLayout>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <Border layout:GridLayout.Cell="{Binding Layout.DetailCell}" IsVisible="{Binding IsDetailPaneVisible}" StrokeThickness="1" Padding="12">
+            <Grid RowDefinitions="Auto,*" RowSpacing="8">
+                <!-- Compact-only return to the units list -->
+                <Button
+                        Grid.Row="0"
+                        Text="← Units"
+                        IsVisible="{Binding Layout.ShowsOneStep}"
+                        HorizontalOptions="Start"
+                        BackgroundColor="Transparent"
+                        BorderColor="Transparent"
+                        TextColor="{StaticResource Signal}"
+                        FontAttributes="Bold"
+                        Padding="0"
+                        Command="{Binding BackToUnitsCommand}" />
+                <controls:UnitDisplayConfigurationsView
+                    Grid.Row="1"
+                    Unit="{Binding Detail}"
+                    Profiles="{Binding Detail.Profiles}"
+                    ShowSummaryRows="False" />
+            </Grid>
+        </Border>
+
+        <Grid
+            layout:GridLayout.Cell="{Binding Layout.OverlayCell}"
+            IsVisible="{Binding IsUnitFilterOpen}"
+            RowDefinitions="*,18*,*"
+            BackgroundColor="#880E1116"
+            InputTransparent="False"
+            ZIndex="100">
+            <!-- Takes 90% of the height; applying or closing it goes straight to the ViewModel. -->
+            <unitFilter:UnitFilterPopupView
+                Grid.Row="1"
+                HorizontalOptions="Center"
+                MaximumWidthRequest="700"
+                BindingContext="{Binding UnitFilter}" />
+        </Grid>
+    </Grid>
+
+</layout:AdaptiveContentPage>

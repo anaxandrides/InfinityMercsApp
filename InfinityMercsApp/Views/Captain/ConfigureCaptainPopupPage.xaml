@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<layout:AdaptiveContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
+    xmlns:captain="clr-namespace:InfinityMercsApp.ViewModels.Captain"
+             xmlns:captainItems="clr-namespace:InfinityMercsApp.ViewModels.Captain.Items"
+             xmlns:captainPresentation="clr-namespace:InfinityMercsApp.Presentation.Captain"
+    xmlns:captainServices="clr-namespace:InfinityMercsApp.Services.CompanySelection.Captain;assembly=InfinityMercsApp.Services"
+    xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+    xmlns:converters="clr-namespace:InfinityMercsApp.Converters"
+    xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    x:Class="InfinityMercsApp.Views.Captain.ConfigureCaptainPopupPage"
+    x:Name="Root"
+    x:DataType="captain:ConfigureCaptainViewModel"
+    Title="{Binding Title}"
+    BackgroundColor="#B4000000">
+
+    <ContentPage.Behaviors>
+        <!-- Behaviors sit outside the visual tree, so the ViewModel is handed over explicitly. -->
+        <toolkit:EventToCommandBehavior BindingContext="{Binding BindingContext, Source={x:Reference Root}, x:DataType=ContentPage}"
+                                        x:DataType="captain:ConfigureCaptainViewModel"
+                                        EventName="LayoutModeChanged"
+                                        Command="{Binding ApplyLayoutCommand}"
+                                        CommandParameter="{Binding LayoutMode, Source={x:Reference Root}, x:DataType=layout:AdaptiveContentPage}" />
+    </ContentPage.Behaviors>
+
+    <ContentPage.Resources>
+        <converters:LieutenantRunsConverter x:Key="SkillRunsConverter" TextColor="#F59E0B" HighlightColor="#34D399" />
+
+        <Style x:Key="DetailHeading" TargetType="Label" BasedOn="{StaticResource LabelTitleSmall}">
+            <Setter Property="LineBreakMode" Value="WordWrap" />
+        </Style>
+        <Style x:Key="DetailValue" TargetType="Label" BasedOn="{StaticResource LabelSubHeadline}">
+            <Setter Property="HorizontalTextAlignment" Value="End" />
+            <Setter Property="LineBreakMode" Value="WordWrap" />
+        </Style>
+        <Style x:Key="NameActionIcon" TargetType="controls:SvgIcon">
+            <Setter Property="WidthRequest" Value="28" />
+            <Setter Property="HeightRequest" Value="28" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+    </ContentPage.Resources>
+
+    <!-- The card takes 80% of the height. -->
+    <Grid RowDefinitions="*,8*,*">
+        <Border Grid.Row="1"
+                BackgroundColor="#0E1116"
+                Stroke="#3A4554"
+                StrokeThickness="1"
+                Padding="16"
+                MaximumWidthRequest="1012"
+                HorizontalOptions="Center">
+            <Grid RowDefinitions="*,Auto" RowSpacing="14">
+                <!-- Side by side, or stacked on a narrow screen; each pane scrolls on its own. -->
+                <Grid layout:GridLayout.Columns="{Binding Layout.Columns}"
+                      layout:GridLayout.Rows="{Binding Layout.Rows}"
+                      ColumnSpacing="{Binding Layout.ColumnSpacing}"
+                      RowSpacing="{Binding Layout.RowSpacing}">
+
+                    <!-- The captain as currently configured. -->
+                    <ScrollView>
+                        <VerticalStackLayout Spacing="8" Padding="{StaticResource ScrollBarGutter}">
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+                                <Entry Text="{Binding CaptainNameDraft}"
+                                       IsReadOnly="{Binding IsEditingName, Converter={StaticResource InvertedBoolConverter}}"
+                                       IsEnabled="{Binding IsEditingName}"
+                                       Style="{StaticResource EntryTitleSmall}">
+                                    <Entry.Behaviors>
+                                        <behaviors:FocusWhenEditableBehavior />
+                                    </Entry.Behaviors>
+                                </Entry>
+                                <controls:SvgIcon Grid.Column="1"
+                                                  Style="{StaticResource NameActionIcon}"
+                                                  Source="SVGCache/NonCBIcons/noun-edit-333556.svg"
+                                                  IsVisible="{Binding IsEditingName, Converter={StaticResource InvertedBoolConverter}}">
+                                    <controls:SvgIcon.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding EditNameCommand}" />
+                                    </controls:SvgIcon.GestureRecognizers>
+                                </controls:SvgIcon>
+                                <controls:SvgIcon Grid.Column="2"
+                                                  Style="{StaticResource NameActionIcon}"
+                                                  Source="SVGCache/NonCBIcons/noun-check-3612574.svg"
+                                                  IsVisible="{Binding IsEditingName}">
+                                    <controls:SvgIcon.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SaveNameCommand}" />
+                                    </controls:SvgIcon.GestureRecognizers>
+                                </controls:SvgIcon>
+                                <controls:SvgIcon Grid.Column="3"
+                                                  Style="{StaticResource NameActionIcon}"
+                                                  Source="SVGCache/NonCBIcons/noun-x-1890844.svg"
+                                                  IsVisible="{Binding IsEditingName}">
+                                    <controls:SvgIcon.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding RejectNameCommand}" />
+                                    </controls:SvgIcon.GestureRecognizers>
+                                </controls:SvgIcon>
+                            </Grid>
+
+                            <controls:SvgIcon Source="{Binding LogoSource}"
+                                              WidthRequest="80"
+                                              HeightRequest="80"
+                                              HorizontalOptions="Start" />
+
+                            <Label Text="{Binding CaptainName}"
+                                   FontAttributes="Bold"
+                                   Style="{StaticResource DetailHeading}" />
+
+                            <!-- Equal-width columns: stat key over its value, green when upgraded. The text shrinks
+                                 together when the column is too narrow for it. -->
+                            <FlexLayout Direction="Row"
+                                        IsVisible="{Binding HasStatline}"
+                                        BindableLayout.ItemsSource="{Binding StatCells}">
+                                <FlexLayout.Behaviors>
+                                    <behaviors:FitTextToCellsBehavior FontSizeKey="FontSizeSubHeadline" />
+                                </FlexLayout.Behaviors>
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="captainPresentation:CaptainStatCell">
+                                        <VerticalStackLayout FlexLayout.Grow="1" FlexLayout.Basis="0" Spacing="2" Margin="0,0,4,0">
+                                            <Label Text="{Binding Key}"
+                                                   Style="{StaticResource LabelSubHeadline}"
+                                                   LineBreakMode="NoWrap"
+                                                   HorizontalTextAlignment="Center" />
+                                            <Label Text="{Binding Value}"
+                                                   Style="{StaticResource LabelSubHeadline}"
+                                                   LineBreakMode="NoWrap"
+                                                   HorizontalTextAlignment="Center"
+                                                   TextColor="#E6EBF2">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsModified}" Value="True">
+                                                        <Setter Property="TextColor" Value="#34D399" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                        </VerticalStackLayout>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </FlexLayout>
+                            <Label Text="-"
+                                   Style="{StaticResource LabelSubHeadline}"
+                                   IsVisible="{Binding HasStatline, Converter={StaticResource InvertedBoolConverter}}" />
+
+                            <VerticalStackLayout Spacing="1">
+                                <Label Text="Ranged:" Style="{StaticResource DetailHeading}" />
+                                <Label Text="{Binding RangedText}" Style="{StaticResource DetailValue}" TextColor="#F87171" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Spacing="1">
+                                <Label Text="CC:" Style="{StaticResource DetailHeading}" />
+                                <Label Text="{Binding CcText}" Style="{StaticResource DetailValue}" TextColor="#34D399" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Spacing="1">
+                                <Label Text="Skills:" Style="{StaticResource DetailHeading}" />
+                                <Label FormattedText="{Binding SkillRuns, Converter={StaticResource SkillRunsConverter}}"
+                                       Style="{StaticResource DetailValue}" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Spacing="1">
+                                <Label Text="Equipment:" Style="{StaticResource DetailHeading}" />
+                                <Label Text="{Binding EquipmentText}" Style="{StaticResource DetailValue}" TextColor="#B5C0CE" />
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </ScrollView>
+
+                    <!-- What can be bought, and what is left to spend. -->
+                    <Grid layout:GridLayout.Cell="{Binding Layout.UpgradesCell}" RowDefinitions="Auto,Auto,Auto,*" RowSpacing="6">
+                        <Label Text="{Binding UpgradeOptionsHeader}"
+                               FontAttributes="Bold"
+                               Style="{StaticResource LabelSubHeadline}"
+                               TextColor="#E6EBF2" />
+                        <Label Grid.Row="1"
+                               Text="{Binding ExperienceRemainingText}"
+                               FontAttributes="Bold"
+                               Style="{StaticResource LabelBody}"
+                               TextColor="#E6EBF2">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsOverspent}" Value="True">
+                                    <Setter Property="TextColor" Value="#F87171" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+
+                        <!-- Why the build can't be confirmed yet. -->
+                        <VerticalStackLayout Grid.Row="2"
+                                             IsVisible="{Binding HasProblems}"
+                                             BindableLayout.ItemsSource="{Binding Problems}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Label Text="{Binding .}"
+                                           Style="{StaticResource LabelBody}"
+                                           TextColor="#F87171" />
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <ScrollView Grid.Row="3">
+                            <VerticalStackLayout Spacing="8" Padding="{StaticResource ScrollBarGutter}">
+                                <!-- Two stat pickers per row; their text shrinks together when a picker is too narrow for it. -->
+                                <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding StatUpgrades}">
+                                    <FlexLayout.Behaviors>
+                                        <behaviors:FitTextToCellsBehavior FontSizeKey="FontSizeBody" />
+                                    </FlexLayout.Behaviors>
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="captainItems:CaptainStatUpgrade">
+                                            <Picker FlexLayout.Basis="50%"
+                                                    Margin="0,0,8,8"
+                                                    HorizontalTextAlignment="Center"
+                                                    ItemsSource="{Binding Options}"
+                                                    ItemDisplayBinding="{Binding Label, x:DataType=captainServices:StatPickerOption}"
+                                                    SelectedItem="{Binding SelectedOption}" />
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </FlexLayout>
+
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding ChoiceGroups}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="captainItems:CaptainChoiceGroup">
+                                            <VerticalStackLayout Spacing="4" Margin="0,8,0,0">
+                                                <Label Text="{Binding Title}" FontAttributes="Bold" />
+                                                <!-- Rather than empty pickers, when the army's Spec-Ops list has none. -->
+                                                <Label Text="{Binding NoOptionsText}"
+                                                       Style="{StaticResource LabelBody}"
+                                                       TextColor="{StaticResource TextMuted}"
+                                                       IsVisible="{Binding HasOptions, Converter={StaticResource InvertedBoolConverter}}" />
+                                                <!-- The width cap sits on the list, so each picker can say how wide its text wants to be. -->
+                                                <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Slots}"
+                                                                     MaximumWidthRequest="280"
+                                                                     IsVisible="{Binding HasOptions}">
+                                                    <VerticalStackLayout.Behaviors>
+                                                        <behaviors:FitTextToCellsBehavior FontSizeKey="FontSizeBody" />
+                                                    </VerticalStackLayout.Behaviors>
+                                                    <BindableLayout.ItemTemplate>
+                                                        <DataTemplate x:DataType="captainItems:CaptainChoiceSlot">
+                                                            <Picker HorizontalOptions="Fill"
+                                                                    HorizontalTextAlignment="Center"
+                                                                    ItemsSource="{Binding Options}"
+                                                                    SelectedItem="{Binding SelectedChoice}" />
+                                                        </DataTemplate>
+                                                    </BindableLayout.ItemTemplate>
+                                                </VerticalStackLayout>
+                                            </VerticalStackLayout>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </ScrollView>
+                    </Grid>
+                </Grid>
+
+                <!-- Back in the card's bottom-left corner, the confirm button in its bottom-right. -->
+                <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                    <Button Text="BACK"
+                            BackgroundColor="#3A4554"
+                            TextColor="#E6EBF2"
+                            Command="{Binding CancelCommand}" />
+                    <Button Grid.Column="2"
+                            Text="{Binding ConfirmText}"
+                            BackgroundColor="#34D399"
+                            TextColor="#0E1116"
+                            Command="{Binding ConfirmCommand}">
+                        <Button.Triggers>
+                            <Trigger TargetType="Button" Property="IsEnabled" Value="False">
+                                <Setter Property="BackgroundColor" Value="#8A97A8" />
+                            </Trigger>
+                        </Button.Triggers>
+                    </Button>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</layout:AdaptiveContentPage>

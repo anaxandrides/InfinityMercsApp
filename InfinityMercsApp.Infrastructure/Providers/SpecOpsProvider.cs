@@ -1,62 +1,65 @@
 using InfinityMercsApp.Domain.Models.Army;
+using InfinityMercsApp.Domain.Models.Army.SpecOps;
+using InfinityMercsApp.Infrastructure.Data;
 using InfinityMercsApp.Infrastructure.Repositories;
-using DbCCFireteamValidity = InfinityMercsApp.Infrastructure.Models.Database.Army.CCFactionFireteamValidity;
-using DbSpecopsEquipment = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsEquipment;
-using DbSpecopsSkill = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsSkill;
-using DbSpecopsUnit = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsUnit;
-using DbSpecopsWeapon = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecopsWeapon;
+using CCFactionValidCoreFireteamRow = InfinityMercsApp.Infrastructure.Models.Database.Army.Fireteams.CCFactionValidCoreFireteamRow;
+using DbCCFireteamValidity = InfinityMercsApp.Infrastructure.Models.Database.Army.Fireteams.CCFactionFireteamValidity;
+using DbSpecopsEquipment = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecOps.SpecopsEquipment;
+using DbSpecopsSkill = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecOps.SpecopsSkill;
+using DbSpecopsUnit = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecOps.SpecopsUnit;
+using DbSpecopsWeapon = InfinityMercsApp.Infrastructure.Models.Database.Army.SpecOps.SpecopsWeapon;
 
 namespace InfinityMercsApp.Infrastructure.Providers;
 
 /// <inheritdoc/>
-public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository) : ISpecOpsProvider
+public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository, IArmyContentStore contentStore) : ISpecOpsProvider
 {
     /// <inheritdoc/>
-    public Task<IReadOnlyList<SpecopsSkill>> GetSpecopsSkillsByFactionAsync(int factionId, CancellationToken cancellationToken = default)
+    public IReadOnlyList<SpecopsSkill> GetSpecopsSkillsByFaction(int factionId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var records = sqliteRepository
             .GetAll<DbSpecopsSkill>(x => x.FactionId == factionId, x => x.EntryOrder)
             .Select(MapSkill)
             .ToList();
-        return Task.FromResult<IReadOnlyList<SpecopsSkill>>(records);
+        return records;
     }
 
     /// <inheritdoc/>
-    public Task<IReadOnlyList<SpecopsEquipment>> GetSpecopsEquipsByFactionAsync(int factionId, CancellationToken cancellationToken = default)
+    public IReadOnlyList<SpecopsEquipment> GetSpecopsEquipsByFaction(int factionId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var records = sqliteRepository
             .GetAll<DbSpecopsEquipment>(x => x.FactionId == factionId, x => x.EntryOrder)
             .Select(MapEquipment)
             .ToList();
-        return Task.FromResult<IReadOnlyList<SpecopsEquipment>>(records);
+        return records;
     }
 
     /// <inheritdoc/>
-    public Task<IReadOnlyList<SpecopsWeapon>> GetSpecopsWeaponsByFactionAsync(int factionId, CancellationToken cancellationToken = default)
+    public IReadOnlyList<SpecopsWeapon> GetSpecopsWeaponsByFaction(int factionId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var records = sqliteRepository
             .GetAll<DbSpecopsWeapon>(x => x.FactionId == factionId, x => x.EntryOrder)
             .Select(MapWeapon)
             .ToList();
-        return Task.FromResult<IReadOnlyList<SpecopsWeapon>>(records);
+        return records;
     }
 
     /// <inheritdoc/>
-    public Task<IReadOnlyList<SpecopsUnit>> GetSpecopsUnitsByFactionAsync(int factionId, CancellationToken cancellationToken = default)
+    public IReadOnlyList<SpecopsUnit> GetSpecopsUnitsByFaction(int factionId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var records = sqliteRepository
             .GetAll<DbSpecopsUnit>(x => x.FactionId == factionId, x => x.EntryOrder)
             .Select(MapUnit)
             .ToList();
-        return Task.FromResult<IReadOnlyList<SpecopsUnit>>(records);
+        return records;
     }
 
     /// <inheritdoc/>
-    public Task<IReadOnlyList<CCFactionFireteamValidityRecord>> GetCCFactionFireteamValidityAsync(
+    public IReadOnlyList<CCFactionFireteamValidityRecord> GetCCFactionFireteamValidity(
         string filterKey,
         IReadOnlyCollection<int> factionIds,
         CancellationToken cancellationToken = default)
@@ -64,7 +67,7 @@ public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository) : ISpecO
         cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(filterKey) || factionIds.Count == 0)
         {
-            return Task.FromResult<IReadOnlyList<CCFactionFireteamValidityRecord>>([]);
+            return [];
         }
 
         var rows = new List<CCFactionFireteamValidityRecord>();
@@ -79,21 +82,20 @@ public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository) : ISpecO
             }
         }
 
-        return Task.FromResult<IReadOnlyList<CCFactionFireteamValidityRecord>>(rows);
+        return rows;
     }
 
     /// <inheritdoc/>
-    public Task UpsertCCFactionFireteamValidityAsync(
+    public void UpsertCCFactionFireteamValidity(
         int factionId,
         string filterKey,
         bool hasValidCoreFireteams,
-        string? validCoreFireteamsJson,
+        IReadOnlyList<string> validCoreFireteams,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (factionId <= 0 || string.IsNullOrWhiteSpace(filterKey))
         {
-            return Task.CompletedTask;
         }
 
         var normalizedFilterKey = filterKey.Trim();
@@ -103,13 +105,20 @@ public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository) : ISpecO
             FactionId = factionId,
             FilterKey = normalizedFilterKey,
             HasValidCoreFireteams = hasValidCoreFireteams,
-            ValidCoreFireteamsJson = string.IsNullOrWhiteSpace(validCoreFireteamsJson) ? null : validCoreFireteamsJson,
             EvaluatedAtUnixSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
         };
 
-        sqliteRepository.Delete<DbCCFireteamValidity>(x => x.CacheKey == record.CacheKey);
-        sqliteRepository.Insert([record]);
-        return Task.CompletedTask;
+        var names = validCoreFireteams
+            .Select((name, position) => new CCFactionValidCoreFireteamRow { CacheKey = record.CacheKey, Position = position, Name = name })
+            .ToList();
+
+        sqliteRepository.RunInTransaction(() =>
+        {
+            sqliteRepository.Delete<DbCCFireteamValidity>(x => x.CacheKey == record.CacheKey);
+            sqliteRepository.Delete<CCFactionValidCoreFireteamRow>(x => x.CacheKey == record.CacheKey);
+            sqliteRepository.Insert([record]);
+            sqliteRepository.Insert(names);
+        });
     }
 
     private static string BuildCCFactionFireteamValidityCacheKey(int factionId, string filterKey)
@@ -117,8 +126,9 @@ public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository) : ISpecO
         return $"{factionId}:{filterKey}";
     }
 
-    private static SpecopsSkill MapSkill(DbSpecopsSkill source)
+    private SpecopsSkill MapSkill(DbSpecopsSkill source)
     {
+        var links = contentStore.GetSpecopsLinks(source.FactionId, source.SpecopsSkillKey);
         return new SpecopsSkill
         {
             SpecopsSkillKey = source.SpecopsSkillKey,
@@ -126,15 +136,16 @@ public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository) : ISpecO
             EntryOrder = source.EntryOrder,
             SkillId = source.SkillId,
             Exp = source.Exp,
-            ExtrasJson = source.ExtrasJson,
-            EquipJson = source.EquipJson,
-            WeaponsJson = source.WeaponsJson,
-            RawJson = source.RawJson
+            Extras = links.Extras,
+            Skills = links.Skills,
+            Equip = links.Equip,
+            Weapons = links.Weapons
         };
     }
 
-    private static SpecopsEquipment MapEquipment(DbSpecopsEquipment source)
+    private SpecopsEquipment MapEquipment(DbSpecopsEquipment source)
     {
+        var links = contentStore.GetSpecopsLinks(source.FactionId, source.SpecopsEquipmentKey);
         return new SpecopsEquipment
         {
             SpecopsEquipmentKey = source.SpecopsEquipmentKey,
@@ -142,15 +153,16 @@ public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository) : ISpecO
             EntryOrder = source.EntryOrder,
             EquipmentId = source.EquipmentId,
             Exp = source.Exp,
-            ExtrasJson = source.ExtrasJson,
-            SkillsJson = source.SkillsJson,
-            WeaponsJson = source.WeaponsJson,
-            RawJson = source.RawJson
+            Extras = links.Extras,
+            Skills = links.Skills,
+            Equip = links.Equip,
+            Weapons = links.Weapons
         };
     }
 
-    private static SpecopsWeapon MapWeapon(DbSpecopsWeapon source)
+    private SpecopsWeapon MapWeapon(DbSpecopsWeapon source)
     {
+        var links = contentStore.GetSpecopsLinks(source.FactionId, source.SpecopsWeaponKey);
         return new SpecopsWeapon
         {
             SpecopsWeaponKey = source.SpecopsWeaponKey,
@@ -158,12 +170,16 @@ public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository) : ISpecO
             EntryOrder = source.EntryOrder,
             WeaponId = source.WeaponId,
             Exp = source.Exp,
-            RawJson = source.RawJson
+            Extras = links.Extras,
+            Skills = links.Skills,
+            Equip = links.Equip,
+            Weapons = links.Weapons
         };
     }
 
-    private static SpecopsUnit MapUnit(DbSpecopsUnit source)
+    private SpecopsUnit MapUnit(DbSpecopsUnit source)
     {
+        var content = contentStore.GetUnitContent(source.FactionId, source.SpecopsUnitKey);
         return new SpecopsUnit
         {
             SpecopsUnitKey = source.SpecopsUnitKey,
@@ -176,23 +192,27 @@ public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository) : ISpecO
             IscAbbr = source.IscAbbr,
             Name = source.Name,
             Slug = source.Slug,
-            ProfileGroupsJson = source.ProfileGroupsJson,
-            OptionsJson = source.OptionsJson,
-            FiltersJson = source.FiltersJson,
-            FactionsJson = source.FactionsJson,
-            RawJson = source.RawJson
+            ProfileGroups = content.ProfileGroups,
+            Options = content.Options,
+            Filters = content.Filters,
+            FactionIds = content.FactionIds
         };
     }
 
-    private static CCFactionFireteamValidityRecord MapFireteamValidity(DbCCFireteamValidity source)
+    private CCFactionFireteamValidityRecord MapFireteamValidity(DbCCFireteamValidity source)
     {
+        var cacheKey = source.CacheKey;
+        var names = sqliteRepository
+            .GetAll<CCFactionValidCoreFireteamRow>(x => x.CacheKey == cacheKey, x => x.Position)
+            .Select(row => row.Name)
+            .ToList();
         return new CCFactionFireteamValidityRecord
         {
             CacheKey = source.CacheKey,
             FactionId = source.FactionId,
             FilterKey = source.FilterKey,
             HasValidCoreFireteams = source.HasValidCoreFireteams,
-            ValidCoreFireteamsJson = source.ValidCoreFireteamsJson,
+            ValidCoreFireteams = names,
             EvaluatedAtUnixSeconds = source.EvaluatedAtUnixSeconds
         };
     }

@@ -11,9 +11,10 @@
         so there is no light branch to maintain here.
 
         Typography:
-            EthnocentricRegular  → page headlines (used sparingly)
-            ConthraxSemiBold     → labels, controls, stat-block data (default)
-            OpenSansRegular      → running prose / long descriptions (LabelProse)
+            Exo 2, as the Infinity Army uses, in three weights:
+            Exo2Bold             → headlines and titles
+            Exo2SemiBold         → labels, controls, stat-block data (default)
+            Exo2Regular          → running prose / long descriptions (LabelProse)
     -->
 
     <Style TargetType="ActivityIndicator">
@@ -42,7 +43,7 @@
     <Style TargetType="Button">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
         <Setter Property="BorderColor" Value="{StaticResource Signal}"/>
@@ -93,7 +94,7 @@
     <Style TargetType="DatePicker">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
         <Setter Property="MinimumHeightRequest" Value="{DynamicResource MinTouchTarget}"/>
@@ -115,7 +116,7 @@
     <Style TargetType="Editor">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
         <Setter Property="PlaceholderColor" Value="{StaticResource TextMuted}" />
@@ -138,7 +139,7 @@
     <Style TargetType="Entry">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
         <Setter Property="PlaceholderColor" Value="{StaticResource TextMuted}" />
@@ -156,13 +157,6 @@
                 </VisualStateGroup>
             </VisualStateGroupList>
         </Setter>
-    </Style>
-
-    <Style TargetType="Frame">
-        <Setter Property="HasShadow" Value="False" />
-        <Setter Property="BorderColor" Value="{StaticResource Hairline}" />
-        <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusDefault}" />
-        <Setter Property="BackgroundColor" Value="{StaticResource Plate}" />
     </Style>
 
     <Style TargetType="ImageButton">
@@ -190,7 +184,7 @@
     <Style TargetType="Label">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
         <Setter Property="VisualStateManager.VisualStateGroups">
@@ -209,12 +203,12 @@
 
     <Style TargetType="Span">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
     </Style>
 
     <Style TargetType="Label" x:Key="Headline">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
-        <Setter Property="FontFamily" Value="EthnocentricRegular" />
+        <Setter Property="FontFamily" Value="Exo2Bold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeHeadline}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
         <Setter Property="HorizontalOptions" Value="Center" />
@@ -223,7 +217,7 @@
 
     <Style TargetType="Label" x:Key="SubHeadline">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
-        <Setter Property="FontFamily" Value="EthnocentricRegular" />
+        <Setter Property="FontFamily" Value="Exo2Bold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeSubHeadline}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
         <Setter Property="HorizontalOptions" Value="Center" />
@@ -236,30 +230,30 @@
         FontSize binding lives in XAML and resolves through DynamicResource.
     -->
     <Style TargetType="Label" x:Key="LabelMicro">
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeMicro}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
     </Style>
 
     <Style TargetType="Label" x:Key="LabelCaption">
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
     </Style>
 
     <Style TargetType="Label" x:Key="LabelBody">
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
     </Style>
 
     <!--
-        Prose face for running text / long descriptions. Conthrax is a
-        display/data face and gets hard to read in multi-line copy, so
-        anything paragraph-length should carry this style.
+        Prose face for running text / long descriptions. The lighter weight
+        reads more easily over several lines, so anything paragraph-length
+        should carry this style.
     -->
     <Style TargetType="Label" x:Key="LabelProse">
-        <Setter Property="FontFamily" Value="OpenSansRegular" />
+        <Setter Property="FontFamily" Value="Exo2Regular" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
         <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
@@ -267,45 +261,40 @@
     </Style>
 
     <Style TargetType="Label" x:Key="LabelSubHeadline">
-        <Setter Property="FontFamily" Value="EthnocentricRegular" />
+        <Setter Property="FontFamily" Value="Exo2Bold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeSubHeadline}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
     </Style>
 
     <Style TargetType="Label" x:Key="LabelTitleSmall">
-        <Setter Property="FontFamily" Value="EthnocentricRegular" />
+        <Setter Property="FontFamily" Value="Exo2Bold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeTitleSmall}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
     </Style>
 
     <Style TargetType="Entry" x:Key="EntryTitleSmall">
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeTitleSmall}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
     </Style>
 
     <Style TargetType="Button" x:Key="ButtonCaption">
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
     </Style>
 
     <Style TargetType="Button" x:Key="ButtonSubHeadline">
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeSubHeadline}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
-    </Style>
-
-    <Style TargetType="ListView">
-        <Setter Property="SeparatorColor" Value="{StaticResource Hairline}" />
-        <Setter Property="RefreshControlColor" Value="{StaticResource Signal}" />
     </Style>
 
     <Style TargetType="Picker">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="TitleColor" Value="{StaticResource TextMuted}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
         <Setter Property="MinimumHeightRequest" Value="{DynamicResource MinTouchTarget}"/>
@@ -344,7 +333,7 @@
     <Style TargetType="RadioButton">
         <Setter Property="BackgroundColor" Value="Transparent"/>
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
         <Setter Property="MinimumHeightRequest" Value="{DynamicResource MinTouchTarget}"/>
@@ -372,7 +361,7 @@
         <Setter Property="PlaceholderColor" Value="{StaticResource TextMuted}" />
         <Setter Property="CancelButtonColor" Value="{StaticResource Signal}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
         <Setter Property="MinimumHeightRequest" Value="{DynamicResource MinTouchTarget}"/>
@@ -396,7 +385,7 @@
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="PlaceholderColor" Value="{StaticResource TextMuted}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
         <Setter Property="VisualStateManager.VisualStateGroups">
@@ -478,7 +467,7 @@
     <Style TargetType="TimePicker">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="BackgroundColor" Value="Transparent"/>
-        <Setter Property="FontFamily" Value="ConthraxSemiBold" />
+        <Setter Property="FontFamily" Value="Exo2SemiBold" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
         <Setter Property="MinimumHeightRequest" Value="{DynamicResource MinTouchTarget}"/>

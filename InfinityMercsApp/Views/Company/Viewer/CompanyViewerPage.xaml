@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views.Company.Viewer"
+             xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:viewer="clr-namespace:InfinityMercsApp.ViewModels.Company.Viewer"
+             xmlns:viewerItems="clr-namespace:InfinityMercsApp.ViewModels.Company.Viewer.Items"
+             xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
+             x:Class="InfinityMercsApp.Views.Company.Viewer.CompanyViewerPage"
+             x:Name="CompanyViewerPageRoot"
+             x:DataType="viewer:CompanyViewerViewModel"
+             Title="{Binding Title}">
+
+    <ContentPage.Resources>
+        <Style x:Key="NameActionIcon" TargetType="controls:SvgIcon">
+            <Setter Property="WidthRequest" Value="36" />
+            <Setter Property="HeightRequest" Value="36" />
+            <Setter Property="VerticalOptions" Value="Center" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid Padding="16" RowDefinitions="Auto,*" RowSpacing="6">
+        <!-- The company's troopers; tapping one shows it below. -->
+        <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+            <ScrollView.Behaviors>
+                <behaviors:DragToScrollBehavior Orientation="Horizontal" />
+            </ScrollView.Behaviors>
+            <HorizontalStackLayout BindableLayout.ItemsSource="{Binding CompanyUnits}" Spacing="8" Padding="0,0,2,0">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="viewerItems:CompanyViewerUnitListItem">
+                        <controls:CompanyViewerUnitTileView
+                            SelectedStroke="{Binding SelectionAccentColor}"
+                            ItemTappedCommand="{Binding ViewModel.SelectUnitCommand, Source={x:Reference CompanyViewerPageRoot}, x:DataType=view:CompanyViewerPage}" />
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </HorizontalStackLayout>
+        </ScrollView>
+
+        <Border Grid.Row="1" StrokeThickness="0" Padding="12">
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10">
+                <Label Text="{Binding StatusMessage}"
+                       IsVisible="{Binding HasStatusMessage}"
+                       TextColor="{StaticResource TextMuted}"
+                       HorizontalTextAlignment="Center" />
+
+                <VerticalStackLayout Grid.Row="1" Spacing="3" VerticalOptions="Center">
+                    <!-- Readout eyebrow: class designation of the locked unit (LI / MI / HI / TAG / REM). -->
+                    <HorizontalStackLayout Spacing="6" IsVisible="{Binding HasSelectedUnitType}">
+                        <BoxView WidthRequest="8" HeightRequest="8" VerticalOptions="Center"
+                                 BackgroundColor="{StaticResource Signal}" />
+                        <Label Text="{Binding SelectedUnitType}"
+                               Style="{StaticResource LabelCaption}"
+                               TextColor="{StaticResource Signal}"
+                               CharacterSpacing="3"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+
+                    <!-- The trooper's name; tap it or the pencil to rename. -->
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding IsEditingName, Converter={StaticResource InvertedBoolConverter}}">
+                        <Label Text="{Binding SelectedName}" FontSize="{DynamicResource FontSizeDisplay}" FontAttributes="Bold">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding EditNameCommand}" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                        <controls:SvgIcon Grid.Column="1"
+                                          Style="{StaticResource NameActionIcon}"
+                                          Source="SVGCache/NonCBIcons/noun-edit-333556.svg">
+                            <controls:SvgIcon.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding EditNameCommand}" />
+                            </controls:SvgIcon.GestureRecognizers>
+                        </controls:SvgIcon>
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" IsVisible="{Binding IsEditingName}">
+                        <Entry Text="{Binding NameDraft}"
+                               IsReadOnly="{Binding IsEditingName, Converter={StaticResource InvertedBoolConverter}}"
+                               FontSize="{DynamicResource FontSizeDisplay}">
+                            <Entry.Behaviors>
+                                <behaviors:FocusWhenEditableBehavior />
+                            </Entry.Behaviors>
+                        </Entry>
+                        <controls:SvgIcon Grid.Column="1"
+                                          Style="{StaticResource NameActionIcon}"
+                                          Source="SVGCache/NonCBIcons/noun-check-3612574.svg">
+                            <controls:SvgIcon.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SaveNameCommand}" />
+                            </controls:SvgIcon.GestureRecognizers>
+                        </controls:SvgIcon>
+                        <controls:SvgIcon Grid.Column="2"
+                                          Style="{StaticResource NameActionIcon}"
+                                          Source="SVGCache/NonCBIcons/noun-x-1890844.svg">
+                            <controls:SvgIcon.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding RejectNameCommand}" />
+                            </controls:SvgIcon.GestureRecognizers>
+                        </controls:SvgIcon>
+                    </Grid>
+                    <Label Text="{Binding SelectedBaseName}"
+                           IsVisible="{Binding HasSelectedBaseName}"
+                           FontSize="{DynamicResource FontSizeTitleSmall}"
+                           TextColor="{StaticResource TextSecondary}"
+                           HorizontalOptions="Start" />
+                </VerticalStackLayout>
+
+                <controls:UnitDisplayConfigurationsView
+                    Grid.Row="2"
+                    Unit="{Binding Detail}"
+                    ShowConfigurationsSection="False"
+                    ShowSummaryRows="False" />
+
+                <ScrollView Grid.Row="3">
+                    <VerticalStackLayout Spacing="6">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" VerticalOptions="Center">
+                            <Label Text="WEAPONS"
+                                   Style="{StaticResource LabelCaption}"
+                                   TextColor="{StaticResource TextMuted}"
+                                   CharacterSpacing="3"
+                                   VerticalOptions="Center" />
+                            <BoxView Grid.Column="1" HeightRequest="1" VerticalOptions="Center"
+                                     BackgroundColor="{StaticResource Hairline}" />
+                        </Grid>
+                        <Label FormattedText="{Binding RangedWeaponsFormatted}" FontSize="{DynamicResource FontSizeBody}" LineBreakMode="WordWrap" />
+                        <Label FormattedText="{Binding MeleeWeaponsFormatted}" FontSize="{DynamicResource FontSizeBody}" LineBreakMode="WordWrap" />
+                        <Label FormattedText="{Binding PeripheralsFormatted}" FontSize="{DynamicResource FontSizeBody}" LineBreakMode="WordWrap" IsVisible="{Binding HasPeripherals}" />
+                    </VerticalStackLayout>
+                </ScrollView>
+            </Grid>
+        </Border>
+    </Grid>
+
+</baseViews:ContentPageBase>

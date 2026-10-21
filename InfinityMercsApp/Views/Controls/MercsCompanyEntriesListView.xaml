@@ -2,28 +2,26 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:selectionItems="clr-namespace:InfinityMercsApp.ViewModels.Company.Selection.Items"
              x:Class="InfinityMercsApp.Views.Controls.MercsCompanyEntriesListView"
              x:Name="MercsEntriesListRoot">
 
     <CollectionView
         x:Name="EntriesCollection"
-        ItemsSource="{Binding Source={x:Reference MercsEntriesListRoot}, Path=ItemsSource}"
+        ItemsSource="{Binding Source={x:Reference MercsEntriesListRoot}, Path=ItemsSource, x:DataType=controls:MercsCompanyEntriesListView}"
         SelectionMode="None"
-        VerticalOptions="FillAndExpand">
+        VerticalOptions="Fill">
         <CollectionView.ItemTemplate>
-            <DataTemplate>
+            <DataTemplate x:DataType="selectionItems:MercsCompanyEntry">
                 <controls:MercsCompanyEntryCardView
-                    SelectEntryCommand="{Binding Source={x:Reference MercsEntriesListRoot}, Path=SelectEntryCommand}"
-                    RemoveEntryCommand="{Binding Source={x:Reference MercsEntriesListRoot}, Path=RemoveEntryCommand}"
-                    ShowOrderModifierBadges="{Binding Source={x:Reference MercsEntriesListRoot}, Path=ShowOrderModifierBadges}"
-                    PeripheralIconCanvasPaintSurface="OnPeripheralIconCanvasPaintSurface"
-                    IrregularIconCanvasPaintSurface="OnIrregularIconCanvasPaintSurface"
-                    RegularModifierIconCanvasPaintSurface="OnRegularModifierIconCanvasPaintSurface" />
+                    SelectEntryCommand="{Binding Source={x:Reference MercsEntriesListRoot}, Path=SelectEntryCommand, x:DataType=controls:MercsCompanyEntriesListView}"
+                    RemoveEntryCommand="{Binding Source={x:Reference MercsEntriesListRoot}, Path=RemoveEntryCommand, x:DataType=controls:MercsCompanyEntriesListView}"
+                    ShowOrderModifierBadges="{Binding Source={x:Reference MercsEntriesListRoot}, Path=ShowOrderModifierBadges, x:DataType=controls:MercsCompanyEntriesListView}" />
             </DataTemplate>
         </CollectionView.ItemTemplate>
         <CollectionView.EmptyView>
             <Label
-                Text="{Binding Source={x:Reference MercsEntriesListRoot}, Path=EmptyText}"
+                Text="{Binding Source={x:Reference MercsEntriesListRoot}, Path=EmptyText, x:DataType=controls:MercsCompanyEntriesListView}"
                 TextColor="{StaticResource TextMuted}" />
         </CollectionView.EmptyView>
     </CollectionView>

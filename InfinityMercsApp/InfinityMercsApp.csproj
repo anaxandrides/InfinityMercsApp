@@ -26,19 +26,17 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks>net10.0-android</TargetFrameworks>
+		<!-- iOS needs Xcode, so Linux builds skip it. -->
+		<TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">$(TargetFrameworks);net10.0-ios</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
+		<!-- Plain net10.0 builds the app as a library with no platform, so unit tests can reference it.
+		     It must stay last: Visual Studio debugs the first framework listed, and a library can't be started. -->
+		<TargetFrameworks>$(TargetFrameworks);net10.0</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
-		<!-- <TargetFrameworks>$(TargetFrameworks);net9.0-tizen</TargetFrameworks> -->
+		<!-- <TargetFrameworks>$(TargetFrameworks);net10.0-tizen</TargetFrameworks> -->
 
-		<!-- Note for MacCatalyst:
-		The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
-		When specifying both architectures, use the plural <RuntimeIdentifiers> instead of the singular <RuntimeIdentifier>.
-		The Mac App Store will NOT accept apps with ONLY maccatalyst-arm64 indicated;
-		either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
-		<!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
-
-		<OutputType>Exe</OutputType>
+		<OutputType Condition="'$(TargetFramework)' != 'net10.0'">Exe</OutputType>
 		<RootNamespace>InfinityMercsApp</RootNamespace>
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
@@ -49,7 +47,7 @@
 		<ApplicationTitle>InfinityMercsApp</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.infinitymercsapp</ApplicationId>
+		<ApplicationId>com.infinitymercsteam.infinitymercs</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -59,14 +57,27 @@
 		<WindowsPackageType>None</WindowsPackageType>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
-		<NoWarn>$(NoWarn);XC0022;XC0025</NoWarn>
+		<!-- Field-based [ObservableProperty] isn't AOT-safe for WinRT (MVVMTK0045 on Windows): use partial properties. -->
+		<WarningsAsErrors>$(WarningsAsErrors);MVVMTK0042;MVVMTK0045</WarningsAsErrors>
+		<!-- Every binding is compiled (x:DataType); a binding to a missing property fails the build. -->
+		<WarningsAsErrors>$(WarningsAsErrors);MAUIG2045;XC0045</WarningsAsErrors>
+		<!-- Release compiles XAML with XamlC (MAUI's default there); strict makes an uncompiled binding an error too. -->
+		<MauiStrictXamlCompilation>true</MauiStrictXamlCompilation>
 	</PropertyGroup>
+
+	<!-- Debug compiles XAML with the source generator, which keeps XAML Hot Reload and checks binding paths. -->
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+		<MauiXamlInflator>SourceGen</MauiXamlInflator>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="InfinityMercsApp.UnitTests" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<!-- App Icon -->
@@ -80,12 +91,13 @@
 		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
 
 		<!-- Custom Fonts -->
-		<MauiFont Include="Resources\Fonts\*" />
+		<MauiFont Include="Resources\Fonts\*.ttf" />
+		<!-- Also embedded, so text widths can be measured from the font files (FontTextWidth). -->
+		<EmbeddedResource Include="Resources\Fonts\*.ttf" LogicalName="Fonts/%(Filename)%(Extension)" />
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 		<MauiAsset Include="Resources\Images\MercsIcons\**\*" LogicalName="MercsIcons/%(RecursiveDir)%(Filename)%(Extension)" />
-		<MauiAsset Remove="Resources\Raw\DebugTestCompanyManifest.json" Condition="'$(Configuration)' == 'Release'" />
 		<!-- Static UI icons bundled with the app. factions/ and units/ are excluded — downloaded at runtime. -->
 		<MauiAsset Include="SVGCache\CBIcons\**\*" LogicalName="SVGCache/CBIcons/%(RecursiveDir)%(Filename)%(Extension)" />
 		<MauiAsset Include="SVGCache\NonCBIcons\**\*" LogicalName="SVGCache/NonCBIcons/%(RecursiveDir)%(Filename)%(Extension)" />
@@ -95,17 +107,19 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="15.0.1" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
-		<PackageReference Include="Markdig" Version="1.1.1" />
-		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.1" />
-		<PackageReference Include="Svg.Skia" Version="3.0.5" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.12" />
+		<PackageReference Include="Microsoft.Identity.Client" Version="4.91.1" />
+		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.4" />
+		<PackageReference Include="Svg.Skia" Version="3.7.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\InfinityMercsApp.Infrastructure\InfinityMercsApp.Infrastructure.csproj" />
 	  <ProjectReference Include="..\InfinityMercsApp.Domain\InfinityMercsApp.Domain.csproj" />
+	  <ProjectReference Include="..\InfinityMercsApp.Services\InfinityMercsApp.Services.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -118,15 +132,5 @@
 		<None Remove="_tempobj\\**\\*" />
 		<None Remove="_tempbuild\\**\\*" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Compile Update="Views\CreateNewCompanyPage.xaml.cs">
-	    <DependentUpon>CreateNewCompanyPage.xaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\ModeSelectionPage.xaml.cs">
-	    <DependentUpon>ModeSelectionPage.xaml</DependentUpon>
-	  </Compile>
-	</ItemGroup>
-
 
 </Project>

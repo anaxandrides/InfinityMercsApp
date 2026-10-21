@@ -30,7 +30,4 @@ public class Weapon
 
     public string? Profile { get; set; }
 
-    public string? PropertiesJson { get; set; }
-
-    public string? DistanceJson { get; set; }
 }

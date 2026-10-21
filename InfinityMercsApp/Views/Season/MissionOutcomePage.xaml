@@ -1,9 +1,38 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:seasonViewModels="clr-namespace:InfinityMercsApp.ViewModels.Season"
+             xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
              x:Class="InfinityMercsApp.Views.Season.MissionOutcomePage"
+             x:DataType="seasonViewModels:MissionOutcomeViewModel"
              Title="Mission Outcome"
              BackgroundColor="{StaticResource Void}">
+
+    <ContentPage.Resources>
+        <Style x:Key="ResultButton" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="{StaticResource HairlineBright}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
+            <Setter Property="HeightRequest" Value="44" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style x:Key="RowLabel" TargetType="Label">
+            <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+        <Style x:Key="RowValue" TargetType="Label">
+            <Setter Property="Grid.Column" Value="1" />
+            <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="HorizontalTextAlignment" Value="End" />
+        </Style>
+        <Style x:Key="Rule" TargetType="BoxView">
+            <Setter Property="HeightRequest" Value="1" />
+            <Setter Property="Color" Value="{StaticResource HairlineBright}" />
+            <Setter Property="Margin" Value="0,4" />
+        </Style>
+    </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,*,Auto" Padding="16,12,16,16">
 
@@ -24,28 +53,30 @@
                            FontSize="{DynamicResource FontSizeBody}"
                            FontAttributes="Bold" />
                     <Grid ColumnSpacing="8" ColumnDefinitions="*,*">
-                        <Button x:Name="VictoryButton"
-                                Grid.Column="0"
+                        <Button Grid.Column="0"
                                 Text="VICTORY"
-                                BackgroundColor="{StaticResource HairlineBright}"
+                                Style="{StaticResource ResultButton}"
                                 TextColor="{StaticResource Signal}"
-                                FontAttributes="Bold"
-                                FontSize="{DynamicResource FontSizeBody}"
-                                HeightRequest="44"
-                                CornerRadius="4"
-                                Padding="0"
-                                Clicked="OnVictoryClicked" />
-                        <Button x:Name="DefeatButton"
-                                Grid.Column="1"
+                                Command="{Binding SelectVictoryCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsVictory}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="#2A6B57" />
+                                    <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Grid.Column="1"
                                 Text="DEFEAT"
-                                BackgroundColor="{StaticResource HairlineBright}"
+                                Style="{StaticResource ResultButton}"
                                 TextColor="{StaticResource Danger}"
-                                FontAttributes="Bold"
-                                FontSize="{DynamicResource FontSizeBody}"
-                                HeightRequest="44"
-                                CornerRadius="4"
-                                Padding="0"
-                                Clicked="OnDefeatClicked" />
+                                Command="{Binding SelectDefeatCommand}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsDefeat}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="#7F1D1D" />
+                                    <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
                     </Grid>
                 </VerticalStackLayout>
 
@@ -55,12 +86,12 @@
                            TextColor="{StaticResource TextSecondary}"
                            FontSize="{DynamicResource FontSizeBody}"
                            FontAttributes="Bold" />
-                    <Picker x:Name="PointsPicker"
-                            Title="Select points (0-10)..."
+                    <Picker Title="Select points (0-10)..."
+                            ItemsSource="{Binding PointOptions}"
+                            SelectedItem="{Binding PointsScored}"
                             TextColor="{StaticResource TextPrimary}"
                             TitleColor="{StaticResource TextMuted}"
-                            BackgroundColor="{StaticResource HairlineBright}"
-                            SelectedIndexChanged="OnPointsChanged" />
+                            BackgroundColor="{StaticResource HairlineBright}" />
                 </VerticalStackLayout>
 
                 <!-- Outcome breakdown card -->
@@ -68,22 +99,52 @@
                         BackgroundColor="{StaticResource Plate}"
                         StrokeShape="RoundRectangle 4"
                         Padding="14">
-                    <VerticalStackLayout x:Name="BreakdownStack" Spacing="6" />
+                    <VerticalStackLayout Spacing="6">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Round Number" Style="{StaticResource RowLabel}" />
+                            <Label Text="{Binding RoundNumber}" Style="{StaticResource RowValue}" />
+                        </Grid>
+                        <BoxView Style="{StaticResource Rule}" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Mission Credits" Style="{StaticResource RowLabel}" />
+                            <Label Text="{Binding MissionCredits}" Style="{StaticResource RowValue}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Objectives Secured" Style="{StaticResource RowLabel}" />
+                            <Label Text="{Binding ObjectiveCredits}" Style="{StaticResource RowValue}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding IsVictory}">
+                            <Label Text="Victory" Style="{StaticResource RowLabel}" />
+                            <Label Text="{Binding VictoryCredits}" Style="{StaticResource RowValue}" />
+                        </Grid>
+                        <BoxView Style="{StaticResource Rule}" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="SUM" Style="{StaticResource RowLabel}" />
+                            <Label Text="{Binding CreditsTotal}" Style="{StaticResource RowValue}" FontAttributes="Bold" />
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="SWC" Style="{StaticResource RowLabel}" />
+                            <Label Text="{Binding SwcText}" Style="{StaticResource RowValue}" FontAttributes="Bold" TextColor="#F59E0B" />
+                        </Grid>
+                    </VerticalStackLayout>
                 </Border>
 
             </VerticalStackLayout>
         </ScrollView>
 
         <Button Grid.Row="2"
-                x:Name="ContinueButton"
                 Text="GO TO EXPERIENCE"
                 BackgroundColor="{StaticResource Signal}"
                 TextColor="{StaticResource Void}"
                 FontAttributes="Bold"
                 Margin="0,12,0,0"
-                IsEnabled="False"
-                Opacity="0.45"
-                Clicked="OnGoToExperienceClicked"
-                HorizontalOptions="Fill" />
+                Command="{Binding GoToExperienceCommand}"
+                HorizontalOptions="Fill">
+            <Button.Triggers>
+                <Trigger TargetType="Button" Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.45" />
+                </Trigger>
+            </Button.Triggers>
+        </Button>
     </Grid>
-</ContentPage>
+</baseViews:ContentPageBase>

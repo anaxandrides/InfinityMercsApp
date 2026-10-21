@@ -1,5 +1,8 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using InfinityMercsApp.Domain.Models.Army.Filters;
+using InfinityMercsApp.Domain.Models.Perks.Catalog;
+using InfinityMercsApp.Domain.Models.Perks.Tables;
 
 namespace InfinityMercsApp.Domain.Models.Perks;
 
@@ -61,18 +64,18 @@ public static class CompanyPerkOwnershipResolver
         IReadOnlyDictionary<int, string>? charsLookup = null,
         IReadOnlyDictionary<int, string>? extrasLookup = null)
     {
-        var skillNames = ExtractLookupNames(profile, "skills", skillsLookup, extrasLookup);
-        var equipNames = ExtractLookupNames(profile, "equip", equipLookup, extrasLookup);
-        var weaponNames = ExtractLookupNames(profile, "weapons", weaponsLookup, extrasLookup);
-        var charNames = ExtractLookupNames(profile, "chars", charsLookup, extrasLookup);
+        var skillNames = ExtractLookupNames(profile, ArmyFilterSection.Skills, skillsLookup, extrasLookup);
+        var equipNames = ExtractLookupNames(profile, ArmyFilterSection.Equip, equipLookup, extrasLookup);
+        var weaponNames = ExtractLookupNames(profile, ArmyFilterSection.Weapons, weaponsLookup, extrasLookup);
+        var charNames = ExtractLookupNames(profile, ArmyFilterSection.Chars, charsLookup, extrasLookup);
 
         if (option.HasValue)
         {
             var optionValue = option.Value;
-            skillNames.UnionWith(ExtractLookupNames(optionValue, "skills", skillsLookup, extrasLookup));
-            equipNames.UnionWith(ExtractLookupNames(optionValue, "equip", equipLookup, extrasLookup));
-            weaponNames.UnionWith(ExtractLookupNames(optionValue, "weapons", weaponsLookup, extrasLookup));
-            charNames.UnionWith(ExtractLookupNames(optionValue, "chars", charsLookup, extrasLookup));
+            skillNames.UnionWith(ExtractLookupNames(optionValue, ArmyFilterSection.Skills, skillsLookup, extrasLookup));
+            equipNames.UnionWith(ExtractLookupNames(optionValue, ArmyFilterSection.Equip, equipLookup, extrasLookup));
+            weaponNames.UnionWith(ExtractLookupNames(optionValue, ArmyFilterSection.Weapons, weaponsLookup, extrasLookup));
+            charNames.UnionWith(ExtractLookupNames(optionValue, ArmyFilterSection.Chars, charsLookup, extrasLookup));
         }
 
         var includeMechaTrack = IsTagProfile(profile);
@@ -371,7 +374,7 @@ public static class CompanyPerkOwnershipResolver
                     continue;
                 }
 
-                if (!TryParseTrackTier(node.Id, out var trackNumber, out var tier))
+                if (PerkPosition.Parse(node.Id) is not (var trackNumber, var tier))
                 {
                     continue;
                 }
@@ -397,12 +400,8 @@ public static class CompanyPerkOwnershipResolver
             .Trim()
             .ToLowerInvariant());
 
-        var chars = canonical
-            .Select(ch => char.IsLetterOrDigit(ch) ? ch : ' ')
-            .ToArray();
-        return string.Join(
-            ' ',
-            new string(chars).Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        var spaced = string.Concat(canonical.Select(ch => char.IsLetterOrDigit(ch) ? ch : ' '));
+        return string.Join(' ', spaced.Split(' ', StringSplitOptions.RemoveEmptyEntries));
     }
 
     private static string CanonicalizeSemanticShorthand(string input)
@@ -415,7 +414,6 @@ public static class CompanyPerkOwnershipResolver
         // Keep Burst ("+1B") distinct from Ballistic Skill ("+1 BS").
         var value = Regex.Replace(input, @"\+?\s*(\d+)\s*bs\b", " ballistic_skill_plus_$1 ");
         value = Regex.Replace(value, @"\+?\s*(\d+)\s*b\b", " burst_plus_$1 ");
-
 
         // Preserve signed numeric modifiers (for example "+3", "-3") so
         // "Infiltration" does not match "Infiltration (+3)".
@@ -579,14 +577,14 @@ public static class CompanyPerkOwnershipResolver
             .Replace("Must be Captain", string.Empty, StringComparison.OrdinalIgnoreCase)
             .Trim();
 
-        var optionalParentheticalPhrases = new[]
-        {
+        IReadOnlyList<string> optionalParentheticalPhrases =
+        [
             "no slot required",
             "role",
             "accessory",
             "reworked",
             "in active"
-        };
+        ];
 
         var builder = new System.Text.StringBuilder(result.Length);
         for (var i = 0; i < result.Length; i++)
@@ -630,7 +628,7 @@ public static class CompanyPerkOwnershipResolver
         // while perk text is written in inches (for example +8").
         if (rawText.Contains("Forward Deployment", StringComparison.OrdinalIgnoreCase))
         {
-            var numberText = new string(rawText.Where(char.IsDigit).ToArray());
+            var numberText = string.Concat(rawText.Where(char.IsDigit));
             if (int.TryParse(numberText, out var centimeters) && centimeters > 0)
             {
                 var inches = (int)Math.Round(centimeters / 2.54d, MidpointRounding.AwayFromZero);
@@ -689,20 +687,6 @@ public static class CompanyPerkOwnershipResolver
         }
 
         return false;
-    }
-
-    private static bool TryParseTrackTier(string nodeId, out int track, out int tier)
-    {
-        track = 0;
-        tier = 0;
-        var match = Regex.Match(nodeId, @"-track-(?<track>\d+)-tier-(?<tier>\d+)", RegexOptions.IgnoreCase);
-        if (!match.Success)
-        {
-            return false;
-        }
-
-        return int.TryParse(match.Groups["track"].Value, out track) &&
-               int.TryParse(match.Groups["tier"].Value, out tier);
     }
 
     private static IEnumerable<PerkNode> Flatten(IEnumerable<PerkNode> roots)
