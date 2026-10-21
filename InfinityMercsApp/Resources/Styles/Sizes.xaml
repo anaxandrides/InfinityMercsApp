@@ -106,6 +106,12 @@
     <!-- Width for inline picker / dropdown controls -->
     <OnIdiom x:Key="PickerControlWidth" x:TypeArguments="x:Double" Phone="200" Tablet="260" Desktop="280" />
 
+    <!-- Room kept clear on the right of a vertical ScrollView's content for the scroll bar, which Windows draws over
+         the content; other platforms' bars are thin overlays that fade away. -->
+    <OnPlatform x:Key="ScrollBarGutter" x:TypeArguments="Thickness" Default="0">
+        <On Platform="WinUI" Value="0,0,16,0" />
+    </OnPlatform>
+
     <!-- Minimum tappable height (accessibility) -->
     <OnIdiom x:Key="MinTouchTarget" x:TypeArguments="x:Double" Phone="44" Tablet="48" Desktop="44" />
 

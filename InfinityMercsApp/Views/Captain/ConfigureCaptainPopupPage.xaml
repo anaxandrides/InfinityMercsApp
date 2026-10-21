@@ -61,7 +61,7 @@
 
                     <!-- The captain as currently configured. -->
                     <ScrollView>
-                        <VerticalStackLayout Spacing="8">
+                        <VerticalStackLayout Spacing="8" Padding="{StaticResource ScrollBarGutter}">
                             <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
                                 <Entry Text="{Binding CaptainNameDraft}"
                                        IsReadOnly="{Binding IsEditingName, Converter={StaticResource InvertedBoolConverter}}"
@@ -192,7 +192,7 @@
                         </VerticalStackLayout>
 
                         <ScrollView Grid.Row="3">
-                            <VerticalStackLayout Spacing="8">
+                            <VerticalStackLayout Spacing="8" Padding="{StaticResource ScrollBarGutter}">
                                 <!-- Two stat pickers per row; their text shrinks together when a picker is too narrow for it. -->
                                 <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding StatUpgrades}">
                                     <FlexLayout.Behaviors>
@@ -245,25 +245,23 @@
                     </Grid>
                 </Grid>
 
-                <!-- Actions sit under the captain: the left column, or the full width when stacked. -->
-                <Grid Grid.Row="1" layout:GridLayout.Columns="{Binding Layout.ActionColumns}">
-                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
-                        <Button Text="BACK"
-                                BackgroundColor="#3A4554"
-                                TextColor="#E6EBF2"
-                                Command="{Binding CancelCommand}" />
-                        <Button Grid.Column="2"
-                                Text="{Binding ConfirmText}"
-                                BackgroundColor="#34D399"
-                                TextColor="#0E1116"
-                                Command="{Binding ConfirmCommand}">
-                            <Button.Triggers>
-                                <Trigger TargetType="Button" Property="IsEnabled" Value="False">
-                                    <Setter Property="BackgroundColor" Value="#8A97A8" />
-                                </Trigger>
-                            </Button.Triggers>
-                        </Button>
-                    </Grid>
+                <!-- Back in the card's bottom-left corner, the confirm button in its bottom-right. -->
+                <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                    <Button Text="BACK"
+                            BackgroundColor="#3A4554"
+                            TextColor="#E6EBF2"
+                            Command="{Binding CancelCommand}" />
+                    <Button Grid.Column="2"
+                            Text="{Binding ConfirmText}"
+                            BackgroundColor="#34D399"
+                            TextColor="#0E1116"
+                            Command="{Binding ConfirmCommand}">
+                        <Button.Triggers>
+                            <Trigger TargetType="Button" Property="IsEnabled" Value="False">
+                                <Setter Property="BackgroundColor" Value="#8A97A8" />
+                            </Trigger>
+                        </Button.Triggers>
+                    </Button>
                 </Grid>
             </Grid>
         </Border>
