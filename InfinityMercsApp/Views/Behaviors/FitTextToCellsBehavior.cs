@@ -8,6 +8,10 @@ namespace InfinityMercsApp.Views.Behaviors;
 /// The labels and pickers should fill their cells, labels should not wrap, and neither should have a maximum width,
 /// which would hide how wide the text wants to be. The row is fitted again whenever it or a cell is resized, or a
 /// picker's choice changes, so it follows the window and the window's font sizes.
+/// The fit waits until the layout pass that resized the row has finished, so every cell is measured at its final
+/// width; measuring cells while the pass is still laying them out left Windows clipping text it had measured wrongly.
+/// After the text is resized the row is checked again, and shrunk further if a cell's text measures wider at the new
+/// size than expected; that check never grows the text, so the two can't take turns.
 /// </summary>
 public sealed class FitTextToCellsBehavior : Behavior<Layout>
 {
@@ -18,7 +22,8 @@ public sealed class FitTextToCellsBehavior : Behavior<Layout>
         BindableProperty.Create(nameof(SmallestFontSize), typeof(double), typeof(FitTextToCellsBehavior), 7d);
 
     private Layout? _row;
-    private bool _fitting;
+    private bool _fitQueued;
+    private bool _queuedFitOnlyShrinks;
 
     /// <summary>The shared font size resource the row uses when there is room.</summary>
     public string FontSizeKey
@@ -69,7 +74,7 @@ public sealed class FitTextToCellsBehavior : Behavior<Layout>
             Watch((View)e.Element);
         }
 
-        Fit();
+        QueueFit(onlyShrink: false);
     }
 
     private void Watch(View cell)
@@ -81,20 +86,46 @@ public sealed class FitTextToCellsBehavior : Behavior<Layout>
         }
     }
 
-    private void OnResized(object? sender, EventArgs e) => Fit();
+    private void OnResized(object? sender, EventArgs e) => QueueFit(onlyShrink: false);
 
-    private void Fit()
+    // Several cells resize in one layout pass; they share a single fit once it is done.
+    private void QueueFit(bool onlyShrink)
     {
-        // Changing the size resizes the cells, which lands back here; that pass is skipped.
-        if (_fitting || _row is null)
+        if (_row is null)
         {
             return;
+        }
+
+        if (_fitQueued)
+        {
+            _queuedFitOnlyShrinks &= onlyShrink;
+            return;
+        }
+
+        _fitQueued = true;
+        _queuedFitOnlyShrinks = onlyShrink;
+        _row.Dispatcher.Dispatch(() =>
+        {
+            _fitQueued = false;
+            if (Fit(_queuedFitOnlyShrinks))
+            {
+                QueueFit(onlyShrink: true);
+            }
+        });
+    }
+
+    /// <summary>Gives the row's text the size that fits, or only a smaller one; true when that changed it.</summary>
+    private bool Fit(bool onlyShrink)
+    {
+        if (_row is null)
+        {
+            return false;
         }
 
         var cells = Cells(_row);
         if (cells.Count == 0)
         {
-            return;
+            return false;
         }
 
         var current = FontSizeOf(cells[0]);
@@ -103,23 +134,17 @@ public sealed class FitTextToCellsBehavior : Behavior<Layout>
             .Select(cell => new CellText(cell.Width, ((IView)cell).Measure(double.PositiveInfinity, double.PositiveInfinity).Width))
             .ToList();
         var fitted = TextFit.SizeFor(usual, current, widths, SmallestFontSize);
-        if (cells.All(cell => Math.Abs(FontSizeOf(cell) - fitted) < 0.25))
+        if (cells.All(cell => Math.Abs(FontSizeOf(cell) - fitted) < 0.25) || (onlyShrink && fitted >= current))
         {
-            return;
+            return false;
         }
 
-        _fitting = true;
-        try
+        foreach (var cell in cells)
         {
-            foreach (var cell in cells)
-            {
-                SetFontSize(cell, fitted);
-            }
+            SetFontSize(cell, fitted);
         }
-        finally
-        {
-            _fitting = false;
-        }
+
+        return true;
     }
 
     private static double FontSizeOf(View cell) => cell switch
