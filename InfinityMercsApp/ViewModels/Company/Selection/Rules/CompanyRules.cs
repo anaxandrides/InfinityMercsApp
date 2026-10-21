@@ -127,6 +127,11 @@ public abstract class CompanyRules(ArmySourceSelectionMode mode)
         CompanySelectionViewModel screen, CompanyUnitVisibilityLookupContext context, CancellationToken cancellationToken) =>
         screen.UnitList.ShowAllWhenNoneVisible();
 
+    /// <summary>Company-specific fireteam visibility, after the fireteams have followed the units they list.</summary>
+    public virtual void AdjustTeamVisibility(CompanySelectionViewModel screen)
+    {
+    }
+
     // ── Fireteams ──────────────────────────────────────────────────────────
 
     /// <summary>How many of the fireteam the company may field; fireteams it can field none of aren't listed.</summary>

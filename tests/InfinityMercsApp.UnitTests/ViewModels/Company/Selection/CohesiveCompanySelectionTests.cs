@@ -119,6 +119,31 @@ public sealed class CohesiveCompanySelectionTests
     }
 
     [Fact]
+    public async Task AddProfileToMercsCompanyCommand_FirstTrooper_HidesWhoCantJoinAndTheOtherFireteams()
+    {
+        var viewModel = await OpenWithFactionAsync();
+        await viewModel.AddProfileToMercsCompanyCommand.ExecuteAsync(await SelectLieutenantAsync(viewModel, canJoin: true));
+
+        Assert.Single(viewModel.Roster.Entries);
+        Assert.All(viewModel.UnitList.Units.Where(unit => unit.IsVisible), unit => Assert.True(CanJoinTracked(viewModel, unit)));
+        Assert.Contains(viewModel.UnitList.Units, unit => !unit.IsVisible && !CanJoinTracked(viewModel, unit));
+        Assert.All(
+            viewModel.UnitList.TeamEntries.Where(team => !team.IsWildcardBucket && !team.IsTrackedTeam),
+            team => Assert.False(team.IsVisible));
+    }
+
+    [Fact]
+    public async Task ApplyUnitVisibilityFilters_NoTroopers_ShowsWhoCantJoin()
+    {
+        var viewModel = await OpenWithFactionAsync();
+        viewModel.UnitList.TeamsView = false;
+
+        viewModel.ApplyUnitVisibilityFilters();
+
+        Assert.Contains(viewModel.UnitList.Units, unit => unit.IsVisible && !CanJoinTracked(viewModel, unit));
+    }
+
+    [Fact]
     public async Task AddProfileToMercsCompanyCommand_CannotJoinTheFireteam_TurnsItAway()
     {
         var viewModel = await OpenWithFactionAsync();

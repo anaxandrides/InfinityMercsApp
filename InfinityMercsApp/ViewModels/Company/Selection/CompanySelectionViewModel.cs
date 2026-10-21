@@ -471,6 +471,7 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
             }
 
             UnitList.RefreshTeamVisibility();
+            Rules.AdjustTeamVisibility(this);
         }
         catch (Exception ex)
         {
