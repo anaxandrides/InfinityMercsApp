@@ -119,7 +119,6 @@
                                         <VerticalStackLayout FlexLayout.Grow="1" FlexLayout.Basis="0" Spacing="2" Margin="0,0,4,0">
                                             <Label Text="{Binding Key}"
                                                    Style="{StaticResource LabelSubHeadline}"
-                                                   FontAttributes="Bold"
                                                    LineBreakMode="NoWrap"
                                                    HorizontalTextAlignment="Center" />
                                             <Label Text="{Binding Value}"
