@@ -92,6 +92,8 @@
 
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
+		<!-- Also embedded, so text widths can be measured from the font files (FontTextWidth). -->
+		<EmbeddedResource Include="Resources\Fonts\*" LogicalName="Fonts/%(Filename)%(Extension)" />
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />

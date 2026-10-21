@@ -1,4 +1,5 @@
 using InfinityMercsApp.Presentation.Layouts;
+using InfinityMercsApp.Views.Fonts;
 
 namespace InfinityMercsApp.Views.Behaviors;
 
@@ -10,6 +11,8 @@ namespace InfinityMercsApp.Views.Behaviors;
 /// picker's choice changes, so it follows the window and the window's font sizes.
 /// The fit waits until the layout pass that resized the row has finished, so every cell is measured at its final
 /// width; measuring cells while the pass is still laying them out left Windows clipping text it had measured wrongly.
+/// A cell needs the wider of its measured width and its text's width in the font file (<see cref="FontTextWidth"/>),
+/// since Windows measures a label before its custom font has loaded and gets the narrower fallback's width.
 /// After the text is resized the row is checked again, and shrunk further if a cell's text measures wider at the new
 /// size than expected; that check never grows the text, so the two can't take turns.
 /// </summary>
@@ -20,6 +23,17 @@ public sealed class FitTextToCellsBehavior : Behavior<Layout>
 
     public static readonly BindableProperty SmallestFontSizeProperty =
         BindableProperty.Create(nameof(SmallestFontSize), typeof(double), typeof(FitTextToCellsBehavior), 7d);
+
+#if WINDOWS
+    // A Windows combo box's left padding, drop-down arrow and border, around its text.
+    private const double PickerChrome = 52;
+#else
+    // Elsewhere the measured picker already counts its padding and arrow.
+    private const double PickerChrome = 0;
+#endif
+
+    // Room for synthesised bold and rounding, which the font file's widths leave out.
+    private const double TextAllowance = 1.05;
 
     private Layout? _row;
     private bool _fitQueued;
@@ -131,7 +145,7 @@ public sealed class FitTextToCellsBehavior : Behavior<Layout>
         var current = FontSizeOf(cells[0]);
         var usual = Application.Current?.Resources.TryGetValue(FontSizeKey, out var value) == true && value is double size ? size : current;
         var widths = cells
-            .Select(cell => new CellText(cell.Width, ((IView)cell).Measure(double.PositiveInfinity, double.PositiveInfinity).Width))
+            .Select(cell => new CellText(cell.Width, NeededWidth(cell)))
             .ToList();
         var fitted = TextFit.SizeFor(usual, current, widths, SmallestFontSize);
         if (cells.All(cell => Math.Abs(FontSizeOf(cell) - fitted) < 0.25) || (onlyShrink && fitted >= current))
@@ -146,6 +160,22 @@ public sealed class FitTextToCellsBehavior : Behavior<Layout>
 
         return true;
     }
+
+    private static double NeededWidth(View cell)
+    {
+        var measured = ((IView)cell).Measure(double.PositiveInfinity, double.PositiveInfinity).Width;
+        return TextWidthOf(cell) is { } textWidth ? Math.Max(measured, textWidth) : measured;
+    }
+
+    private static double? TextWidthOf(View cell) => cell switch
+    {
+        Label label => FontTextWidth.Of(label.Text, label.FontFamily, label.FontSize, label.FontAttributes.HasFlag(FontAttributes.Bold))
+            * TextAllowance + label.Padding.HorizontalThickness,
+        Picker picker when picker.SelectedIndex >= 0 && picker.SelectedIndex < picker.Items.Count =>
+            FontTextWidth.Of(picker.Items[picker.SelectedIndex], picker.FontFamily, picker.FontSize, picker.FontAttributes.HasFlag(FontAttributes.Bold))
+            * TextAllowance + PickerChrome,
+        _ => null
+    };
 
     private static double FontSizeOf(View cell) => cell switch
     {
