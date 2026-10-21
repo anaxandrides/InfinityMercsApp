@@ -22,7 +22,7 @@ public sealed class ProxyPackCompanyRules(ArmySourceSelectionMode mode) : Standa
 
     public override bool AllowsTeamsFilter => false;
 
-    /// <summary>Every faction but the Non-Aligned Armies, with their logos cached.</summary>
+    /// <summary>Every faction but the Non-Aligned Armies, in the Infinity Army's order, with their logos cached.</summary>
     public override async Task<IReadOnlyList<FactionRecord>> LoadFactionsAsync(CompanySelectionViewModel screen, CancellationToken cancellationToken)
     {
         var factions = screen.Services.ArmyData
@@ -34,7 +34,7 @@ public sealed class ProxyPackCompanyRules(ArmySourceSelectionMode mode) : Standa
             await logos.CacheFactionLogosFromRecordsAsync(factions, cancellationToken);
         }
 
-        return WithoutGeneratedFactions(CompanyFactionCatalog.CollapseContractedBackUpVariants(factions).OrderBy(faction => faction.Name));
+        return WithoutGeneratedFactions(CompanyFactionCatalog.CollapseContractedBackUpVariants(factions).OrderBy(faction => faction.Id));
     }
 
     /// <summary>Only regular troopers show, and an empty list stays empty.</summary>
