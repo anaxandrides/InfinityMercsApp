@@ -57,6 +57,13 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
     [NotifyCanExecuteChangedFor(nameof(StartCompanyCommand))]
     public partial bool IsCompanyValid { get; set; }
 
+    /// <summary>Why the company can't be started, or its recruits hired, yet; empty when it can.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasStartBlockedText))]
+    public partial string StartBlockedText { get; set; } = string.Empty;
+
+    public bool HasStartBlockedText => StartBlockedText.Length > 0;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsUnitsPaneActive), nameof(IsProfilePaneActive), nameof(IsCompanyPaneActive))]
     public partial CompanySelectionPane ActivePane { get; set; } = CompanySelectionPane.Units;
@@ -774,14 +781,28 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
 
     /// <summary>
     /// The company can start once it has a lieutenant and fits the points limit; a recruiting company also
-    /// needs at least one recruit, and its remaining CR is shown.
+    /// needs at least one recruit, and its remaining CR is shown. What stops it is said beside the button.
     /// </summary>
     private void UpdateSeasonValidation()
     {
-        IsCompanyValid = Roster.HasLieutenant &&
-                         Points(SeasonPointsCapText) <= Points(SelectedStartSeasonPoints) &&
-                         (IsFoundingCompany || Roster.Recruits.Count > 0);
+        StartBlockedText = StartBlockedReason();
+        IsCompanyValid = !HasStartBlockedText;
         CreditsLeftText = IsRecruiting ? $"{PointsRemaining} CR LEFT" : string.Empty;
+    }
+
+    private string StartBlockedReason()
+    {
+        if (!Roster.HasLieutenant)
+        {
+            return IsRecruiting ? "The company needs a Lieutenant." : "Choose a Lieutenant to start the company.";
+        }
+
+        if (Points(SeasonPointsCapText) > Points(SelectedStartSeasonPoints))
+        {
+            return IsRecruiting ? "Not enough CR for these recruits." : "The company is over its points limit.";
+        }
+
+        return IsRecruiting && Roster.Recruits.Count == 0 ? "Add a recruit to hire." : string.Empty;
     }
 
     /// <summary>
