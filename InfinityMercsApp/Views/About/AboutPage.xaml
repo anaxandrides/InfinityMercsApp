@@ -1008,6 +1008,19 @@
             </Grid>
             </FlexLayout>
 
+            <FlexLayout Direction="Row" Wrap="Wrap" AlignItems="Start">
+                <Label Text="Exo 2 font by Natanael Gama and the Exo 2 Project Authors, from " />
+                <Label
+                    Text="Google Fonts"
+                    TextColor="#2563EB"
+                    TextDecorations="Underline">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding OpenLinkCommand}" CommandParameter="https://github.com/googlefonts/Exo-2.0" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Text=" (SIL Open Font License 1.1)" />
+            </FlexLayout>
+
         </VerticalStackLayout>
     </ScrollView>
 

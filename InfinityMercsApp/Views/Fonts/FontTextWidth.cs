@@ -5,7 +5,7 @@ namespace InfinityMercsApp.Views.Fonts;
 
 /// <summary>
 /// How wide text is in one of the app's fonts, read from the font file itself. Windows can measure a label before
-/// its custom font has loaded, getting the narrower fallback font's width; this width is the same on every platform.
+/// its bundled font has loaded, getting the fallback font's width; this width is the same on every platform.
 /// </summary>
 public static class FontTextWidth
 {

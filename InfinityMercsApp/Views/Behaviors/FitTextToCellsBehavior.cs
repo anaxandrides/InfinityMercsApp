@@ -12,7 +12,7 @@ namespace InfinityMercsApp.Views.Behaviors;
 /// The fit waits until the layout pass that resized the row has finished, so every cell is measured at its final
 /// width; measuring cells while the pass is still laying them out left Windows clipping text it had measured wrongly.
 /// A cell needs the wider of its measured width and its text's width in the font file (<see cref="FontTextWidth"/>),
-/// since Windows measures a label before its custom font has loaded and gets the narrower fallback's width.
+/// since Windows can measure a label before its bundled font has loaded and get the fallback's width.
 /// After the text is resized the row is checked again, and shrunk further if a cell's text measures wider at the new
 /// size than expected; that check never grows the text, so the two can't take turns.
 /// </summary>

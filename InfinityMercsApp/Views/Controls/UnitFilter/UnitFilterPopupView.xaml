@@ -27,7 +27,7 @@
                         StrokeThickness="0"
                         Padding="16,14">
                     <Label Text="Filter Units"
-                           FontFamily="EthnocentricRegular"
+                           FontFamily="Exo2Bold"
                            FontSize="{DynamicResource FontSizeSubHeadline}"
                            TextColor="{StaticResource TextPrimary}"
                            VerticalOptions="Center" />
@@ -98,7 +98,7 @@
                             <Grid ColumnDefinitions="*,Auto">
                                 <Label Grid.Column="0"
                                        Text="{Binding SelectedCriterionTitle}"
-                                       FontFamily="ConthraxSemiBold"
+                                       FontFamily="Exo2SemiBold"
                                        FontAttributes="Bold"
                                        FontSize="{DynamicResource FontSizeSectionHeader}"
                                        TextColor="{StaticResource TextPrimary}"
