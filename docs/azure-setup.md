@@ -34,10 +34,13 @@ TENANT=$(az account show --query tenantId -o tsv)
 APP=$(az ad app create --display-name infinitymercs-deploy --query appId -o tsv)
 az ad sp create --id "$APP"
 
+# GitHub names this repository by owner and repository id as well as by name (repo:owner@id/name@id), so a rename
+# can't hand the trust to another repository. The subject must match exactly; a failed sign-in (AADSTS700213) prints
+# the one GitHub presented.
 az ad app federated-credential create --id "$APP" --parameters '{
   "name": "github-production",
   "issuer": "https://token.actions.githubusercontent.com",
-  "subject": "repo:anaxandrides/InfinityMercsApp:environment:production",
+  "subject": "repo:anaxandrides@48453148/InfinityMercsApp@1416092523:environment:production",
   "audiences": ["api://AzureADTokenExchange"]
 }'
 
