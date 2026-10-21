@@ -3,6 +3,7 @@ using CommunityToolkit.Maui;
 using InfinityMercsApp.Infrastructure;
 using InfinityMercsApp.Infrastructure.Options;
 using InfinityMercsApp.Services.Import;
+using InfinityMercsApp.Views.Fonts;
 using Microsoft.Extensions.Logging;
 using SkiaSharp.Views.Maui.Controls.Hosting;
 
@@ -24,10 +25,10 @@ public static class MauiProgram
 			.UseSkiaSharp()
 			.ConfigureFonts(fonts =>
 			{
-				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-				fonts.AddFont("Ethnocentric-Regular.otf", "EthnocentricRegular");
-				fonts.AddFont("Conthrax-SemiBold.otf", "ConthraxSemiBold");
+				foreach (var font in AppFonts.All)
+				{
+					fonts.AddFont(font.FileName, font.Alias);
+				}
 			});
 
 #if WINDOWS

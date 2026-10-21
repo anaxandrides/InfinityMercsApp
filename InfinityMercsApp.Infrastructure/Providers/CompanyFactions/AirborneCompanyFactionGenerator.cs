@@ -64,19 +64,19 @@ public sealed class AirborneCompanyFactionGenerator(
     }
 
     /// <summary>
-    /// A group qualifies when one of its profiles has an airborne deployment skill (a profile-level skill);
-    /// it keeps the options without a positive SWC cost.
+    /// The group's options without a positive SWC cost that deploy airborne: every one when a profile has an
+    /// airborne deployment skill, otherwise those that give one themselves (only the Crushers' Combat Jump loadout).
     /// </summary>
-    private static IReadOnlyList<ProfileOption> AirborneOptions(ProfileGroup group, HashSet<int> airborneSkillIds)
+    internal static IReadOnlyList<ProfileOption> AirborneOptions(ProfileGroup group, IReadOnlySet<int> airborneSkillIds)
     {
-        var hasAirborneDeployment = group.Profiles
-            .SelectMany(profile => profile.Skills)
-            .Any(skill => skill.Id is int id && airborneSkillIds.Contains(id));
-
-        return hasAirborneDeployment
-            ? group.Options.Where(option => !option.CostsSwc).ToList()
-            : [];
+        var profileDeploysAirborne = HasAirborneSkill(group.Profiles.SelectMany(profile => profile.Skills), airborneSkillIds);
+        return group.Options
+            .Where(option => !option.CostsSwc && (profileDeploysAirborne || HasAirborneSkill(option.Skills, airborneSkillIds)))
+            .ToList();
     }
+
+    private static bool HasAirborneSkill(IEnumerable<ProfileEntry> skills, IReadOnlySet<int> airborneSkillIds) =>
+        skills.Any(skill => skill.Id is int id && airborneSkillIds.Contains(id));
 
     private HashSet<int> FindAirborneSkillIds(IReadOnlyList<int> factionIds)
     {

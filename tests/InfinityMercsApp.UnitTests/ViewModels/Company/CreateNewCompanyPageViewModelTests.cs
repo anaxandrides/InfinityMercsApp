@@ -57,7 +57,7 @@ public sealed class CreateNewCompanyPageViewModelTests
             viewModel.Choices.Select(choice => choice.Title));
         Assert.Same(viewModel.OpenProxyPackCompanyPageCommand, viewModel.Choices[5].Command);
         Assert.Equal(new GridCell(5, 0), viewModel.Choices[5].Cell);
-        Assert.Equal("Auto,Auto,Auto,Auto,Auto,Auto", viewModel.ChoiceRows);
+        Assert.Equal("*,*,*,*,*,*", viewModel.ChoiceRows);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public sealed class CreateNewCompanyPageViewModelTests
         viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Wide);
 
         Assert.Equal(new GridCell(1, 1), viewModel.Choices[4].Cell);
-        Assert.Equal("Auto,Auto", viewModel.ChoiceRows);
+        Assert.Equal("*,*", viewModel.ChoiceRows);
         Assert.False(viewModel.Choices[0].Style.UsesCompactTitle);
         Assert.Contains(nameof(CreateNewCompanyPageViewModel.Choices), changed);
     }

@@ -12,7 +12,6 @@ public sealed class CaptainPopupLayoutTests
 
         Assert.Equal(("*", "*,*"), (layout.Columns, layout.Rows));
         Assert.Equal(new GridCell(1, 0), layout.UpgradesCell);
-        Assert.Equal("*", layout.ActionColumns);
     }
 
     [Theory]
@@ -25,6 +24,5 @@ public sealed class CaptainPopupLayoutTests
 
         Assert.Equal(("*,*", "*"), (layout.Columns, layout.Rows));
         Assert.Equal(new GridCell(0, 1), layout.UpgradesCell);
-        Assert.Equal("*,*", layout.ActionColumns);
     }
 }

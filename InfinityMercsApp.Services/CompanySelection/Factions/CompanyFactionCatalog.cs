@@ -11,7 +11,8 @@ public sealed class CompanyFactionCatalog(IArmyDataService armyData, FactionLogo
 {
     /// <summary>
     /// Every vanilla faction or every sectorial (by <paramref name="mode"/>), without the Non-Aligned Armies and
-    /// with one Contracted Back-Up, by name; their logos are cached on the way.
+    /// with one Contracted Back-Up, in the Infinity Army's order (by id, so each army's sectorials sit together);
+    /// their logos are cached on the way.
     /// </summary>
     public async Task<List<FactionRecord>> LoadAsync(ArmySourceSelectionMode mode, CancellationToken cancellationToken = default)
     {
@@ -36,7 +37,7 @@ public sealed class CompanyFactionCatalog(IArmyDataService armyData, FactionLogo
 
         filtered = filtered.Where(x => !IsNonAlignedArmyName(x.Name));
         filtered = CollapseContractedBackUpVariants(filtered);
-        return filtered.OrderBy(x => x.Name).ToList();
+        return filtered.OrderBy(x => x.Id).ToList();
     }
 
     public static IEnumerable<FactionRecord> CollapseContractedBackUpVariants(IEnumerable<FactionRecord> factions)

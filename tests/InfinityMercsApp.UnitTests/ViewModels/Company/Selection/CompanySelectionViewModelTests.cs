@@ -159,6 +159,7 @@ public sealed class CompanySelectionViewModelTests
         Assert.Equal(entry.CostValue.ToString(), viewModel.SeasonPointsCapText);
         Assert.True(viewModel.IsCompanyValid);
         Assert.True(viewModel.StartCompanyCommand.CanExecute(null));
+        Assert.False(viewModel.HasStartBlockedText);
         Assert.True(profile.IsLieutenantBlocked);
     }
 
@@ -173,6 +174,7 @@ public sealed class CompanySelectionViewModelTests
         Assert.Single(viewModel.Roster.Entries);
         Assert.False(viewModel.IsCompanyValid);
         Assert.False(viewModel.StartCompanyCommand.CanExecute(null));
+        Assert.Equal("Choose a Lieutenant to start the company.", viewModel.StartBlockedText);
     }
 
     [Fact]
@@ -196,6 +198,7 @@ public sealed class CompanySelectionViewModelTests
         viewModel.SelectedStartSeasonPoints = "1";
 
         Assert.False(viewModel.IsCompanyValid);
+        Assert.Equal("The company is over its points limit.", viewModel.StartBlockedText);
     }
 
     [Fact]

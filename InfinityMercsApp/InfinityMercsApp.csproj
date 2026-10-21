@@ -91,7 +91,9 @@
 		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
 
 		<!-- Custom Fonts -->
-		<MauiFont Include="Resources\Fonts\*" />
+		<MauiFont Include="Resources\Fonts\*.ttf" />
+		<!-- Also embedded, so text widths can be measured from the font files (FontTextWidth). -->
+		<EmbeddedResource Include="Resources\Fonts\*.ttf" LogicalName="Fonts/%(Filename)%(Extension)" />
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />

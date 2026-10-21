@@ -246,11 +246,18 @@
                     SelectEntryCommand="{Binding SelectMercsCompanyEntryCommand}"
                     RemoveEntryCommand="{Binding RemoveMercsCompanyEntryCommand}"
                     ShowOrderModifierBadges="{Binding TracksCoreFireteam}" />
-                <Button Grid.Row="2"
-                        Text="{Binding ConfirmText}"
-                        HorizontalOptions="End"
-                        Margin="0,0,10,10"
-                        Command="{Binding StartCompanyCommand}" />
+                <!-- What keeps the button disabled, beside it. -->
+                <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,0,10,10">
+                    <Label Text="{Binding StartBlockedText}"
+                           IsVisible="{Binding HasStartBlockedText}"
+                           TextColor="{StaticResource Danger}"
+                           HorizontalTextAlignment="End"
+                           VerticalOptions="Center"
+                           LineBreakMode="WordWrap" />
+                    <Button Grid.Column="1"
+                            Text="{Binding ConfirmText}"
+                            Command="{Binding StartCompanyCommand}" />
+                </Grid>
             </Grid>
         </Grid>
 

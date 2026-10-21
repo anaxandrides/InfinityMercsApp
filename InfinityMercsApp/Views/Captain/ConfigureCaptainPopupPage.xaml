@@ -61,7 +61,7 @@
 
                     <!-- The captain as currently configured. -->
                     <ScrollView>
-                        <VerticalStackLayout Spacing="8">
+                        <VerticalStackLayout Spacing="8" Padding="{StaticResource ScrollBarGutter}">
                             <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
                                 <Entry Text="{Binding CaptainNameDraft}"
                                        IsReadOnly="{Binding IsEditingName, Converter={StaticResource InvertedBoolConverter}}"
@@ -119,7 +119,6 @@
                                         <VerticalStackLayout FlexLayout.Grow="1" FlexLayout.Basis="0" Spacing="2" Margin="0,0,4,0">
                                             <Label Text="{Binding Key}"
                                                    Style="{StaticResource LabelSubHeadline}"
-                                                   FontAttributes="Bold"
                                                    LineBreakMode="NoWrap"
                                                    HorizontalTextAlignment="Center" />
                                             <Label Text="{Binding Value}"
@@ -193,9 +192,12 @@
                         </VerticalStackLayout>
 
                         <ScrollView Grid.Row="3">
-                            <VerticalStackLayout Spacing="8">
-                                <!-- Two stat pickers per row. -->
+                            <VerticalStackLayout Spacing="8" Padding="{StaticResource ScrollBarGutter}">
+                                <!-- Two stat pickers per row; their text shrinks together when a picker is too narrow for it. -->
                                 <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding StatUpgrades}">
+                                    <FlexLayout.Behaviors>
+                                        <behaviors:FitTextToCellsBehavior FontSizeKey="FontSizeBody" />
+                                    </FlexLayout.Behaviors>
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="captainItems:CaptainStatUpgrade">
                                             <Picker FlexLayout.Basis="50%"
@@ -218,12 +220,16 @@
                                                        Style="{StaticResource LabelBody}"
                                                        TextColor="{StaticResource TextMuted}"
                                                        IsVisible="{Binding HasOptions, Converter={StaticResource InvertedBoolConverter}}" />
+                                                <!-- The width cap sits on the list, so each picker can say how wide its text wants to be. -->
                                                 <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Slots}"
+                                                                     MaximumWidthRequest="280"
                                                                      IsVisible="{Binding HasOptions}">
+                                                    <VerticalStackLayout.Behaviors>
+                                                        <behaviors:FitTextToCellsBehavior FontSizeKey="FontSizeBody" />
+                                                    </VerticalStackLayout.Behaviors>
                                                     <BindableLayout.ItemTemplate>
                                                         <DataTemplate x:DataType="captainItems:CaptainChoiceSlot">
-                                                            <Picker MaximumWidthRequest="280"
-                                                                    HorizontalOptions="Fill"
+                                                            <Picker HorizontalOptions="Fill"
                                                                     HorizontalTextAlignment="Center"
                                                                     ItemsSource="{Binding Options}"
                                                                     SelectedItem="{Binding SelectedChoice}" />
@@ -239,25 +245,23 @@
                     </Grid>
                 </Grid>
 
-                <!-- Actions sit under the captain: the left column, or the full width when stacked. -->
-                <Grid Grid.Row="1" layout:GridLayout.Columns="{Binding Layout.ActionColumns}">
-                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
-                        <Button Text="BACK"
-                                BackgroundColor="#3A4554"
-                                TextColor="#E6EBF2"
-                                Command="{Binding CancelCommand}" />
-                        <Button Grid.Column="2"
-                                Text="{Binding ConfirmText}"
-                                BackgroundColor="#34D399"
-                                TextColor="#0E1116"
-                                Command="{Binding ConfirmCommand}">
-                            <Button.Triggers>
-                                <Trigger TargetType="Button" Property="IsEnabled" Value="False">
-                                    <Setter Property="BackgroundColor" Value="#8A97A8" />
-                                </Trigger>
-                            </Button.Triggers>
-                        </Button>
-                    </Grid>
+                <!-- Back in the card's bottom-left corner, the confirm button in its bottom-right. -->
+                <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                    <Button Text="BACK"
+                            BackgroundColor="#3A4554"
+                            TextColor="#E6EBF2"
+                            Command="{Binding CancelCommand}" />
+                    <Button Grid.Column="2"
+                            Text="{Binding ConfirmText}"
+                            BackgroundColor="#34D399"
+                            TextColor="#0E1116"
+                            Command="{Binding ConfirmCommand}">
+                        <Button.Triggers>
+                            <Trigger TargetType="Button" Property="IsEnabled" Value="False">
+                                <Setter Property="BackgroundColor" Value="#8A97A8" />
+                            </Trigger>
+                        </Button.Triggers>
+                    </Button>
                 </Grid>
             </Grid>
         </Border>

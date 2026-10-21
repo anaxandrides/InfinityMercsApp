@@ -34,4 +34,10 @@ public interface IAppSettingsProvider
 
     /// <summary>Records the fingerprint of the metadata just stored.</summary>
     public void SetMetadataFingerprint(string fingerprint);
+
+    /// <summary>The version of the rules the generated company factions were last built with; null before any.</summary>
+    public string? GetGeneratedCompaniesVersion();
+
+    /// <summary>Records the version of the rules the generated company factions were just built with.</summary>
+    public void SetGeneratedCompaniesVersion(string version);
 }

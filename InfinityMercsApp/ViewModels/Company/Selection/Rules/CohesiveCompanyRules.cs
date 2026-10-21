@@ -124,6 +124,40 @@ public sealed class CohesiveCompanyRules(ArmySourceSelectionMode mode) : Company
     /// <summary>Picking a unit from a fireteam-only (FTO) slot shows only its FTO profiles.</summary>
     public override bool RestrictsProfilesFor(ArmyTeamUnitLimitItem teamItem) => FireteamMatching.IsFtoLabel(teamItem.Name);
 
+    /// <summary>Once the company has troopers, only those who can join its fireteam show.</summary>
+    public override void AdjustUnitVisibility(
+        CompanySelectionViewModel screen, CompanyUnitVisibilityLookupContext context, CancellationToken cancellationToken)
+    {
+        base.AdjustUnitVisibility(screen, context, cancellationToken);
+        if (!IsHeldToFireteam(screen) || screen.CoreFireteam is not { } fireteam)
+        {
+            return;
+        }
+
+        foreach (var unit in screen.UnitList.Units.Where(unit => unit.IsVisible && !fireteam.CanJoin(unit)))
+        {
+            unit.IsVisible = false;
+        }
+    }
+
+    /// <summary>Once the company has troopers, the other fireteams are hidden; the wildcard buckets stay.</summary>
+    public override void AdjustTeamVisibility(CompanySelectionViewModel screen)
+    {
+        if (!IsHeldToFireteam(screen))
+        {
+            return;
+        }
+
+        foreach (var team in screen.UnitList.TeamEntries.Where(team => !team.IsWildcardBucket && !team.IsTrackedTeam))
+        {
+            team.IsVisible = false;
+        }
+    }
+
+    // The first trooper commits the company to the tracked fireteam: everyone after must be able to join it.
+    private static bool IsHeldToFireteam(CompanySelectionViewModel screen) =>
+        screen.Roster.Entries.Count > 0 && screen.CoreFireteam?.Slots() is not null;
+
     // ── Troopers ────────────────────────────────────────────────────────────
 
     /// <summary>Every trooper must be able to join the core fireteam.</summary>

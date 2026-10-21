@@ -288,7 +288,7 @@
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="stats:StatValue">
                                             <VerticalStackLayout FlexLayout.Grow="1" FlexLayout.Basis="0" Spacing="2">
-                                                <Label Text="{Binding Key}" FontSize="{DynamicResource FontSizeMicro}" TextColor="#8A97A8" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                                                <Label Text="{Binding Key}" FontFamily="Exo2Bold" FontSize="{DynamicResource FontSizeMicro}" TextColor="#8A97A8" HorizontalTextAlignment="Center" />
                                                 <Label Text="{Binding Value}" FontSize="{DynamicResource FontSizeBody}" TextColor="#E6EBF2" HorizontalTextAlignment="Center" />
                                             </VerticalStackLayout>
                                         </DataTemplate>
