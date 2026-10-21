@@ -190,7 +190,11 @@ public static class ServiceRegistryExtensions
                     var settings = provider.GetRequiredService<SignInSettings>();
                     return PublicClientApplicationBuilder.Create(settings.ClientId)
                         .WithAuthority(settings.Authority)
+#if WINDOWS
+                        .WithRedirectUri(SignInSettings.DesktopRedirectUri)
+#else
                         .WithRedirectUri(settings.RedirectUri)
+#endif
                         .Build();
                 })
                 .AddSingleton<ISignInService, MsalSignInService>();

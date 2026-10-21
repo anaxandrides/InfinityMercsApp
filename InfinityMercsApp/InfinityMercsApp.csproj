@@ -112,6 +112,8 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.12" />
 		<PackageReference Include="Microsoft.Identity.Client" Version="4.91.1" />
+		<!-- Keeps the Windows sign-in across launches; Android's MSAL keeps it itself. -->
+		<PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.91.1" Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'" />
 		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.4" />
 		<PackageReference Include="Svg.Skia" Version="3.7.0" />
 	</ItemGroup>
