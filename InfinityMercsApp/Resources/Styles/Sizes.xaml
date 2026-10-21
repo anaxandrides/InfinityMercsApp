@@ -106,10 +106,16 @@
     <!-- Width for inline picker / dropdown controls -->
     <OnIdiom x:Key="PickerControlWidth" x:TypeArguments="x:Double" Phone="200" Tablet="260" Desktop="280" />
 
-    <!-- Room kept clear on the right of a vertical ScrollView's content for the scroll bar, which Windows draws over
-         the content; other platforms' bars are thin overlays that fade away. -->
+    <!-- Room kept clear on the right of scrolling content for the scroll bar, which Windows draws over the content;
+         other platforms' bars are thin overlays that fade away. Every vertical ScrollView gets it from its implicit
+         style (Styles.xaml); a list's items take it as their margin, since a CollectionView has no padding. -->
     <OnPlatform x:Key="ScrollBarGutter" x:TypeArguments="Thickness" Default="0">
         <On Platform="WinUI" Value="0,0,16,0" />
+    </OnPlatform>
+
+    <!-- A card in a vertical list: the scroll bar's gutter, and room below before the next card. -->
+    <OnPlatform x:Key="ListCardMargin" x:TypeArguments="Thickness" Default="0,0,0,8">
+        <On Platform="WinUI" Value="0,0,16,8" />
     </OnPlatform>
 
     <!-- Minimum tappable height (accessibility) -->

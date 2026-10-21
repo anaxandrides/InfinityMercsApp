@@ -41,7 +41,7 @@
                                 SelectedItem="{Binding SelectedWeaponGroup, Mode=TwoWay}">
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="armoryPresentation:WeaponGroup">
-                            <Grid Padding="6,4">
+                            <Grid Padding="6,4" Margin="{StaticResource ScrollBarGutter}">
                                 <Label Text="{Binding Name}"
                                        FontSize="{DynamicResource FontSizeBody}"
                                        VerticalTextAlignment="Center" />

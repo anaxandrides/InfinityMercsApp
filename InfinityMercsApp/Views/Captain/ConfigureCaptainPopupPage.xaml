@@ -61,7 +61,7 @@
 
                     <!-- The captain as currently configured. -->
                     <ScrollView>
-                        <VerticalStackLayout Spacing="8" Padding="{StaticResource ScrollBarGutter}">
+                        <VerticalStackLayout Spacing="8">
                             <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
                                 <Entry Text="{Binding CaptainNameDraft}"
                                        IsReadOnly="{Binding IsEditingName, Converter={StaticResource InvertedBoolConverter}}"
@@ -192,7 +192,7 @@
                         </VerticalStackLayout>
 
                         <ScrollView Grid.Row="3">
-                            <VerticalStackLayout Spacing="8" Padding="{StaticResource ScrollBarGutter}">
+                            <VerticalStackLayout Spacing="8">
                                 <!-- Two stat pickers per row; their text shrinks together when a picker is too narrow for it. -->
                                 <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding StatUpgrades}">
                                     <FlexLayout.Behaviors>

@@ -26,6 +26,17 @@
         <Setter Property="SelectedIndicatorColor" Value="{StaticResource Signal}"/>
     </Style>
 
+    <!-- Keeps a vertical ScrollView's content clear of the Windows scroll bar; a horizontal one's bar runs along the
+         bottom instead. A ScrollView that sets its own Padding should leave room for the bar itself. -->
+    <Style TargetType="ScrollView">
+        <Setter Property="Padding" Value="{StaticResource ScrollBarGutter}" />
+        <Style.Triggers>
+            <Trigger TargetType="ScrollView" Property="Orientation" Value="Horizontal">
+                <Setter Property="Padding" Value="0" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <Style TargetType="Border">
         <Setter Property="Stroke" Value="{StaticResource Hairline}" />
         <Setter Property="StrokeThickness" Value="1"/>
