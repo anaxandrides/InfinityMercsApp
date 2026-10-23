@@ -12,7 +12,7 @@
             Desktop = Windows desktop
 
         Font sizes instead follow the window's size: these are their sizes on a
-        phone-sized window, and WindowFontScaler resets them from FontScale when
+        phone-sized window, and AppWindow resets them from FontScale when
         the window opens or is resized. Use them through DynamicResource.
         FontAutoScalingEnabled still applies the OS accessibility scale on top.
     -->

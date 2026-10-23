@@ -1,29 +1,24 @@
 using InfinityMercsApp.Presentation.Layouts;
 using InfinityMercsApp.Views.Fonts;
 
-namespace InfinityMercsApp.Views.Behaviors;
+namespace InfinityMercsApp.Views.Controls.FitText;
 
 /// <summary>
 /// Gives every label and picker in a packed row (a stat line, a row of upgrade pickers) one font size: the row's
-/// usual size from <see cref="FontSizeKey"/> when there is room, smaller when a cell's text would not fit its width.
-/// The labels and pickers should fill their cells, labels should not wrap, and neither should have a maximum width,
-/// which would hide how wide the text wants to be. The row is fitted again whenever it or a cell is resized, or a
-/// picker's choice changes, so it follows the window and the window's font sizes.
-/// The fit waits until the layout pass that resized the row has finished, so every cell is measured at its final
-/// width; measuring cells while the pass is still laying them out left Windows clipping text it had measured wrongly.
+/// usual size from its font size key when there is room, smaller when a cell's text would not fit its width. The row
+/// calls <see cref="Arranged"/> each time it is arranged, which happens whenever it, a cell or a picker's choice
+/// changes, so it follows the window and the window's font sizes without listening to any event.
+/// The fit waits until the layout pass has finished, so every cell is measured at its final width; measuring cells
+/// while the pass is still laying them out left Windows clipping text it had measured wrongly.
 /// A cell needs the wider of its measured width and its text's width in the font file (<see cref="FontTextWidth"/>),
 /// since Windows can measure a label before its bundled font has loaded and get the fallback's width.
 /// After the text is resized the row is checked again, and shrunk further if a cell's text measures wider at the new
 /// size than expected; that check never grows the text, so the two can't take turns.
+/// The labels and pickers should fill their cells, labels should not wrap, and neither should have a maximum width,
+/// which would hide how wide the text wants to be.
 /// </summary>
-public sealed class FitTextToCellsBehavior : Behavior<Layout>
+public sealed class CellTextFitter(Layout row)
 {
-    public static readonly BindableProperty FontSizeKeyProperty =
-        BindableProperty.Create(nameof(FontSizeKey), typeof(string), typeof(FitTextToCellsBehavior), "FontSizeBody");
-
-    public static readonly BindableProperty SmallestFontSizeProperty =
-        BindableProperty.Create(nameof(SmallestFontSize), typeof(double), typeof(FitTextToCellsBehavior), 7d);
-
 #if WINDOWS
     // A Windows combo box's left padding, drop-down arrow and border, around its text.
     private const double PickerChrome = 52;
@@ -35,108 +30,36 @@ public sealed class FitTextToCellsBehavior : Behavior<Layout>
     // Room for synthesised bold and rounding, which the font file's widths leave out.
     private const double TextAllowance = 1.05;
 
-    private Layout? _row;
     private bool _fitQueued;
-    private bool _queuedFitOnlyShrinks;
+    private bool _nextFitOnlyShrinks;
 
     /// <summary>The shared font size resource the row uses when there is room.</summary>
-    public string FontSizeKey
+    public string FontSizeKey { get; set; } = "FontSizeBody";
+
+    public double SmallestFontSize { get; set; } = 7d;
+
+    /// <summary>Fits the row once the layout pass that arranged it has finished.</summary>
+    public void Arranged()
     {
-        get => (string)GetValue(FontSizeKeyProperty);
-        set => SetValue(FontSizeKeyProperty, value);
-    }
-
-    public double SmallestFontSize
-    {
-        get => (double)GetValue(SmallestFontSizeProperty);
-        set => SetValue(SmallestFontSizeProperty, value);
-    }
-
-    protected override void OnAttachedTo(Layout row)
-    {
-        base.OnAttachedTo(row);
-        _row = row;
-        row.SizeChanged += OnResized;
-        row.DescendantAdded += OnDescendantAdded;
-        foreach (var cell in Cells(row))
-        {
-            Watch(cell);
-        }
-    }
-
-    protected override void OnDetachingFrom(Layout row)
-    {
-        row.SizeChanged -= OnResized;
-        row.DescendantAdded -= OnDescendantAdded;
-        foreach (var cell in Cells(row))
-        {
-            cell.SizeChanged -= OnResized;
-            if (cell is Picker picker)
-            {
-                picker.SelectedIndexChanged -= OnResized;
-            }
-        }
-
-        _row = null;
-        base.OnDetachingFrom(row);
-    }
-
-    private void OnDescendantAdded(object? sender, ElementEventArgs e)
-    {
-        if (e.Element is Label or Picker)
-        {
-            Watch((View)e.Element);
-        }
-
-        QueueFit(onlyShrink: false);
-    }
-
-    private void Watch(View cell)
-    {
-        cell.SizeChanged += OnResized;
-        if (cell is Picker picker)
-        {
-            picker.SelectedIndexChanged += OnResized;
-        }
-    }
-
-    private void OnResized(object? sender, EventArgs e) => QueueFit(onlyShrink: false);
-
-    // Several cells resize in one layout pass; they share a single fit once it is done.
-    private void QueueFit(bool onlyShrink)
-    {
-        if (_row is null)
-        {
-            return;
-        }
-
         if (_fitQueued)
         {
-            _queuedFitOnlyShrinks &= onlyShrink;
             return;
         }
 
         _fitQueued = true;
-        _queuedFitOnlyShrinks = onlyShrink;
-        _row.Dispatcher.Dispatch(() =>
+        row.Dispatcher.Dispatch(() =>
         {
             _fitQueued = false;
-            if (Fit(_queuedFitOnlyShrinks))
-            {
-                QueueFit(onlyShrink: true);
-            }
+            var onlyShrink = _nextFitOnlyShrinks;
+            // A changed size arranges the row again; that pass may only shrink the text further.
+            _nextFitOnlyShrinks = Fit(onlyShrink);
         });
     }
 
     /// <summary>Gives the row's text the size that fits, or only a smaller one; true when that changed it.</summary>
     private bool Fit(bool onlyShrink)
     {
-        if (_row is null)
-        {
-            return false;
-        }
-
-        var cells = Cells(_row);
+        var cells = Cells();
         if (cells.Count == 0)
         {
             return false;
@@ -144,9 +67,7 @@ public sealed class FitTextToCellsBehavior : Behavior<Layout>
 
         var current = FontSizeOf(cells[0]);
         var usual = Application.Current?.Resources.TryGetValue(FontSizeKey, out var value) == true && value is double size ? size : current;
-        var widths = cells
-            .Select(cell => new CellText(cell.Width, NeededWidth(cell)))
-            .ToList();
+        var widths = cells.Select(cell => new CellText(cell.Width, NeededWidth(cell))).ToList();
         var fitted = TextFit.SizeFor(usual, current, widths, SmallestFontSize);
         if (cells.All(cell => Math.Abs(FontSizeOf(cell) - fitted) < 0.25) || (onlyShrink && fitted >= current))
         {
@@ -196,6 +117,6 @@ public sealed class FitTextToCellsBehavior : Behavior<Layout>
         }
     }
 
-    private static IReadOnlyList<View> Cells(Layout row) =>
+    private List<View> Cells() =>
         row.GetVisualTreeDescendants().OfType<View>().Where(view => view is Label or Picker).ToList();
 }

@@ -397,6 +397,7 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
             {
                 UnitList.TeamEntries.Add(new ArmyTeamListItem
                 {
+                    Tracking = CoreFireteam,
                     Name = listing.Name,
                     TeamCountsText = listing.Team is { } team ? Rules.TeamCountText(team) : string.Empty,
                     IsWildcardBucket = listing.IsWildcardBucket,

@@ -193,6 +193,9 @@ public sealed partial class InducementShopViewModel(IDialogService dialogs, Hire
                     : trooper.Name)
             .ToList();
 
+    /// <summary>Told after anything is bought, hired or returned.</summary>
+    public IInducementShopOwner? Owner { get; set; }
+
     private void Refresh()
     {
         Left = InducementShop.Left(_inducements);
@@ -229,5 +232,6 @@ public sealed partial class InducementShopViewModel(IDialogService dialogs, Hire
             Rentals.Count == 0 ? string.Empty : $"Rented: {string.Join(", ", Rentals.Select(row => row.Text))}"
         }.Where(part => part.Length > 0));
         OnPropertyChanged(nameof(LeftText));
+        Owner?.ShopChanged();
     }
 }

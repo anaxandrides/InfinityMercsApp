@@ -118,9 +118,14 @@ public sealed partial class DeploymentUnitItem : ObservableObject, IViewerListIt
     public string RangedWeapons { get; init; } = "-";
     public string MeleeWeapons { get; init; } = "-";
 
+    /// <summary>Told when the trooper is ticked or unticked to deploy; null where deploying isn't chosen.</summary>
+    public IDeploymentChoice? Deployment { get; set; }
+
     /// <summary>Ticked to deploy.</summary>
     [ObservableProperty]
     public partial bool IsChecked { get; set; }
+
+    partial void OnIsCheckedChanged(bool value) => Deployment?.CheckedChanged(this);
 
     /// <summary>The tile being shown in full; the tile view outlines it.</summary>
     [ObservableProperty]

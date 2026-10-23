@@ -46,20 +46,15 @@ public partial class App : Application
 
 	protected override Window CreateWindow(IActivationState? activationState)
 	{
-		var window = new Window(_splashPage);
-		WindowFontScaler.Follow(window);
-#if WINDOWS
-		window.HandlerChanged += OnWindowHandlerChanged;
-#endif
-		return window;
+		return new AppWindow(_splashPage);
 	}
 
 #if WINDOWS
 	private static bool _shellNavigatedSubscribed;
 
-	private static void OnWindowHandlerChanged(object? sender, EventArgs e)
+	/// <summary>Hides WinUI's "more" (…) button on the command bar, once the window has its platform window.</summary>
+	internal static void HideOverflowButtons(Window mauiWindow)
 	{
-		if (sender is not Window mauiWindow) return;
 		if (mauiWindow.Handler?.PlatformView is not Microsoft.UI.Xaml.Window winuiWindow) return;
 
 		void ScheduleHide()

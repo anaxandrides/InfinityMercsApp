@@ -38,7 +38,7 @@
                 TextColor="{StaticResource TextPrimary}"
                 HorizontalOptions="Start"
                 VerticalOptions="Start"
-                Clicked="OnToggleDetailsButtonClicked" />
+                Command="{Binding ToggleDetailsCommand, Source={x:Reference MercsEntryCardRoot}, x:DataType=controls:MercsCompanyEntryCardView}" />
 
             <controls:UnitSelectionListItemView Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" />
 

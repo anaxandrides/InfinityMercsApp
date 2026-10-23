@@ -2,10 +2,15 @@ using InfinityMercsApp.Domain.Models.Metadata.Ranges;
 using InfinityMercsApp.Presentation.Weapons;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
+using SkiaSharp.Views.Maui.Controls;
 
 namespace InfinityMercsApp.Views.Controls;
 
-public partial class WeaponRangeBandBarView : ContentView
+/// <summary>
+/// A weapon's range bands as a bar: each band's modifier over its colour, and the distances along the bottom. It draws
+/// itself by overriding <see cref="OnPaintSurface"/>, and redraws when a property it shows changes.
+/// </summary>
+public sealed class WeaponRangeBandBarView : SKCanvasView
 {
     public static readonly BindableProperty DistanceProperty =
         BindableProperty.Create(
@@ -13,7 +18,7 @@ public partial class WeaponRangeBandBarView : ContentView
             typeof(WeaponDistance),
             typeof(WeaponRangeBandBarView),
             null,
-            propertyChanged: (bindable, _, _) => ((WeaponRangeBandBarView)bindable).Canvas.InvalidateSurface());
+            propertyChanged: Redraw);
 
     public static readonly BindableProperty ShowUnitsInInchesProperty =
         BindableProperty.Create(
@@ -21,7 +26,7 @@ public partial class WeaponRangeBandBarView : ContentView
             typeof(bool),
             typeof(WeaponRangeBandBarView),
             true,
-            propertyChanged: (bindable, _, _) => ((WeaponRangeBandBarView)bindable).Canvas.InvalidateSurface());
+            propertyChanged: Redraw);
 
     public static readonly BindableProperty BarHeightRequestProperty =
         BindableProperty.Create(
@@ -29,8 +34,7 @@ public partial class WeaponRangeBandBarView : ContentView
             typeof(double),
             typeof(WeaponRangeBandBarView),
             88.0,
-            propertyChanged: (bindable, _, newVal) =>
-                ((WeaponRangeBandBarView)bindable).Canvas.HeightRequest = (double)newVal);
+            propertyChanged: (bindable, _, newValue) => ((WeaponRangeBandBarView)bindable).HeightRequest = (double)newValue);
 
     public static readonly BindableProperty XVisorActiveProperty =
         BindableProperty.Create(
@@ -38,11 +42,12 @@ public partial class WeaponRangeBandBarView : ContentView
             typeof(bool),
             typeof(WeaponRangeBandBarView),
             false,
-            propertyChanged: (bindable, _, _) => ((WeaponRangeBandBarView)bindable).Canvas.InvalidateSurface());
+            propertyChanged: Redraw);
 
     public WeaponRangeBandBarView()
     {
-        InitializeComponent();
+        HeightRequest = BarHeightRequest;
+        HorizontalOptions = LayoutOptions.Fill;
     }
 
     public WeaponDistance? Distance
@@ -69,8 +74,12 @@ public partial class WeaponRangeBandBarView : ContentView
         set => SetValue(XVisorActiveProperty, value);
     }
 
-    private void OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
+    private static void Redraw(BindableObject bindable, object? oldValue, object? newValue) =>
+        ((WeaponRangeBandBarView)bindable).InvalidateSurface();
+
+    protected override void OnPaintSurface(SKPaintSurfaceEventArgs e)
     {
+        base.OnPaintSurface(e);
         var canvas = e.Surface.Canvas;
         canvas.Clear();
 

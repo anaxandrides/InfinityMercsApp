@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
 namespace InfinityMercsApp.Views.Controls;
@@ -54,7 +55,9 @@ public partial class MercsCompanyEntryCardView : ContentView
         SyncChevronRotation(animated: false);
     }
 
-    private async void OnToggleDetailsButtonClicked(object? sender, EventArgs e)
+    /// <summary>Shows or hides the trooper's details, turning the chevron to match.</summary>
+    [RelayCommand]
+    private async Task ToggleDetailsAsync()
     {
         if (BindingContext is not MercsCompanyEntry entry)
         {

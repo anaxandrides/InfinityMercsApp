@@ -10,9 +10,6 @@ namespace InfinityMercsApp.Views.Controls;
 /// </summary>
 public partial class UnitDisplayConfigurationsView : ContentView
 {
-    private const double HeadingMinFontSize = 11d;
-    private const double HeadingFontStep = 0.5d;
-    private const double DefaultStatFontSize = 10d;
     private const int AvaColumn = 9;
 
     // The faction emblem shrinks as the pane narrows and only disappears when there
@@ -55,27 +52,13 @@ public partial class UnitDisplayConfigurationsView : ContentView
 
     private double _logoColumnWidth = -1d;
     private double _iconColumnWidth = -1d;
-    private double _statFontSize = DefaultStatFontSize;
-    private double _statHeaderFontSize = DefaultStatFontSize;
-
-    // Re-entrancy guards for the two size-driven font fitters below. Both adjust a font size from
-    // inside a SizeChanged callback, which re-measures the element and re-raises SizeChanged; without
-    // these the recursion can outrun WinUI's layout-pass iteration cap and throw LayoutCycleException.
-    private bool _adjustingHeadingFontSize;
-    private bool _adjustingStatFontSize;
 
     public UnitDisplayConfigurationsView()
     {
         InitializeComponent();
-        UnitNameHeadingLabel.FontSize = HeadingMaxFontSize();
-        UnitNameHeadingLabel.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == Label.TextProperty.PropertyName)
-            {
-                FitHeadingFontSize();
-            }
-        };
-        ApplyStatFontSizes(DefaultStatFontSize, DefaultStatFontSize);
+        MainStatHeadersBorder.Headers = MainStatHeadersGrid;
+        MainStatHeadersBorder.Values = MainStatValuesGrid;
+        MainStatHeadersBorder.ApplyFontSizes(StatLineFitBorder.DefaultFontSize, StatLineFitBorder.DefaultFontSize);
         UpdateConfigurationRows();
     }
 
@@ -180,111 +163,11 @@ public partial class UnitDisplayConfigurationsView : ContentView
         HeaderIconsCanvas.WidthRequest = canvasSize;
     }
 
-    private void OnUnitNameHeadingLabelSizeChanged(object? sender, EventArgs e) => FitHeadingFontSize();
-
-    private static double HeadingMaxFontSize() =>
-        Application.Current?.Resources.TryGetValue("FontSizeSubHeadline", out var raw) == true && raw is double size ? size : 24d;
-
-    /// <summary>Fits the heading to its width, stepping the font down from the largest size.</summary>
-    private void FitHeadingFontSize()
-    {
-        // Assigning the font below re-measures the label and re-raises its SizeChanged, which calls
-        // back here; bail on the re-entrant pass so the fitted value stands and layout can settle.
-        if (_adjustingHeadingFontSize)
-        {
-            return;
-        }
-
-        _adjustingHeadingFontSize = true;
-        try
-        {
-            var maxFontSize = HeadingMaxFontSize();
-            var availableWidth = UnitNameHeadingLabel.Width;
-            if (availableWidth <= 0)
-            {
-                UnitNameHeadingLabel.FontSize = maxFontSize;
-                return;
-            }
-
-            for (var size = maxFontSize; size >= HeadingMinFontSize; size -= HeadingFontStep)
-            {
-                UnitNameHeadingLabel.FontSize = size;
-                if (UnitNameHeadingLabel.Measure(double.PositiveInfinity, double.PositiveInfinity).Width <= availableWidth)
-                {
-                    return;
-                }
-            }
-
-            UnitNameHeadingLabel.FontSize = HeadingMinFontSize;
-        }
-        finally
-        {
-            _adjustingHeadingFontSize = false;
-        }
-    }
-
-    private void OnStatHeadersBorderSizeChanged(object? sender, EventArgs e)
-    {
-        if (_adjustingStatFontSize) return;
-        if (sender is not View view || view.Height <= 0 || view.Width <= 0) return;
-
-        // Height constraint: labels should fill the row without overflowing vertically. The border
-        // sits in an Auto row, so its height grows with the font we set here — a positive feedback
-        // loop. We cap by the width-derived size and stop re-applying once settled (below) so the
-        // loop converges instead of cycling the layout pass.
-        var fontFromHeight = (view.Height - 4) * 0.75;
-
-        // Width constraint: ColumnSpacing=6 with 9 or 10 columns, Border padding=8 each side.
-        var numCols = ShowAva ? 10 : 9;
-        var colSpacing = 6 * (numCols - 1);
-        var colWidth = (view.Width - 16 - colSpacing) / numCols;
-
-        // Headers: use 3.2× to account for wide unicode symbols like ▲ in the vitality header.
-        var headerFontFromWidth = colWidth / 3.2;
-        var newHeaderFontSize = Math.Max(6.0, Math.Round(Math.Min(fontFromHeight, headerFontFromWidth), 1));
-
-        // Values: bold character width ≈ 0.65× font size, so 4 chars ≈ 2.6× font size.
-        var fontFromWidth = colWidth / 2.6;
-        var newStatFontSize = Math.Max(6.0, Math.Round(Math.Min(fontFromHeight, fontFromWidth), 1));
-
-        // Already at the target (within a font-pixel): re-applying would re-raise SizeChanged for no
-        // visible gain and keep the layout pass spinning. Leave it be.
-        if (Math.Abs(_statHeaderFontSize - newHeaderFontSize) < 0.5
-            && Math.Abs(_statFontSize - newStatFontSize) < 0.5)
-        {
-            return;
-        }
-
-        _adjustingStatFontSize = true;
-        try
-        {
-            ApplyStatFontSizes(newHeaderFontSize, newStatFontSize);
-        }
-        finally
-        {
-            _adjustingStatFontSize = false;
-        }
-    }
-
-    private void ApplyStatFontSizes(double headerFontSize, double valueFontSize)
-    {
-        _statHeaderFontSize = headerFontSize;
-        _statFontSize = valueFontSize;
-        foreach (var label in MainStatHeadersGrid.Children.OfType<Label>())
-        {
-            label.FontSize = headerFontSize;
-        }
-
-        foreach (var label in MainStatValuesGrid.Children.OfType<Label>())
-        {
-            label.FontSize = valueFontSize;
-        }
-    }
-
     // A hidden AVA column gives its width to the other stats.
     private void UpdateAvaColumns()
     {
         var width = ShowAva ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+        MainStatHeadersBorder.Columns = ShowAva ? 10 : 9;
         MainStatHeadersGrid.ColumnDefinitions[AvaColumn].Width = width;
         MainStatValuesGrid.ColumnDefinitions[AvaColumn].Width = width;
         PeripheralStatHeadersGrid.ColumnDefinitions[AvaColumn].Width = width;

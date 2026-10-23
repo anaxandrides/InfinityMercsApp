@@ -7,13 +7,17 @@ namespace InfinityMercsApp.ViewModels.Season.Items;
 /// <summary>One deployed trooper's XP card; exactly one trooper can be the MVP.</summary>
 public partial class ExperienceUnitItem : ObservableObject
 {
-    public ExperienceUnitItem(ExperienceUnitResult unit)
+    private readonly IMvpChoice? _choice;
+
+    /// <param name="choice">Told when this card is made or unmade the MVP.</param>
+    public ExperienceUnitItem(ExperienceUnitResult unit, IMvpChoice? choice = null)
     {
         Unit = unit;
         LogoSource = UnitLogo.Source(unit.CachedLogoPath, unit.PackagedLogoPath);
         XpLines = MissionExperience.Lines(unit);
         IsMvp = unit.IsMvp;
         TotalText = TotalTextOf(unit);
+        _choice = choice;
     }
 
     public ExperienceUnitResult Unit { get; }
@@ -38,6 +42,7 @@ public partial class ExperienceUnitItem : ObservableObject
     {
         Unit.IsMvp = value;
         TotalText = TotalTextOf(Unit);
+        _choice?.MvpChanged(this);
     }
 
     private static string TotalTextOf(ExperienceUnitResult unit) => $"Total: {unit.TotalXp} XP";

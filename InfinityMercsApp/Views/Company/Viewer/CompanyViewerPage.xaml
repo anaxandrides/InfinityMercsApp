@@ -72,13 +72,9 @@
                         </controls:SvgIcon>
                     </Grid>
                     <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" IsVisible="{Binding IsEditingName}">
-                        <Entry Text="{Binding NameDraft}"
+                        <controls:FocusWhenEditableEntry Text="{Binding NameDraft}"
                                IsReadOnly="{Binding IsEditingName, Converter={StaticResource InvertedBoolConverter}}"
-                               FontSize="{DynamicResource FontSizeDisplay}">
-                            <Entry.Behaviors>
-                                <behaviors:FocusWhenEditableBehavior />
-                            </Entry.Behaviors>
-                        </Entry>
+                               FontSize="{DynamicResource FontSizeDisplay}" />
                         <controls:SvgIcon Grid.Column="1"
                                           Style="{StaticResource NameActionIcon}"
                                           Source="SVGCache/NonCBIcons/noun-check-3612574.svg">

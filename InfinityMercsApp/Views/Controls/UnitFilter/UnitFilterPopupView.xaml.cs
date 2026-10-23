@@ -25,19 +25,15 @@ public partial class UnitFilterPopupView : ContentView
         OnPropertyChanged(nameof(ViewModel));
     }
 
-    private void OnPopupSizeChanged(object? sender, EventArgs e)
+    // The popup covers its host, so its own size is the room it has.
+    protected override void OnSizeAllocated(double width, double height)
     {
-        var hostHeight = Height > 0
-            ? Height
-            : Window?.Height ?? Application.Current?.Windows.FirstOrDefault()?.Page?.Height ?? 0;
-        if (hostHeight > 0)
+        base.OnSizeAllocated(width, height);
+        if (height > 0)
         {
-            PopupContainer.MaximumHeightRequest = hostHeight * 0.9;
+            PopupContainer.MaximumHeightRequest = height * 0.9;
         }
 
-        var width = Width > 0
-            ? Width
-            : Window?.Width ?? Application.Current?.Windows.FirstOrDefault()?.Page?.Width ?? 0;
         if (width > 0)
         {
             PopupContainer.WidthRequest = Math.Min(width - OuterPadding, MaxPopupWidth);

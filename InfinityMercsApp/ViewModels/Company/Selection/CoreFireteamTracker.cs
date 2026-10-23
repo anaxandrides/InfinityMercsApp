@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 
@@ -10,7 +9,7 @@ namespace InfinityMercsApp.ViewModels.Company.Selection;
 /// bonus that gives, and which troopers are irregular for being outside it. Once the company is founded the
 /// fireteam is fixed, so a recruiting company can't swap it.
 /// </summary>
-public sealed partial class CoreFireteamTracker : ObservableObject
+public sealed partial class CoreFireteamTracker : ObservableObject, IFireteamTracking
 {
     private readonly ObservableCollection<ArmyTeamListItem> _teams;
     private readonly ObservableCollection<MercsCompanyEntry> _entries;
@@ -28,19 +27,15 @@ public sealed partial class CoreFireteamTracker : ObservableObject
     [NotifyPropertyChangedFor(nameof(LevelBonusText), nameof(HasLevelBonus), nameof(LevelIcon))]
     public partial int Level { get; set; }
 
-    /// <param name="teams">The fireteam list, whose radio buttons pick the tracked fireteam.</param>
+    /// <param name="teams">
+    /// The fireteam list, whose radio buttons pick the tracked fireteam; each item is given this tracker as its
+    /// <see cref="ArmyTeamListItem.Tracking"/>.
+    /// </param>
     /// <param name="entries">The company's troopers, marked irregular when outside the fireteam.</param>
     public CoreFireteamTracker(ObservableCollection<ArmyTeamListItem> teams, ObservableCollection<MercsCompanyEntry> entries)
     {
         _teams = teams;
         _entries = entries;
-        teams.CollectionChanged += (_, e) =>
-        {
-            foreach (var team in e.NewItems?.OfType<ArmyTeamListItem>() ?? [])
-            {
-                team.PropertyChanged += OnTeamPropertyChanged;
-            }
-        };
     }
 
     public string NameDisplay => string.IsNullOrWhiteSpace(Name) ? "Select fireteam" : Name;
@@ -154,12 +149,10 @@ public sealed partial class CoreFireteamTracker : ObservableObject
          ?? _teams.FirstOrDefault(team => team.ShowTrackingRadioButton))?.Name
         ?? string.Empty;
 
-    // Ticking a fireteam's radio button tracks it; a recruiting company keeps the one it was founded with.
-    private void OnTeamPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    /// <summary>Ticking a fireteam's radio button tracks it; a recruiting company keeps the one it was founded with.</summary>
+    public void Ticked(ArmyTeamListItem team)
     {
-        if (!_isUpdating &&
-            e.PropertyName == nameof(ArmyTeamListItem.IsTrackedTeam) &&
-            sender is ArmyTeamListItem { IsTrackedTeam: true, ShowTrackingRadioButton: true } team)
+        if (!_isUpdating && team is { IsTrackedTeam: true, ShowTrackingRadioButton: true })
         {
             Track(_isLocked ? Name : team.Name);
         }

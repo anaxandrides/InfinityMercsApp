@@ -12,13 +12,14 @@ public sealed class CoreFireteamTrackerTests
     private CoreFireteamTracker Tracker()
     {
         var tracker = new CoreFireteamTracker(_teams, _entries);
-        _teams.Add(Team("Fusilier Core", "Fusilier", 1));
-        _teams.Add(Team("Bulleteer Core", "Bulleteer", 2));
+        _teams.Add(Team("Fusilier Core", "Fusilier", 1, tracker));
+        _teams.Add(Team("Bulleteer Core", "Bulleteer", 2, tracker));
         return tracker;
     }
 
-    private static ArmyTeamListItem Team(string name, string unitName, int unitId) => new()
+    private static ArmyTeamListItem Team(string name, string unitName, int unitId, IFireteamTracking? tracking = null) => new()
     {
+        Tracking = tracking,
         Name = name,
         AllowedProfiles = [new ArmyTeamUnitLimitItem { Name = unitName, ResolvedUnitId = unitId, ResolvedSourceFactionId = 101, Max = "5" }]
     };

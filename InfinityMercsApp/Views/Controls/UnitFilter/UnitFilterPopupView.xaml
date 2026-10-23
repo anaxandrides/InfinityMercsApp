@@ -5,8 +5,7 @@
              xmlns:unitFilter="clr-namespace:InfinityMercsApp.ViewModels.Components.UnitFilter"
              x:Class="InfinityMercsApp.Views.Controls.UnitFilter.UnitFilterPopupView"
              x:Name="UnitFilterPopupViewRoot"
-             x:DataType="unitFilter:UnitFilterViewModel"
-             SizeChanged="OnPopupSizeChanged">
+             x:DataType="unitFilter:UnitFilterViewModel">
 
     <Grid Padding="16">
         <Border
