@@ -4,6 +4,9 @@ param location string
 param name string
 param tags object
 
+@description('The site\'s own domain, e.g. www.example.com; empty for none. Azure checks it by its CNAME to the site\'s azurestaticapps.net host name, so that record must exist first.')
+param customDomain string = ''
+
 resource site 'Microsoft.Web/staticSites@2024-04-01' = {
   name: name
   location: location
@@ -18,5 +21,14 @@ resource site 'Microsoft.Web/staticSites@2024-04-01' = {
   }
 }
 
+resource domain 'Microsoft.Web/staticSites/customDomains@2024-04-01' = if (!empty(customDomain)) {
+  parent: site
+  name: empty(customDomain) ? 'unused' : customDomain
+  properties: {}
+}
+
 output name string = site.name
 output hostName string = site.properties.defaultHostname
+
+@description('Where people reach the site: its own domain when it has one.')
+output address string = 'https://${empty(customDomain) ? site.properties.defaultHostname : customDomain}'

@@ -7,6 +7,9 @@ param location string = 'eastus'
 @description('Region for the web app; Static Web Apps run in only a few regions.')
 param webLocation string = 'eastus2'
 
+@description('The web app\'s own domain, e.g. www.example.com; empty to use only its azurestaticapps.net address. Its DNS needs a CNAME to the web app\'s azurestaticapps.net host name before a deploy adds it (docs/azure-setup.md).')
+param webCustomDomain string = ''
+
 @description('Short environment name, used in resource names.')
 param environmentName string = 'prod'
 
@@ -40,6 +43,7 @@ module resources 'modules/resources.bicep' = {
   params: {
     location: location
     webLocation: webLocation
+    webCustomDomain: webCustomDomain
     environmentName: environmentName
     appName: appName
     alwaysReadyInstances: alwaysReadyInstances
@@ -55,3 +59,4 @@ output functionAppHostName string = resources.outputs.functionAppHostName
 output cosmosEndpoint string = resources.outputs.cosmosEndpoint
 output webAppName string = resources.outputs.webAppName
 output webHostName string = resources.outputs.webHostName
+output webAddress string = resources.outputs.webAddress
