@@ -29,9 +29,7 @@ public partial class MercsSeasonPageViewModel(INavigationService navigationServi
     private void CancelNewSeason() => ShowMainActions();
 
     [RelayCommand]
-    private Task LoadCompanyAsync() => NavigationService.NavigateToAsync(
-        "//LoadCompanyPage",
-        new Dictionary<string, object> { [NavigationParameters.SeasonMode] = true });
+    private Task LoadCompanyAsync() => NavigationService.NavigateToAsync("//LoadCompanyPage");
 
     [RelayCommand]
     private Task CreateNewTeamAsync() => NavigationService.NavigateToAsync("//CreateNewCompanyPage");

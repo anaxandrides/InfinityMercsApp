@@ -26,7 +26,6 @@ using InfinityMercsApp.ViewModels.About;
 using InfinityMercsApp.ViewModels.Armory;
 using InfinityMercsApp.ViewModels.Company;
 using InfinityMercsApp.ViewModels.Company.Selection;
-using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Feedback;
 using InfinityMercsApp.ViewModels.Marketplaces;
@@ -44,7 +43,6 @@ using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.About;
 using InfinityMercsApp.Views.Armory;
 using InfinityMercsApp.Views.Company;
-using InfinityMercsApp.Views.Company.Viewer;
 using InfinityMercsApp.Views.Feedback;
 using InfinityMercsApp.Views.Marketplaces;
 using InfinityMercsApp.Views.Reference;
@@ -89,7 +87,6 @@ public static class ServiceRegistryExtensions
                 .AddTransient<MissionOutcomeViewModel>()
                 .AddTransient<DowntimeViewModel>()
                 .AddTransient<RankUpViewModel>()
-                .AddTransient<CompanyViewerViewModel>()
                 .AddTransient<GameModeViewModel>()
                 .AddTransient<ByeRoundViewModel>()
                 .AddTransient<LootBoxViewModel>()
@@ -107,7 +104,6 @@ public static class ServiceRegistryExtensions
                 .AddTransient<StandardCompanySourcePopupPage>()
                 .AddTransient<SplashPage>()
                 .AddTransient<SettingsPage>()
-                .AddTransient<CompanyViewerPage>()
                 .AddTransient<UnitEncyclopediaPage>()
                 .AddTransient<FeedbackBugsPage>()
                 .AddTransient<AboutPage>()

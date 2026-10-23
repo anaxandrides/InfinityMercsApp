@@ -30,9 +30,6 @@ public static class NavigationParameters
     /// </summary>
     public const string Inducements = "inducements";
 
-    /// <summary>Present when LoadCompanyPage is opened to start a season (bool).</summary>
-    public const string SeasonMode = "seasonMode";
-
     /// <summary>Parameters for a page that works on a company, optionally within a season.</summary>
     public static Dictionary<string, object> ForCompany(string companyFilePath, string? seasonFilePath = null)
     {
