@@ -12,6 +12,9 @@ public class FactionLogoCacheService
     private const int TagCompanyFactionId = 2003;
     private const int TagCompanyUnitId = 1;
 
+    // Enough to hide the network's latency without crowding the CDN.
+    private const int MaxConcurrentDownloads = 8;
+
     private const string PackagedCacheRoot = "SVGCache";
     private readonly HttpClient _httpClient;
     private readonly IAppPackageFiles _packageFiles;
@@ -26,38 +29,13 @@ public class FactionLogoCacheService
         _localUnitCacheDirectory = Path.Combine(_localCacheDirectory, "units");
     }
 
-    public async Task<LogoCacheResult> CacheAllAsync(IEnumerable<DomainFaction> factions, CancellationToken cancellationToken = default)
+    /// <summary>Has every faction's logo on disk, downloading those missing (several at once).</summary>
+    public Task<LogoCacheResult> CacheAllAsync(IEnumerable<DomainFaction> factions, CancellationToken cancellationToken = default)
     {
         Directory.CreateDirectory(_localCacheDirectory);
-        var result = new LogoCacheResult();
-
-        foreach (var faction in factions)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            result.TotalFactions++;
-
-            if (faction.Id <= 0)
-            {
-                result.MissingLogoUrl++;
-                continue;
-            }
-
-            var ok = await EnsureFactionLogoAvailableAsync(faction.Id, faction.Logo, cancellationToken);
-            if (ok == EnsureResult.Reused)
-            {
-                result.CachedReuse++;
-            }
-            else if (ok == EnsureResult.Downloaded)
-            {
-                result.Downloaded++;
-            }
-            else
-            {
-                result.Failed++;
-            }
-        }
-
-        return result;
+        return CacheAsync(
+            factions.Select(faction => faction.Id > 0 ? FactionLogo(faction.Id, faction.Logo) : null).ToList(),
+            cancellationToken);
     }
 
     public Task<LogoCacheResult> CacheFactionLogosFromRecordsAsync(
@@ -67,78 +45,27 @@ public class FactionLogoCacheService
         return CacheAllAsync(factions, cancellationToken);
     }
 
-    public async Task<LogoCacheResult> CacheUnitLogosAsync(
+    /// <summary>Has every unit's logo in an army on disk, downloading those missing (several at once).</summary>
+    public Task<LogoCacheResult> CacheUnitLogosAsync(
         int factionId,
         IEnumerable<DomainArmyImportResume> units,
         CancellationToken cancellationToken = default)
     {
         Directory.CreateDirectory(_localUnitCacheDirectory);
-        var result = new LogoCacheResult();
-
-        foreach (var unit in units)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            result.TotalFactions++;
-
-            if (unit.Id <= 0)
-            {
-                result.MissingLogoUrl++;
-                continue;
-            }
-
-            var ok = await EnsureUnitLogoAvailableAsync(factionId, unit.Id, unit.Logo, cancellationToken);
-            if (ok == EnsureResult.Reused)
-            {
-                result.CachedReuse++;
-            }
-            else if (ok == EnsureResult.Downloaded)
-            {
-                result.Downloaded++;
-            }
-            else
-            {
-                result.Failed++;
-            }
-        }
-
-        return result;
+        return CacheAsync(
+            units.Select(unit => unit.Id > 0 ? UnitLogo(factionId, unit.Id, unit.Logo) : null).ToList(),
+            cancellationToken);
     }
 
-    public async Task<LogoCacheResult> CacheUnitLogosFromRecordsAsync(
+    public Task<LogoCacheResult> CacheUnitLogosFromRecordsAsync(
         int factionId,
         IEnumerable<DomainResume> units,
         CancellationToken cancellationToken = default)
     {
         Directory.CreateDirectory(_localUnitCacheDirectory);
-        var result = new LogoCacheResult();
-
-        foreach (var unit in units)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            result.TotalFactions++;
-
-            if (unit.UnitId <= 0)
-            {
-                result.MissingLogoUrl++;
-                continue;
-            }
-
-            var ok = await EnsureUnitLogoAvailableAsync(factionId, unit.UnitId, unit.Logo, cancellationToken);
-            if (ok == EnsureResult.Reused)
-            {
-                result.CachedReuse++;
-            }
-            else if (ok == EnsureResult.Downloaded)
-            {
-                result.Downloaded++;
-            }
-            else
-            {
-                result.Failed++;
-            }
-        }
-
-        return result;
+        return CacheAsync(
+            units.Select(unit => unit.UnitId > 0 ? UnitLogo(factionId, unit.UnitId, unit.Logo) : null).ToList(),
+            cancellationToken);
     }
 
     public string GetCachedLogoPath(int factionId)
@@ -173,42 +100,79 @@ public class FactionLogoCacheService
         return File.Exists(path) ? path : null;
     }
 
-    private async Task<EnsureResult> EnsureFactionLogoAvailableAsync(int factionId, string? logoUrl, CancellationToken cancellationToken)
+    // Some faction logos are missing from the CB CDN (e.g. Hayabusa / 1199 returns 404); a copy bundled with the app,
+    // when there is one, stands in.
+    private LogoRequest FactionLogo(int factionId, string? url) =>
+        new(GetCachedLogoPath(factionId), url, GetPackagedFactionLogoPath(factionId), AlwaysDownload: false);
+
+    private LogoRequest UnitLogo(int factionId, int unitId, string? url) =>
+        new(GetCachedUnitLogoPath(factionId, unitId), url, null, AlwaysDownload: factionId == TagCompanyFactionId && unitId == TagCompanyUnitId);
+
+    // Fetches the logos MaxConcurrentDownloads at a time: one at a time, a first launch spent minutes waiting on the
+    // network for thousands of small files. A null request is an item with no id, counted as having no logo.
+    private async Task<LogoCacheResult> CacheAsync(IReadOnlyList<LogoRequest?> requests, CancellationToken cancellationToken)
     {
-        var localPath = GetCachedLogoPath(factionId);
-        if (File.Exists(localPath) && new FileInfo(localPath).Length > 0)
+        var reused = 0;
+        var downloaded = 0;
+        var failed = 0;
+        var options = new ParallelOptions { MaxDegreeOfParallelism = MaxConcurrentDownloads, CancellationToken = cancellationToken };
+        // An army can list a unit twice; two downloads must not write one file at once.
+        var distinct = requests.OfType<LogoRequest>().DistinctBy(request => request.LocalPath, StringComparer.OrdinalIgnoreCase);
+        await Parallel.ForEachAsync(distinct, options, async (request, token) =>
+        {
+            switch (await EnsureAvailableAsync(request, token))
+            {
+                case EnsureResult.Reused:
+                    Interlocked.Increment(ref reused);
+                    break;
+                case EnsureResult.Downloaded:
+                    Interlocked.Increment(ref downloaded);
+                    break;
+                default:
+                    Interlocked.Increment(ref failed);
+                    break;
+            }
+        });
+
+        return new LogoCacheResult
+        {
+            TotalFactions = requests.Count,
+            MissingLogoUrl = requests.Count(request => request is null),
+            CachedReuse = reused,
+            Downloaded = downloaded,
+            Failed = failed
+        };
+    }
+
+    private async Task<EnsureResult> EnsureAvailableAsync(LogoRequest request, CancellationToken cancellationToken)
+    {
+        if (!request.AlwaysDownload && File.Exists(request.LocalPath) && new FileInfo(request.LocalPath).Length > 0)
         {
             return EnsureResult.Reused;
         }
 
-        if (IsPackagedAssetPath(logoUrl))
+        if (IsPackagedAssetPath(request.Url))
         {
-            var copied = await TryCopyPackagedAssetAsync(logoUrl, localPath, cancellationToken);
-            return copied ? EnsureResult.Downloaded : EnsureResult.NotAvailable;
+            return await TryCopyPackagedAssetAsync(request.Url, request.LocalPath, cancellationToken) ? EnsureResult.Downloaded : EnsureResult.NotAvailable;
         }
 
-        if (!IsDownloadableUrl(logoUrl))
+        if (!IsDownloadableUrl(request.Url))
         {
             return EnsureResult.NotAvailable;
         }
 
-        var downloaded = await TryDownloadRemoteAssetAsync(logoUrl, localPath, cancellationToken);
-        if (downloaded)
+        if (await TryDownloadRemoteAssetAsync(request.Url, request.LocalPath, cancellationToken))
         {
             return EnsureResult.Downloaded;
         }
 
-        // Some faction logos are missing from the CB CDN (e.g. Hayabusa / 1199 returns 404).
-        // Fall back to a copy bundled with the app when one is available.
-        return await TryCopyPackagedFactionFallbackAsync(factionId, localPath, cancellationToken)
+        return request.BundledFallbackPath is { } fallback && await TryCopyBundledFallbackAsync(fallback, request.LocalPath, cancellationToken)
             ? EnsureResult.Downloaded
             : EnsureResult.NotAvailable;
     }
 
-    private async Task<bool> TryCopyPackagedFactionFallbackAsync(int factionId, string localPath, CancellationToken cancellationToken)
+    private async Task<bool> TryCopyBundledFallbackAsync(string packagedPath, string localPath, CancellationToken cancellationToken)
     {
-        var packagedPath = GetPackagedFactionLogoPath(factionId);
-
         bool exists;
         try
         {
@@ -220,30 +184,6 @@ public class FactionLogoCacheService
         }
 
         return exists && await TryCopyPackagedAssetAsync(packagedPath, localPath, cancellationToken);
-    }
-
-    private async Task<EnsureResult> EnsureUnitLogoAvailableAsync(int factionId, int unitId, string? logoUrl, CancellationToken cancellationToken)
-    {
-        var localPath = GetCachedUnitLogoPath(factionId, unitId);
-        var forceDownload = factionId == TagCompanyFactionId && unitId == TagCompanyUnitId;
-        if (!forceDownload && File.Exists(localPath) && new FileInfo(localPath).Length > 0)
-        {
-            return EnsureResult.Reused;
-        }
-
-        if (IsPackagedAssetPath(logoUrl))
-        {
-            var copied = await TryCopyPackagedAssetAsync(logoUrl, localPath, cancellationToken);
-            return copied ? EnsureResult.Downloaded : EnsureResult.NotAvailable;
-        }
-
-        if (!IsDownloadableUrl(logoUrl))
-        {
-            return EnsureResult.NotAvailable;
-        }
-
-        var downloaded = await TryDownloadRemoteAssetAsync(logoUrl, localPath, cancellationToken);
-        return downloaded ? EnsureResult.Downloaded : EnsureResult.NotAvailable;
     }
 
     private static bool IsPackagedAssetPath([NotNullWhen(true)] string? url)
@@ -298,9 +238,15 @@ public class FactionLogoCacheService
                 return false;
             }
 
-            await using var remoteStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            await using var fileStream = File.Create(localPath);
-            await remoteStream.CopyToAsync(fileStream, cancellationToken);
+            // Written aside and moved into place, so an interrupted download never leaves a part-file that looks cached.
+            var partPath = localPath + ".part";
+            await using (var remoteStream = await response.Content.ReadAsStreamAsync(cancellationToken))
+            await using (var fileStream = File.Create(partPath))
+            {
+                await remoteStream.CopyToAsync(fileStream, cancellationToken);
+            }
+
+            File.Move(partPath, localPath, overwrite: true);
             return true;
         }
         catch (Exception ex)
