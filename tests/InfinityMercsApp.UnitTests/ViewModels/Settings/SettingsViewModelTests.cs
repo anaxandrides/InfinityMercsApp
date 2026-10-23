@@ -21,7 +21,7 @@ public sealed class SettingsViewModelTests
     public SettingsViewModelTests()
     {
         _signIn.IsAvailable.Returns(true);
-        _sync.SyncNowAsync().Returns(new SyncReport(SyncRunStatus.Synced, 2, 1, []));
+        _sync.SyncNowAsync().Returns(new SyncReport(SyncRunStatus.Synced, 2, 1, [], UnclaimedFiles.None));
     }
 
     private async Task<SettingsViewModel> OpenAsync(bool storedInches = true)
@@ -213,7 +213,7 @@ public sealed class SettingsViewModelTests
     public async Task SyncNowCommand_SignedIn_ShowsTheSummary()
     {
         _signIn.GetAccountAsync(Arg.Any<CancellationToken>()).Returns(new SignedInAccount("kestrel@example.com"));
-        _sync.SyncNowAsync().Returns(new SyncReport(SyncRunStatus.Offline, 0, 0, []));
+        _sync.SyncNowAsync().Returns(new SyncReport(SyncRunStatus.Offline, 0, 0, [], UnclaimedFiles.None));
         var viewModel = await OpenAsync();
 
         await viewModel.SyncNowCommand.ExecuteAsync(null);

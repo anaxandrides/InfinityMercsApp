@@ -96,7 +96,41 @@ public sealed class SyncLedgerTests : IDisposable
     }
 
     [Fact]
-    public void UseAccount_AnotherAccount_SendsEverythingAfresh()
+    public void RecordSave_NobodySignedInYet_IsUnclaimed()
+    {
+        var ledger = new SyncLedger(_records.Paths);
+
+        ledger.RecordSave(UserDocumentKind.Company, "c1", CompanyPath);
+
+        Assert.Equal(SyncOwnership.Unclaimed, ledger.Find(Wolves)?.Ownership);
+        Assert.Equal(new UnclaimedFiles(1, 0), ledger.Unclaimed());
+    }
+
+    [Fact]
+    public void RecordSave_SignedIn_IsTheAccounts()
+    {
+        var ledger = new SyncLedger(_records.Paths);
+        ledger.UseAccount("kestrel@example.com");
+
+        ledger.RecordSave(UserDocumentKind.Company, "c1", CompanyPath);
+
+        Assert.Equal(SyncOwnership.Claimed, ledger.Find(Wolves)?.Ownership);
+    }
+
+    [Fact]
+    public void ClaimAll_Unclaimed_BelongsToTheAccount()
+    {
+        var ledger = new SyncLedger(_records.Paths);
+        ledger.RecordSave(UserDocumentKind.Company, "c1", CompanyPath);
+
+        ledger.ClaimAll();
+
+        Assert.Equal(SyncOwnership.Claimed, ledger.Find(Wolves)?.Ownership);
+        Assert.Equal(0, ledger.Unclaimed().Total);
+    }
+
+    [Fact]
+    public void UseAccount_AnotherAccount_LeavesEverythingUnclaimed()
     {
         var ledger = new SyncLedger(_records.Paths);
         ledger.UseAccount("kestrel@example.com");
@@ -108,6 +142,7 @@ public sealed class SyncLedgerTests : IDisposable
         var document = ledger.Find(Wolves);
         Assert.Equal(0, document?.Revision);
         Assert.Equal(SyncOperation.Save, document?.Pending);
+        Assert.Equal(SyncOwnership.Unclaimed, document?.Ownership);
         Assert.Empty(ledger.Conflicts);
     }
 

@@ -6,7 +6,8 @@ namespace InfinityMercsApp.Services.Sync;
 /// <inheritdoc/>
 /// <remarks>
 /// Syncs once the app has opened, a few seconds after a save (so a burst of saves goes out together), and every
-/// fifteen minutes. A conflict the user puts off isn't asked about again until they sync from the settings page.
+/// fifteen minutes. A conflict the user puts off isn't asked about again until they sync from the settings page, and
+/// nor are files on the device that aren't in the account: nothing is sent to an account until the user adds it.
 /// </remarks>
 internal sealed class SyncCoordinator(DocumentSync sync, SyncLedger ledger, IDialogService dialogs) : ISyncCoordinator
 {
@@ -15,6 +16,7 @@ internal sealed class SyncCoordinator(DocumentSync sync, SyncLedger ledger, IDia
 
     private readonly HashSet<DocumentKey> _putOff = [];
     private readonly SemaphoreSlim _asking = new(1, 1);
+    private bool _unclaimedPutOff;
     private int _started;
 
     /// <inheritdoc/>
@@ -32,6 +34,7 @@ internal sealed class SyncCoordinator(DocumentSync sync, SyncLedger ledger, IDia
         lock (_putOff)
         {
             _putOff.Clear();
+            _unclaimedPutOff = false;
         }
 
         return await SyncAndAskAsync();
@@ -63,13 +66,59 @@ internal sealed class SyncCoordinator(DocumentSync sync, SyncLedger ledger, IDia
         try
         {
             var report = await sync.RunAsync();
-            return await AskAsync(report.Conflicts) ? await sync.RunAsync() : report;
+            var claimed = await AskAboutUnclaimedAsync(report);
+            var resolved = await AskAsync(report.Conflicts);
+            return claimed || resolved ? await sync.RunAsync() : report;
         }
         catch (Exception ex)
         {
             // Sync runs in the background; a failure waits for the next one instead of ending them all.
             Console.Error.WriteLine($"Sync failed: {ex.Message}");
-            return new SyncReport(SyncRunStatus.Offline, 0, 0, ledger.Conflicts);
+            return new SyncReport(SyncRunStatus.Offline, 0, 0, ledger.Conflicts, ledger.Unclaimed());
+        }
+    }
+
+    // Asks whether to add the device's unclaimed files to the account; true when they were added, so they're sent now.
+    private async Task<bool> AskAboutUnclaimedAsync(SyncReport report)
+    {
+        lock (_putOff)
+        {
+            if (report.Status != SyncRunStatus.Synced || report.Unclaimed.Total == 0 || _unclaimedPutOff)
+            {
+                return false;
+            }
+        }
+
+        if (!await _asking.WaitAsync(0))
+        {
+            return false;
+        }
+
+        try
+        {
+            var question = UnclaimedFilesQuestion.For(report.Unclaimed);
+            var answer = await MainThread.InvokeOnMainThreadAsync(() =>
+                dialogs.ChooseAsync(question.Question, UnclaimedFilesQuestion.NotNow, question.Answers));
+            switch (UnclaimedFilesQuestion.ChoiceFor(answer))
+            {
+                case ClaimChoice.AddToAccount:
+                    ledger.ClaimAll();
+                    return true;
+                case ClaimChoice.KeepOnDevice:
+                    ledger.KeepUnclaimedOnDevice();
+                    return false;
+                default:
+                    lock (_putOff)
+                    {
+                        _unclaimedPutOff = true;
+                    }
+
+                    return false;
+            }
+        }
+        finally
+        {
+            _asking.Release();
         }
     }
 

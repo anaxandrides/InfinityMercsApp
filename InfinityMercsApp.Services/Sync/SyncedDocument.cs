@@ -19,6 +19,9 @@ public sealed record SyncedDocument
     /// <summary>What is waiting to be sent.</summary>
     public SyncOperation Pending { get; init; }
 
+    /// <summary>Whether the file is the signed-in account's, and so sent at all.</summary>
+    public SyncOwnership Ownership { get; init; }
+
     /// <summary>Counts local changes, so a send only clears <see cref="Pending"/> when nothing changed meanwhile.</summary>
     public int Change { get; init; }
 

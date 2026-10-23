@@ -47,14 +47,15 @@ public sealed class DocumentSync
             }
 
             var sent = 0;
-            foreach (var document in _ledger.Documents.Where(document => document.Pending != SyncOperation.None && !_ledger.IsInConflict(document.Key)))
+            foreach (var document in _ledger.Documents.Where(document =>
+                         document is { Pending: not SyncOperation.None, Ownership: SyncOwnership.Claimed } && !_ledger.IsInConflict(document.Key)))
             {
                 var step = document.Kind == UserDocumentKind.Company
                     ? await SendAsync<SavedCompanyFile>(document, token, cancellationToken)
                     : await SendAsync<SeasonFile>(document, token, cancellationToken);
                 if (Stopped(step) is { } stopped)
                 {
-                    return new SyncReport(stopped, sent, 0, _ledger.Conflicts);
+                    return new SyncReport(stopped, sent, 0, _ledger.Conflicts, _ledger.Unclaimed());
                 }
 
                 sent += step == SyncStep.Moved ? 1 : 0;
@@ -63,11 +64,12 @@ public sealed class DocumentSync
             var companies = await ReceiveAsync<SavedCompanyFile>(UserDocumentKind.Company, token, cancellationToken);
             if (Stopped(companies.Step) is { } stoppedFetching)
             {
-                return new SyncReport(stoppedFetching, sent, companies.Files, _ledger.Conflicts);
+                return new SyncReport(stoppedFetching, sent, companies.Files, _ledger.Conflicts, _ledger.Unclaimed());
             }
 
             var seasons = await ReceiveAsync<SeasonFile>(UserDocumentKind.Season, token, cancellationToken);
-            return new SyncReport(Stopped(seasons.Step) ?? SyncRunStatus.Synced, sent, companies.Files + seasons.Files, _ledger.Conflicts);
+            return new SyncReport(
+                Stopped(seasons.Step) ?? SyncRunStatus.Synced, sent, companies.Files + seasons.Files, _ledger.Conflicts, _ledger.Unclaimed());
         }
         finally
         {

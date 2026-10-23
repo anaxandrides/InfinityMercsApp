@@ -64,7 +64,8 @@ public sealed class SyncLedger : ISyncOutbox
         var relativePath = RelativePathOf(filePath);
         lock (_lock)
         {
-            var document = CurrentLocked(new DocumentKey(kind, documentId));
+            var key = new DocumentKey(kind, documentId);
+            var document = FindLocked(key) ?? NewLocked(key);
             Put(document, document with { RelativePath = relativePath, Pending = SyncOperation.Save, Change = document.Change + 1 });
         }
 
@@ -146,13 +147,15 @@ public sealed class SyncLedger : ISyncOutbox
             }
             else
             {
+                // Found on the device without the outbox hearing of it: whose it is is the user's to say.
                 _state.Documents.Add(new SyncedDocument
                 {
                     Kind = kind,
                     DocumentId = documentId,
                     RelativePath = relativePath,
                     Pending = SyncOperation.Save,
-                    Change = 1
+                    Change = 1,
+                    Ownership = SyncOwnership.Unclaimed
                 });
             }
 
@@ -161,8 +164,9 @@ public sealed class SyncLedger : ISyncOutbox
     }
 
     /// <summary>
-    /// Starts again from nothing when another account signs in: every file is sent to it afresh, and the old
-    /// account's conflicts are dropped. The first account to sign in keeps what was noted before.
+    /// Starts again from nothing when another account signs in: every file becomes unclaimed, to be sent to the new
+    /// account only if the user adds it, and the old account's conflicts are dropped. The first account to sign in
+    /// keeps what was noted before, files saved while signed out still unclaimed.
     /// </summary>
     public void UseAccount(string account)
     {
@@ -177,7 +181,13 @@ public sealed class SyncLedger : ISyncOutbox
                 ? _state.Documents
                 : _state.Documents
                     .Where(document => document.Pending != SyncOperation.Delete)
-                    .Select(document => document with { Revision = 0, Pending = SyncOperation.Save, Change = document.Change + 1 })
+                    .Select(document => document with
+                    {
+                        Revision = 0,
+                        Pending = SyncOperation.Save,
+                        Change = document.Change + 1,
+                        Ownership = SyncOwnership.Unclaimed
+                    })
                     .ToList();
             _state = new SyncState
             {
@@ -188,6 +198,28 @@ public sealed class SyncLedger : ISyncOutbox
             Save();
         }
     }
+
+    /// <summary>How many companies and seasons wait for the user to add them to the account.</summary>
+    public UnclaimedFiles Unclaimed()
+    {
+        lock (_lock)
+        {
+            var unclaimed = _state.Documents.Where(document => document.Ownership == SyncOwnership.Unclaimed).ToList();
+            return new UnclaimedFiles(
+                unclaimed.Count(document => document.Kind == UserDocumentKind.Company),
+                unclaimed.Count(document => document.Kind == UserDocumentKind.Season));
+        }
+    }
+
+    /// <summary>Adds every unclaimed file to the signed-in account, to be sent at the next sync.</summary>
+    public void ClaimAll()
+    {
+        SetUnclaimed(SyncOwnership.Claimed);
+        _changed.Release();
+    }
+
+    /// <summary>Keeps every unclaimed file on this device only; it is never sent.</summary>
+    public void KeepUnclaimedOnDevice() => SetUnclaimed(SyncOwnership.DeviceOnly);
 
     /// <summary>The file reached <paramref name="revision"/> online; it is done unless it changed again meanwhile.</summary>
     public void Sent(DocumentKey key, int change, int revision)
@@ -285,8 +317,31 @@ public sealed class SyncLedger : ISyncOutbox
     }
 
     // The file's entry, or a new one not yet in the ledger.
-    private SyncedDocument CurrentLocked(DocumentKey key) =>
-        FindLocked(key) ?? new SyncedDocument { Kind = key.Kind, DocumentId = key.DocumentId };
+    private SyncedDocument CurrentLocked(DocumentKey key) => FindLocked(key) ?? NewLocked(key);
+
+    // A file new to the ledger: the signed-in account's, unless nobody has signed in on this device yet.
+    private SyncedDocument NewLocked(DocumentKey key) => new()
+    {
+        Kind = key.Kind,
+        DocumentId = key.DocumentId,
+        Ownership = string.IsNullOrEmpty(_state.Account) ? SyncOwnership.Unclaimed : SyncOwnership.Claimed
+    };
+
+    private void SetUnclaimed(SyncOwnership ownership)
+    {
+        lock (_lock)
+        {
+            for (var i = 0; i < _state.Documents.Count; i++)
+            {
+                if (_state.Documents[i].Ownership == SyncOwnership.Unclaimed)
+                {
+                    _state.Documents[i] = _state.Documents[i] with { Ownership = ownership };
+                }
+            }
+
+            Save();
+        }
+    }
 
     // Puts the changed entry in place of the current one, or adds it, and saves the ledger.
     private void Put(SyncedDocument current, SyncedDocument changed)

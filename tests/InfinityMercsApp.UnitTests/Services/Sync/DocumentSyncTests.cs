@@ -22,6 +22,7 @@ public sealed class DocumentSyncTests : IDisposable
     public DocumentSyncTests()
     {
         _ledger = new SyncLedger(_records.Paths);
+        _ledger.UseAccount("kestrel@example.com");
         _sync = new DocumentSync(_ledger, _api, _signIn, _records.Paths);
         _signIn.GetAccountAsync(Arg.Any<CancellationToken>()).Returns(new SignedInAccount("kestrel@example.com"));
         _signIn.GetAccessTokenAsync(Arg.Any<CancellationToken>()).Returns(Token);
@@ -69,6 +70,7 @@ public sealed class DocumentSyncTests : IDisposable
             CompanyIdentifier = "c1",
             SourceFactions = [new SavedCompanyFaction { FactionId = 101 }]
         });
+        _ledger.RecordSave(UserDocumentKind.Company, "c1", WolvesPath);
 
         await _sync.RunAsync();
 
@@ -77,13 +79,45 @@ public sealed class DocumentSyncTests : IDisposable
     }
 
     [Fact]
-    public async Task RunAsync_SeasonWithoutAnId_IsGivenOneAndSent()
+    public async Task RunAsync_FoundOnTheDevice_IsNotSentUntilAddedToTheAccount()
+    {
+        LocalRecordFiles.Write(WolvesPath, SyncTestFiles.Company("c1"));
+        Saves(new UserDocumentsReply<UserDocumentView<SavedCompanyFile>>(UserDocumentsStatus.Ok, View(revision: 1)));
+
+        var report = await _sync.RunAsync();
+
+        Assert.Equal(new UnclaimedFiles(1, 0), report.Unclaimed);
+        await _api.DidNotReceiveWithAnyArgs().SaveAsync<SavedCompanyFile>(default, default!, default!, default!, default);
+
+        _ledger.ClaimAll();
+        await _sync.RunAsync();
+
+        await _api.Received(1).SaveAsync(UserDocumentKind.Company, "c1", Arg.Any<UserDocumentWrite<SavedCompanyFile>>(), Token, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RunAsync_KeptOnTheDevice_IsNeverSent()
+    {
+        LocalRecordFiles.Write(WolvesPath, SyncTestFiles.Company("c1"));
+        await _sync.RunAsync();
+
+        _ledger.KeepUnclaimedOnDevice();
+        var report = await _sync.RunAsync();
+
+        Assert.Equal(0, report.Unclaimed.Total);
+        await _api.DidNotReceiveWithAnyArgs().SaveAsync<SavedCompanyFile>(default, default!, default!, default!, default);
+    }
+
+    [Fact]
+    public async Task RunAsync_SeasonWithoutAnId_IsGivenOneAndSentOnceAdded()
     {
         var path = Path.Combine(_records.Paths.SeasonsDirectory, "old.json");
         LocalRecordFiles.Write(path, SyncTestFiles.Season(string.Empty, "c1"));
         _api.SaveAsync(UserDocumentKind.Season, Arg.Any<string>(), Arg.Any<UserDocumentWrite<SeasonFile>>(), Token, Arg.Any<CancellationToken>())
             .Returns(new UserDocumentsReply<UserDocumentView<SeasonFile>>(UserDocumentsStatus.Ok, new UserDocumentView<SeasonFile> { Revision = 1 }));
 
+        await _sync.RunAsync();
+        _ledger.ClaimAll();
         await _sync.RunAsync();
 
         var identifier = LocalRecordFiles.Read<SeasonFile>(path)?.SeasonIdentifier;
@@ -234,7 +268,12 @@ public sealed class DocumentSyncTests : IDisposable
         Assert.Null(_ledger.Find(Wolves));
     }
 
-    private void WriteWolves() => LocalRecordFiles.Write(WolvesPath, SyncTestFiles.Company("c1"));
+    // Saved through the app while signed in, so it is the account's.
+    private void WriteWolves()
+    {
+        LocalRecordFiles.Write(WolvesPath, SyncTestFiles.Company("c1"));
+        _ledger.RecordSave(UserDocumentKind.Company, "c1", WolvesPath);
+    }
 
     private void Saves(UserDocumentsReply<UserDocumentView<SavedCompanyFile>> reply) =>
         _api.SaveAsync(UserDocumentKind.Company, "c1", Arg.Any<UserDocumentWrite<SavedCompanyFile>>(), Token, Arg.Any<CancellationToken>()).Returns(reply);
