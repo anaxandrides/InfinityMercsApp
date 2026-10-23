@@ -104,13 +104,16 @@ public sealed class RecruitingCompanySelectionTests
     public async Task SelectFactionCommand_Recruiting_ChangesNothing()
     {
         var viewModel = await OpenAsync(Company());
+        var companyFaction = viewModel.Slots.Left;
 
         viewModel.SelectSlotCommand.Execute(0);
         viewModel.OpenFactionStripCommand.Execute(null);
         await viewModel.SelectFactionCommand.ExecuteAsync(viewModel.Slots.Factions[0]);
 
         Assert.False(viewModel.ShowFactionStrip);
-        Assert.False(viewModel.Slots.Factions[0].IsSelected);
+        Assert.Same(companyFaction, viewModel.Slots.Left);
+        // The company's own faction shows as chosen in the list.
+        Assert.Equal(viewModel.Slots.Factions[0].Id == companyFaction?.Id, viewModel.Slots.Factions[0].IsSelected);
     }
 
     [Fact]

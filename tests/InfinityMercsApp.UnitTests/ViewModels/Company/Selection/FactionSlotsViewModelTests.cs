@@ -68,4 +68,36 @@ public sealed class FactionSlotsViewModelTests
         Assert.False(first.IsSelected);
         Assert.True(second.IsSelected);
     }
+
+    [Fact]
+    public void TryAssign_TwoSectorials_MarksBoth()
+    {
+        var slots = new FactionSlotsViewModel(hasRightSlot: true);
+        var first = Faction(5);
+        var second = Faction(6);
+
+        slots.Highlight(first);
+        slots.TryAssign(0, first, out _);
+        slots.Highlight(second);
+        slots.TryAssign(1, second, out _);
+
+        Assert.True(first.IsSelected);
+        Assert.True(second.IsSelected);
+    }
+
+    [Fact]
+    public void TryAssign_ReplacedSectorial_IsUnmarked()
+    {
+        var slots = new FactionSlotsViewModel(hasRightSlot: true);
+        var first = Faction(5);
+        var replacement = Faction(7);
+        slots.Highlight(first);
+        slots.TryAssign(0, first, out _);
+
+        slots.Highlight(replacement);
+        slots.TryAssign(0, replacement, out _);
+
+        Assert.False(first.IsSelected);
+        Assert.True(replacement.IsSelected);
+    }
 }
