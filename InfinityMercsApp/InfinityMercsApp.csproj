@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<!-- Deploy to physical armeabi-v7a device during development. Not included in release builds. -->
+	<!-- Debug builds run on physical phones: 32-bit ARM (armeabi-v7a) for older ones and 64-bit ARM (arm64-v8a) for
+	     current ones, such as the Pixel 10, which run 64-bit code only. Release builds include every ABI. -->
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug' And $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
-		<RuntimeIdentifier>android-arm</RuntimeIdentifier>
+		<RuntimeIdentifiers>android-arm;android-arm64</RuntimeIdentifiers>
 	</PropertyGroup>
 
 	<!-- Simulate tablet aspect ratio on Windows when SimulateTablet=true is passed to dotnet build. -->
