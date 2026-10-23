@@ -138,7 +138,7 @@ public partial class SettingsViewModel(
     private void ShowAccount(SignedInAccount? account)
     {
         IsSignedIn = account is not null;
-        AccountText = account is null ? SignedOutText : $"Signed in as {account.Username}.";
+        AccountText = account is null ? SignedOutText : $"Signed in as {account.DisplayName}.";
     }
 
     partial void OnShowUnitsInInchesChanged(bool value)

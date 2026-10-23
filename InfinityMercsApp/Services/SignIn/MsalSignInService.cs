@@ -45,7 +45,8 @@ internal sealed class MsalSignInService(IPublicClientApplication msal, SignInSet
         {
             await TokenCacheReadyAsync();
             var result = await Interactive(msal.AcquireTokenInteractive(Scopes)).ExecuteAsync(cancellationToken);
-            return SignInOutcome.SignedIn(AccountOf(result.Account));
+            return SignInOutcome.SignedIn(new SignedInAccount(
+                result.Account.Username, AccountNames.DisplayNameFrom(result.ClaimsPrincipal, result.Account.Username)));
         }
         catch (MsalClientException ex) when (ex.ErrorCode == MsalError.AuthenticationCanceledError)
         {
@@ -119,8 +120,11 @@ internal sealed class MsalSignInService(IPublicClientApplication msal, SignInSet
     private static Task TokenCacheReadyAsync() => Task.CompletedTask;
 #endif
 
+    // The name comes from the ID token MSAL keeps with the account, so it is there after a restart too.
     private static SignedInAccount AccountOf(IAccount account) =>
-        new(string.IsNullOrWhiteSpace(account.Username) ? "your account" : account.Username);
+        new(account.Username, AccountNames.DisplayNameFrom(
+            account.GetTenantProfiles()?.Select(profile => profile.ClaimsPrincipal).FirstOrDefault(claims => claims is not null),
+            account.Username));
 
     // The sign-in page opens over the app's current screen.
     private static AcquireTokenInteractiveParameterBuilder Interactive(AcquireTokenInteractiveParameterBuilder builder)
