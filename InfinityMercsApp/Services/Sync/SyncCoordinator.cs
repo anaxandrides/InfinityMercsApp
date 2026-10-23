@@ -74,7 +74,7 @@ internal sealed class SyncCoordinator(DocumentSync sync, SyncLedger ledger, IDia
         {
             // Sync runs in the background; a failure waits for the next one instead of ending them all.
             Console.Error.WriteLine($"Sync failed: {ex.Message}");
-            return new SyncReport(SyncRunStatus.Offline, 0, 0, ledger.Conflicts, ledger.Unclaimed());
+            return new SyncReport(SyncRunStatus.Offline, 0, 0, ledger.Conflicts, ledger.Online(), ledger.Unclaimed());
         }
     }
 

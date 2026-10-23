@@ -24,7 +24,7 @@ public sealed class DocumentSyncTests : IDisposable
         _ledger = new SyncLedger(_records.Paths);
         _ledger.UseAccount("kestrel@example.com");
         _sync = new DocumentSync(_ledger, _api, _signIn, _records.Paths);
-        _signIn.GetAccountAsync(Arg.Any<CancellationToken>()).Returns(new SignedInAccount("kestrel@example.com"));
+        _signIn.GetAccountAsync(Arg.Any<CancellationToken>()).Returns(new SignedInAccount("kestrel@example.com", "Kestrel"));
         _signIn.GetAccessTokenAsync(Arg.Any<CancellationToken>()).Returns(Token);
         Online<SavedCompanyFile>(UserDocumentKind.Company);
         Online<SeasonFile>(UserDocumentKind.Season);
@@ -86,7 +86,7 @@ public sealed class DocumentSyncTests : IDisposable
 
         var report = await _sync.RunAsync();
 
-        Assert.Equal(new UnclaimedFiles(1, 0), report.Unclaimed);
+        Assert.Equal(new FileCounts(1, 0), report.Unclaimed);
         await _api.DidNotReceiveWithAnyArgs().SaveAsync<SavedCompanyFile>(default, default!, default!, default!, default);
 
         _ledger.ClaimAll();

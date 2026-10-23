@@ -55,7 +55,7 @@ public sealed class DocumentSync
                     : await SendAsync<SeasonFile>(document, token, cancellationToken);
                 if (Stopped(step) is { } stopped)
                 {
-                    return new SyncReport(stopped, sent, 0, _ledger.Conflicts, _ledger.Unclaimed());
+                    return new SyncReport(stopped, sent, 0, _ledger.Conflicts, _ledger.Online(), _ledger.Unclaimed());
                 }
 
                 sent += step == SyncStep.Moved ? 1 : 0;
@@ -64,12 +64,12 @@ public sealed class DocumentSync
             var companies = await ReceiveAsync<SavedCompanyFile>(UserDocumentKind.Company, token, cancellationToken);
             if (Stopped(companies.Step) is { } stoppedFetching)
             {
-                return new SyncReport(stoppedFetching, sent, companies.Files, _ledger.Conflicts, _ledger.Unclaimed());
+                return new SyncReport(stoppedFetching, sent, companies.Files, _ledger.Conflicts, _ledger.Online(), _ledger.Unclaimed());
             }
 
             var seasons = await ReceiveAsync<SeasonFile>(UserDocumentKind.Season, token, cancellationToken);
             return new SyncReport(
-                Stopped(seasons.Step) ?? SyncRunStatus.Synced, sent, companies.Files + seasons.Files, _ledger.Conflicts, _ledger.Unclaimed());
+                Stopped(seasons.Step) ?? SyncRunStatus.Synced, sent, companies.Files + seasons.Files, _ledger.Conflicts, _ledger.Online(), _ledger.Unclaimed());
         }
         finally
         {

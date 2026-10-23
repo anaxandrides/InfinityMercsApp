@@ -75,6 +75,20 @@ public sealed class SyncLedgerTests : IDisposable
     }
 
     [Fact]
+    public void Online_SentAndBeingDeleted_CountsOnlyWhatStaysOnline()
+    {
+        var ledger = new SyncLedger(_records.Paths);
+        ledger.UseAccount("kestrel@example.com");
+        ledger.Received(Wolves, CompanyPath, revision: 2);
+        ledger.Received(new DocumentKey(UserDocumentKind.Season, "s1"), Path.Combine(_records.Paths.SeasonsDirectory, "s1.json"), revision: 1);
+        ledger.Received(new DocumentKey(UserDocumentKind.Company, "c2"), Path.Combine(_records.Paths.CompaniesDirectory, "c2.json"), revision: 1);
+        ledger.RecordDelete(UserDocumentKind.Company, "c2");
+        ledger.RecordSave(UserDocumentKind.Company, "c3", Path.Combine(_records.Paths.CompaniesDirectory, "c3.json"));
+
+        Assert.Equal(new FileCounts(1, 1), ledger.Online());
+    }
+
+    [Fact]
     public void Track_UnknownFile_WaitsToBeSent()
     {
         var ledger = new SyncLedger(_records.Paths);
@@ -103,7 +117,7 @@ public sealed class SyncLedgerTests : IDisposable
         ledger.RecordSave(UserDocumentKind.Company, "c1", CompanyPath);
 
         Assert.Equal(SyncOwnership.Unclaimed, ledger.Find(Wolves)?.Ownership);
-        Assert.Equal(new UnclaimedFiles(1, 0), ledger.Unclaimed());
+        Assert.Equal(new FileCounts(1, 0), ledger.Unclaimed());
     }
 
     [Fact]

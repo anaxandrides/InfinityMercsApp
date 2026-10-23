@@ -200,14 +200,28 @@ public sealed class SyncLedger : ISyncOutbox
     }
 
     /// <summary>How many companies and seasons wait for the user to add them to the account.</summary>
-    public UnclaimedFiles Unclaimed()
+    public FileCounts Unclaimed()
     {
         lock (_lock)
         {
             var unclaimed = _state.Documents.Where(document => document.Ownership == SyncOwnership.Unclaimed).ToList();
-            return new UnclaimedFiles(
+            return new FileCounts(
                 unclaimed.Count(document => document.Kind == UserDocumentKind.Company),
                 unclaimed.Count(document => document.Kind == UserDocumentKind.Season));
+        }
+    }
+
+    /// <summary>How many companies and seasons this device knows are in the account online and not being deleted.</summary>
+    public FileCounts Online()
+    {
+        lock (_lock)
+        {
+            var online = _state.Documents
+                .Where(document => document is { Ownership: SyncOwnership.Claimed, Revision: > 0, Pending: not SyncOperation.Delete })
+                .ToList();
+            return new FileCounts(
+                online.Count(document => document.Kind == UserDocumentKind.Company),
+                online.Count(document => document.Kind == UserDocumentKind.Season));
         }
     }
 

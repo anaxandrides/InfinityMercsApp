@@ -21,7 +21,7 @@ public sealed class SettingsViewModelTests
     public SettingsViewModelTests()
     {
         _signIn.IsAvailable.Returns(true);
-        _sync.SyncNowAsync().Returns(new SyncReport(SyncRunStatus.Synced, 2, 1, [], UnclaimedFiles.None));
+        _sync.SyncNowAsync().Returns(new SyncReport(SyncRunStatus.Synced, 2, 1, [], new FileCounts(3, 1), FileCounts.None));
     }
 
     private async Task<SettingsViewModel> OpenAsync(bool storedInches = true)
@@ -140,12 +140,12 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task InitializeAsync_RememberedAccount_ShowsItSignedIn()
     {
-        _signIn.GetAccountAsync(Arg.Any<CancellationToken>()).Returns(new SignedInAccount("kestrel@example.com"));
+        _signIn.GetAccountAsync(Arg.Any<CancellationToken>()).Returns(new SignedInAccount("kestrel@example.com", "Kestrel"));
 
         var viewModel = await OpenAsync();
 
         Assert.True(viewModel.IsSignedIn);
-        Assert.Equal("Signed in as kestrel@example.com.", viewModel.AccountText);
+        Assert.Equal("Signed in as Kestrel.", viewModel.AccountText);
         Assert.True(viewModel.ShowSignOut);
         Assert.False(viewModel.ShowSignIn);
         Assert.False(viewModel.SignInCommand.CanExecute(null));
@@ -179,26 +179,26 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task SignInCommand_SignedIn_ShowsTheAccount()
     {
-        _signIn.SignInAsync(Arg.Any<CancellationToken>()).Returns(SignInOutcome.SignedIn(new SignedInAccount("kestrel@example.com")));
+        _signIn.SignInAsync(Arg.Any<CancellationToken>()).Returns(SignInOutcome.SignedIn(new SignedInAccount("kestrel@example.com", "Kestrel")));
         var viewModel = await OpenAsync();
 
         await viewModel.SignInCommand.ExecuteAsync(null);
 
         Assert.True(viewModel.IsSignedIn);
-        Assert.Equal("Signed in as kestrel@example.com.", viewModel.AccountText);
+        Assert.Equal("Signed in as Kestrel.", viewModel.AccountText);
         Assert.False(viewModel.IsSigningIn);
     }
 
     [Fact]
     public async Task SignInCommand_SignedIn_SyncsAndSaysHowItWent()
     {
-        _signIn.SignInAsync(Arg.Any<CancellationToken>()).Returns(SignInOutcome.SignedIn(new SignedInAccount("kestrel@example.com")));
+        _signIn.SignInAsync(Arg.Any<CancellationToken>()).Returns(SignInOutcome.SignedIn(new SignedInAccount("kestrel@example.com", "Kestrel")));
         var viewModel = await OpenAsync();
 
         await viewModel.SignInCommand.ExecuteAsync(null);
 
         await _sync.Received(1).SyncNowAsync();
-        Assert.Equal("Synced: 2 sent, 1 received.", viewModel.SyncStatus);
+        Assert.Equal("Synced. 3 companies and 1 season online.", viewModel.SyncStatus);
     }
 
     [Fact]
@@ -212,8 +212,8 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task SyncNowCommand_SignedIn_ShowsTheSummary()
     {
-        _signIn.GetAccountAsync(Arg.Any<CancellationToken>()).Returns(new SignedInAccount("kestrel@example.com"));
-        _sync.SyncNowAsync().Returns(new SyncReport(SyncRunStatus.Offline, 0, 0, [], UnclaimedFiles.None));
+        _signIn.GetAccountAsync(Arg.Any<CancellationToken>()).Returns(new SignedInAccount("kestrel@example.com", "Kestrel"));
+        _sync.SyncNowAsync().Returns(new SyncReport(SyncRunStatus.Offline, 0, 0, [], FileCounts.None, FileCounts.None));
         var viewModel = await OpenAsync();
 
         await viewModel.SyncNowCommand.ExecuteAsync(null);
@@ -248,7 +248,7 @@ public sealed class SettingsViewModelTests
     [Fact]
     public async Task SignOutCommand_SignedIn_ForgetsTheAccount()
     {
-        _signIn.GetAccountAsync(Arg.Any<CancellationToken>()).Returns(new SignedInAccount("kestrel@example.com"));
+        _signIn.GetAccountAsync(Arg.Any<CancellationToken>()).Returns(new SignedInAccount("kestrel@example.com", "Kestrel"));
         var viewModel = await OpenAsync();
 
         await viewModel.SignOutCommand.ExecuteAsync(null);

@@ -19,20 +19,9 @@ public sealed record UnclaimedFilesQuestion(string Question)
         _ => null
     };
 
-    public static UnclaimedFilesQuestion For(UnclaimedFiles files)
+    public static UnclaimedFilesQuestion For(FileCounts files)
     {
-        var parts = new List<string>();
-        if (files.Companies > 0)
-        {
-            parts.Add($"{files.Companies} {(files.Companies == 1 ? "company" : "companies")}");
-        }
-
-        if (files.Seasons > 0)
-        {
-            parts.Add($"{files.Seasons} {(files.Seasons == 1 ? "season" : "seasons")}");
-        }
-
         var isOne = files.Total == 1;
-        return new($"This device has {string.Join(" and ", parts)} that {(isOne ? "isn't" : "aren't")} in your account. Add {(isOne ? "it" : "them")} to your account, so {(isOne ? "it's" : "they're")} kept online?");
+        return new($"This device has {files.Describe()} that {(isOne ? "isn't" : "aren't")} in your account. Add {(isOne ? "it" : "them")} to your account, so {(isOne ? "it's" : "they're")} kept online?");
     }
 }
