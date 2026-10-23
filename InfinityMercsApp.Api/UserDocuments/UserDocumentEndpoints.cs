@@ -1,5 +1,6 @@
 using System.Text.Json;
 using InfinityMercsApp.Api.Auth;
+using InfinityMercsApp.Api.Http;
 using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Validation;
 using Microsoft.AspNetCore.Http;
@@ -58,7 +59,7 @@ public sealed class UserDocumentEndpoints(IUserAuthenticator authenticator, User
             return new NotFoundResult();
         }
 
-        if (await ReadBodyAsync(request, cancellationToken) is not { } body)
+        if (await RequestBodies.ReadAsync(request, MaxBodyBytes, cancellationToken) is not { } body)
         {
             return new StatusCodeResult(StatusCodes.Status413PayloadTooLarge);
         }
@@ -96,30 +97,6 @@ public sealed class UserDocumentEndpoints(IUserAuthenticator authenticator, User
         }
 
         return Outcome(await documents.DeleteAsync<TContent>(user.UserId, kind, documentId, baseRevision, cancellationToken));
-    }
-
-    // The body, or null when it is larger than MaxBodyBytes.
-    private static async Task<byte[]?> ReadBodyAsync(HttpRequest request, CancellationToken cancellationToken)
-    {
-        if (request.ContentLength > MaxBodyBytes)
-        {
-            return null;
-        }
-
-        using var body = new MemoryStream();
-        var buffer = new byte[81920];
-        int read;
-        while ((read = await request.Body.ReadAsync(buffer, cancellationToken)) > 0)
-        {
-            if (body.Length + read > MaxBodyBytes)
-            {
-                return null;
-            }
-
-            body.Write(buffer, 0, read);
-        }
-
-        return body.ToArray();
     }
 
     private static UserDocumentWrite<TContent>? Parse<TContent>(byte[] body)

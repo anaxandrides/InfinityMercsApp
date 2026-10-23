@@ -35,6 +35,16 @@
                 LineBreakMode="WordWrap" />
 
             <Label
+                Text="Diagnostics"
+                FontSize="{DynamicResource FontSizeSubHeadline}"
+                FontAttributes="Bold"
+                Margin="0,12,0,0" />
+
+            <Label
+                Text="The app sends anonymous diagnostics to its own server to help fix problems: which pages are shown, crash reports, how long startup takes and failed syncs, with the app version and device model. It never sends your companies, names or account details. Turn this off in Settings."
+                LineBreakMode="WordWrap" />
+
+            <Label
                 Text="Authors"
                 FontSize="{DynamicResource FontSizeSubHeadline}"
                 FontAttributes="Bold"

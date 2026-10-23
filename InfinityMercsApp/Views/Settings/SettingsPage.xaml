@@ -25,6 +25,19 @@
                 </HorizontalStackLayout>
             </VerticalStackLayout>
 
+            <VerticalStackLayout Spacing="4">
+                <HorizontalStackLayout Spacing="12">
+                    <Switch IsToggled="{Binding SendDiagnostics}" VerticalOptions="Center" />
+                    <Label
+                        Text="Send anonymous diagnostics"
+                        FontAttributes="Bold"
+                        VerticalOptions="Center" />
+                </HorizontalStackLayout>
+                <Label
+                    Text="Pages shown, crashes, timings and sync failures, to help fix problems. Never your companies, names or account."
+                    LineBreakMode="WordWrap" />
+            </VerticalStackLayout>
+
             <Button
                 Text="Check for army data updates"
                 Command="{Binding UpdateAllDataCommand}"

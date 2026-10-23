@@ -5,6 +5,7 @@ using System.Text;
 using CommunityToolkit.Mvvm.Messaging;
 using InfinityMercsApp.Messages;
 using InfinityMercsApp.Services.Sync;
+using InfinityMercsApp.Services.Telemetry;
 using InfinityMercsApp.Views.Adaptive;
 using InfinityMercsApp.Views.Splash;
 
@@ -12,15 +13,30 @@ namespace InfinityMercsApp;
 
 public partial class App : Application
 {
-	private readonly SplashPage _splashPage;
+	/// <summary>The startup milestone reported once the army data is in and the main screen shows.</summary>
+	public const string MainScreenMilestone = "MainScreen";
 
-	public App(SplashPage splashPage, ISyncCoordinator sync)
+	private readonly SplashPage _splashPage;
+	private readonly ITelemetryCoordinator _telemetry;
+
+	public App(SplashPage splashPage, ISyncCoordinator sync, ITelemetryRecorder telemetryRecorder, ITelemetryCoordinator telemetry, TimeProvider time)
 	{
 		_splashPage = splashPage;
+		_telemetry = telemetry;
 		CrashLog.Initialize();
 
-		// Sync starts once the army data is in and the app has opened.
-		WeakReferenceMessenger.Default.Register<SplashCompletedMessage>(this, (_, _) => sync.Start());
+		// Sync and telemetry start once the army data is in and the app has opened; the telemetry left by an earlier
+		// session (a crash's report among it) goes then.
+		WeakReferenceMessenger.Default.Register<SplashCompletedMessage>(this, (_, _) =>
+		{
+			if (LaunchClock.MillisecondsSinceLaunch() is { } milliseconds)
+			{
+				telemetryRecorder.Record(TelemetryEvents.Startup(MainScreenMilestone, milliseconds, time.GetUtcNow()));
+			}
+
+			sync.Start();
+			telemetry.Start();
+		});
 
 		// Datapad identity is dark-only; pin the theme so system-drawn
 		// controls (pickers, dialogs) don't flip to a light variant.
@@ -29,11 +45,16 @@ public partial class App : Application
 		AppDomain.CurrentDomain.UnhandledException += (_, args) =>
 		{
 			CrashLog.Write("AppDomain.CurrentDomain.UnhandledException", args.ExceptionObject as Exception);
+			if (args.ExceptionObject is Exception exception)
+			{
+				telemetryRecorder.Record(TelemetryEvents.Crash("AppDomain.UnhandledException", exception, time.GetUtcNow()));
+			}
 		};
 
 		TaskScheduler.UnobservedTaskException += (_, args) =>
 		{
 			CrashLog.Write("TaskScheduler.UnobservedTaskException", args.Exception);
+			telemetryRecorder.Record(TelemetryEvents.Crash("TaskScheduler.UnobservedTaskException", args.Exception, time.GetUtcNow()));
 		};
 
 		// Intentionally NOT subscribing to FirstChanceException: it fires for every
@@ -47,6 +68,13 @@ public partial class App : Application
 	protected override Window CreateWindow(IActivationState? activationState)
 	{
 		return new AppWindow(_splashPage);
+	}
+
+	/// <summary>The app may be closed while in the background, so what telemetry is waiting goes now.</summary>
+	protected override void OnSleep()
+	{
+		base.OnSleep();
+		_telemetry.SendSoon();
 	}
 
 	internal static class CrashLog

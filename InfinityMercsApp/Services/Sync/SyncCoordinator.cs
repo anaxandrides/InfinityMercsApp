@@ -1,5 +1,6 @@
 using InfinityMercsApp.Presentation.Sync;
 using InfinityMercsApp.Services.Dialogs;
+using InfinityMercsApp.Services.Telemetry;
 
 namespace InfinityMercsApp.Services.Sync;
 
@@ -9,7 +10,12 @@ namespace InfinityMercsApp.Services.Sync;
 /// fifteen minutes. A conflict the user puts off isn't asked about again until they sync from the settings page, and
 /// nor are files on the device that aren't in the account: nothing is sent to an account until the user adds it.
 /// </remarks>
-internal sealed class SyncCoordinator(DocumentSync sync, SyncLedger ledger, IDialogService dialogs) : ISyncCoordinator
+internal sealed class SyncCoordinator(
+    DocumentSync sync,
+    SyncLedger ledger,
+    IDialogService dialogs,
+    ITelemetryRecorder telemetry,
+    TimeProvider time) : ISyncCoordinator
 {
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan SettleTime = TimeSpan.FromSeconds(3);
@@ -74,6 +80,7 @@ internal sealed class SyncCoordinator(DocumentSync sync, SyncLedger ledger, IDia
         {
             // Sync runs in the background; a failure waits for the next one instead of ending them all.
             Console.Error.WriteLine($"Sync failed: {ex.Message}");
+            telemetry.Record(TelemetryEvents.SyncFailure(ex, time.GetUtcNow()));
             return new SyncReport(SyncRunStatus.Offline, 0, 0, ledger.Conflicts, ledger.Online(), ledger.Unclaimed());
         }
     }

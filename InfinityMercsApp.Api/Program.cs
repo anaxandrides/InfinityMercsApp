@@ -3,6 +3,7 @@ using InfinityMercsApp.Api.ArmyData;
 using InfinityMercsApp.Api.ArmyData.Logos;
 using InfinityMercsApp.Api.Auth;
 using InfinityMercsApp.Api.Cosmos;
+using InfinityMercsApp.Api.Telemetry;
 using InfinityMercsApp.Api.UserDocuments;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
 using Microsoft.Azure.Functions.Worker;
@@ -41,7 +42,9 @@ builder.Services
     .AddSingleton<UserDocumentService>()
     .AddSingleton<UserDocumentEndpoints>()
     .AddSingleton<CompanyFileChecks>()
-    .AddSingleton<SeasonFileChecks>();
+    .AddSingleton<SeasonFileChecks>()
+    .AddSingleton<TelemetryBatchValidator>()
+    .AddSingleton<ITelemetrySink, ApplicationInsightsTelemetrySink>();
 
 // Sign-in: tokens from the Entra External ID tenant named by "Auth". Until it is set, requests needing a user are refused.
 var auth = builder.Configuration.GetSection("Auth").Get<AuthSettings>() ?? new AuthSettings();

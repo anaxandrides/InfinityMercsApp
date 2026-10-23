@@ -1,4 +1,5 @@
 using InfinityMercsApp.Presentation.Layouts;
+using InfinityMercsApp.Services.Telemetry;
 using InfinityMercsApp.ViewModels.Base;
 
 namespace InfinityMercsApp.Views.Adaptive;
@@ -59,6 +60,13 @@ public abstract class AdaptiveContentPage : ContentPage
     public bool IsWide => _layoutMode == AdaptiveLayoutMode.Wide;
     public bool IsMediumOrWider => _layoutMode >= AdaptiveLayoutMode.Medium;
     public bool IsExpandedOrWider => _layoutMode >= AdaptiveLayoutMode.Expanded;
+
+    /// <summary>Reports the page shown; subclasses that override this call it first.</summary>
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        PageTelemetry.Report(this);
+    }
 
     protected override void OnSizeAllocated(double width, double height)
     {

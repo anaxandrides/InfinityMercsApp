@@ -17,7 +17,8 @@ once by hand.
   payloads (`army-data`). Shared keys are off.
 - **Cosmos DB** (serverless): the `mercs` database, holding the army data snapshots (`army`) and later companies,
   seasons and leagues. Key access is off.
-- **Application Insights** with a Log Analytics workspace.
+- **Application Insights** with a Log Analytics workspace, capped at 1 GB of ingestion a day (`dailyCapGb` in
+  `infra/modules/monitoring.bicep`): past it, nothing more is kept until the next day.
 - **Static Web App** `stapp-infmercs-prod` (Free, East US 2, since Static Web Apps run in only a few regions): the
   Blazor WebAssembly site in `InfinityMercsApp.Web`. Its address is `https://{generated name}.azurestaticapps.net`;
   the Infrastructure workflow prints it as `webHostName`, and the API allows calls from it (CORS) along with the web
@@ -140,6 +141,35 @@ the API, the app and the web site always agree on their shape.
 - **Size:** bodies of up to 1.5 MB are accepted.
 - **Sign-in:** every route needs `Authorization: Bearer <token>` from the sign-in tenant, issued for the API. Until
   `authAuthority` and `authAudience` are set in `infra/main.bicepparam`, every request gets `401 Unauthorized`.
+
+## App telemetry
+
+The app reports to `POST /api/telemetry` rather than to Application Insights itself, so no connection string ships in
+the app. The API checks each batch and writes it to Application Insights as its managed identity.
+
+- **What:** pages shown (with the Android Java object count, which hangs the app past roughly 40,000), crashes (type,
+  message and stack trace), startup times (`FirstPage` and `MainScreen`, from launch) and failed syncs, with the app
+  version, platform, OS version and device model. Never companies, names or account details. A random install id,
+  made on first launch, ties an install's reports together.
+- **Who can post:** anyone; there is no key to keep. A batch is refused with `400` unless it is the known shape
+  (`TelemetryBatch` in `InfinityMercsApp.ApiClient`): a GUID install id, 1 to 200 events of known kinds, text within
+  `TelemetryLimits`, times within the last 30 days. Bodies of up to 1 MB are read. A sign-in token, when sent, adds
+  the user id.
+- **Where:** records carry the cloud role name `app`. Crashes are in `exceptions`; the rest are in `customEvents`,
+  named `PageShown`, `Startup` and `SyncFailure`, with the page or milestone in `customDimensions.Name` and the
+  number in `customMeasurements` (`JavaObjects` or `Milliseconds`). The install id is `user_Id`, the signed-in user
+  `user_AuthenticatedId`. For example:
+
+  ```kusto
+  customEvents
+  | where cloud_RoleName == "app" and name == "PageShown"
+  | summarize max(todouble(customMeasurements.JavaObjects)) by tostring(customDimensions.Name), bin(timestamp, 1h)
+  ```
+- **On the device:** events go to a file per session under `Telemetry/Outbox` in the app's data (2 MB at most, the
+  oldest dropped), sent every five minutes, when the app goes to the background, and on the next launch after a
+  crash. Settings has a switch to turn it off, which also deletes what is waiting.
+- **Google Play:** declare crash logs and diagnostics (collected, not shared, not linked to identity unless signed
+  in) in the Data safety form.
 
 ## Sign-in
 

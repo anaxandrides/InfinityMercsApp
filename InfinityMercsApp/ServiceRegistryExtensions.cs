@@ -57,6 +57,8 @@ using InfinityMercsApp.Views.Settings;
 using InfinityMercsApp.Views.Splash;
 using InfinityMercsApp.Views.UnitBrowser;
 using InfinityMercsApp.Services.SignIn;
+using InfinityMercsApp.Services.Telemetry;
+using InfinityMercsApp.ApiClient.Telemetry;
 using Microsoft.Identity.Client;
 
 namespace InfinityMercsApp;
@@ -201,6 +203,24 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<ISyncOutbox>(provider => provider.GetRequiredService<SyncLedger>())
                 .AddSingleton<DocumentSync>()
                 .AddSingleton<ISyncCoordinator, SyncCoordinator>();
+
+        // Telemetry: noted in an outbox on the device and sent to the app's own API, so no Application Insights key
+        // ships in the app.
+        services.AddSingleton(TimeProvider.System)
+                .AddSingleton(_ => TelemetryPaths.ForAppData(FileSystem.Current.AppDataDirectory))
+                .AddSingleton<TelemetryStore>()
+                .AddSingleton<ITelemetryRecorder>(provider => provider.GetRequiredService<TelemetryStore>())
+                .AddSingleton<ITelemetrySettings>(provider => provider.GetRequiredService<TelemetryStore>())
+                .AddSingleton(_ => new TelemetrySource(
+                    AppInfo.Current.VersionString,
+                    DeviceInfo.Current.Platform.ToString(),
+                    DeviceInfo.Current.VersionString,
+                    $"{DeviceInfo.Current.Manufacturer} {DeviceInfo.Current.Model}"))
+                .AddSingleton(TelemetryEndpoint.Production)
+                .AddSingleton<ITelemetryApi, TelemetryApiClient>()
+                .AddSingleton<TelemetrySender>()
+                .AddSingleton<ITelemetryCoordinator, TelemetryCoordinator>()
+                .AddSingleton<PageTelemetry>();
 
         return services;
     }

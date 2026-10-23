@@ -6,13 +6,14 @@ using InfinityMercsApp.Services.Import;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.SignIn;
 using InfinityMercsApp.Services.Sync;
+using InfinityMercsApp.Services.Telemetry;
 using InfinityMercsApp.ViewModels.Base;
 
 namespace InfinityMercsApp.ViewModels.Settings;
 
 /// <summary>
-/// The display-units preference, a check for army data updates like the one at startup, and signing in to the app's
-/// online side, where companies and seasons are kept in sync.
+/// The display-units preference, a check for army data updates like the one at startup, signing in to the app's
+/// online side, where companies and seasons are kept in sync, and whether the app sends anonymous diagnostics.
 /// </summary>
 public partial class SettingsViewModel(
     INavigationService navigationService,
@@ -20,7 +21,8 @@ public partial class SettingsViewModel(
     IArmyDataUpdater updater,
     IDialogService dialogs,
     ISignInService signIn,
-    ISyncCoordinator sync) : ViewModelBase(navigationService)
+    ISyncCoordinator sync,
+    ITelemetrySettings telemetry) : ViewModelBase(navigationService)
 {
     public const string SignedOutText = "Not signed in.";
 
@@ -54,6 +56,10 @@ public partial class SettingsViewModel(
     [ObservableProperty]
     public partial string SyncStatus { get; set; } = string.Empty;
 
+    /// <summary>Whether the app sends anonymous diagnostics: pages shown, crashes, timings and sync failures.</summary>
+    [ObservableProperty]
+    public partial bool SendDiagnostics { get; set; } = true;
+
     /// <summary>Whether this device can sign in at all; the account section is hidden where it can't.</summary>
     public bool CanSignInHere => signIn.IsAvailable;
 
@@ -76,6 +82,7 @@ public partial class SettingsViewModel(
         {
             _loading = true;
             ShowUnitsInInches = appSettings.GetShowUnitsInInches();
+            SendDiagnostics = telemetry.IsEnabled;
         }
         catch (Exception ex)
         {
@@ -155,6 +162,14 @@ public partial class SettingsViewModel(
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Saving the display units failed: {ex.Message}");
+        }
+    }
+
+    partial void OnSendDiagnosticsChanged(bool value)
+    {
+        if (!_loading)
+        {
+            telemetry.SetEnabled(value);
         }
     }
 

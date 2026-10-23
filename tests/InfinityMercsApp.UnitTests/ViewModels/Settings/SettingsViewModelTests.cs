@@ -4,6 +4,7 @@ using InfinityMercsApp.Services.Import;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.SignIn;
 using InfinityMercsApp.Services.Sync;
+using InfinityMercsApp.Services.Telemetry;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Settings;
 using NSubstitute;
@@ -17,19 +18,42 @@ public sealed class SettingsViewModelTests
     private readonly IDialogService _dialogs = Substitute.For<IDialogService>();
     private readonly ISignInService _signIn = Substitute.For<ISignInService>();
     private readonly ISyncCoordinator _sync = Substitute.For<ISyncCoordinator>();
+    private readonly ITelemetrySettings _telemetry = Substitute.For<ITelemetrySettings>();
 
     public SettingsViewModelTests()
     {
         _signIn.IsAvailable.Returns(true);
+        _telemetry.IsEnabled.Returns(true);
         _sync.SyncNowAsync().Returns(new SyncReport(SyncRunStatus.Synced, 2, 1, [], new FileCounts(3, 1), FileCounts.None));
     }
 
     private async Task<SettingsViewModel> OpenAsync(bool storedInches = true)
     {
         _settings.GetShowUnitsInInches().Returns(storedInches);
-        var viewModel = new SettingsViewModel(Substitute.For<INavigationService>(), _settings, _updater, _dialogs, _signIn, _sync);
+        var viewModel = new SettingsViewModel(Substitute.For<INavigationService>(), _settings, _updater, _dialogs, _signIn, _sync, _telemetry);
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         return viewModel;
+    }
+
+    [Fact]
+    public async Task InitializeAsync_DiagnosticsOff_ShowsOffWithoutSavingBack()
+    {
+        _telemetry.IsEnabled.Returns(false);
+
+        var viewModel = await OpenAsync();
+
+        Assert.False(viewModel.SendDiagnostics);
+        _telemetry.DidNotReceive().SetEnabled(Arg.Any<bool>());
+    }
+
+    [Fact]
+    public async Task SendDiagnostics_TurnedOff_TurnsTelemetryOff()
+    {
+        var viewModel = await OpenAsync();
+
+        viewModel.SendDiagnostics = false;
+
+        _telemetry.Received(1).SetEnabled(false);
     }
 
     [Fact]
