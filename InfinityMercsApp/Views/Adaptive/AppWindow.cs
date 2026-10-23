@@ -27,14 +27,6 @@ public sealed class AppWindow(Page page) : Window(page)
         }
     }
 
-#if WINDOWS
-    protected override void OnHandlerChanged()
-    {
-        base.OnHandlerChanged();
-        App.HideOverflowButtons(this);
-    }
-#endif
-
     private void ApplyFontScale()
     {
         var scale = FontScale.For(Width, Height);

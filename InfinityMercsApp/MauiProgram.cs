@@ -45,6 +45,8 @@ public static class MauiProgram
 				break;
 			}
 		}
+
+		InfinityMercsApp.WinUI.WindowsToolbar.HideOverflowButtons();
 #endif
 
 		// A database from before the typed-table layout is discarded; the network import rebuilds it.
