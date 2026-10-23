@@ -1,0 +1,91 @@
+# Tests and publishes the Blazor WebAssembly site, then deploys it to the Static Web App that infra/main.bicep creates.
+# Signs in to Azure with OIDC as the deploy identity (docs/azure-setup.md) and reads the site's deployment token there,
+# so no secret is stored in GitHub.
+name: Web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - InfinityMercsApp.Web/**
+      - InfinityMercsApp.ApiClient/**
+      - InfinityMercsApp.Domain/**
+      - tests/InfinityMercsApp.Web.UnitTests/**
+      - .github/workflows/web.yml
+  pull_request:
+    paths:
+      - InfinityMercsApp.Web/**
+      - InfinityMercsApp.ApiClient/**
+      - InfinityMercsApp.Domain/**
+      - tests/InfinityMercsApp.Web.UnitTests/**
+      - .github/workflows/web.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # The resource group infra/main.bicep creates.
+  RESOURCE_GROUP: rg-infmercs-prod
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Test
+        run: dotnet test tests/InfinityMercsApp.Web.UnitTests
+
+      - name: Publish
+        run: dotnet publish InfinityMercsApp.Web -c Release -o publish
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: web
+          path: publish/wwwroot
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      id-token: write
+      contents: read
+    concurrency: web-deploy
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: web
+          path: site
+
+      - uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Read the deployment token
+        run: |
+          name=$(az staticwebapp list -g "$RESOURCE_GROUP" --query '[0].name' -o tsv)
+          if [ -z "$name" ]; then
+            echo "::error::No Static Web App in $RESOURCE_GROUP; run the Infrastructure workflow first."
+            exit 1
+          fi
+          token=$(az staticwebapp secrets list -n "$name" -g "$RESOURCE_GROUP" --query properties.apiKey -o tsv)
+          echo "::add-mask::$token"
+          echo "SWA_TOKEN=$token" >> "$GITHUB_ENV"
+          echo "Deploying to https://$(az staticwebapp show -n "$name" -g "$RESOURCE_GROUP" --query defaultHostname -o tsv)"
+
+      - uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ env.SWA_TOKEN }}
+          action: upload
+          app_location: site
+          skip_app_build: true
+          skip_api_build: true

@@ -8,7 +8,6 @@
     xmlns:referenceViews="clr-namespace:InfinityMercsApp.Views.Reference"
     xmlns:settingsViews="clr-namespace:InfinityMercsApp.Views.Settings"
     xmlns:marketplacesViews="clr-namespace:InfinityMercsApp.Views.Marketplaces"
-    xmlns:companyViewerViews="clr-namespace:InfinityMercsApp.Views.Company.Viewer"
     xmlns:companyViews="clr-namespace:InfinityMercsApp.Views.Company"
     xmlns:armoryViews="clr-namespace:InfinityMercsApp.Views.Armory"
     xmlns:unitBrowserViews="clr-namespace:InfinityMercsApp.Views.UnitBrowser"
@@ -64,19 +63,6 @@
             Route="UnitEncyclopediaPage" />
     </FlyoutItem>
 
-    <FlyoutItem
-        Title="Debug"
-        Route="Debug">
-        <ShellContent
-            Title="Load Company"
-            ContentTemplate="{DataTemplate companyViews:LoadCompanyPage}"
-            Route="LoadCompanyPage" />
-        <ShellContent
-            Title="Company Viewer"
-            ContentTemplate="{DataTemplate companyViewerViews:CompanyViewerPage}"
-            Route="CompanyViewerPage" />
-    </FlyoutItem>
-
     <ShellContent
         Title="About"
         ContentTemplate="{DataTemplate aboutViews:AboutPage}"
@@ -87,6 +73,13 @@
         FlyoutItemIsVisible="False"
         ContentTemplate="{DataTemplate seasonOverviewViews:SeasonPage}"
         Route="SeasonPage" />
+
+    <!-- Choosing the company a new season plays, from the MERCS Season page; also where companies are deleted. -->
+    <ShellContent
+        Title="Load Company"
+        FlyoutItemIsVisible="False"
+        ContentTemplate="{DataTemplate companyViews:LoadCompanyPage}"
+        Route="LoadCompanyPage" />
 
     <!-- <ShellContent
         Title="Feedback/Bugs"

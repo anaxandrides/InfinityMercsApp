@@ -1,6 +1,8 @@
 using System.Text.Json;
 using InfinityMercsApp.Api.Auth;
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
+using InfinityMercsApp.Api.Http;
+using InfinityMercsApp.ApiClient.UserDocuments;
+using InfinityMercsApp.Domain.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,7 +34,7 @@ public sealed class UserDocumentEndpoints(IUserAuthenticator authenticator, User
             return new UnauthorizedResult();
         }
 
-        return UserDocumentIds.IsValid(documentId) &&
+        return DocumentIdentifiers.IsValid(documentId) &&
                await documents.GetAsync<TContent>(user.UserId, kind, documentId, cancellationToken) is { } document
             ? Json(document)
             : new NotFoundResult();
@@ -52,12 +54,12 @@ public sealed class UserDocumentEndpoints(IUserAuthenticator authenticator, User
             return new UnauthorizedResult();
         }
 
-        if (!UserDocumentIds.IsValid(documentId))
+        if (!DocumentIdentifiers.IsValid(documentId))
         {
             return new NotFoundResult();
         }
 
-        if (await ReadBodyAsync(request, cancellationToken) is not { } body)
+        if (await RequestBodies.ReadAsync(request, MaxBodyBytes, cancellationToken) is not { } body)
         {
             return new StatusCodeResult(StatusCodes.Status413PayloadTooLarge);
         }
@@ -67,7 +69,7 @@ public sealed class UserDocumentEndpoints(IUserAuthenticator authenticator, User
             return new BadRequestObjectResult(new List<string> { "The body must be { baseRevision, armySnapshotId?, content } with every part of the file present." });
         }
 
-        if (checks.ProblemsWith(write.Content) is { Count: > 0 } problems)
+        if (checks.ProblemsWith(documentId, write.Content) is { Count: > 0 } problems)
         {
             return new BadRequestObjectResult(problems);
         }
@@ -84,7 +86,7 @@ public sealed class UserDocumentEndpoints(IUserAuthenticator authenticator, User
             return new UnauthorizedResult();
         }
 
-        if (!UserDocumentIds.IsValid(documentId))
+        if (!DocumentIdentifiers.IsValid(documentId))
         {
             return new NotFoundResult();
         }
@@ -95,30 +97,6 @@ public sealed class UserDocumentEndpoints(IUserAuthenticator authenticator, User
         }
 
         return Outcome(await documents.DeleteAsync<TContent>(user.UserId, kind, documentId, baseRevision, cancellationToken));
-    }
-
-    // The body, or null when it is larger than MaxBodyBytes.
-    private static async Task<byte[]?> ReadBodyAsync(HttpRequest request, CancellationToken cancellationToken)
-    {
-        if (request.ContentLength > MaxBodyBytes)
-        {
-            return null;
-        }
-
-        using var body = new MemoryStream();
-        var buffer = new byte[81920];
-        int read;
-        while ((read = await request.Body.ReadAsync(buffer, cancellationToken)) > 0)
-        {
-            if (body.Length + read > MaxBodyBytes)
-            {
-                return null;
-            }
-
-            body.Write(buffer, 0, read);
-        }
-
-        return body.ToArray();
     }
 
     private static UserDocumentWrite<TContent>? Parse<TContent>(byte[] body)

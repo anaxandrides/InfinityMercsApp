@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Army.Stats;
@@ -36,7 +35,6 @@ public sealed partial class GameUnitItem : ObservableObject
         Skills = AttackModifiers.NormalizeSkills(unit.Skills);
         XpButtonText = XpText(unit.XpData.TotalXp);
         ShowWoundState(unit.WoundState);
-        unit.PropertyChanged += OnUnitPropertyChanged;
     }
 
     public DeploymentUnitItem Unit { get; }
@@ -141,10 +139,18 @@ public sealed partial class GameUnitItem : ObservableObject
     public bool ChecksForInjury => !ShowsAspect && !Unit.IsHired;
 
     [RelayCommand]
-    private void TakeWound() => Unit.TakeWound();
+    private void TakeWound()
+    {
+        Unit.TakeWound();
+        ShowWoundState(Unit.WoundState);
+    }
 
     [RelayCommand]
-    private void HealWound() => Unit.HealWound();
+    private void HealWound()
+    {
+        Unit.HealWound();
+        ShowWoundState(Unit.WoundState);
+    }
 
     [RelayCommand]
     private void ToggleTacticalToken() => IsTacticalTokenSpent = !IsTacticalTokenSpent;
@@ -154,14 +160,6 @@ public sealed partial class GameUnitItem : ObservableObject
 
     /// <summary>The trooper's XP sheet; ticking its boxes updates the XP button as they go.</summary>
     public XpSheet XpSheet() => new(Name, Unit.XpData, total => XpButtonText = XpText(total));
-
-    private void OnUnitPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName is nameof(DeploymentUnitItem.WoundState) or nameof(DeploymentUnitItem.WoundsReceived))
-        {
-            ShowWoundState(Unit.WoundState);
-        }
-    }
 
     private void ShowWoundState(WoundState state)
     {

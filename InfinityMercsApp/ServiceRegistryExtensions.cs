@@ -20,12 +20,12 @@ using InfinityMercsApp.Services.Rolls;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Season.Inducements;
 using InfinityMercsApp.Services.Stores;
+using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.Services.Wiki;
 using InfinityMercsApp.ViewModels.About;
 using InfinityMercsApp.ViewModels.Armory;
 using InfinityMercsApp.ViewModels.Company;
 using InfinityMercsApp.ViewModels.Company.Selection;
-using InfinityMercsApp.ViewModels.Company.Viewer;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Feedback;
 using InfinityMercsApp.ViewModels.Marketplaces;
@@ -43,7 +43,6 @@ using InfinityMercsApp.ViewModels.UnitBrowser;
 using InfinityMercsApp.Views.About;
 using InfinityMercsApp.Views.Armory;
 using InfinityMercsApp.Views.Company;
-using InfinityMercsApp.Views.Company.Viewer;
 using InfinityMercsApp.Views.Feedback;
 using InfinityMercsApp.Views.Marketplaces;
 using InfinityMercsApp.Views.Reference;
@@ -58,6 +57,8 @@ using InfinityMercsApp.Views.Settings;
 using InfinityMercsApp.Views.Splash;
 using InfinityMercsApp.Views.UnitBrowser;
 using InfinityMercsApp.Services.SignIn;
+using InfinityMercsApp.Services.Telemetry;
+using InfinityMercsApp.ApiClient.Telemetry;
 using Microsoft.Identity.Client;
 
 namespace InfinityMercsApp;
@@ -88,7 +89,6 @@ public static class ServiceRegistryExtensions
                 .AddTransient<MissionOutcomeViewModel>()
                 .AddTransient<DowntimeViewModel>()
                 .AddTransient<RankUpViewModel>()
-                .AddTransient<CompanyViewerViewModel>()
                 .AddTransient<GameModeViewModel>()
                 .AddTransient<ByeRoundViewModel>()
                 .AddTransient<LootBoxViewModel>()
@@ -106,7 +106,6 @@ public static class ServiceRegistryExtensions
                 .AddTransient<StandardCompanySourcePopupPage>()
                 .AddTransient<SplashPage>()
                 .AddTransient<SettingsPage>()
-                .AddTransient<CompanyViewerPage>()
                 .AddTransient<UnitEncyclopediaPage>()
                 .AddTransient<FeedbackBugsPage>()
                 .AddTransient<AboutPage>()
@@ -139,6 +138,7 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<IStoreProvider, StoreProvider>()
                 .AddSingleton<StoreCatalog>()
                 .AddSingleton<FactionLogoCacheService>()
+                .AddSingleton<LogoBundleInstaller>()
                 .AddSingleton<IFeedbackService, FeedbackService>()
                 .AddSingleton(_ => new DeviceDetails(
                     AppInfo.Current.VersionString,
@@ -189,10 +189,38 @@ public static class ServiceRegistryExtensions
                     var settings = provider.GetRequiredService<SignInSettings>();
                     return PublicClientApplicationBuilder.Create(settings.ClientId)
                         .WithAuthority(settings.Authority)
+#if WINDOWS
+                        .WithRedirectUri(SignInSettings.DesktopRedirectUri)
+#else
                         .WithRedirectUri(settings.RedirectUri)
+#endif
                         .Build();
                 })
                 .AddSingleton<ISignInService, MsalSignInService>();
+
+        // Companies and seasons kept online: every save goes in the outbox, which the coordinator sends.
+        services.AddSingleton<SyncLedger>()
+                .AddSingleton<ISyncOutbox>(provider => provider.GetRequiredService<SyncLedger>())
+                .AddSingleton<DocumentSync>()
+                .AddSingleton<ISyncCoordinator, SyncCoordinator>();
+
+        // Telemetry: noted in an outbox on the device and sent to the app's own API, so no Application Insights key
+        // ships in the app.
+        services.AddSingleton(TimeProvider.System)
+                .AddSingleton(_ => TelemetryPaths.ForAppData(FileSystem.Current.AppDataDirectory))
+                .AddSingleton<TelemetryStore>()
+                .AddSingleton<ITelemetryRecorder>(provider => provider.GetRequiredService<TelemetryStore>())
+                .AddSingleton<ITelemetrySettings>(provider => provider.GetRequiredService<TelemetryStore>())
+                .AddSingleton(_ => new TelemetrySource(
+                    AppInfo.Current.VersionString,
+                    DeviceInfo.Current.Platform.ToString(),
+                    DeviceInfo.Current.VersionString,
+                    $"{DeviceInfo.Current.Manufacturer} {DeviceInfo.Current.Model}"))
+                .AddSingleton(TelemetryEndpoint.Production)
+                .AddSingleton<ITelemetryApi, TelemetryApiClient>()
+                .AddSingleton<TelemetrySender>()
+                .AddSingleton<ITelemetryCoordinator, TelemetryCoordinator>()
+                .AddSingleton<PageTelemetry>();
 
         return services;
     }

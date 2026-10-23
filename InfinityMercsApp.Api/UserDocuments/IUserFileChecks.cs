@@ -4,6 +4,9 @@ namespace InfinityMercsApp.Api.UserDocuments;
 public interface IUserFileChecks<in TContent>
     where TContent : class
 {
-    /// <summary>Each problem with <paramref name="content"/>, as a sentence; empty when it can be kept.</summary>
-    IReadOnlyList<string> ProblemsWith(TContent content);
+    /// <summary>
+    /// Each problem with <paramref name="content"/>, saved as <paramref name="documentId"/>, as a sentence; empty when
+    /// it can be kept.
+    /// </summary>
+    IReadOnlyList<string> ProblemsWith(string documentId, TContent content);
 }

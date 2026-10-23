@@ -1,5 +1,8 @@
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Services.Records;
+using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.UnitTests.Support;
+using NSubstitute;
 
 namespace InfinityMercsApp.UnitTests.Services.Records;
 
@@ -16,7 +19,7 @@ public sealed class CompanyRecordCatalogTests : IDisposable
         _records.WriteCompany("new.json", """{"companyName":"New","createdUtc":"2026-03-04T05:06:07Z"}""");
         _records.WriteCompany("broken.json", "{not json");
 
-        var records = await new CompanyRecordCatalog(_records.Paths).ListAsync();
+        var records = await new CompanyRecordCatalog(_records.Paths, Substitute.For<ISyncOutbox>()).ListAsync();
 
         Assert.Equal(["New", "Old"], records.Select(r => r.CompanyName));
         Assert.Equal("2026-03-04 05:06:07 UTC", records[0].Subtitle);
@@ -29,7 +32,7 @@ public sealed class CompanyRecordCatalogTests : IDisposable
     {
         _records.WriteCompany("Kestrel.json", "{}");
 
-        var record = Assert.Single(await new CompanyRecordCatalog(_records.Paths).ListAsync());
+        var record = Assert.Single(await new CompanyRecordCatalog(_records.Paths, Substitute.For<ISyncOutbox>()).ListAsync());
 
         Assert.Equal("Kestrel", record.CompanyName);
     }
@@ -40,7 +43,7 @@ public sealed class CompanyRecordCatalogTests : IDisposable
         var paths = _records.Paths with { FactionLogoDirectory = "/logos" };
         _records.WriteCompany("c.json", """{"sourceFactions":[{"factionId":101},{"factionId":101},{"factionId":0},{"factionId":102},{"factionId":103}]}""");
 
-        var record = Assert.Single(await new CompanyRecordCatalog(paths).ListAsync());
+        var record = Assert.Single(await new CompanyRecordCatalog(paths, Substitute.For<ISyncOutbox>()).ListAsync());
 
         Assert.Equal([Path.Combine("/logos", "101.svg"), Path.Combine("/logos", "102.svg")], record.FactionIconPaths);
         Assert.True(record.HasSecondaryFactionIcon);
@@ -51,7 +54,7 @@ public sealed class CompanyRecordCatalogTests : IDisposable
     {
         _records.WriteCompany("c.json", """{"entries":[{"sourceFactionId":102},{"sourceFactionId":102}]}""");
 
-        var record = Assert.Single(await new CompanyRecordCatalog(_records.Paths).ListAsync());
+        var record = Assert.Single(await new CompanyRecordCatalog(_records.Paths, Substitute.For<ISyncOutbox>()).ListAsync());
 
         Assert.Equal([_records.Paths.FactionLogoPath(102)], record.FactionIconPaths);
         Assert.False(record.HasSecondaryFactionIcon);
@@ -61,10 +64,22 @@ public sealed class CompanyRecordCatalogTests : IDisposable
     public async Task Delete_Record_RemovesTheFile()
     {
         var path = _records.WriteCompany("c.json", "{}");
-        var catalog = new CompanyRecordCatalog(_records.Paths);
+        var catalog = new CompanyRecordCatalog(_records.Paths, Substitute.For<ISyncOutbox>());
 
         catalog.Delete((await catalog.ListAsync())[0]);
 
         Assert.False(File.Exists(path));
+    }
+
+    [Fact]
+    public async Task Delete_Record_NotesTheDeletionForSync()
+    {
+        _records.WriteCompany("c.json", """{"companyIdentifier":"c1"}""");
+        var outbox = Substitute.For<ISyncOutbox>();
+        var catalog = new CompanyRecordCatalog(_records.Paths, outbox);
+
+        catalog.Delete((await catalog.ListAsync())[0]);
+
+        outbox.Received(1).RecordDelete(UserDocumentKind.Company, "c1");
     }
 }

@@ -1,5 +1,6 @@
-// The resource group's contents: the API's identity, monitoring, storage, Cosmos DB and the Function app.
+// The resource group's contents: the API's identity, monitoring, storage, Cosmos DB, the Function app and the web app.
 param location string
+param webLocation string
 param environmentName string
 param appName string
 param alwaysReadyInstances int
@@ -42,6 +43,14 @@ module cosmos 'cosmos.bicep' = {
   }
 }
 
+module web 'web.bicep' = {
+  params: {
+    location: webLocation
+    name: 'stapp-${appName}-${environmentName}'
+    tags: tags
+  }
+}
+
 module functions 'functions.bicep' = {
   params: {
     location: location
@@ -59,9 +68,18 @@ module functions 'functions.bicep' = {
     alwaysReadyInstances: alwaysReadyInstances
     authAuthority: authAuthority
     authAudience: authAudience
+    // The web app, and InfinityMercsApp.Web's dev server (Properties/launchSettings.json); every call still needs a
+    // signed-in user's token.
+    allowedOrigins: [
+      'https://${web.outputs.hostName}'
+      'https://localhost:7154'
+      'http://localhost:5093'
+    ]
   }
 }
 
 output functionAppName string = functions.outputs.name
 output functionAppHostName string = functions.outputs.hostName
 output cosmosEndpoint string = cosmos.outputs.endpoint
+output webAppName string = web.outputs.name
+output webHostName string = web.outputs.hostName

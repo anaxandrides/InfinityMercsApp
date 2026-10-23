@@ -259,6 +259,7 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
         {
             var records = await Rules.LoadFactionsAsync(this, cancellationToken);
             Slots.Factions.ReplaceRange(records.Select(record => ArmyFactionSelectionItem.From(record, Services.Logos)));
+            Slots.MarkChosenFactions();
         }
         catch (Exception ex)
         {
@@ -279,7 +280,15 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
         }
 
         Slots.Highlight(item);
-        return Rules.AssignFactionAsync(this, item);
+        return AssignAfterShowingAsync(item);
+    }
+
+    // Loading the units reads the army data on this thread, so the tile is marked first and the screen gets a frame to
+    // show it before the load starts; otherwise the mark appeared only once the units had loaded.
+    private async Task AssignAfterShowingAsync(ArmyFactionSelectionItem item)
+    {
+        await Task.Yield();
+        await Rules.AssignFactionAsync(this, item);
     }
 
     /// <summary>
@@ -397,6 +406,7 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
             {
                 UnitList.TeamEntries.Add(new ArmyTeamListItem
                 {
+                    Tracking = CoreFireteam,
                     Name = listing.Name,
                     TeamCountsText = listing.Team is { } team ? Rules.TeamCountText(team) : string.Empty,
                     IsWildcardBucket = listing.IsWildcardBucket,
@@ -500,9 +510,18 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
 
     // ── The selected unit ───────────────────────────────────────────────────
 
+    /// <summary>Shows the tapped unit, moving a compact screen on to its profiles.</summary>
     [RelayCommand]
-    private Task SelectUnitFromListAsync(ArmyUnitSelectionItem? item) =>
-        item is null ? Task.CompletedTask : SelectUnitAsync(item);
+    private Task SelectUnitFromListAsync(ArmyUnitSelectionItem? item)
+    {
+        if (item is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        ActivePane = CompanySelectionPane.Profile;
+        return SelectUnitAsync(item);
+    }
 
     [RelayCommand]
     private Task SelectTeamAllowedProfileAsync(ArmyTeamUnitLimitItem? teamItem)
@@ -512,8 +531,13 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
             return Task.CompletedTask;
         }
 
-        var resolved = TeamSlots.UnitFor(UnitList.Units, teamItem);
-        return resolved is null ? Task.CompletedTask : SelectUnitAsync(resolved, Rules.RestrictsProfilesFor(teamItem));
+        if (TeamSlots.UnitFor(UnitList.Units, teamItem) is not { } resolved)
+        {
+            return Task.CompletedTask;
+        }
+
+        ActivePane = CompanySelectionPane.Profile;
+        return SelectUnitAsync(resolved, Rules.RestrictsProfilesFor(teamItem));
     }
 
     /// <summary>Shows <paramref name="item"/>'s statline, icons and profiles; reloads them when the profile restriction changed.</summary>
@@ -667,7 +691,21 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
         Rules.OnEntryBuilt(this, entry);
         Roster.Add(entry, servantOwner);
         OnRosterChanged();
+        ActivePane = CompanySelectionPane.Company;
         await Rules.AfterEntryAddedAsync(this, unit, profile, entry);
+    }
+
+    /// <summary>Gives a trooper on the roster a name of its own; clearing the name goes back to the unit's.</summary>
+    [RelayCommand]
+    private async Task RenameMercsCompanyEntryAsync(MercsCompanyEntry? entry)
+    {
+        if (entry is not { CanRename: true } ||
+            await Services.Dialogs.AskTextAsync("Name Trooper", $"A name for this {entry.Name}:", entry.CustomName, TrooperNames.MaxLength) is not { } name)
+        {
+            return;
+        }
+
+        entry.CustomName = name;
     }
 
     // Transmutation (Auto) is banned: the trooper is recruited in the one form the player picks; null when they back out.

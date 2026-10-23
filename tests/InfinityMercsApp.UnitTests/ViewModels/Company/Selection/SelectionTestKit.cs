@@ -15,6 +15,7 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company.Selection;
 using NSubstitute;
@@ -107,7 +108,7 @@ internal sealed class SelectionTestKit
                 UnitDetails: new UnitDetailsLoader(ArmyData, SpecOps),
                 CoreFireteams: new CoreFireteamEligibility(ArmyData),
                 Captains: captains,
-                Founder: new CompanyFounder(captains, entries, Paths, new CompanyFileStore()),
+                Founder: new CompanyFounder(captains, entries, Paths, new CompanyFileStore(Substitute.For<ISyncOutbox>())),
                 Recruiter: new CompanyRecruiter(entries, CompanyFiles, SeasonFiles),
                 Settings: Settings);
         }

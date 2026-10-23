@@ -41,6 +41,7 @@ public partial class CompanyUnitSelectionListPanelView : ContentView
     public CompanyUnitSelectionListPanelView()
     {
         InitializeComponent();
+        UnitSelectionHeaderBorder.Square = UnitSelectionFilterButton;
         ApplyDensity();
     }
 
@@ -126,22 +127,5 @@ public partial class CompanyUnitSelectionListPanelView : ContentView
     {
         get => (bool)GetValue(IsFilterActiveProperty);
         set => SetValue(IsFilterActiveProperty, value);
-    }
-
-    // The filter button fills most of the header's height. Re-assigning an unchanged size would re-raise
-    // the header's SizeChanged and keep the layout spinning, so a size within a pixel is left alone.
-    private void OnHeaderBorderSizeChanged(object? sender, EventArgs e)
-    {
-        var size = UnitSelectionHeaderBorder.Height * 0.8;
-        if (size <= 0 ||
-            (Math.Abs(UnitSelectionFilterButton.WidthRequest - size) < 1.0 && Math.Abs(UnitSelectionFilterButton.HeightRequest - size) < 1.0))
-        {
-            return;
-        }
-
-        UnitSelectionFilterButton.WidthRequest = size;
-        UnitSelectionFilterButton.HeightRequest = size;
-        UnitSelectionFilterIcon.WidthRequest = size;
-        UnitSelectionFilterIcon.HeightRequest = size;
     }
 }

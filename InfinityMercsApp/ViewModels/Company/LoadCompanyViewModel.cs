@@ -9,23 +9,16 @@ using InfinityMercsApp.ViewModels.Base;
 
 namespace InfinityMercsApp.ViewModels.Company;
 
-/// <summary>Lists saved companies, opens one in the viewer (or a new season), and deletes them.</summary>
+/// <summary>Lists saved companies to start a season with, and deletes them.</summary>
 public partial class LoadCompanyViewModel(
     INavigationService navigationService,
     IDialogService dialogs,
     CompanyRecordCatalog catalog) : AdaptiveViewModelBase<RecordListLayout>(navigationService, RecordListLayout.For)
 {
-    private bool _seasonMode;
-
     public ObservableCollection<CompanyRecord> SavedRecords { get; } = [];
 
     [ObservableProperty]
     public partial bool HasSavedRecords { get; set; }
-
-    public override void ApplyQueryAttributes(IDictionary<string, object> query)
-    {
-        _seasonMode = NavigationParameters.GetFlag(query, NavigationParameters.SeasonMode);
-    }
 
     /// <summary>Reloads on every visit so newly saved companies appear.</summary>
     public override Task InitializeAsync() => ReloadAsync();
@@ -38,9 +31,7 @@ public partial class LoadCompanyViewModel(
             return;
         }
 
-        await NavigationService.NavigateToAsync(
-            _seasonMode ? "//SeasonPage" : "//CompanyViewerPage",
-            NavigationParameters.ForCompany(record.FilePath));
+        await NavigationService.NavigateToAsync("//SeasonPage", NavigationParameters.ForCompany(record.FilePath));
     }
 
     [RelayCommand]

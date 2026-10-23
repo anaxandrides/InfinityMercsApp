@@ -6,9 +6,11 @@ namespace InfinityMercsApp.Api.ArmyData;
 /// <param name="MetadataUpdated">Whether the metadata changed.</param>
 /// <param name="UpdatedFactionIds">The armies copied because they changed or were new.</param>
 /// <param name="FailedFactionIds">The armies that couldn't be downloaded; their earlier copy, if any, is kept.</param>
+/// <param name="LogosUpdated">Whether a new logo bundle was built, because the logos changed.</param>
 public sealed record ArmyMirrorRefresh(
     string SnapshotId,
     bool NewSnapshot,
     bool MetadataUpdated,
     IReadOnlyList<int> UpdatedFactionIds,
-    IReadOnlyList<int> FailedFactionIds);
+    IReadOnlyList<int> FailedFactionIds,
+    bool LogosUpdated);

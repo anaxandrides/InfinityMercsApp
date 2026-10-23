@@ -46,7 +46,7 @@
                                 SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="glossary:GlossaryEntry">
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Padding="6,4">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Padding="6,4" Margin="{StaticResource ScrollBarGutter}">
                                 <Grid.Triggers>
                                     <DataTrigger TargetType="Grid" Binding="{Binding IsHeader}" Value="True">
                                         <Setter Property="Padding" Value="2,14,2,6" />

@@ -1,0 +1,10 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/_framework/*", "/css/*", "/fonts/*", "*.{css,js,json,wasm,dll,dat,ttf,png,svg,ico,txt,br,gz}"]
+  },
+  "mimeTypes": {
+    ".wasm": "application/wasm",
+    ".dat": "application/octet-stream"
+  }
+}

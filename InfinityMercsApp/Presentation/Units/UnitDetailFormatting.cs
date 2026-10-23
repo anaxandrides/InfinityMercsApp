@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Lieutenants;
 
 namespace InfinityMercsApp.Presentation.Units;
@@ -8,6 +9,9 @@ namespace InfinityMercsApp.Presentation.Units;
 /// </summary>
 public static class UnitDetailFormatting
 {
+    // One command opens every wiki link; each span gives its link as the parameter.
+    private static readonly AsyncRelayCommand<string> OpenLinkCommand = new(OpenLinkAsync);
+
     public static readonly Color EquipmentColor = Color.FromArgb("#06B6D4");
     public static readonly Color SkillsColor = Color.FromArgb("#F59E0B");
     public static readonly Color RangedColor = Color.FromArgb("#EF4444");
@@ -94,17 +98,20 @@ public static class UnitDetailFormatting
             var span = new Span { Text = run.Text, TextColor = run.IsLieutenant ? LieutenantColor : defaultColor };
             if (!string.IsNullOrWhiteSpace(link))
             {
-                var tap = new TapGestureRecognizer();
-                tap.Tapped += async (_, _) => await OpenLinkAsync(link);
-                span.GestureRecognizers.Add(tap);
+                span.GestureRecognizers.Add(new TapGestureRecognizer { Command = OpenLinkCommand, CommandParameter = link });
             }
 
             formatted.Spans.Add(span);
         }
     }
 
-    private static async Task OpenLinkAsync(string link)
+    private static async Task OpenLinkAsync(string? link)
     {
+        if (string.IsNullOrWhiteSpace(link))
+        {
+            return;
+        }
+
         try
         {
             await Launcher.Default.OpenAsync(link);

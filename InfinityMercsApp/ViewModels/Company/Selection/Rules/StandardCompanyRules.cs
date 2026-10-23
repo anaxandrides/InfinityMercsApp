@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Services.Navigation;
 using AirborneGen = InfinityMercsApp.Infrastructure.Providers.CompanyFactions.AirborneCompanyFactionGenerator;
 using FactionRecord = InfinityMercsApp.Domain.Models.Metadata.Faction;
@@ -12,8 +13,8 @@ public class StandardCompanyRules(ArmySourceSelectionMode mode) : CompanyRules(m
     public override string Heading => Mode == ArmySourceSelectionMode.VanillaFactions ? "Choose your faction:" : "Choose your sectorials";
 
     public override string CompanyTypeLabel => Mode == ArmySourceSelectionMode.VanillaFactions
-        ? "Standard Company - Vanilla"
-        : "Standard Company - Sectorial";
+        ? CompanyTypes.StandardVanilla
+        : CompanyTypes.StandardSectorial;
 
     public override bool HasRightSlot => Mode == ArmySourceSelectionMode.Sectorials;
 

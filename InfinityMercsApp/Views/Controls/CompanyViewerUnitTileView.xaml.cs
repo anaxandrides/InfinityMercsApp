@@ -16,8 +16,6 @@ public partial class CompanyViewerUnitTileView : ContentView
     public static readonly BindableProperty PanScrollCommandProperty =
         BindableProperty.Create(nameof(PanScrollCommand), typeof(ICommand), typeof(CompanyViewerUnitTileView));
 
-    private double _panLastTotalX;
-
     public CompanyViewerUnitTileView()
     {
         InitializeComponent();
@@ -40,28 +38,5 @@ public partial class CompanyViewerUnitTileView : ContentView
     {
         get => (ICommand?)GetValue(PanScrollCommandProperty);
         set => SetValue(PanScrollCommandProperty, value);
-    }
-
-    private void OnTilePanUpdated(object? sender, PanUpdatedEventArgs e)
-    {
-        switch (e.StatusType)
-        {
-            case GestureStatus.Started:
-                _panLastTotalX = 0d;
-                break;
-            case GestureStatus.Running:
-                var deltaX = e.TotalX - _panLastTotalX;
-                _panLastTotalX = e.TotalX;
-                if (PanScrollCommand?.CanExecute(deltaX) == true)
-                {
-                    PanScrollCommand.Execute(deltaX);
-                }
-
-                break;
-            case GestureStatus.Completed:
-            case GestureStatus.Canceled:
-                _panLastTotalX = 0d;
-                break;
-        }
     }
 }

@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Season;
@@ -17,7 +16,7 @@ namespace InfinityMercsApp.ViewModels.Season;
 public partial class ExperienceViewModel(
     INavigationService navigationService,
     ISeasonFileService seasonFiles,
-    MissionDebrief debrief) : ViewModelBase(navigationService)
+    MissionDebrief debrief) : ViewModelBase(navigationService), IMvpChoice
 {
     private string _companyFilePath = string.Empty;
     private string _seasonFilePath = string.Empty;
@@ -44,23 +43,16 @@ public partial class ExperienceViewModel(
 
         foreach (var unit in debrief.Units)
         {
-            var item = new ExperienceUnitItem(unit);
-            item.PropertyChanged += OnUnitPropertyChanged;
-            Units.Add(item);
+            Units.Add(new ExperienceUnitItem(unit, this));
         }
 
         CanConfirm = HasMvpOrNobody();
         return Task.CompletedTask;
     }
 
-    // Choosing an MVP clears it from everyone else.
-    private void OnUnitPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    /// <summary>Choosing an MVP clears it from everyone else.</summary>
+    public void MvpChanged(ExperienceUnitItem chosen)
     {
-        if (e.PropertyName != nameof(ExperienceUnitItem.IsMvp) || sender is not ExperienceUnitItem chosen)
-        {
-            return;
-        }
-
         if (chosen.IsMvp)
         {
             foreach (var other in Units.Where(u => !ReferenceEquals(u, chosen)))

@@ -73,23 +73,21 @@
             </Border>
             <Border Grid.Column="2" Grid.Row="0" BackgroundColor="{Binding HeaderColors.Primary}" StrokeThickness="0" Padding="8,2"
                     IsVisible="{Binding ShowUnitName, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}">
-                <Label
+                <controls:ShrinkToFitLabel
                     x:Name="UnitNameHeadingLabel"
                     Text="{Binding UnitNameHeading}"
+                    MaximumFontSize="{DynamicResource FontSizeSubHeadline}"
                     FontAttributes="Bold"
                     TextColor="{Binding HeaderColors.PrimaryText}"
                     VerticalOptions="Center"
                     HorizontalOptions="Fill"
-                    HorizontalTextAlignment="Start"
-                    LineBreakMode="NoWrap"
-                    MaxLines="1"
-                    SizeChanged="OnUnitNameHeadingLabelSizeChanged">
+                    HorizontalTextAlignment="Start">
                     <Label.Shadow>
                         <Shadow Brush="#CC000000" Offset="1,1" Radius="2" Opacity="0.9" />
                     </Label.Shadow>
-                </Label>
+                </controls:ShrinkToFitLabel>
             </Border>
-            <Border Grid.Column="2" Grid.Row="1" Style="{StaticResource StatHeaderBorder}" SizeChanged="OnStatHeadersBorderSizeChanged">
+            <controls:StatLineFitBorder x:Name="MainStatHeadersBorder" Grid.Column="2" Grid.Row="1" Style="{StaticResource StatHeaderBorder}">
                 <Grid x:Name="MainStatHeadersGrid" ColumnSpacing="6" ColumnDefinitions="*,*,*,*,*,*,*,*,*,*">
                     <Label Grid.Column="0" Text="MOV" Style="{StaticResource StatHeaderLabel}" />
                     <Label Grid.Column="1" Text="CC" Style="{StaticResource StatHeaderLabel}" />
@@ -102,7 +100,7 @@
                     <Label Grid.Column="8" Text="S" Style="{StaticResource StatHeaderLabel}" />
                     <Label Grid.Column="9" Text="AVA" Style="{StaticResource StatHeaderLabel}" IsVisible="{Binding ShowAva, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}" />
                 </Grid>
-            </Border>
+            </controls:StatLineFitBorder>
             <Border Grid.Column="2" Grid.Row="2" Style="{StaticResource StatValueBorder}">
                 <Grid x:Name="MainStatValuesGrid" ColumnSpacing="6" ColumnDefinitions="*,*,*,*,*,*,*,*,*,*">
                     <Label Grid.Column="0" Text="{Binding Stats.Mov}" Style="{StaticResource StatLabel}" />

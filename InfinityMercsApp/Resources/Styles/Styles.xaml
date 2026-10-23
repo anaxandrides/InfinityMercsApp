@@ -26,7 +26,21 @@
         <Setter Property="SelectedIndicatorColor" Value="{StaticResource Signal}"/>
     </Style>
 
-    <Style TargetType="Border">
+    <!-- Implicit styles here apply to derived types too, so the app's own controls (ShrinkToFitLabel, FitTextPicker,
+         ScrollToEndView and the like) look like the MAUI ones they extend. -->
+
+    <!-- Keeps a vertical ScrollView's content clear of the Windows scroll bar; a horizontal one's bar runs along the
+         bottom instead. A ScrollView that sets its own Padding should leave room for the bar itself. -->
+    <Style TargetType="ScrollView" ApplyToDerivedTypes="True">
+        <Setter Property="Padding" Value="{StaticResource ScrollBarGutter}" />
+        <Style.Triggers>
+            <Trigger TargetType="ScrollView" Property="Orientation" Value="Horizontal">
+                <Setter Property="Padding" Value="0" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="Border" ApplyToDerivedTypes="True">
         <Setter Property="Stroke" Value="{StaticResource Hairline}" />
         <Setter Property="StrokeThickness" Value="1"/>
         <Setter Property="StrokeShape">
@@ -136,7 +150,7 @@
         </Setter>
     </Style>
 
-    <Style TargetType="Entry">
+    <Style TargetType="Entry" ApplyToDerivedTypes="True">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="FontFamily" Value="Exo2SemiBold" />
@@ -181,7 +195,7 @@
         </Setter>
     </Style>
 
-    <Style TargetType="Label">
+    <Style TargetType="Label" ApplyToDerivedTypes="True">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="FontFamily" Value="Exo2SemiBold" />
@@ -290,7 +304,7 @@
         <Setter Property="FontAutoScalingEnabled" Value="True"/>
     </Style>
 
-    <Style TargetType="Picker">
+    <Style TargetType="Picker" ApplyToDerivedTypes="True">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="TitleColor" Value="{StaticResource TextMuted}" />
         <Setter Property="BackgroundColor" Value="Transparent" />

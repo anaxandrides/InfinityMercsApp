@@ -9,12 +9,12 @@
 
     <Grid RowDefinitions="Auto,*" RowSpacing="8" VerticalOptions="Fill">
         <Grid Grid.Row="0" ColumnDefinitions="*" ColumnSpacing="10" VerticalOptions="Center">
-            <Border
+            <!-- The filter button is kept a square 0.8 of the header's height. -->
+            <controls:SquareScalingBorder
                 x:Name="UnitSelectionHeaderBorder"
                 Grid.Column="0"
                 Padding="12,8,0,8"
-                BackgroundColor="Black"
-                SizeChanged="OnHeaderBorderSizeChanged">
+                BackgroundColor="Black">
                 <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
                     <Label
                         x:Name="UnitSelectionHeaderLabel"
@@ -33,7 +33,7 @@
                         Grid.Column="1"
                         StrokeThickness="0"
                         BackgroundColor="Transparent"
-                        Padding="2"
+                        Padding="0"
                         Margin="0,0,12,0"
                         VerticalOptions="Center"
                         HorizontalOptions="End">
@@ -43,10 +43,8 @@
                         <controls:SvgIcon
                             x:Name="UnitSelectionFilterIcon"
                             Source="SVGCache/NonCBIcons/noun-filter.svg"
-                            WidthRequest="20"
-                            HeightRequest="20"
-                            VerticalOptions="Center"
-                            HorizontalOptions="Center">
+                            VerticalOptions="Fill"
+                            HorizontalOptions="Fill">
                             <controls:SvgIcon.Triggers>
                                 <DataTrigger TargetType="controls:SvgIcon"
                                              Binding="{Binding Source={x:Reference UnitSelectionPanelRoot}, Path=IsFilterActive, x:DataType=controls:CompanyUnitSelectionListPanelView}"
@@ -57,7 +55,7 @@
                         </controls:SvgIcon>
                     </Border>
                 </Grid>
-            </Border>
+            </controls:SquareScalingBorder>
         </Grid>
 
         <ScrollView

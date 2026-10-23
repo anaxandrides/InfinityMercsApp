@@ -1,4 +1,4 @@
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
+using InfinityMercsApp.ApiClient.UserDocuments;
 
 namespace InfinityMercsApp.Api.UserDocuments;
 
@@ -36,11 +36,12 @@ public sealed class UserDocumentService(IUserDocumentStore store, TimeProvider t
         UserDocumentWrite<TContent> write,
         CancellationToken cancellationToken = default)
         where TContent : class =>
-        WriteAsync(userId, kind, documentId, write.BaseRevision, write.ArmySnapshotId, write.Content, cancellationToken);
+        WriteAsync(userId, kind, documentId, write.BaseRevision, write.ArmySnapshotId, write.Content, deleted: false, cancellationToken);
 
     /// <summary>
-    /// Deletes the file when <paramref name="baseRevision"/> is its current revision. It is kept, empty, as a new
-    /// revision, so the user's other devices learn of the deletion.
+    /// Deletes the file when <paramref name="baseRevision"/> is its current revision. It is kept as a new, deleted
+    /// revision, so the user's other devices learn of the deletion; its content is kept too, so a deletion can be
+    /// undone, but the API no longer returns it.
     /// </summary>
     public async Task<SaveOutcome<TContent>> DeleteAsync<TContent>(
         string userId,
@@ -50,12 +51,12 @@ public sealed class UserDocumentService(IUserDocumentStore store, TimeProvider t
         CancellationToken cancellationToken = default)
         where TContent : class
     {
-        if (await store.ReadAsync<TContent>(userId, kind, documentId, cancellationToken) is not { Document.Deleted: false })
+        if (await store.ReadAsync<TContent>(userId, kind, documentId, cancellationToken) is not { Document: { Deleted: false } current })
         {
             return SaveOutcome<TContent>.NotFound;
         }
 
-        return await WriteAsync<TContent>(userId, kind, documentId, baseRevision, armySnapshotId: null, content: null, cancellationToken);
+        return await WriteAsync(userId, kind, documentId, baseRevision, current.ArmySnapshotId, current.Content, deleted: true, cancellationToken);
     }
 
     private async Task<SaveOutcome<TContent>> WriteAsync<TContent>(
@@ -65,6 +66,7 @@ public sealed class UserDocumentService(IUserDocumentStore store, TimeProvider t
         int baseRevision,
         string? armySnapshotId,
         TContent? content,
+        bool deleted,
         CancellationToken cancellationToken)
         where TContent : class
     {
@@ -82,7 +84,7 @@ public sealed class UserDocumentService(IUserDocumentStore store, TimeProvider t
             documentId,
             currentRevision + 1,
             time.GetUtcNow(),
-            Deleted: content is null,
+            Deleted: deleted,
             armySnapshotId,
             content);
 

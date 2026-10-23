@@ -1,0 +1,35 @@
+@inject UserFiles Files
+
+@if (_seasons is null)
+{
+    <p class="muted">Loading…</p>
+}
+else if (_seasons.Value is not { } seasons)
+{
+    <LoadMessage Status="_seasons.Status" />
+}
+else if (seasons.Count == 0)
+{
+    <p class="muted">No seasons yet.</p>
+}
+else
+{
+    <ul class="cards">
+        @foreach (var season in seasons)
+        {
+            <li>
+                <a class="card" href="seasons/@season.Id">
+                    <span class="title">@season.CompanyName</span>
+                    <span class="muted">Started @season.Started</span>
+                    <span class="muted">@season.Contracts @(season.Contracts == 1 ? "contract" : "contracts"), @season.Wins won</span>
+                </a>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private Loaded<IReadOnlyList<SeasonSummary>>? _seasons;
+
+    protected override async Task OnInitializedAsync() => _seasons = await Files.SeasonsAsync();
+}

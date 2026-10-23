@@ -5,4 +5,7 @@ public interface IArmyMirror
 {
     /// <summary>The copy's manifest, or null when the copy can't be reached; callers then download everything.</summary>
     Task<ArmyMirrorManifest?> GetManifestAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Downloads the logo bundle, a zip, to <paramref name="filePath"/>; false when it couldn't be.</summary>
+    Task<bool> DownloadLogoBundleAsync(string filePath, CancellationToken cancellationToken = default);
 }

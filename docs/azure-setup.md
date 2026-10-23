@@ -1,6 +1,6 @@
 # Azure setup
 
-The app's online side (the API, and later the web site) runs in Azure. Everything in Azure is created by the Bicep
+The app's online side (the API and the web site) runs in Azure. Everything in Azure is created by the Bicep
 in `infra/`, deployed from GitHub Actions. A few things have to exist before the first deploy, and they're set up
 once by hand.
 
@@ -17,7 +17,12 @@ once by hand.
   payloads (`army-data`). Shared keys are off.
 - **Cosmos DB** (serverless): the `mercs` database, holding the army data snapshots (`army`) and later companies,
   seasons and leagues. Key access is off.
-- **Application Insights** with a Log Analytics workspace.
+- **Application Insights** with a Log Analytics workspace, capped at 1 GB of ingestion a day (`dailyCapGb` in
+  `infra/modules/monitoring.bicep`): past it, nothing more is kept until the next day.
+- **Static Web App** `stapp-infmercs-prod` (Free, East US 2, since Static Web Apps run in only a few regions): the
+  Blazor WebAssembly site in `InfinityMercsApp.Web`. Its address is `https://{generated name}.azurestaticapps.net`;
+  the Infrastructure workflow prints it as `webHostName`, and the API allows calls from it (CORS) along with the web
+  project's local dev server.
 
 None of the IDs below are secrets: tenant, subscription and client IDs are identifiers, and the phone and web apps ship
 some of them to every user anyway. Access is protected by the identities and their roles, not by hiding the IDs.
@@ -66,6 +71,8 @@ Then in the GitHub repository, under **Settings**:
   Actions tab. Run it first.
 - **API** (`.github/workflows/api.yml`): tests on every pull request that touches the API or the projects it uses; on
   `main` it also deploys and refreshes the army data mirror.
+- **Web** (`.github/workflows/web.yml`): tests and publishes the site on every pull request that touches it; on `main`
+  it also deploys it, reading the Static Web App's deployment token with the deploy identity at deploy time.
 
 GitHub only offers "Run workflow" for workflows that are on `main`, so the first run happens after this branch is
 merged.
@@ -135,17 +142,69 @@ the API, the app and the web site always agree on their shape.
 - **Sign-in:** every route needs `Authorization: Bearer <token>` from the sign-in tenant, issued for the API. Until
   `authAuthority` and `authAudience` are set in `infra/main.bicepparam`, every request gets `401 Unauthorized`.
 
+## App telemetry
+
+The app reports to `POST /api/telemetry` rather than to Application Insights itself, so no connection string ships in
+the app. The API checks each batch and writes it to Application Insights as its managed identity.
+
+- **What:** pages shown (with the Android Java object count, which hangs the app past roughly 40,000), crashes (type,
+  message and stack trace), startup times (`FirstPage` and `MainScreen`, from launch) and failed syncs, with the app
+  version, platform, OS version and device model. Never companies, names or account details. A random install id,
+  made on first launch, ties an install's reports together.
+- **Who can post:** anyone; there is no key to keep. A batch is refused with `400` unless it is the known shape
+  (`TelemetryBatch` in `InfinityMercsApp.ApiClient`): a GUID install id, 1 to 200 events of known kinds, text within
+  `TelemetryLimits`, times within the last 30 days. Bodies of up to 1 MB are read. A sign-in token, when sent, adds
+  the user id.
+- **Where:** records carry the cloud role name `app`. Crashes are in `exceptions`; the rest are in `customEvents`,
+  named `PageShown`, `Startup` and `SyncFailure`, with the page or milestone in `customDimensions.Name` and the
+  number in `customMeasurements` (`JavaObjects` or `Milliseconds`). The install id is `user_Id`, the signed-in user
+  `user_AuthenticatedId`. For example:
+
+  ```kusto
+  customEvents
+  | where cloud_RoleName == "app" and name == "PageShown"
+  | summarize max(todouble(customMeasurements.JavaObjects)) by tostring(customDimensions.Name), bin(timestamp, 1h)
+  ```
+- **On the device:** events go to a file per session under `Telemetry/Outbox` in the app's data (2 MB at most, the
+  oldest dropped), sent every five minutes, when the app goes to the background, and on the next launch after a
+  crash. Settings has a switch to turn it off, which also deletes what is waiting.
+- **Google Play:** declare crash logs and diagnostics (collected, not shared, not linked to identity unless signed
+  in) in the Data safety form.
+
 ## Sign-in
 
 Sign-in uses the Entra External ID tenant `infinitymercs.onmicrosoft.com` (tenant id
 `36af320a-cd91-43b1-8c24-f1c21c798455`), with Google as a provider and one sign-up/sign-in user flow.
 
+A user flow only applies to the app registrations added to it (**User flows → the flow → Applications → Add
+application**), so the app below must be listed there. An app that isn't gets the tenant's bare default sign-in
+instead: existing accounts only, no Google button and no sign-up link, with the message "This account does not exist
+in this organization".
+
+Google sends a sign-in back to Entra, not to the app, so the Google OAuth client (Google Cloud console → APIs &
+services → Credentials) needs Entra's addresses as its **Authorized redirect URIs**, or Google answers
+`redirect_uri_mismatch`. From [Add Google as an identity provider](https://learn.microsoft.com/entra/external-id/customers/how-to-google-federation-customers),
+filled in for this tenant:
+
+```
+https://login.microsoftonline.com
+https://login.microsoftonline.com/te/36af320a-cd91-43b1-8c24-f1c21c798455/oauth2/authresp
+https://login.microsoftonline.com/te/infinitymercs.onmicrosoft.com/oauth2/authresp
+https://36af320a-cd91-43b1-8c24-f1c21c798455.ciamlogin.com/36af320a-cd91-43b1-8c24-f1c21c798455/federation/oidc/accounts.google.com
+https://36af320a-cd91-43b1-8c24-f1c21c798455.ciamlogin.com/infinitymercs.onmicrosoft.com/federation/oidc/accounts.google.com
+https://infinitymercs.ciamlogin.com/36af320a-cd91-43b1-8c24-f1c21c798455/federation/oauth2
+https://infinitymercs.ciamlogin.com/infinitymercs.onmicrosoft.com/federation/oauth2
+```
+
+The OAuth consent screen's **Authorized domains** include `ciamlogin.com` and `microsoftonline.com`. The Google
+client's id and secret are entered only in Entra (External Identities → All identity providers → Google), never in
+this repository.
+
 | App registration | Client id | Notes |
 | --- | --- | --- |
 | Infinity Mercs API | `6d09c3c6-41d1-4c53-a256-d65e8e4af405` | Exposes `access_as_user`; access tokens version 2. The API accepts tokens for the client id or `api://` + client id. |
-| Infinity Mercs Android | `0bbba93d-840e-48ce-b2d2-8007f227ba8d` | Public client with the API's `access_as_user` permission (admin consent granted). Its **Mobile and desktop applications** redirect URI `msal0bbba93d-840e-48ce-b2d2-8007f227ba8d://auth` is the one the app uses (MSAL.NET, system browser), so it doesn't depend on the signing key. Windows will need `http://localhost` added. |
-| Web site | (to come) | Registered once the Blazor site is deployed and has its address. |
+| Infinity Mercs Android | `0bbba93d-840e-48ce-b2d2-8007f227ba8d` | Public client with the API's `access_as_user` permission (admin consent granted), used by the phone app, the Windows app and the web site. **Mobile and desktop applications** redirect URIs: `msal0bbba93d-840e-48ce-b2d2-8007f227ba8d://auth` (Android, MSAL.NET through the system browser, so it doesn't depend on the signing key) and `http://localhost` (Windows). **Single-page application** redirect URIs (the web site): `https://{web host}/authentication/login-callback` and `https://{web host}/authentication/logout-callback`, plus the same two on `https://localhost:7154` for local runs. |
 
 `infra/main.bicepparam` sets `authAuthority` (`https://infinitymercs.ciamlogin.com/{tenant id}/v2.0`) and
 `authAudience` (the API's client id). The phone's side is `SignInSettings.Production` in `InfinityMercsApp.Services`,
-and `MsalActivity` on Android catches the redirect.
+and `MsalActivity` on Android catches the redirect. The web site's is `InfinityMercsApp.Web/wwwroot/appsettings.json`.

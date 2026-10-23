@@ -47,7 +47,7 @@
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="records:CompanyRecord">
-                        <Border StrokeThickness="1" Padding="10" Margin="0,0,0,8">
+                        <Border StrokeThickness="1" Padding="10" Margin="{StaticResource ListCardMargin}">
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding ViewModel.OpenCompanyCommand, Source={x:Reference Root}, x:DataType=view:LoadCompanyPage}"
                                                       CommandParameter="{Binding .}" />

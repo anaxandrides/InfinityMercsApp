@@ -1,6 +1,7 @@
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Records;
+using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Company;
 using NSubstitute;
@@ -15,14 +16,9 @@ public sealed class LoadCompanyViewModelTests : IDisposable
 
     public void Dispose() => _records.Dispose();
 
-    private async Task<LoadCompanyViewModel> OpenAsync(bool seasonMode = false)
+    private async Task<LoadCompanyViewModel> OpenAsync()
     {
-        var viewModel = new LoadCompanyViewModel(_navigation, _dialogs, new CompanyRecordCatalog(_records.Paths));
-        if (seasonMode)
-        {
-            viewModel.ApplyQueryAttributes(new Dictionary<string, object> { [NavigationParameters.SeasonMode] = true });
-        }
-
+        var viewModel = new LoadCompanyViewModel(_navigation, _dialogs, new CompanyRecordCatalog(_records.Paths, Substitute.For<ISyncOutbox>()));
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         return viewModel;
     }
@@ -36,18 +32,16 @@ public sealed class LoadCompanyViewModelTests : IDisposable
         Assert.Empty(viewModel.SavedRecords);
     }
 
-    [Theory]
-    [InlineData(false, "//CompanyViewerPage")]
-    [InlineData(true, "//SeasonPage")]
-    public async Task OpenCompanyCommand_Mode_GoesToTheViewerOrANewSeason(bool seasonMode, string route)
+    [Fact]
+    public async Task OpenCompanyCommand_Company_StartsASeasonWithIt()
     {
         var company = _records.WriteCompany("c.json", "{}");
-        var viewModel = await OpenAsync(seasonMode);
+        var viewModel = await OpenAsync();
 
         await viewModel.OpenCompanyCommand.ExecuteAsync(Assert.Single(viewModel.SavedRecords));
 
         await _navigation.Received(1).NavigateToAsync(
-            route,
+            "//SeasonPage",
             Arg.Is<IDictionary<string, object>>(p =>
                 (string)p[NavigationParameters.CompanyFilePath] == company &&
                 !p.ContainsKey(NavigationParameters.SeasonFilePath)));

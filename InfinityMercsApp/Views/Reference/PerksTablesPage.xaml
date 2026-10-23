@@ -2,6 +2,7 @@
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
+             xmlns:perkTables="clr-namespace:InfinityMercsApp.Views.Controls.PerkTables"
              x:Class="InfinityMercsApp.Views.Reference.PerksTablesPage"
              xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels.Reference"
              xmlns:perks="clr-namespace:InfinityMercsApp.Domain.Models.Perks.Tables;assembly=InfinityMercsApp.Domain"
@@ -53,21 +54,9 @@
                 </VerticalStackLayout>
             </Border>
 
-            <ScrollView x:Name="TableViewport"
-                        Grid.Column="0"
-                        Orientation="Both">
-                <Grid x:Name="PerksGridHost"
-                      HorizontalOptions="Start"
-                      VerticalOptions="Start">
-                    <Grid x:Name="PerksTableGrid"
-                          HorizontalOptions="Fill"
-                          VerticalOptions="Fill"
-                          RowSpacing="2"
-                          ColumnSpacing="2" />
-                    <GraphicsView x:Name="DependencyLinesView"
-                                  InputTransparent="True" />
-                </Grid>
-            </ScrollView>
+            <perkTables:PerkTableView x:Name="TableViewport"
+                                      Grid.Column="0"
+                                      Table="{Binding Table}" />
         </Grid>
     </Grid>
 

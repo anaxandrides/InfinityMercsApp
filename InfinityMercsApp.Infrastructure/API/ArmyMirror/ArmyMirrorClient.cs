@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
+using InfinityMercsApp.ApiClient;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
 
 namespace InfinityMercsApp.Infrastructure.API.ArmyMirror;
@@ -20,6 +21,30 @@ public sealed class ArmyMirrorClient(HttpClient httpClient, ArmyMirrorEndpoint e
         {
             Console.Error.WriteLine($"The army data copy's manifest couldn't be read: {ex.Message}");
             return null;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> DownloadLogoBundleAsync(string filePath, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await httpClient.GetAsync(endpoint.Logos, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.Error.WriteLine($"The logo bundle answered {(int)response.StatusCode}.");
+                return false;
+            }
+
+            await using var remote = await response.Content.ReadAsStreamAsync(cancellationToken);
+            await using var file = File.Create(filePath);
+            await remote.CopyToAsync(file, cancellationToken);
+            return true;
+        }
+        catch (Exception ex) when ((ex is HttpRequestException or IOException or TaskCanceledException) && !cancellationToken.IsCancellationRequested)
+        {
+            Console.Error.WriteLine($"The logo bundle couldn't be downloaded: {ex.Message}");
+            return false;
         }
     }
 

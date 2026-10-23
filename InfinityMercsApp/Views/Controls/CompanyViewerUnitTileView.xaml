@@ -2,6 +2,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
              xmlns:components="clr-namespace:InfinityMercsApp.ViewModels.Components"
              x:Class="InfinityMercsApp.Views.Controls.CompanyViewerUnitTileView"
              x:DataType="components:IUnitTile"
@@ -15,8 +16,10 @@
         <Border.GestureRecognizers>
             <TapGestureRecognizer Command="{Binding ItemTappedCommand, Source={x:Reference TileRoot}, x:DataType=controls:CompanyViewerUnitTileView}"
                                   CommandParameter="{Binding .}" />
-            <PanGestureRecognizer PanUpdated="OnTilePanUpdated" />
         </Border.GestureRecognizers>
+        <Border.Behaviors>
+            <behaviors:PanToCommandBehavior Command="{Binding PanScrollCommand, Source={x:Reference TileRoot}, x:DataType=controls:CompanyViewerUnitTileView}" />
+        </Border.Behaviors>
         <Border.StrokeShape>
             <RoundRectangle CornerRadius="4" />
         </Border.StrokeShape>

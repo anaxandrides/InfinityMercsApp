@@ -40,6 +40,20 @@ public sealed class PerkChoicesTests
         Assert.False(PerkChoices.IsTagPerk("body-track-1-tier-1"));
     }
 
+    // The rules' Mecha tree: Tactical Awareness (level 3) and the Ancillary's Explode (level 4) need no other perk,
+    // only the rank.
+    [Theory]
+    [InlineData("mecha-track-5-tier-3", 3)]
+    [InlineData("mecha-track-6-tier-4", 4)]
+    public void Selectable_StandaloneMechaPerk_IsOfferedFromItsLevelWithoutTheOneBefore(string perk, int level)
+    {
+        var below = PerkChoices.Selectable(PerkChoices.TagListId, maxTier: level - 1, owned: new HashSet<string>(), isTag: true);
+        var at = PerkChoices.Selectable(PerkChoices.TagListId, maxTier: level, owned: new HashSet<string>(), isTag: true);
+
+        Assert.DoesNotContain(below, pick => pick.NodeId == perk);
+        Assert.Contains(at, pick => pick.NodeId == perk);
+    }
+
     [Fact]
     public void ListsForRoll_OverlappingRanges_OffersAChoice()
     {

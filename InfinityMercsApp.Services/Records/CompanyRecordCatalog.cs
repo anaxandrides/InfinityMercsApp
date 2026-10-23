@@ -1,11 +1,13 @@
 using System.Globalization;
 using System.Text.Json;
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Models.Company;
+using InfinityMercsApp.Services.Sync;
 
 namespace InfinityMercsApp.Services.Records;
 
-/// <summary>Lists and deletes saved company files.</summary>
-public sealed class CompanyRecordCatalog(RecordPaths paths)
+/// <summary>Lists and deletes saved company files; deletions are noted in the sync outbox.</summary>
+public sealed class CompanyRecordCatalog(RecordPaths paths, ISyncOutbox outbox)
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -49,9 +51,29 @@ public sealed class CompanyRecordCatalog(RecordPaths paths)
 
     public void Delete(CompanyRecord record)
     {
-        if (File.Exists(record.FilePath))
+        if (!File.Exists(record.FilePath))
         {
-            File.Delete(record.FilePath);
+            return;
+        }
+
+        var identifier = IdentifierOf(record.FilePath);
+        File.Delete(record.FilePath);
+        if (!string.IsNullOrEmpty(identifier))
+        {
+            outbox.RecordDelete(UserDocumentKind.Company, identifier);
+        }
+    }
+
+    // The company's identifier, or null when the file can't be read.
+    private static string? IdentifierOf(string filePath)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<SavedCompanyFile>(File.ReadAllText(filePath), JsonOptions)?.CompanyIdentifier;
+        }
+        catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
+        {
+            return null;
         }
     }
 

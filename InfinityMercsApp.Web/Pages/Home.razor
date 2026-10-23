@@ -1,0 +1,17 @@
+@page "/"
+
+<PageTitle>Infinity Mercs</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <h1>Your companies</h1>
+        <CompanyList />
+        <h2>Your seasons</h2>
+        <SeasonList />
+    </Authorized>
+    <NotAuthorized>
+        <h1>Infinity Mercs</h1>
+        <p>Your Mercenaries companies and seasons, kept in step with the Infinity Mercs app.</p>
+        <p><a class="button" href="authentication/login">Sign in</a></p>
+    </NotAuthorized>
+</AuthorizeView>

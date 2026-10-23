@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Services.CompanyProfiles;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
 using InfinityMercsApp.ViewModels.UnitBrowser.Items;
@@ -12,7 +13,7 @@ public sealed class AirborneCompanyRules() : GeneratedFactionCompanyRules(Airbor
     public const string NetworkSupportSkill = "Network Support (Controlled Jump)";
     public const string LogoPath = "SVGCache/MercsIcons/noun-airborne-8005870.svg";
 
-    public override string CompanyTypeLabel => "Airborne Company";
+    public override string CompanyTypeLabel => CompanyTypes.Airborne;
 
     /// <summary>The captain (from the left slot) gains the airborne skills it doesn't already have.</summary>
     public override IReadOnlyCollection<string> CommonSkillsFor(

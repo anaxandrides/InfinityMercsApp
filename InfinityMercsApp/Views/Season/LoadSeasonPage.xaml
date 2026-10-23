@@ -53,7 +53,7 @@
                                 Stroke="{StaticResource Hairline}"
                                 BackgroundColor="{StaticResource Plate}"
                                 Padding="14,12"
-                                Margin="0,0,0,8">
+                                Margin="{StaticResource ListCardMargin}">
                             <Border.StrokeShape>
                                 <RoundRectangle CornerRadius="{DynamicResource CornerRadiusDefault}" />
                             </Border.StrokeShape>

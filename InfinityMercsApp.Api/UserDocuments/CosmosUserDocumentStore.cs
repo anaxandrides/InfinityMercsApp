@@ -1,6 +1,6 @@
 using System.Net;
 using InfinityMercsApp.Api.Cosmos;
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
+using InfinityMercsApp.ApiClient.UserDocuments;
 using Microsoft.Azure.Cosmos;
 
 namespace InfinityMercsApp.Api.UserDocuments;

@@ -1,24 +1,18 @@
 using System.Globalization;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Services.Records;
+using InfinityMercsApp.Services.Sync;
 
 namespace InfinityMercsApp.Services.Season;
 
-/// <summary>Season files as indented JSON under the app's MercenaryRecords/Seasons folder.</summary>
-internal sealed class SeasonFileStore(RecordPaths paths) : ISeasonFileService
+/// <summary>
+/// Season files as indented JSON under the app's MercenaryRecords/Seasons folder. Every save is noted in the sync
+/// outbox, to be sent to the user's account online.
+/// </summary>
+internal sealed class SeasonFileStore(RecordPaths paths, ISyncOutbox outbox) : ISeasonFileService
 {
-    private static readonly JsonSerializerOptions ReadOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
-
-    private static readonly JsonSerializerOptions WriteOptions = new()
-    {
-        WriteIndented = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
 
     public async Task<string> CreateAsync(string companyName, string companyIdentifier, string companyFilePath)
     {
@@ -31,6 +25,7 @@ internal sealed class SeasonFileStore(RecordPaths paths) : ISeasonFileService
 
         var seasonFile = new SeasonFile
         {
+            SeasonIdentifier = NewSeasonIdentifier(),
             CompanyName = companyName,
             CompanyIdentifier = companyIdentifier,
             CompanyFilePath = companyFilePath,
@@ -39,7 +34,8 @@ internal sealed class SeasonFileStore(RecordPaths paths) : ISeasonFileService
             Rounds = []
         };
 
-        await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(seasonFile, WriteOptions));
+        await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(seasonFile, RecordJson.SeasonWriteOptions));
+        outbox.RecordSave(UserDocumentKind.Season, seasonFile.SeasonIdentifier, filePath);
         return filePath;
     }
 
@@ -53,7 +49,7 @@ internal sealed class SeasonFileStore(RecordPaths paths) : ISeasonFileService
         try
         {
             var json = await File.ReadAllTextAsync(filePath);
-            return JsonSerializer.Deserialize<SeasonFile>(json, ReadOptions);
+            return JsonSerializer.Deserialize<SeasonFile>(json, RecordJson.ReadOptions);
         }
         catch (Exception ex)
         {
@@ -71,7 +67,14 @@ internal sealed class SeasonFileStore(RecordPaths paths) : ISeasonFileService
 
         try
         {
-            await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(seasonFile, WriteOptions));
+            // A season from before seasons were kept online gets its id when it is next saved.
+            if (string.IsNullOrEmpty(seasonFile.SeasonIdentifier))
+            {
+                seasonFile.SeasonIdentifier = NewSeasonIdentifier();
+            }
+
+            await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(seasonFile, RecordJson.SeasonWriteOptions));
+            outbox.RecordSave(UserDocumentKind.Season, seasonFile.SeasonIdentifier, filePath);
             return true;
         }
         catch (Exception ex)
@@ -80,6 +83,8 @@ internal sealed class SeasonFileStore(RecordPaths paths) : ISeasonFileService
             return false;
         }
     }
+
+    private static string NewSeasonIdentifier() => Guid.NewGuid().ToString("N");
 
     public async Task<bool> UpdateAsync(string? filePath, Action<SeasonFile> updater)
     {

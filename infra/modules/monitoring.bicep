@@ -6,6 +6,9 @@ param tags object
 @description('The identity allowed to publish telemetry.')
 param publisherPrincipalId string
 
+@description('The most the workspace takes in a day, in GB; ingestion stops until the next day once it is reached, so a flood of app telemetry can only cost so much.')
+param dailyCapGb int = 1
+
 var monitoringMetricsPublisher = '3913510d-42f4-4e42-8a64-420c390055eb'
 
 resource workspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
@@ -17,6 +20,9 @@ resource workspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
       name: 'PerGB2018'
     }
     retentionInDays: 30
+    workspaceCapping: {
+      dailyQuotaGb: dailyCapGb
+    }
   }
 }
 

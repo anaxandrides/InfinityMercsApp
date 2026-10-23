@@ -30,6 +30,18 @@ public partial class MercsCompanyEntry : ObservableObject, IViewerListItem, ICom
 
     public bool CanRemove => !IsOnRoster;
 
+    /// <summary>
+    /// The name the player gave the trooper; empty to go by its unit's name. A trooper already on a recruiting
+    /// company's roster isn't saved from this screen, so it is renamed from the season's Team tab instead.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasCustomName))]
+    public partial string CustomName { get; set; } = string.Empty;
+
+    public bool HasCustomName => !string.IsNullOrWhiteSpace(CustomName);
+
+    public bool CanRename => !IsOnRoster;
+
     /// <inheritdoc/>
     public int? SavedEntryIndex { get; init; }
 

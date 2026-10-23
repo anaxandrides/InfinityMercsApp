@@ -168,7 +168,9 @@ public sealed class SavedEntryWriter(IArmyDataService armyData)
             EntryIndex = entryIndex,
             Name = entry.Name,
             BaseUnitName = string.IsNullOrWhiteSpace(entry.BaseUnitName) ? entry.Name : entry.BaseUnitName,
-            CustomName = entry.IsLieutenant ? normalizedCaptainName : entry.Name,
+            CustomName = entry.IsLieutenant ? normalizedCaptainName
+                : string.IsNullOrWhiteSpace(entry.CustomName) ? entry.Name
+                : entry.CustomName.Trim(),
             UnitTypeCode = ResolveUnitTypeCode(entry),
             ProfileKey = entry.ProfileKey,
             SourceFactionId = entry.SourceFactionId,

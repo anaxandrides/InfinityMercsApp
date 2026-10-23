@@ -12,6 +12,12 @@ public sealed record SignInSettings(string ClientId, string Authority, string Ap
         "https://infinitymercs.ciamlogin.com/",
         "api://6d09c3c6-41d1-4c53-a256-d65e8e4af405/access_as_user");
 
+    /// <summary>
+    /// Where a desktop app's browser hands the result back: MSAL listens on a free local port, and Entra accepts any
+    /// port for this address. Registered on the app as a mobile and desktop redirect URI.
+    /// </summary>
+    public const string DesktopRedirectUri = "http://localhost";
+
     /// <summary>Where the browser hands the result back to the app; registered on the app as a mobile redirect URI.</summary>
     public string RedirectUri => $"msal{ClientId}://auth";
 }

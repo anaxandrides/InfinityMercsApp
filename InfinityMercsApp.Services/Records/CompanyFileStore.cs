@@ -1,24 +1,29 @@
 using System.Text.Json;
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.Season;
+using InfinityMercsApp.Services.Sync;
 
 namespace InfinityMercsApp.Services.Records;
 
 /// <inheritdoc/>
-internal sealed class CompanyFileStore : ICompanyFileService
+/// <remarks>Every save is noted in the sync outbox, to be sent to the user's account online.</remarks>
+internal sealed class CompanyFileStore(ISyncOutbox outbox) : ICompanyFileService
 {
-    private static readonly JsonSerializerOptions ReadOptions = new() { PropertyNameCaseInsensitive = true };
-    private static readonly JsonSerializerOptions WriteOptions = new() { WriteIndented = true };
 
     public bool Exists(string? filePath) => !string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath);
 
     public async Task<SavedCompanyFile?> LoadAsync(string filePath) =>
-        JsonSerializer.Deserialize<SavedCompanyFile>(await File.ReadAllTextAsync(filePath), ReadOptions);
+        JsonSerializer.Deserialize<SavedCompanyFile>(await File.ReadAllTextAsync(filePath), RecordJson.ReadOptions);
 
     /// <summary>Writes the company; a Lone Wolf's Aspects are copied from it again first, so they never fall behind.</summary>
-    public Task SaveAsync(string filePath, SavedCompanyFile company)
+    public async Task SaveAsync(string filePath, SavedCompanyFile company)
     {
         LoneWolfAspects.Refresh(company);
-        return File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(company, WriteOptions));
+        await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(company, RecordJson.CompanyWriteOptions));
+        if (!string.IsNullOrEmpty(company.CompanyIdentifier))
+        {
+            outbox.RecordSave(UserDocumentKind.Company, company.CompanyIdentifier, filePath);
+        }
     }
 }

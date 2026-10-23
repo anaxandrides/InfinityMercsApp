@@ -1,3 +1,5 @@
+using InfinityMercsApp.ApiClient;
+
 namespace InfinityMercsApp.Infrastructure.API.InfinityArmy;
 
 /// <inheritdoc/>

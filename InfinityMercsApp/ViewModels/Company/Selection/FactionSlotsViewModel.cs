@@ -51,22 +51,33 @@ public sealed partial class FactionSlotsViewModel(bool hasRightSlot) : Observabl
 
     public bool IsEmpty(int slot) => (slot == 1 ? Right : Left) is null;
 
-    /// <summary>Marks <paramref name="faction"/> as the one picked in the list.</summary>
+    /// <summary>
+    /// Marks <paramref name="faction"/> as picked in the list, straight away; the factions already in a slot stay
+    /// marked, so a company of two sectorials shows both.
+    /// </summary>
     public void Highlight(ArmyFactionSelectionItem faction)
     {
-        if (ReferenceEquals(_picked, faction))
-        {
-            return;
-        }
-
-        if (_picked is not null)
-        {
-            _picked.IsSelected = false;
-        }
-
+        var previous = _picked;
         _picked = faction;
         faction.IsSelected = true;
+        if (previous is not null && !IsChosen(previous))
+        {
+            previous.IsSelected = false;
+        }
     }
+
+    /// <summary>Marks the factions in the slots, and the one picked, in a freshly loaded list.</summary>
+    public void MarkChosenFactions()
+    {
+        foreach (var faction in Factions)
+        {
+            faction.IsSelected = IsChosen(faction);
+        }
+    }
+
+    // In a slot, or the one just picked.
+    private bool IsChosen(ArmyFactionSelectionItem faction) =>
+        faction.Id == _picked?.Id || faction.Id == Left?.Id || faction.Id == Right?.Id;
 
     /// <summary>Puts <paramref name="faction"/> in slot <paramref name="slot"/> unless the other slot already has it.</summary>
     public bool TryAssign(int slot, ArmyFactionSelectionItem faction, out bool factionChanged)
@@ -87,6 +98,7 @@ public sealed partial class FactionSlotsViewModel(bool hasRightSlot) : Observabl
     public void Set(int slot, ArmyFactionSelectionItem faction)
     {
         var logo = UnitLogo.Source(faction.CachedLogoPath, faction.PackagedLogoPath);
+        var replaced = slot == 0 ? Left : Right;
         if (slot == 0)
         {
             Left = faction;
@@ -96,6 +108,12 @@ public sealed partial class FactionSlotsViewModel(bool hasRightSlot) : Observabl
         {
             Right = faction;
             RightLogoSource = logo;
+        }
+
+        faction.IsSelected = true;
+        if (replaced is not null && !IsChosen(replaced))
+        {
+            replaced.IsSelected = false;
         }
     }
 }

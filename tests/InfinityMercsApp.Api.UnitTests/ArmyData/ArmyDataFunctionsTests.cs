@@ -1,4 +1,5 @@
 using InfinityMercsApp.Api.ArmyData;
+using InfinityMercsApp.Api.ArmyData.Logos;
 using InfinityMercsApp.Infrastructure.API.ArmyMirror;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,13 +20,14 @@ public sealed class ArmyDataFunctionsTests
 
     private readonly IArmySnapshotStore _snapshots = Substitute.For<IArmySnapshotStore>();
     private readonly IArmyPayloadStore _payloads = Substitute.For<IArmyPayloadStore>();
+    private readonly ILogoBundleStore _logoBundles = Substitute.For<ILogoBundleStore>();
     private readonly ArmyDataFunctions _functions;
 
     public ArmyDataFunctionsTests()
     {
         _payloads.OpenAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(call => new StoredPayload(new MemoryStream(), call.Arg<string>()));
-        _functions = new ArmyDataFunctions(_snapshots, _payloads);
+        _functions = new ArmyDataFunctions(_snapshots, _payloads, _logoBundles);
     }
 
     private static HttpRequest Request() => new DefaultHttpContext().Request;
@@ -120,5 +122,39 @@ public sealed class ArmyDataFunctionsTests
         var result = await _functions.GetSnapshotAsync(Request(), SnapshotId, CancellationToken.None);
 
         Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task GetLogosAsync_Bundled_ServesTheZipWithItsHash()
+    {
+        _snapshots.ReadLatestAsync(Arg.Any<CancellationToken>()).Returns(Snapshot with { Logos = new MirroredPayload("l1", DateTimeOffset.UnixEpoch) });
+        _logoBundles.OpenAsync("l1", Arg.Any<CancellationToken>()).Returns(new MemoryStream([1, 2, 3]));
+        var request = Request();
+
+        var result = await _functions.GetLogosAsync(request, CancellationToken.None);
+
+        Assert.Equal("application/zip", Assert.IsType<FileStreamResult>(result).ContentType);
+        Assert.Equal("\"l1\"", ETagOf(request));
+    }
+
+    [Fact]
+    public async Task GetLogosAsync_NotBundledYet_IsNotFound()
+    {
+        _snapshots.ReadLatestAsync(Arg.Any<CancellationToken>()).Returns(Snapshot);
+
+        Assert.IsType<NotFoundResult>(await _functions.GetLogosAsync(Request(), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task GetLogosAsync_ClientHasIt_IsNotModified()
+    {
+        _snapshots.ReadLatestAsync(Arg.Any<CancellationToken>()).Returns(Snapshot with { Logos = new MirroredPayload("l1", DateTimeOffset.UnixEpoch) });
+        _logoBundles.OpenAsync("l1", Arg.Any<CancellationToken>()).Returns(new MemoryStream([1, 2, 3]));
+        var request = Request();
+        request.Headers.IfNoneMatch = "\"l1\"";
+
+        var result = await _functions.GetLogosAsync(request, CancellationToken.None);
+
+        Assert.Equal(StatusCodes.Status304NotModified, Assert.IsType<StatusCodeResult>(result).StatusCode);
     }
 }

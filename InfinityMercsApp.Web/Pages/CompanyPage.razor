@@ -1,0 +1,51 @@
+@page "/companies/{Id}"
+@attribute [Authorize]
+@inject UserFiles Files
+
+<PageTitle>@(_company?.Value?.Name ?? "Company") · Infinity Mercs</PageTitle>
+
+<p><a href="">← Your companies</a></p>
+
+@if (_company is null)
+{
+    <p class="muted">Loading…</p>
+}
+else if (_company.Value is not { } company)
+{
+    <LoadMessage Status="_company.Status" What="company" />
+}
+else
+{
+    <h1>@company.Name</h1>
+    <p class="muted">@company.Type · @company.Armies · founded with @company.StartingPoints points</p>
+
+    <ul class="troopers">
+        @foreach (var trooper in company.Troopers)
+        {
+            <li class="trooper">
+                <div class="heading">
+                    <span class="title">@trooper.Name</span>
+                    @if (!string.IsNullOrEmpty(trooper.Role))
+                    {
+                        <span class="tag">@trooper.Role</span>
+                    }
+                    <span class="cost">@trooper.Cost CR</span>
+                </div>
+                @if (trooper.Unit != trooper.Name)
+                {
+                    <div class="muted">@trooper.Unit</div>
+                }
+                <div class="attributes">@trooper.Attributes</div>
+                <div class="muted">@trooper.Rank · @trooper.Experience XP</div>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = string.Empty;
+
+    private Loaded<CompanySheet>? _company;
+
+    protected override async Task OnParametersSetAsync() => _company = await Files.CompanyAsync(Id);
+}

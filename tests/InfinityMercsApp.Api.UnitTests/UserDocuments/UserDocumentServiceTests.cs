@@ -1,6 +1,6 @@
 using InfinityMercsApp.Api.UserDocuments;
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Models.Company;
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
 using NSubstitute;
 
 namespace InfinityMercsApp.Api.UnitTests.UserDocuments;
@@ -131,15 +131,19 @@ public sealed class UserDocumentServiceTests
     }
 
     [Fact]
-    public async Task DeleteAsync_CurrentRevision_KeepsAnEmptyDeletedRevision()
+    public async Task DeleteAsync_CurrentRevision_KeepsTheContentInADeletedRevision()
     {
         Store(Stored(3));
 
         var outcome = await DeleteAsync(3);
 
         Assert.Equal(SaveResult.Saved, outcome.Result);
+        Assert.Null(outcome.Current?.Content);
         await _store.Received(1).TryReplaceAsync(
-            Arg.Is<UserDocument<SavedCompanyFile>>(document => document.Deleted && document.Content == null && document.Revision == 4),
+            Arg.Is<UserDocument<SavedCompanyFile>>(document =>
+                document.Deleted && document.Revision == 4 &&
+                document.Content != null && document.Content.CompanyName == "Blue Team" &&
+                document.ArmySnapshotId == "0123456789abcdef"),
             "etag-1",
             Arg.Any<CancellationToken>());
     }

@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - InfinityMercsApp.Api/**
+      - InfinityMercsApp.ApiClient/**
       - InfinityMercsApp.Infrastructure/**
       - InfinityMercsApp.Domain/**
       - tests/InfinityMercsApp.Api.UnitTests/**
@@ -13,6 +14,7 @@ on:
   pull_request:
     paths:
       - InfinityMercsApp.Api/**
+      - InfinityMercsApp.ApiClient/**
       - InfinityMercsApp.Infrastructure/**
       - InfinityMercsApp.Domain/**
       - tests/InfinityMercsApp.Api.UnitTests/**

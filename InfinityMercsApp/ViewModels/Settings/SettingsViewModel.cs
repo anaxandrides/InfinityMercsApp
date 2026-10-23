@@ -5,20 +5,24 @@ using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Import;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.SignIn;
+using InfinityMercsApp.Services.Sync;
+using InfinityMercsApp.Services.Telemetry;
 using InfinityMercsApp.ViewModels.Base;
 
 namespace InfinityMercsApp.ViewModels.Settings;
 
 /// <summary>
-/// The display-units preference, a check for army data updates like the one at startup, and signing in to the app's
-/// online side.
+/// The display-units preference, a check for army data updates like the one at startup, signing in to the app's
+/// online side, where companies and seasons are kept in sync, and whether the app sends anonymous diagnostics.
 /// </summary>
 public partial class SettingsViewModel(
     INavigationService navigationService,
     IAppSettingsProvider appSettings,
     IArmyDataUpdater updater,
     IDialogService dialogs,
-    ISignInService signIn) : ViewModelBase(navigationService)
+    ISignInService signIn,
+    ISyncCoordinator sync,
+    ITelemetrySettings telemetry) : ViewModelBase(navigationService)
 {
     public const string SignedOutText = "Not signed in.";
 
@@ -41,12 +45,20 @@ public partial class SettingsViewModel(
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowSignIn), nameof(ShowSignOut))]
-    [NotifyCanExecuteChangedFor(nameof(SignInCommand), nameof(SignOutCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SignInCommand), nameof(SignOutCommand), nameof(SyncNowCommand))]
     public partial bool IsSignedIn { get; set; }
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SignInCommand), nameof(SignOutCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SignInCommand), nameof(SignOutCommand), nameof(SyncNowCommand))]
     public partial bool IsSigningIn { get; set; }
+
+    /// <summary>How the last sync from this page went.</summary>
+    [ObservableProperty]
+    public partial string SyncStatus { get; set; } = string.Empty;
+
+    /// <summary>Whether the app sends anonymous diagnostics: pages shown, crashes, timings and sync failures.</summary>
+    [ObservableProperty]
+    public partial bool SendDiagnostics { get; set; } = true;
 
     /// <summary>Whether this device can sign in at all; the account section is hidden where it can't.</summary>
     public bool CanSignInHere => signIn.IsAvailable;
@@ -70,6 +82,7 @@ public partial class SettingsViewModel(
         {
             _loading = true;
             ShowUnitsInInches = appSettings.GetShowUnitsInInches();
+            SendDiagnostics = telemetry.IsEnabled;
         }
         catch (Exception ex)
         {
@@ -96,6 +109,7 @@ public partial class SettingsViewModel(
             if (outcome.Account is { } account)
             {
                 ShowAccount(account);
+                await SyncNowAsync();
             }
             else if (outcome.Status is SignInStatus.Failed or SignInStatus.Unavailable)
             {
@@ -110,17 +124,28 @@ public partial class SettingsViewModel(
 
     private bool CanSignOut() => IsSignedIn && !IsSigningIn;
 
+    private bool CanSync() => CanSignOut();
+
+    /// <summary>Sends and fetches companies and seasons now, asking again about any conflicts put off.</summary>
+    [RelayCommand(CanExecute = nameof(CanSync))]
+    private async Task SyncNowAsync()
+    {
+        SyncStatus = "Syncing...";
+        SyncStatus = (await sync.SyncNowAsync()).Summary;
+    }
+
     [RelayCommand(CanExecute = nameof(CanSignOut))]
     private async Task SignOutAsync()
     {
         await signIn.SignOutAsync();
         ShowAccount(null);
+        SyncStatus = string.Empty;
     }
 
     private void ShowAccount(SignedInAccount? account)
     {
         IsSignedIn = account is not null;
-        AccountText = account is null ? SignedOutText : $"Signed in as {account.Username}.";
+        AccountText = account is null ? SignedOutText : $"Signed in as {account.DisplayName}.";
     }
 
     partial void OnShowUnitsInInchesChanged(bool value)
@@ -137,6 +162,14 @@ public partial class SettingsViewModel(
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Saving the display units failed: {ex.Message}");
+        }
+    }
+
+    partial void OnSendDiagnosticsChanged(bool value)
+    {
+        if (!_loading)
+        {
+            telemetry.SetEnabled(value);
         }
     }
 

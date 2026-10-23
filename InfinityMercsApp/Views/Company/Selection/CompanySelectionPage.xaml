@@ -245,6 +245,7 @@
                     ItemsSource="{Binding Roster.Entries}"
                     SelectEntryCommand="{Binding SelectMercsCompanyEntryCommand}"
                     RemoveEntryCommand="{Binding RemoveMercsCompanyEntryCommand}"
+                    RenameEntryCommand="{Binding RenameMercsCompanyEntryCommand}"
                     ShowOrderModifierBadges="{Binding TracksCoreFireteam}" />
                 <!-- What keeps the button disabled, beside it. -->
                 <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,0,10,10">

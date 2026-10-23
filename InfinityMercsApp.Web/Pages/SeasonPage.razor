@@ -1,0 +1,63 @@
+@page "/seasons/{Id}"
+@attribute [Authorize]
+@inject UserFiles Files
+
+<PageTitle>@(_season?.Value?.CompanyName ?? "Season") · Infinity Mercs</PageTitle>
+
+<p><a href="">← Your seasons</a></p>
+
+@if (_season is null)
+{
+    <p class="muted">Loading…</p>
+}
+else if (_season.Value is not { } season)
+{
+    <LoadMessage Status="_season.Status" What="season" />
+}
+else
+{
+    <h1>@season.CompanyName</h1>
+    <p class="muted">
+        Started @season.Started · @season.Contracts.Count @(season.Contracts.Count == 1 ? "contract" : "contracts"), @season.Wins won ·
+        <a href="companies/@season.CompanyId">the company</a>
+    </p>
+
+    @if (season.Contracts.Count == 0)
+    {
+        <p class="muted">No contracts played yet.</p>
+    }
+    else
+    {
+        <table class="contracts">
+            <thead>
+                <tr><th>Contract</th><th>Result</th><th class="number">OP</th><th class="number">Deployed</th><th class="number">XP</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var contract in season.Contracts)
+                {
+                    <tr>
+                        <td>@contract.Number</td>
+                        <td class="@contract.Result.ToLowerInvariant()">@contract.Result</td>
+                        <td class="number">@contract.ObjectivePoints</td>
+                        <td class="number">@contract.Deployed</td>
+                        <td class="number">@contract.Experience</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (season.Retired.Count > 0)
+    {
+        <h2>Retired</h2>
+        <p>@string.Join(", ", season.Retired)</p>
+    }
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = string.Empty;
+
+    private Loaded<SeasonSheet>? _season;
+
+    protected override async Task OnParametersSetAsync() => _season = await Files.SeasonAsync(Id);
+}

@@ -9,6 +9,11 @@ namespace InfinityMercsApp.Domain.Models.Season;
 /// </summary>
 public class SeasonFile
 {
+    /// <summary>
+    /// The season's own id, which names it online and on the user's other devices; empty in a file from before seasons
+    /// were kept online, until it is next saved.
+    /// </summary>
+    public string SeasonIdentifier { get; set; } = string.Empty;
     [JsonRequired]
     public string CompanyName { get; set; } = string.Empty;
     [JsonRequired]

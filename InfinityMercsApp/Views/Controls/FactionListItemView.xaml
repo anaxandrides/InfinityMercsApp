@@ -7,8 +7,8 @@
              x:DataType="selectionItems:ArmyFactionSelectionItem"
              x:Name="FactionListItemRoot">
 
-    <!-- A faction tile: its logo above its name, raised while selected. -->
-    <Border Padding="0" StrokeThickness="0">
+    <!-- A faction tile: its logo above its name. Chosen, it is raised, outlined in Signal green and ticked. -->
+    <Border Padding="0" StrokeThickness="2" Stroke="Transparent">
         <Border.GestureRecognizers>
             <TapGestureRecognizer Command="{Binding ItemTappedCommand, Source={x:Reference FactionListItemRoot}, x:DataType=controls:FactionListItemView}"
                                   CommandParameter="{Binding .}" />
@@ -19,6 +19,7 @@
         <Border.Triggers>
             <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
                 <Setter Property="BackgroundColor" Value="{StaticResource PlateRaised}" />
+                <Setter Property="Stroke" Value="{StaticResource Signal}" />
             </DataTrigger>
             <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="False">
                 <Setter Property="BackgroundColor" Value="Transparent" />
@@ -36,6 +37,14 @@
                    MaxLines="3"
                    HorizontalTextAlignment="Center"
                    HorizontalOptions="Fill" />
+            <Label Grid.Row="0"
+                   Text="✓"
+                   FontAttributes="Bold"
+                   FontSize="{DynamicResource FontSizeSubHeadline}"
+                   TextColor="{StaticResource Signal}"
+                   HorizontalOptions="End"
+                   VerticalOptions="Start"
+                   IsVisible="{Binding IsSelected}" />
         </Grid>
     </Border>
 

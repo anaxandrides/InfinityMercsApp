@@ -2,7 +2,7 @@
 <layout:AdaptiveContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
+    xmlns:fitText="clr-namespace:InfinityMercsApp.Views.Controls.FitText"
     xmlns:captain="clr-namespace:InfinityMercsApp.ViewModels.Captain"
              xmlns:captainItems="clr-namespace:InfinityMercsApp.ViewModels.Captain.Items"
              xmlns:captainPresentation="clr-namespace:InfinityMercsApp.Presentation.Captain"
@@ -61,16 +61,12 @@
 
                     <!-- The captain as currently configured. -->
                     <ScrollView>
-                        <VerticalStackLayout Spacing="8" Padding="{StaticResource ScrollBarGutter}">
+                        <VerticalStackLayout Spacing="8">
                             <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
-                                <Entry Text="{Binding CaptainNameDraft}"
+                                <controls:FocusWhenEditableEntry Text="{Binding CaptainNameDraft}"
                                        IsReadOnly="{Binding IsEditingName, Converter={StaticResource InvertedBoolConverter}}"
                                        IsEnabled="{Binding IsEditingName}"
-                                       Style="{StaticResource EntryTitleSmall}">
-                                    <Entry.Behaviors>
-                                        <behaviors:FocusWhenEditableBehavior />
-                                    </Entry.Behaviors>
-                                </Entry>
+                                       Style="{StaticResource EntryTitleSmall}" />
                                 <controls:SvgIcon Grid.Column="1"
                                                   Style="{StaticResource NameActionIcon}"
                                                   Source="SVGCache/NonCBIcons/noun-edit-333556.svg"
@@ -108,12 +104,10 @@
 
                             <!-- Equal-width columns: stat key over its value, green when upgraded. The text shrinks
                                  together when the column is too narrow for it. -->
-                            <FlexLayout Direction="Row"
-                                        IsVisible="{Binding HasStatline}"
-                                        BindableLayout.ItemsSource="{Binding StatCells}">
-                                <FlexLayout.Behaviors>
-                                    <behaviors:FitTextToCellsBehavior FontSizeKey="FontSizeSubHeadline" />
-                                </FlexLayout.Behaviors>
+                            <fitText:FitTextFlexLayout Direction="Row"
+                                                       FontSizeKey="FontSizeSubHeadline"
+                                                       IsVisible="{Binding HasStatline}"
+                                                       BindableLayout.ItemsSource="{Binding StatCells}">
                                 <BindableLayout.ItemTemplate>
                                     <DataTemplate x:DataType="captainPresentation:CaptainStatCell">
                                         <VerticalStackLayout FlexLayout.Grow="1" FlexLayout.Basis="0" Spacing="2" Margin="0,0,4,0">
@@ -135,7 +129,7 @@
                                         </VerticalStackLayout>
                                     </DataTemplate>
                                 </BindableLayout.ItemTemplate>
-                            </FlexLayout>
+                            </fitText:FitTextFlexLayout>
                             <Label Text="-"
                                    Style="{StaticResource LabelSubHeadline}"
                                    IsVisible="{Binding HasStatline, Converter={StaticResource InvertedBoolConverter}}" />
@@ -192,15 +186,12 @@
                         </VerticalStackLayout>
 
                         <ScrollView Grid.Row="3">
-                            <VerticalStackLayout Spacing="8" Padding="{StaticResource ScrollBarGutter}">
+                            <VerticalStackLayout Spacing="8">
                                 <!-- Two stat pickers per row; their text shrinks together when a picker is too narrow for it. -->
-                                <FlexLayout Wrap="Wrap" BindableLayout.ItemsSource="{Binding StatUpgrades}">
-                                    <FlexLayout.Behaviors>
-                                        <behaviors:FitTextToCellsBehavior FontSizeKey="FontSizeBody" />
-                                    </FlexLayout.Behaviors>
+                                <fitText:FitTextFlexLayout Wrap="Wrap" FontSizeKey="FontSizeBody" BindableLayout.ItemsSource="{Binding StatUpgrades}">
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="captainItems:CaptainStatUpgrade">
-                                            <Picker FlexLayout.Basis="50%"
+                                            <fitText:FitTextPicker FlexLayout.Basis="50%"
                                                     Margin="0,0,8,8"
                                                     HorizontalTextAlignment="Center"
                                                     ItemsSource="{Binding Options}"
@@ -208,7 +199,7 @@
                                                     SelectedItem="{Binding SelectedOption}" />
                                         </DataTemplate>
                                     </BindableLayout.ItemTemplate>
-                                </FlexLayout>
+                                </fitText:FitTextFlexLayout>
 
                                 <VerticalStackLayout BindableLayout.ItemsSource="{Binding ChoiceGroups}">
                                     <BindableLayout.ItemTemplate>
@@ -221,21 +212,19 @@
                                                        TextColor="{StaticResource TextMuted}"
                                                        IsVisible="{Binding HasOptions, Converter={StaticResource InvertedBoolConverter}}" />
                                                 <!-- The width cap sits on the list, so each picker can say how wide its text wants to be. -->
-                                                <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Slots}"
-                                                                     MaximumWidthRequest="280"
-                                                                     IsVisible="{Binding HasOptions}">
-                                                    <VerticalStackLayout.Behaviors>
-                                                        <behaviors:FitTextToCellsBehavior FontSizeKey="FontSizeBody" />
-                                                    </VerticalStackLayout.Behaviors>
+                                                <fitText:FitTextStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Slots}"
+                                                                            FontSizeKey="FontSizeBody"
+                                                                            MaximumWidthRequest="280"
+                                                                            IsVisible="{Binding HasOptions}">
                                                     <BindableLayout.ItemTemplate>
                                                         <DataTemplate x:DataType="captainItems:CaptainChoiceSlot">
-                                                            <Picker HorizontalOptions="Fill"
+                                                            <fitText:FitTextPicker HorizontalOptions="Fill"
                                                                     HorizontalTextAlignment="Center"
                                                                     ItemsSource="{Binding Options}"
                                                                     SelectedItem="{Binding SelectedChoice}" />
                                                         </DataTemplate>
                                                     </BindableLayout.ItemTemplate>
-                                                </VerticalStackLayout>
+                                                </fitText:FitTextStackLayout>
                                             </VerticalStackLayout>
                                         </DataTemplate>
                                     </BindableLayout.ItemTemplate>

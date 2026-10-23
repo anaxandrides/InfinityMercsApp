@@ -1,6 +1,4 @@
 using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using InfinityMercsApp.Domain.Company;
@@ -21,7 +19,7 @@ namespace InfinityMercsApp.Services.CompanySelection.StartCompany;
 public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entries, RecordPaths paths, ICompanyFileService companyFiles)
 {
     /// <summary>The company type a TAG Company is saved with; its TAG, when captain, gets the TAG Spec-Ops popup.</summary>
-    public const string TagCompanyType = "TAG Company";
+    public const string TagCompanyType = CompanyTypes.Tag;
 
     public async Task<FoundingResult> FoundAsync<TFaction, TEntry>(CompanyFoundingRequest<TFaction, TEntry> request)
         where TFaction : class, ICompanySourceFaction
@@ -84,6 +82,7 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
         var unit = new CaptainUnitPopupInfo
         {
             Name = captain.Name,
+            CustomName = captain.CustomName,
             Cost = captain.CostValue,
             Statline = captain.Subtitle ?? "-",
             RangedWeapons = captain.SavedRangedWeapons,
@@ -131,7 +130,6 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
             Directory.CreateDirectory(outputDir);
         }
 
-        var fileName = Path.GetFileName(filePath);
         var captainName = improvedCaptainStats.CaptainName;
         var normalizedCaptainName = string.IsNullOrWhiteSpace(captainName) ? "Captain" : captainName.Trim();
         var startSeasonPoints = int.TryParse(request.SelectedStartSeasonPoints, out var parsedStartSeasonPoints)
@@ -141,7 +139,8 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
         {
             CompanyName = request.CompanyName.Trim(),
             CompanyType = request.CompanyType,
-            CompanyIdentifier = CompanyIdentifier(fileName),
+            // Unique across devices, since the company is kept online under it.
+            CompanyIdentifier = Guid.NewGuid().ToString("N"),
             CompanyIndex = ParseCompanyIndexFromFileName(filePath),
             CreatedUtc = DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture),
             StartSeasonPoints = startSeasonPoints,
@@ -158,9 +157,6 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
 
         await companyFiles.SaveAsync(filePath, company);
     }
-
-    // The SHA-256 of the file name, in hex: a company's id for the seasons that play it.
-    private static string CompanyIdentifier(string fileName) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(fileName)));
 
     // One more than the highest index of a company of the same name: read from each file, else from its name.
     private static int NextCompanyIndex(string saveDir, string companyName, string safeFileName)

@@ -11,13 +11,14 @@ public sealed class RefreshArmyDataFunction(ArmyMirror mirror, ILogger<RefreshAr
     {
         var refresh = await mirror.RefreshAsync(cancellationToken);
         logger.LogInformation(
-            "Army data checked: snapshot {SnapshotId} ({SnapshotState}), metadata {MetadataState}, {Updated} armies updated ({UpdatedIds}), {Failed} failed ({FailedIds}).",
+            "Army data checked: snapshot {SnapshotId} ({SnapshotState}), metadata {MetadataState}, {Updated} armies updated ({UpdatedIds}), {Failed} failed ({FailedIds}), logos {LogosState}.",
             refresh.SnapshotId,
             refresh.NewSnapshot ? "new" : "unchanged",
             refresh.MetadataUpdated ? "updated" : "unchanged",
             refresh.UpdatedFactionIds.Count,
             string.Join(", ", refresh.UpdatedFactionIds),
             refresh.FailedFactionIds.Count,
-            string.Join(", ", refresh.FailedFactionIds));
+            string.Join(", ", refresh.FailedFactionIds),
+            refresh.LogosUpdated ? "rebundled" : "unchanged");
     }
 }

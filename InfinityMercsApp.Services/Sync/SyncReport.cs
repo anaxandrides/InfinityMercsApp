@@ -1,0 +1,30 @@
+namespace InfinityMercsApp.Services.Sync;
+
+/// <summary>What a sync did, and the conflicts waiting for the user.</summary>
+/// <param name="Online">What this device knows is in the account online, after the sync.</param>
+/// <param name="Unclaimed">Files on this device that aren't in the account, waiting for the user to add them.</param>
+public sealed record SyncReport(
+    SyncRunStatus Status,
+    int Sent,
+    int Received,
+    IReadOnlyList<SyncConflict> Conflicts,
+    FileCounts Online,
+    FileCounts Unclaimed)
+{
+    public static SyncReport SignedOut { get; } = new(SyncRunStatus.SignedOut, 0, 0, [], FileCounts.None, FileCounts.None);
+
+    /// <summary>
+    /// One line for the settings page: what is online, rather than what this sync moved, so a sync with nothing new
+    /// still says the files are safe.
+    /// </summary>
+    public string Summary => Status switch
+    {
+        SyncRunStatus.SignedOut => "Sign in to keep your companies and seasons online.",
+        SyncRunStatus.Offline => "Couldn't reach the server; changes will be sent later.",
+        _ when Conflicts.Count > 0 => $"Synced. {Conflicts.Count} {(Conflicts.Count == 1 ? "file was" : "files were")} changed on another device too.",
+        _ when Unclaimed.Total > 0 => $"Synced. {OnlineText} {Unclaimed.Describe()} on this device {(Unclaimed.Total == 1 ? "isn't" : "aren't")} in your account yet.",
+        _ => $"Synced. {OnlineText}"
+    };
+
+    private string OnlineText => Online.Total == 0 ? "Nothing is online yet." : $"{Online.Describe()} online.";
+}

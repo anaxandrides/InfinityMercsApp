@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -31,7 +30,7 @@ public partial class PlayModeViewModel(
     IDialogService dialogs,
     DeploymentRoster roster,
     HiredTroops hiredTroops,
-    IAppSettingsProvider? settings = null) : ViewModelBase(navigationService)
+    IAppSettingsProvider? settings = null) : ViewModelBase(navigationService), IDeploymentChoice, IInducementShopOwner
 {
     public const int MaxSlots = 6;
     public const int MaxEliteSlots = 4;
@@ -133,14 +132,14 @@ public partial class PlayModeViewModel(
 
         foreach (var unit in DeploymentUnits)
         {
-            unit.PropertyChanged -= OnUnitPropertyChanged;
+            unit.Deployment = null;
         }
 
         DeploymentUnits.Clear();
         CompanyRenown = await roster.CompanyRenownAsync(_companyFilePath, _seasonFilePath);
         foreach (var unit in await roster.LoadAsync(_companyFilePath, _seasonFilePath, inches))
         {
-            unit.PropertyChanged += OnUnitPropertyChanged;
+            unit.Deployment = this;
             DeploymentUnits.Add(unit);
         }
 
@@ -148,8 +147,7 @@ public partial class PlayModeViewModel(
         IsProxyPack = DeploymentUnits.Any(unit => unit.IsLoneWolf);
         RefreshLoneWolfLoadouts();
         SelectUnit(DeploymentUnits.FirstOrDefault());
-        Shop.PropertyChanged -= OnShopPropertyChanged;
-        Shop.PropertyChanged += OnShopPropertyChanged;
+        Shop.Owner = this;
         RefreshInducements();
     }
 
@@ -195,13 +193,9 @@ public partial class PlayModeViewModel(
     }
 
     // Undoes a check that would leave the lieutenant behind or go over the slot limit.
-    private void OnUnitPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    /// <summary>Applies the deployment rules when a trooper is ticked or unticked.</summary>
+    public void CheckedChanged(DeploymentUnitItem unit)
     {
-        if (e.PropertyName != nameof(DeploymentUnitItem.IsChecked) || sender is not DeploymentUnitItem unit)
-        {
-            return;
-        }
-
         // The lieutenant always deploys; a Lone Wolf needs at least one of its loadouts deployed.
         if ((unit is { IsLieutenant: true, IsLoneWolf: false, IsChecked: false }) ||
             (unit is { IsPartOfLoneWolf: true, IsChecked: false } && !DeploymentUnits.Any(other => other is { IsPartOfLoneWolf: true, IsChecked: true })))
@@ -223,16 +217,11 @@ public partial class PlayModeViewModel(
         RefreshInducements();
     }
 
-    private void OnShopPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    /// <summary>Keeps the deployment page's hired count and inducement button up with the shop.</summary>
+    public void ShopChanged()
     {
-        if (e.PropertyName == nameof(InducementShopViewModel.HiredCount))
-        {
-            HiredCount = Shop.HiredCount;
-        }
-        else if (e.PropertyName == nameof(InducementShopViewModel.Left))
-        {
-            CanSpendInducements = Inducements.Received > 0 || InducementShop.Spent(Inducements) > 0;
-        }
+        HiredCount = Shop.HiredCount;
+        CanSpendInducements = Inducements.Received > 0 || InducementShop.Spent(Inducements) > 0;
     }
 
     // The inducements the company's renown brings against the opponent's, and the pop-up's view of them. Gear rented

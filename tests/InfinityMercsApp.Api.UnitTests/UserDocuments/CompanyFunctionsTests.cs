@@ -1,8 +1,8 @@
 using System.Text;
 using InfinityMercsApp.Api.Auth;
 using InfinityMercsApp.Api.UserDocuments;
+using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Models.Company;
-using InfinityMercsApp.Infrastructure.API.UserDocuments;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
@@ -15,8 +15,9 @@ public sealed class CompanyFunctionsTests
     private const string DocumentId = "c0ffee";
 
     private const string Company = """
-        {"companyName":"Red Team","companyType":"Standard Company - Vanilla","companyIdentifier":"red",
-         "sourceFactions":[{"factionId":101}],"entries":[{"entryIndex":0,"isLieutenant":true}]}
+        {"companyName":"Red Team","companyType":"Standard Company - Vanilla","companyIdentifier":"c0ffee",
+         "sourceFactions":[{"factionId":101}],
+         "entries":[{"entryIndex":0,"name":"Fusilier","sourceFactionId":101,"sourceUnitId":1,"isLieutenant":true}]}
         """;
 
     private readonly IUserAuthenticator _authenticator = Substitute.For<IUserAuthenticator>();
@@ -132,6 +133,15 @@ public sealed class CompanyFunctionsTests
 
         var problems = Assert.IsAssignableFrom<IReadOnlyList<string>>(Assert.IsType<BadRequestObjectResult>(result).Value);
         Assert.Equal(["The company must have exactly one Captain."], problems);
+    }
+
+    [Fact]
+    public async Task SaveAsync_SavedUnderAnotherId_IsABadRequest()
+    {
+        var result = await _functions.SaveAsync(Request(Save(0)), "another-id", CancellationToken.None);
+
+        var problems = Assert.IsAssignableFrom<IReadOnlyList<string>>(Assert.IsType<BadRequestObjectResult>(result).Value);
+        Assert.Equal(["The company's identifier isn't the one it is saved under."], problems);
     }
 
     [Fact]

@@ -10,6 +10,7 @@ using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Season.Inducements;
 using InfinityMercsApp.Services.Stores;
+using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.UnitTests.Support;
 using InfinityMercsApp.ViewModels.Season;
 using NSubstitute;
@@ -23,6 +24,7 @@ public sealed class PlayModeViewModelTests : IDisposable
     private readonly IDialogService _dialogs = Substitute.For<IDialogService>();
     private readonly IAppSettingsProvider _settings = Substitute.For<IAppSettingsProvider>();
     private readonly IArmyDataService _armyData = Army101Data.Create();
+    private readonly ISeasonFileService _seasonFiles = Substitute.For<ISeasonFileService>();
     private string _companyPath = string.Empty;
 
     public PlayModeViewModelTests() => _settings.GetShowUnitsInInches().Returns(true);
@@ -41,7 +43,7 @@ public sealed class PlayModeViewModelTests : IDisposable
 
         _companyPath = _records.WriteCompany("c.json", JsonSerializer.Serialize(new { entries }));
         var viewModel = new PlayModeViewModel(
-            _navigation, _dialogs, new DeploymentRoster(_armyData, new CompanyFileStore(), Substitute.For<ISeasonFileService>(), new StoreCatalog(Substitute.For<IStoreProvider>())),
+            _navigation, _dialogs, new DeploymentRoster(_armyData, new CompanyFileStore(Substitute.For<ISyncOutbox>()), _seasonFiles, new StoreCatalog(Substitute.For<IStoreProvider>())),
             new HiredTroops(_armyData), _settings);
         viewModel.ApplyQueryAttributes(NavigationParameters.ForCompany(_companyPath, "/s.json"));
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
@@ -146,6 +148,24 @@ public sealed class PlayModeViewModelTests : IDisposable
         Assert.Equal((30, 20), (viewModel.CompanyRenown, viewModel.Inducements.Received));
         Assert.Equal("You get 20 inducements.", viewModel.InducementText);
         Assert.True(viewModel.CanSpendInducements);
+    }
+
+    // Renown stays with the company: a retired trooper no longer deploys, but what it kept still counts (user's ruling).
+    [Fact]
+    public async Task OpponentRenownText_TrooperRetired_CountsTheRenownItKept()
+    {
+        _seasonFiles.LoadAsync("/s.json").Returns(new SeasonFile
+        {
+            CompanyName = "Company",
+            CompanyIdentifier = "c",
+            Retired = [new RetiredTrooper { EntryIndex = 1, Name = "T1", Renown = 10 }]
+        });
+        var viewModel = await OpenAsync(troopers: 1);
+
+        viewModel.OpponentRenownText = "75";
+
+        Assert.DoesNotContain(viewModel.DeploymentUnits, unit => unit.EntryIndex == 1);
+        Assert.Equal((30, 20), (viewModel.CompanyRenown, viewModel.Inducements.Received));
     }
 
     // Inducements go by the whole company's renown, not by who is ticked to deploy.
