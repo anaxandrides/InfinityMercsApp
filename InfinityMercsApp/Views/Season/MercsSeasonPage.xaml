@@ -51,18 +51,39 @@
               HorizontalOptions="{Binding Layout.ActionHorizontalOptions}"
               MaximumWidthRequest="{Binding Layout.ActionMaximumWidth}">
 
-            <!-- Main actions -->
-            <VerticalStackLayout IsVisible="{Binding IsChoosingNewSeason, Converter={StaticResource InvertedBoolConverter}}" Spacing="{DynamicResource SpacingMedium}">
-                <Button Text="LOAD SEASON"
-                        Command="{Binding LoadSeasonCommand}"
-                        HorizontalOptions="Fill" />
-                <Button Text="START NEW SEASON"
-                        BackgroundColor="{StaticResource Signal}"
-                        TextColor="{StaticResource Void}"
-                        BorderColor="{StaticResource Signal}"
-                        FontAttributes="Bold"
-                        Command="{Binding StartNewSeasonCommand}"
-                        HorizontalOptions="Fill" />
+            <!-- Main actions, then the account, set apart so it doesn't read as part of the same group -->
+            <VerticalStackLayout IsVisible="{Binding IsChoosingNewSeason, Converter={StaticResource InvertedBoolConverter}}">
+                <VerticalStackLayout Spacing="{DynamicResource SpacingMedium}">
+                    <Button Text="LOAD SEASON"
+                            Command="{Binding LoadSeasonCommand}"
+                            HorizontalOptions="Fill" />
+                    <Button Text="START NEW SEASON"
+                            BackgroundColor="{StaticResource Signal}"
+                            TextColor="{StaticResource Void}"
+                            BorderColor="{StaticResource Signal}"
+                            FontAttributes="Bold"
+                            Command="{Binding StartNewSeasonCommand}"
+                            HorizontalOptions="Fill" />
+                </VerticalStackLayout>
+
+                <Button Text="LOG IN"
+                        Margin="0,40,0,0"
+                        Padding="20,0"
+                        HeightRequest="36"
+                        FontSize="{DynamicResource FontSizeCaption}"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource TextSecondary}"
+                        BorderColor="{StaticResource HairlineBright}"
+                        BorderWidth="1"
+                        HorizontalOptions="Center"
+                        IsVisible="{Binding ShowLogIn}"
+                        Command="{Binding LogInCommand}" />
+                <Label Text="{Binding AccountText}"
+                       Margin="0,40,0,0"
+                       FontSize="{DynamicResource FontSizeCaption}"
+                       TextColor="{StaticResource TextMuted}"
+                       HorizontalTextAlignment="Center"
+                       IsVisible="{Binding ShowAccount}" />
             </VerticalStackLayout>
 
             <!-- New-season sub-choices (hidden until Start New Season is tapped) -->
