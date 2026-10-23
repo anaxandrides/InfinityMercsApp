@@ -146,6 +146,11 @@ the API, the app and the web site always agree on their shape.
 Sign-in uses the Entra External ID tenant `infinitymercs.onmicrosoft.com` (tenant id
 `36af320a-cd91-43b1-8c24-f1c21c798455`), with Google as a provider and one sign-up/sign-in user flow.
 
+A user flow only applies to the app registrations added to it (**User flows → the flow → Applications → Add
+application**), so the app below must be listed there. An app that isn't gets the tenant's bare default sign-in
+instead: existing accounts only, no Google button and no sign-up link, with the message "This account does not exist
+in this organization".
+
 | App registration | Client id | Notes |
 | --- | --- | --- |
 | Infinity Mercs API | `6d09c3c6-41d1-4c53-a256-d65e8e4af405` | Exposes `access_as_user`; access tokens version 2. The API accepts tokens for the client id or `api://` + client id. |
