@@ -1,5 +1,6 @@
 using System.Text.Json;
 using InfinityMercsApp.Api.ArmyData;
+using InfinityMercsApp.Api.ArmyData.Logos;
 using InfinityMercsApp.Infrastructure.API.ArmyMirror;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -10,8 +11,8 @@ namespace InfinityMercsApp.Api.UnitTests.ArmyData;
 
 public sealed class ArmyMirrorTests
 {
-    private const string Metadata = """{"factions":[{"id":101},{"id":201}]}""";
-    private const string PanOceania = """{"version":"1.0","units":[]}""";
+    private const string Metadata = """{"factions":[{"id":101,"logo":"https://cdn.example/101.svg"},{"id":201}]}""";
+    private const string PanOceania = """{"version":"1.0","units":[],"resume":[{"id":7,"logo":"https://cdn.example/units/7.svg"}]}""";
     private const string YuJing = """{"version":"2.0","units":[]}""";
 
     private static readonly DateTimeOffset Earlier = new(2026, 10, 1, 0, 0, 0, TimeSpan.Zero);
@@ -21,6 +22,8 @@ public sealed class ArmyMirrorTests
     private readonly IArmyPayloadStore _payloads = Substitute.For<IArmyPayloadStore>();
     private readonly IArmySnapshotStore _snapshots = Substitute.For<IArmySnapshotStore>();
     private readonly TimeProvider _time = Substitute.For<TimeProvider>();
+    private readonly ILogoSource _logoSource = Substitute.For<ILogoSource>();
+    private readonly ILogoBundleStore _logoBundles = Substitute.For<ILogoBundleStore>();
     private readonly ArmyMirror _mirror;
     private ArmyMirrorManifest? _written;
 
@@ -31,7 +34,8 @@ public sealed class ArmyMirrorTests
         _source.GetArmyAsync(101, Arg.Any<CancellationToken>()).Returns(PanOceania);
         _source.GetArmyAsync(201, Arg.Any<CancellationToken>()).Returns(YuJing);
         _snapshots.SetLatestAsync(Arg.Do<ArmyMirrorManifest>(manifest => _written = manifest), Arg.Any<CancellationToken>());
-        _mirror = new ArmyMirror(_source, _payloads, _snapshots, _time, NullLogger<ArmyMirror>.Instance);
+        _logoSource.GetAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns("<svg/>"u8.ToArray());
+        _mirror = new ArmyMirror(_source, _payloads, _snapshots, new LogoBundler(_logoSource, _logoBundles), _time, NullLogger<ArmyMirror>.Instance);
     }
 
     // The current snapshot when every payload was copied earlier, as served now.
@@ -195,5 +199,47 @@ public sealed class ArmyMirrorTests
             _snapshots.SaveAsync(Arg.Any<ArmyMirrorManifest>(), Arg.Any<CancellationToken>());
             _snapshots.SetLatestAsync(Arg.Any<ArmyMirrorManifest>(), Arg.Any<CancellationToken>());
         });
+    }
+
+    private static string LogosHash => ArmyLogos.Hash(
+    [
+        new LogoFile("101.svg", "https://cdn.example/101.svg"),
+        new LogoFile("units/101-7.svg", "https://cdn.example/units/7.svg")
+    ]);
+
+    [Fact]
+    public async Task RefreshAsync_LogosNew_BundlesThem()
+    {
+        var refresh = await _mirror.RefreshAsync();
+
+        Assert.True(refresh.LogosUpdated);
+        Assert.Equal(LogosHash, Written().Logos?.Hash);
+        await _logoBundles.Received(1).SaveAsync(LogosHash, Arg.Any<Stream>(), Arg.Any<CancellationToken>());
+        await _logoSource.Received(1).GetAsync("https://cdn.example/units/7.svg", Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RefreshAsync_LogosUnchanged_KeepsTheBundle()
+    {
+        _snapshots.ReadLatestAsync(Arg.Any<CancellationToken>()).Returns(Current() with { Logos = new MirroredPayload(LogosHash, Earlier) });
+
+        var refresh = await _mirror.RefreshAsync();
+
+        Assert.False(refresh.LogosUpdated);
+        Assert.Equal(Earlier, Written().Logos?.UpdatedAt);
+        await _logoBundles.DidNotReceiveWithAnyArgs().SaveAsync(default!, default!, default);
+    }
+
+    [Fact]
+    public async Task RefreshAsync_AnArmyFailed_KeepsTheEarlierBundle()
+    {
+        var earlier = new MirroredPayload("earlier", Earlier);
+        _snapshots.ReadLatestAsync(Arg.Any<CancellationToken>()).Returns(Current() with { Logos = earlier });
+        _source.GetArmyAsync(201, Arg.Any<CancellationToken>()).ThrowsAsync(new HttpRequestException("down"));
+
+        await _mirror.RefreshAsync();
+
+        Assert.Equal(earlier, Written().Logos);
+        await _logoBundles.DidNotReceiveWithAnyArgs().SaveAsync(default!, default!, default);
     }
 }

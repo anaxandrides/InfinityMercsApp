@@ -136,6 +136,7 @@ public static class ServiceRegistryExtensions
                 .AddSingleton<IStoreProvider, StoreProvider>()
                 .AddSingleton<StoreCatalog>()
                 .AddSingleton<FactionLogoCacheService>()
+                .AddSingleton<LogoBundleInstaller>()
                 .AddSingleton<IFeedbackService, FeedbackService>()
                 .AddSingleton(_ => new DeviceDetails(
                     AppInfo.Current.VersionString,

@@ -19,6 +19,7 @@ internal sealed class ArmyDataUpdater(
     IArmyImportProvider armyImportProvider,
     IAppSettingsProvider appSettingsProvider,
     FactionLogoCacheService factionLogoCacheService,
+    LogoBundleInstaller logoBundleInstaller,
     IInspiringCompanyFactionGenerator inspiringCompanyFactionGenerator,
     IAirborneCompanyFactionGenerator airborneCompanyFactionGenerator,
     ITagCompanyFactionGenerator tagCompanyFactionGenerator) : IArmyDataUpdater
@@ -128,6 +129,9 @@ internal sealed class ArmyDataUpdater(
             appSettingsProvider.SetMetadataFingerprint(metadata.Fingerprint);
         }
 
+        // One zip of every logo from the API first; the per-logo downloads below then only fetch what it lacked.
+        progress?.Report(new ArmyDataProgress("Downloading logos...", 0));
+        await logoBundleInstaller.InstallAsync(cancellationToken);
         await factionLogoCacheService.CacheAllAsync(metadata.Factions, cancellationToken);
 
         var failed = new List<string>();

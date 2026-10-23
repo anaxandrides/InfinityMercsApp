@@ -1,5 +1,6 @@
 using Azure.Identity;
 using InfinityMercsApp.Api.ArmyData;
+using InfinityMercsApp.Api.ArmyData.Logos;
 using InfinityMercsApp.Api.Auth;
 using InfinityMercsApp.Api.Cosmos;
 using InfinityMercsApp.Api.UserDocuments;
@@ -27,11 +28,14 @@ builder.Services.AddAzureClients(clients =>
 });
 
 builder.Services.AddHttpClient<IArmyPayloadSource, CorvusBelliPayloadSource>();
+builder.Services.AddHttpClient<ILogoSource, HttpLogoSource>();
 builder.Services
     .AddSingleton(TimeProvider.System)
     .AddSingleton(_ => CosmosClients.Create(builder.Configuration))
     .AddSingleton<IArmyPayloadStore, BlobArmyPayloadStore>()
     .AddSingleton<IArmySnapshotStore, CosmosArmySnapshotStore>()
+    .AddSingleton<ILogoBundleStore, BlobLogoBundleStore>()
+    .AddTransient<LogoBundler>()
     .AddTransient<ArmyMirror>()
     .AddSingleton<IUserDocumentStore, CosmosUserDocumentStore>()
     .AddSingleton<UserDocumentService>()

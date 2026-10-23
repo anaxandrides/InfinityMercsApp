@@ -18,4 +18,10 @@ public sealed record ArmyMirrorManifest
 
     /// <summary>The armies copied, by faction id.</summary>
     public IReadOnlyList<MirroredArmy> Armies { get; init; } = [];
+
+    /// <summary>
+    /// Every faction's and unit's logo in one zip (GET army/logos), named by the hash of the logos in it; null until it
+    /// was first built. Not part of the snapshot id: logos don't change what a company was built with.
+    /// </summary>
+    public MirroredPayload? Logos { get; init; }
 }

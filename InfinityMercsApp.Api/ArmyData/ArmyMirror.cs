@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
+using Azure;
+using InfinityMercsApp.Api.ArmyData.Logos;
 using InfinityMercsApp.Infrastructure.API.ArmyMirror;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
 using Microsoft.Extensions.Logging;
@@ -8,12 +10,14 @@ namespace InfinityMercsApp.Api.ArmyData;
 
 /// <summary>
 /// Copies Corvus Belli's army data, so the app and the web site read it from here: the metadata and each faction's
-/// army, kept exactly as served under their hashes. Each distinct set of them is a snapshot, kept for good.
+/// army, kept exactly as served under their hashes. Each distinct set of them is a snapshot, kept for good. The logos
+/// they name are bundled into one zip whenever they change.
 /// </summary>
 public sealed class ArmyMirror(
     IArmyPayloadSource source,
     IArmyPayloadStore payloads,
     IArmySnapshotStore snapshots,
+    LogoBundler logoBundler,
     TimeProvider time,
     ILogger<ArmyMirror> logger)
 {
@@ -44,6 +48,7 @@ public sealed class ArmyMirror(
         var previousArmies = previous.Armies.ToDictionary(army => army.FactionId);
         var updated = new ConcurrentBag<int>();
         var failed = new ConcurrentBag<int>();
+        var armyLogos = new ConcurrentBag<LogoFile>();
         using var gate = new SemaphoreSlim(ConcurrentDownloads);
         var armies = await Task.WhenAll(factionIds.Select(async factionId =>
         {
@@ -51,7 +56,7 @@ public sealed class ArmyMirror(
             try
             {
                 var kept = previousArmies.GetValueOrDefault(factionId);
-                var copied = await CopyAsync(factionId, kept, now, cancellationToken);
+                var copied = await CopyAsync(factionId, kept, now, armyLogos, cancellationToken);
                 if (copied is null)
                 {
                     failed.Add(factionId);
@@ -72,12 +77,16 @@ public sealed class ArmyMirror(
         }));
 
         var kept = armies.OfType<MirroredArmy>().OrderBy(army => army.FactionId).ToList();
+        var logos = failed.IsEmpty
+            ? await BundleLogosAsync(previous.Logos, [.. ArmyLogos.OfMetadata(metadataJson), .. armyLogos], now, cancellationToken)
+            : previous.Logos;
         var manifest = new ArmyMirrorManifest
         {
             SnapshotId = ArmySnapshots.IdFor(metadata, kept),
             CheckedAt = now,
             Metadata = metadata,
-            Armies = kept
+            Armies = kept,
+            Logos = logos
         };
 
         // The snapshot is kept before it becomes current, so the current one can always be read by its id.
@@ -88,11 +97,39 @@ public sealed class ArmyMirror(
         }
 
         await snapshots.SetLatestAsync(manifest, cancellationToken);
-        return new ArmyMirrorRefresh(manifest.SnapshotId, newSnapshot, metadataUpdated, updated.Order().ToList(), failed.Order().ToList());
+        return new ArmyMirrorRefresh(
+            manifest.SnapshotId, newSnapshot, metadataUpdated, updated.Order().ToList(), failed.Order().ToList(), logos != previous.Logos);
+    }
+
+    // The bundle of these logos: the current one when they haven't changed, else a new one. Built only when every army
+    // was read, so a failed download never ships a bundle missing that army's units; if building fails, the current
+    // bundle stays.
+    private async Task<MirroredPayload?> BundleLogosAsync(
+        MirroredPayload? current, IReadOnlyList<LogoFile> logos, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var hash = ArmyLogos.Hash(logos);
+        if (current?.Hash == hash)
+        {
+            return current;
+        }
+
+        try
+        {
+            var bundled = await logoBundler.BuildAsync(hash, logos, cancellationToken);
+            logger.LogInformation("Logo bundle {Hash} built with {Bundled} of {Listed} logos.", hash, bundled, logos.Count);
+            return new MirroredPayload(hash, now);
+        }
+        catch (Exception ex) when (ex is RequestFailedException or IOException)
+        {
+            logger.LogWarning(ex, "The logo bundle couldn't be kept; the current one stays.");
+            return current;
+        }
     }
 
     // The kept copy when the payload is unchanged, a new one when it changed, or null when it couldn't be downloaded.
-    private async Task<MirroredArmy?> CopyAsync(int factionId, MirroredArmy? kept, DateTimeOffset now, CancellationToken cancellationToken)
+    // Its units' logos go into armyLogos.
+    private async Task<MirroredArmy?> CopyAsync(
+        int factionId, MirroredArmy? kept, DateTimeOffset now, ConcurrentBag<LogoFile> armyLogos, CancellationToken cancellationToken)
     {
         try
         {
@@ -101,6 +138,11 @@ public sealed class ArmyMirror(
             {
                 logger.LogWarning("The army of faction {FactionId} came back without a version.", factionId);
                 return null;
+            }
+
+            foreach (var logo in ArmyLogos.OfArmy(factionId, json))
+            {
+                armyLogos.Add(logo);
             }
 
             var hash = ArmyPayloads.Hash(json);

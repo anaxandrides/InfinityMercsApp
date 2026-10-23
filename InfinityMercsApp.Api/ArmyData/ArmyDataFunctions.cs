@@ -1,8 +1,10 @@
 using System.Text.Json;
+using InfinityMercsApp.Api.ArmyData.Logos;
 using InfinityMercsApp.Infrastructure.API.ArmyMirror;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Net.Http.Headers;
 
 namespace InfinityMercsApp.Api.ArmyData;
 
@@ -10,7 +12,7 @@ namespace InfinityMercsApp.Api.ArmyData;
 /// The mirrored army data, open to anyone: the current snapshot's manifest and payloads, and those of any earlier
 /// snapshot, which a company pins.
 /// </summary>
-public sealed class ArmyDataFunctions(IArmySnapshotStore snapshots, IArmyPayloadStore payloads)
+public sealed class ArmyDataFunctions(IArmySnapshotStore snapshots, IArmyPayloadStore payloads, ILogoBundleStore logoBundles)
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
@@ -33,6 +35,34 @@ public sealed class ArmyDataFunctions(IArmySnapshotStore snapshots, IArmyPayload
         int factionId,
         CancellationToken cancellationToken) =>
         await PayloadAsync(request, await snapshots.ReadLatestAsync(cancellationToken), PayloadRequest.Army(factionId), PayloadResponses.CurrentCacheControl, cancellationToken);
+
+    /// <summary>
+    /// Every faction's and unit's logo in one zip, for an app's first launch; its ETag is the bundle's hash, which the
+    /// manifest names.
+    /// </summary>
+    [Function("GetArmyLogos")]
+    public async Task<IActionResult> GetLogosAsync(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "army/logos")] HttpRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (await snapshots.ReadLatestAsync(cancellationToken) is not { Logos.Hash: { } hash } ||
+            await logoBundles.OpenAsync(hash, cancellationToken) is not { } zip)
+        {
+            return new NotFoundResult();
+        }
+
+        var etag = new EntityTagHeaderValue($"\"{hash}\"");
+        var response = request.HttpContext.Response;
+        response.Headers.ETag = etag.ToString();
+        response.Headers.CacheControl = PayloadResponses.CurrentCacheControl;
+        if (request.GetTypedHeaders().IfNoneMatch.Any(match => match.Compare(etag, useStrongComparison: false)))
+        {
+            await zip.DisposeAsync();
+            return new StatusCodeResult(StatusCodes.Status304NotModified);
+        }
+
+        return new FileStreamResult(zip, "application/zip");
+    }
 
     /// <summary>A snapshot's manifest; it never changes.</summary>
     [Function("GetArmySnapshot")]

@@ -14,4 +14,7 @@ public sealed record ArmyMirrorEndpoint(Uri BaseAddress)
     public Uri Metadata => new(BaseAddress, "army/metadata");
 
     public Uri Army(int factionId) => new(BaseAddress, $"army/units/{factionId}");
+
+    /// <summary>Every faction's and unit's logo in one zip.</summary>
+    public Uri Logos => new(BaseAddress, "army/logos");
 }
