@@ -1,6 +1,7 @@
 // The resource group's contents: the API's identity, monitoring, storage, Cosmos DB, the Function app and the web app.
 param location string
 param webLocation string
+param webCustomDomain string
 param environmentName string
 param appName string
 param alwaysReadyInstances int
@@ -48,6 +49,7 @@ module web 'web.bicep' = {
     location: webLocation
     name: 'stapp-${appName}-${environmentName}'
     tags: tags
+    customDomain: webCustomDomain
   }
 }
 
@@ -70,11 +72,14 @@ module functions 'functions.bicep' = {
     authAudience: authAudience
     // The web app, and InfinityMercsApp.Web's dev server (Properties/launchSettings.json); every call still needs a
     // signed-in user's token.
-    allowedOrigins: [
-      'https://${web.outputs.hostName}'
-      'https://localhost:7154'
-      'http://localhost:5093'
-    ]
+    allowedOrigins: concat(
+      [
+        'https://${web.outputs.hostName}'
+        'https://localhost:7154'
+        'http://localhost:5093'
+      ],
+      empty(webCustomDomain) ? [] : ['https://${webCustomDomain}']
+    )
   }
 }
 
@@ -83,3 +88,4 @@ output functionAppHostName string = functions.outputs.hostName
 output cosmosEndpoint string = cosmos.outputs.endpoint
 output webAppName string = web.outputs.name
 output webHostName string = web.outputs.hostName
+output webAddress string = web.outputs.address

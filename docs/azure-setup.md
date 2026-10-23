@@ -20,9 +20,10 @@ once by hand.
 - **Application Insights** with a Log Analytics workspace, capped at 1 GB of ingestion a day (`dailyCapGb` in
   `infra/modules/monitoring.bicep`): past it, nothing more is kept until the next day.
 - **Static Web App** `stapp-infmercs-prod` (Free, East US 2, since Static Web Apps run in only a few regions): the
-  Blazor WebAssembly site in `InfinityMercsApp.Web`. Its address is `https://{generated name}.azurestaticapps.net`;
-  the Infrastructure workflow prints it as `webHostName`, and the API allows calls from it (CORS) along with the web
-  project's local dev server.
+  Blazor WebAssembly site in `InfinityMercsApp.Web`, at **https://www.infinitythemercs.com** (`webCustomDomain` in
+  `infra/main.bicepparam`) and at `https://{generated name}.azurestaticapps.net`, which the Infrastructure workflow
+  prints as `webHostName`. The API allows calls from both (CORS), along with the web project's local dev server.
+  See [The web domain](#the-web-domain) for its DNS.
 
 None of the IDs below are secrets: tenant, subscription and client IDs are identifiers, and the phone and web apps ship
 some of them to every user anyway. Access is protected by the identities and their roles, not by hiding the IDs.
@@ -142,6 +143,25 @@ the API, the app and the web site always agree on their shape.
 - **Sign-in:** every route needs `Authorization: Bearer <token>` from the sign-in tenant, issued for the API. Until
   `authAuthority` and `authAudience` are set in `infra/main.bicepparam`, every request gets `401 Unauthorized`.
 
+## The web domain
+
+`infinitythemercs.com` is registered outside Azure; its DNS records are kept wherever it was registered.
+
+1. **`www` first.** Add a CNAME record `www` → the `webHostName` the Infrastructure workflow printed (the
+   `….azurestaticapps.net` name; also on the Static Web App's Overview page in the portal). Azure checks the domain
+   by this record, so it must resolve before the Infrastructure workflow adds the domain, or that deploy fails.
+   Check it with `nslookup www.infinitythemercs.com`.
+2. **Run the Infrastructure workflow.** It adds `www.infinitythemercs.com` to the Static Web App, which then issues
+   and renews its certificate itself (it can take a few minutes to show as Ready under Custom domains), and lets the
+   site call the API.
+3. **The bare domain.** Point `infinitythemercs.com` at `www` with the registrar's URL forwarding (a permanent 301
+   redirect to `https://www.infinitythemercs.com`). Serving the bare domain from Azure instead needs an ALIAS/ANAME
+   record and TXT validation, which not every DNS host offers.
+4. **Sign-in.** Add `https://www.infinitythemercs.com/authentication/login-callback` and
+   `https://www.infinitythemercs.com/authentication/logout-callback` to the Infinity Mercs Android app registration's
+   **Single-page application** redirect URIs (see [Sign-in](#sign-in)). Keep the azurestaticapps.net ones while that
+   address still works.
+
 ## App telemetry
 
 The app reports to `POST /api/telemetry` rather than to Application Insights itself, so no connection string ships in
@@ -203,7 +223,7 @@ this repository.
 | App registration | Client id | Notes |
 | --- | --- | --- |
 | Infinity Mercs API | `6d09c3c6-41d1-4c53-a256-d65e8e4af405` | Exposes `access_as_user`; access tokens version 2. The API accepts tokens for the client id or `api://` + client id. |
-| Infinity Mercs Android | `0bbba93d-840e-48ce-b2d2-8007f227ba8d` | Public client with the API's `access_as_user` permission (admin consent granted), used by the phone app, the Windows app and the web site. **Mobile and desktop applications** redirect URIs: `msal0bbba93d-840e-48ce-b2d2-8007f227ba8d://auth` (Android, MSAL.NET through the system browser, so it doesn't depend on the signing key) and `http://localhost` (Windows). **Single-page application** redirect URIs (the web site): `https://{web host}/authentication/login-callback` and `https://{web host}/authentication/logout-callback`, plus the same two on `https://localhost:7154` for local runs. |
+| Infinity Mercs Android | `0bbba93d-840e-48ce-b2d2-8007f227ba8d` | Public client with the API's `access_as_user` permission (admin consent granted), used by the phone app, the Windows app and the web site. **Mobile and desktop applications** redirect URIs: `msal0bbba93d-840e-48ce-b2d2-8007f227ba8d://auth` (Android, MSAL.NET through the system browser, so it doesn't depend on the signing key) and `http://localhost` (Windows). **Single-page application** redirect URIs (the web site): `https://{web host}/authentication/login-callback` and `https://{web host}/authentication/logout-callback` for each web host (`www.infinitythemercs.com` and the azurestaticapps.net name), plus the same two on `https://localhost:7154` for local runs. |
 
 `infra/main.bicepparam` sets `authAuthority` (`https://infinitymercs.ciamlogin.com/{tenant id}/v2.0`) and
 `authAudience` (the API's client id). The phone's side is `SignInSettings.Production` in `InfinityMercsApp.Services`,
