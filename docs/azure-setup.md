@@ -151,6 +151,25 @@ application**), so the app below must be listed there. An app that isn't gets th
 instead: existing accounts only, no Google button and no sign-up link, with the message "This account does not exist
 in this organization".
 
+Google sends a sign-in back to Entra, not to the app, so the Google OAuth client (Google Cloud console → APIs &
+services → Credentials) needs Entra's addresses as its **Authorized redirect URIs**, or Google answers
+`redirect_uri_mismatch`. From [Add Google as an identity provider](https://learn.microsoft.com/entra/external-id/customers/how-to-google-federation-customers),
+filled in for this tenant:
+
+```
+https://login.microsoftonline.com
+https://login.microsoftonline.com/te/36af320a-cd91-43b1-8c24-f1c21c798455/oauth2/authresp
+https://login.microsoftonline.com/te/infinitymercs.onmicrosoft.com/oauth2/authresp
+https://36af320a-cd91-43b1-8c24-f1c21c798455.ciamlogin.com/36af320a-cd91-43b1-8c24-f1c21c798455/federation/oidc/accounts.google.com
+https://36af320a-cd91-43b1-8c24-f1c21c798455.ciamlogin.com/infinitymercs.onmicrosoft.com/federation/oidc/accounts.google.com
+https://infinitymercs.ciamlogin.com/36af320a-cd91-43b1-8c24-f1c21c798455/federation/oauth2
+https://infinitymercs.ciamlogin.com/infinitymercs.onmicrosoft.com/federation/oauth2
+```
+
+The OAuth consent screen's **Authorized domains** include `ciamlogin.com` and `microsoftonline.com`. The Google
+client's id and secret are entered only in Entra (External Identities → All identity providers → Google), never in
+this repository.
+
 | App registration | Client id | Notes |
 | --- | --- | --- |
 | Infinity Mercs API | `6d09c3c6-41d1-4c53-a256-d65e8e4af405` | Exposes `access_as_user`; access tokens version 2. The API accepts tokens for the client id or `api://` + client id. |
