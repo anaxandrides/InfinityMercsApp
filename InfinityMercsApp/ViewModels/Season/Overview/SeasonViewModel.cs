@@ -348,6 +348,31 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
         }
     }
 
+    async Task<bool> ITeamChanges.RenameAsync(int entryIndex, string name)
+    {
+        try
+        {
+            if (await _companyFiles.LoadAsync(_companyFilePath) is not { } company ||
+                company.Entries.FirstOrDefault(entry => entry.EntryIndex == entryIndex) is not { } entry)
+            {
+                return false;
+            }
+
+            // An empty name falls back to the unit's (or the founding Captain's) name wherever troopers are shown.
+            entry.CustomName = name;
+            await _companyFiles.SaveAsync(_companyFilePath, company);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            Console.Error.WriteLine($"Renaming a trooper failed: {ex.Message}");
+            return false;
+        }
+
+        await ReloadCompanyAsync();
+        await RefreshSeasonAsync();
+        return true;
+    }
+
     // Each trooper rolls what it owes in turn, and each roll is saved to the company as it is made. Putting one off
     // stops the rest; the Team tab offers them again.
     private async Task RollOwedAsync(IReadOnlyList<int> entryIndexes)

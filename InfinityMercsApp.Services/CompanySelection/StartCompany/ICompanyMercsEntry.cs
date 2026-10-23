@@ -4,6 +4,9 @@ public interface ICompanyMercsEntry
 {
     string Name { get; }
     string BaseUnitName { get; }
+
+    /// <summary>The name the player gave the trooper; empty to go by its unit's name.</summary>
+    string CustomName { get; }
     int CostValue { get; }
     bool IsLieutenant { get; }
 

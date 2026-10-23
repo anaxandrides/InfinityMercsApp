@@ -695,6 +695,19 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
         await Rules.AfterEntryAddedAsync(this, unit, profile, entry);
     }
 
+    /// <summary>Gives a trooper on the roster a name of its own; clearing the name goes back to the unit's.</summary>
+    [RelayCommand]
+    private async Task RenameMercsCompanyEntryAsync(MercsCompanyEntry? entry)
+    {
+        if (entry is not { CanRename: true } ||
+            await Services.Dialogs.AskTextAsync("Name Trooper", $"A name for this {entry.Name}:", entry.CustomName, TrooperNames.MaxLength) is not { } name)
+        {
+            return;
+        }
+
+        entry.CustomName = name;
+    }
+
     // Transmutation (Auto) is banned: the trooper is recruited in the one form the player picks; null when they back out.
     private async Task<UnitProfile?> ChooseFormAsync(string profileName, IReadOnlyList<UnitProfile> forms)
     {

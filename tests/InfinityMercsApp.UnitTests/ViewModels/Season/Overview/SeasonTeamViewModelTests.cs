@@ -712,6 +712,34 @@ public sealed class SeasonTeamViewModelTests
         Assert.Equal(canRetire, _team.RetireCommand.CanExecute(null));
     }
 
+    [Theory]
+    [InlineData("Captain")]
+    [InlineData("Bolt")]
+    public async Task RenameCommand_AnyTrooper_SavesTheNewName(string name)
+    {
+        await LoadAsync();
+        var item = Unit(name);
+        _team.SelectUnitCommand.Execute(item);
+        _kit.Dialogs.AskTextAsync("Rename Trooper", Arg.Any<string>(), item.Name, Arg.Any<int>()).Returns("Rook");
+        _changes.RenameAsync(item.EntryIndex, "Rook").Returns(true);
+
+        await _team.RenameCommand.ExecuteAsync(null);
+
+        await _changes.Received(1).RenameAsync(item.EntryIndex, "Rook");
+    }
+
+    [Fact]
+    public async Task RenameCommand_Cancelled_ChangesNothing()
+    {
+        await LoadAsync();
+        _team.SelectUnitCommand.Execute(Unit("Bolt"));
+        _kit.Dialogs.AskTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>()).Returns((string?)null);
+
+        await _team.RenameCommand.ExecuteAsync(null);
+
+        await _changes.DidNotReceiveWithAnyArgs().RenameAsync(default, default!);
+    }
+
     [Fact]
     public async Task RetireCommand_Confirmed_ReturnsGearAndKeepsRenown()
     {

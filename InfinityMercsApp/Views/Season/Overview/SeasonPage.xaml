@@ -477,6 +477,21 @@
                                     Margin="0,12,0,0"
                                     Padding="14,0" />
 
+                            <!-- Any trooper but a Lone Wolf's Aspect, which takes the Lone Wolf's name. -->
+                            <Button Text="RENAME TROOPER"
+                                    IsVisible="{Binding Team.CanRenameSelected}"
+                                    Command="{Binding Team.RenameCommand}"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{StaticResource Signal}"
+                                    BorderColor="{StaticResource Signal}"
+                                    BorderWidth="1"
+                                    CornerRadius="4"
+                                    FontAttributes="Bold"
+                                    HeightRequest="40"
+                                    HorizontalOptions="Start"
+                                    Margin="0,12,0,0"
+                                    Padding="14,0" />
+
                             <!-- Retiring returns the trooper's gear and keeps its renown; the captain can't retire. -->
                             <Button Text="RETIRE TROOPER"
                                     IsVisible="{Binding Team.CanRetireSelected}"

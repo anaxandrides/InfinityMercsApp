@@ -17,4 +17,8 @@ public interface ITeamChanges
 
     /// <summary>Sells a peripheral no trooper controls, once confirmed, for half its cost.</summary>
     Task SellPeripheralAsync(int entryIndex);
+
+    /// <summary>Gives the trooper a name of its own; an empty name goes back to its unit's.</summary>
+    /// <returns>False when the company file couldn't be saved.</returns>
+    Task<bool> RenameAsync(int entryIndex, string name);
 }

@@ -17,6 +17,7 @@
                     Margin="{StaticResource ScrollBarGutter}"
                     SelectEntryCommand="{Binding Source={x:Reference MercsEntriesListRoot}, Path=SelectEntryCommand, x:DataType=controls:MercsCompanyEntriesListView}"
                     RemoveEntryCommand="{Binding Source={x:Reference MercsEntriesListRoot}, Path=RemoveEntryCommand, x:DataType=controls:MercsCompanyEntriesListView}"
+                    RenameEntryCommand="{Binding Source={x:Reference MercsEntriesListRoot}, Path=RenameEntryCommand, x:DataType=controls:MercsCompanyEntriesListView}"
                     ShowOrderModifierBadges="{Binding Source={x:Reference MercsEntriesListRoot}, Path=ShowOrderModifierBadges, x:DataType=controls:MercsCompanyEntriesListView}" />
             </DataTemplate>
         </CollectionView.ItemTemplate>

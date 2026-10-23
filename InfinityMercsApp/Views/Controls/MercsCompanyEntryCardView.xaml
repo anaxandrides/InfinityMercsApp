@@ -45,6 +45,16 @@
             <HorizontalStackLayout Grid.Row="0" Grid.Column="2" Spacing="8" VerticalOptions="Start" HorizontalOptions="End">
                 <Label Text="{Binding CostDisplay}" VerticalOptions="Center" />
                 <Button
+                    Text="✎"
+                    WidthRequest="28"
+                    HeightRequest="28"
+                    Padding="0"
+                    VerticalOptions="Start"
+                    HorizontalOptions="End"
+                    IsVisible="{Binding CanRename}"
+                    Command="{Binding RenameEntryCommand, Source={x:Reference MercsEntryCardRoot}, x:DataType=controls:MercsCompanyEntryCardView}"
+                    CommandParameter="{Binding .}" />
+                <Button
                     Text="X"
                     WidthRequest="28"
                     HeightRequest="28"
@@ -62,6 +72,12 @@
                 Grid.Column="1"
                 Grid.ColumnSpan="2"
                 Spacing="6">
+                <!-- The name the player gave the trooper, under its unit. -->
+                <Label
+                    Text="{Binding CustomName, StringFormat='“{0}”'}"
+                    FontAttributes="Bold"
+                    TextColor="{StaticResource Signal}"
+                    IsVisible="{Binding HasCustomName}" />
                 <Label
                     Text="{Binding ServantOfText}"
                     FontSize="{DynamicResource FontSizeCaption}"

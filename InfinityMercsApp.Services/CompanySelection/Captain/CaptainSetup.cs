@@ -43,7 +43,7 @@ public sealed class CaptainSetup(ICaptainConfigurationDialog dialog, CaptainOpti
             EquipmentOptions = choices.Equipment,
             StatChart = isSpecOps ? CaptainStatChart.SpecOps : CaptainStatChart.Mercenaries,
             PopupTitle = isLoneWolf ? "Lone Wolf Configuration" : "Captain Configuration",
-            DefaultUnitCustomName = isLoneWolf ? "Lone Wolf" : "Captain",
+            DefaultUnitCustomName = !string.IsNullOrWhiteSpace(unit.CustomName) ? unit.CustomName.Trim() : isLoneWolf ? "Lone Wolf" : "Captain",
             BaseExperienceOverride = isLoneWolf
                 ? CaptainUpgradeRules.StartingExperience(unit.Cost) + ProxyPack.ExtraSpecOpsXp
                 : null
@@ -104,7 +104,7 @@ public sealed class CaptainSetup(ICaptainConfigurationDialog dialog, CaptainOpti
             EquipmentOptions = allowed.Equipment,
             PopupTitle = isLieutenant ? "TAG Lieutenant Spec Ops" : "TAG Spec Ops",
             ConfirmButtonText = "Finalize Tag",
-            DefaultUnitCustomName = isLieutenant ? "Lieutenant" : "TAG",
+            DefaultUnitCustomName = !string.IsNullOrWhiteSpace(unit.CustomName) ? unit.CustomName.Trim() : isLieutenant ? "Lieutenant" : "TAG",
             BaseExperienceOverride = Math.Max(0, baseExperience),
             StatChart = CaptainStatChart.SpecOps,
             LockedStats = TagRestrictions.LockedStats

@@ -12,6 +12,10 @@ public interface IDialogService
     /// <returns>The number, or null when the user cancels or enters something outside the range.</returns>
     Task<int?> AskNumberAsync(string title, string message, int minimum, int maximum);
 
+    /// <summary>Asks for a line of text, starting from <paramref name="initialValue"/>.</summary>
+    /// <returns>The text entered, trimmed (empty when cleared), or null when the user cancels.</returns>
+    Task<string?> AskTextAsync(string title, string message, string initialValue, int maxLength);
+
     /// <summary>Asks which of <paramref name="options"/> to take.</summary>
     /// <returns>The option chosen, or null when the user picks <paramref name="cancel"/>.</returns>
     Task<string?> ChooseAsync(string title, string cancel, IReadOnlyList<string> options);

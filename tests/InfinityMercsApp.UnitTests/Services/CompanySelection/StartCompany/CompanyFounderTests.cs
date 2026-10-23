@@ -115,6 +115,29 @@ public sealed class CompanyFounderTests : IDisposable
         Assert.Equal([new FireteamSlot("Fusilier", 7, 101, "*")], company.CoreFireteamSlots);
     }
 
+    [Fact]
+    public async Task FoundAsync_TrooperNamedOnTheRoster_KeepsTheName()
+    {
+        var bravo = Trooper("Bravo");
+        bravo.CustomName = "Rook";
+
+        var result = await _founder.FoundAsync(Request("Standard Company - Vanilla", Trooper("Alpha", isLieutenant: true), bravo, Trooper("Charlie")));
+
+        var company = await new CompanyFileStore(Substitute.For<ISyncOutbox>()).LoadAsync(result.FilePath);
+        Assert.Equal(["Rook", "Charlie"], company?.Entries.Where(entry => !entry.IsLieutenant).Select(entry => entry.CustomName));
+    }
+
+    [Fact]
+    public async Task FoundAsync_CaptainNamedOnTheRoster_StartsThePopupFromIt()
+    {
+        var alpha = Trooper("Alpha", isLieutenant: true);
+        alpha.CustomName = "Kestrel";
+
+        await _founder.FoundAsync(Request("Standard Company - Vanilla", alpha));
+
+        await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context => context.DefaultUnitCustomName == "Kestrel"));
+    }
+
     // Armour keeps the captain's ARM bonus on top, and the Team tab lists its buys, from the saved upgrades.
     [Fact]
     public async Task FoundAsync_CaptainUpgraded_SavesTheUpgradesAndTheirStats()

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Domain.Models.Perks.Catalog;
@@ -118,6 +119,13 @@ public sealed partial class SeasonTeamViewModel : ObservableObject
     [ObservableProperty]
     public partial bool HasPerkPointsToSpend { get; set; }
 
+    /// <summary>
+    /// Whether the selected trooper can be renamed: anyone but a Lone Wolf's Aspect, which is named after the Lone Wolf.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(RenameCommand))]
+    public partial bool CanRenameSelected { get; set; }
+
     /// <summary>Whether the selected trooper can retire: anyone but the captain (a peripheral leaves with its trooper).</summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RetireCommand))]
@@ -181,7 +189,7 @@ public sealed partial class SeasonTeamViewModel : ObservableObject
         Units.Clear();
         SelectedUnit = null;
         SelectedName = SelectedBaseName = SelectedUnitType = OwedRollText = string.Empty;
-        CanRetireSelected = CanSellSelected = false;
+        CanRetireSelected = CanSellSelected = CanRenameSelected = false;
     }
 
     /// <summary>Picks up the inches/centimetres setting, redrawing the selected trooper when it changed.</summary>
@@ -257,6 +265,23 @@ public sealed partial class SeasonTeamViewModel : ObservableObject
         await _seasonChanged();
     }
 
+    /// <summary>Gives the selected trooper a name of its own; clearing the name goes back to the unit's.</summary>
+    [RelayCommand(CanExecute = nameof(CanRenameSelected))]
+    private async Task RenameAsync()
+    {
+        if (SelectedUnit is not { } item ||
+            await _dialogs.AskTextAsync("Rename Trooper", $"A new name for {item.Name}:", item.Name, TrooperNames.MaxLength) is not { } name ||
+            name == item.Name)
+        {
+            return;
+        }
+
+        if (!await _changes.RenameAsync(item.EntryIndex, name))
+        {
+            await _dialogs.ShowAlertAsync("Rename Failed", $"{item.Name} couldn't be renamed: the company file couldn't be saved.");
+        }
+    }
+
     /// <summary>Rolls what the selected trooper still owes on the Booty or Metachemistry table.</summary>
     [RelayCommand]
     private Task RollOwedAsync() => SelectedUnit is { OwedRolls.Count: > 0 } item ? _changes.RollOwedAsync(item.EntryIndex) : Task.CompletedTask;
@@ -296,6 +321,7 @@ public sealed partial class SeasonTeamViewModel : ObservableObject
         SelectedUnitType = item.UnitTypeCode;
         CanRetireSelected = !item.IsLieutenant && item.AspectOf is null && (!item.IsPeripheralUnit || item.IsPeripheralTrooper);
         CanSellSelected = item.IsUncontrolledPeripheral;
+        CanRenameSelected = item.AspectOf is null;
         SellText = item.IsUncontrolledPeripheral ? $"SELL PERIPHERAL · {item.PeripheralSellPrice} CR" : string.Empty;
         ShowProgress(item);
 

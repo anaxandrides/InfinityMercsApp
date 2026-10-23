@@ -52,6 +52,9 @@ internal sealed class MauiDialogService : IDialogService
     }
 #endif
 
+    public async Task<string?> AskTextAsync(string title, string message, string initialValue, int maxLength) =>
+        (await CurrentPage.DisplayPromptAsync(title, message, "OK", "Cancel", maxLength: maxLength, initialValue: initialValue))?.Trim();
+
     public async Task<string?> ChooseAsync(string title, string cancel, IReadOnlyList<string> options)
     {
         var choice = await CurrentPage.DisplayActionSheetAsync(title, cancel, null, [.. options]);

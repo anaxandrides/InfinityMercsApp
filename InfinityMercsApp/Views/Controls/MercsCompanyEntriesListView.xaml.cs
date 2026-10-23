@@ -23,6 +23,12 @@ public partial class MercsCompanyEntriesListView : ContentView
             typeof(ICommand),
             typeof(MercsCompanyEntriesListView));
 
+    public static readonly BindableProperty RenameEntryCommandProperty =
+        BindableProperty.Create(
+            nameof(RenameEntryCommand),
+            typeof(ICommand),
+            typeof(MercsCompanyEntriesListView));
+
     public static readonly BindableProperty ShowOrderModifierBadgesProperty =
         BindableProperty.Create(
             nameof(ShowOrderModifierBadges),
@@ -58,6 +64,13 @@ public partial class MercsCompanyEntriesListView : ContentView
     {
         get => (ICommand?)GetValue(RemoveEntryCommandProperty);
         set => SetValue(RemoveEntryCommandProperty, value);
+    }
+
+    /// <summary>Runs with the entry to give it a name of its own.</summary>
+    public ICommand? RenameEntryCommand
+    {
+        get => (ICommand?)GetValue(RenameEntryCommandProperty);
+        set => SetValue(RenameEntryCommandProperty, value);
     }
 
     public bool ShowOrderModifierBadges

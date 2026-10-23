@@ -82,6 +82,7 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
         var unit = new CaptainUnitPopupInfo
         {
             Name = captain.Name,
+            CustomName = captain.CustomName,
             Cost = captain.CostValue,
             Statline = captain.Subtitle ?? "-",
             RangedWeapons = captain.SavedRangedWeapons,
