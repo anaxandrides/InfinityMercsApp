@@ -19,7 +19,27 @@
   <ItemGroup>
     <ProjectReference Include="..\InfinityMercsApp.Domain\InfinityMercsApp.Domain.csproj" />
     <ProjectReference Include="..\InfinityMercsApp.ApiClient\InfinityMercsApp.ApiClient.csproj" />
-    <ProjectReference Include="..\InfinityMercsApp.Services\InfinityMercsApp.Services.csproj" />
+    <ProjectReference Include="..\InfinityMercsApp.ViewModels\InfinityMercsApp.ViewModels.csproj" />
   </ItemGroup>
+
+  <!-- The files the MAUI app bundles (MauiAsset in InfinityMercsApp.csproj) that the shared view models read: icons,
+       stores and the glossary, served under package/ with the same paths. -->
+  <ItemGroup>
+    <PackageFile Include="..\InfinityMercsApp\Resources\Raw\**" PackagePath="%(RecursiveDir)%(Filename)%(Extension)" />
+    <PackageFile Include="..\InfinityMercsApp\Resources\Images\MercsIcons\**\*" PackagePath="MercsIcons/%(RecursiveDir)%(Filename)%(Extension)" />
+    <PackageFile Include="..\InfinityMercsApp\SVGCache\CBIcons\**\*" PackagePath="SVGCache/CBIcons/%(RecursiveDir)%(Filename)%(Extension)" />
+    <PackageFile Include="..\InfinityMercsApp\SVGCache\NonCBIcons\**\*" PackagePath="SVGCache/NonCBIcons/%(RecursiveDir)%(Filename)%(Extension)" />
+    <PackageFile Include="..\InfinityMercsApp\SVGCache\MercsIcons\**\*" PackagePath="SVGCache/MercsIcons/%(RecursiveDir)%(Filename)%(Extension)" />
+    <PackageFile Include="..\InfinityMercsApp\SVGCache\factions\1199.svg" PackagePath="SVGCache/factions/1199.svg" />
+    <Content Include="@(PackageFile)" Link="wwwroot/package/$([System.String]::Copy('%(PackagePath)').Replace('\','/'))" CopyToOutputDirectory="Never" />
+  </ItemGroup>
+
+  <!-- package/files.txt lists them, so the site knows which exist without asking for each (WebPackageFiles). -->
+  <Target Name="ListPackageFiles" BeforeTargets="AssignTargetPaths">
+    <WriteLinesToFile File="$(IntermediateOutputPath)package-files.txt" Lines="@(PackageFile->'%(PackagePath)'->Replace('\','/'))" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Content Include="$(IntermediateOutputPath)package-files.txt" Link="wwwroot/package/files.txt" CopyToOutputDirectory="Never" />
+    </ItemGroup>
+  </Target>
 
 </Project>

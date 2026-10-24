@@ -6,7 +6,6 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.SignIn;
-using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.Services.Telemetry;
 using InfinityMercsApp.Views.About;
 using InfinityMercsApp.Views.Armory;
@@ -101,9 +100,6 @@ public static class ServiceRegistryExtensions
                         .Build();
                 })
                 .AddSingleton<ISignInService, MsalSignInService>();
-
-        // Companies and seasons kept online: every save goes in the outbox, which the coordinator sends.
-        services.AddSingleton<ISyncCoordinator, SyncCoordinator>();
 
         // Telemetry: noted in an outbox on the device and sent to the app's own API, so no Application Insights key
         // ships in the app.

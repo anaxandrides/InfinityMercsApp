@@ -1,6 +1,7 @@
 namespace InfinityMercsApp.Services.Dialogs;
 
 /// <inheritdoc/>
+/// <remarks>Each dialog shows on the main thread, so background work (sync) can ask without marshalling itself.</remarks>
 internal sealed class MauiDialogService : IDialogService
 {
     private static Page CurrentPage =>
@@ -9,19 +10,19 @@ internal sealed class MauiDialogService : IDialogService
         ?? throw new InvalidOperationException("No page is available to show a dialog.");
 
     public Task ShowAlertAsync(string title, string message, string cancel = "OK") =>
-        CurrentPage.DisplayAlertAsync(title, message, cancel);
+        MainThread.InvokeOnMainThreadAsync(() => CurrentPage.DisplayAlertAsync(title, message, cancel));
 
     public Task<bool> ConfirmAsync(string title, string message, string accept = "Yes", string cancel = "No") =>
 #if WINDOWS
-        ConfirmOnWindowsAsync(title, message, accept, cancel);
+        MainThread.InvokeOnMainThreadAsync(() => ConfirmOnWindowsAsync(title, message, accept, cancel));
 #else
-        CurrentPage.DisplayAlertAsync(title, message, accept, cancel);
+        MainThread.InvokeOnMainThreadAsync(() => CurrentPage.DisplayAlertAsync(title, message, accept, cancel));
 #endif
 
     public async Task<int?> AskNumberAsync(string title, string message, int minimum, int maximum)
     {
-        var answer = await CurrentPage.DisplayPromptAsync(
-            title, message, "OK", "Cancel", placeholder: $"{minimum}-{maximum}", maxLength: maximum.ToString(System.Globalization.CultureInfo.InvariantCulture).Length, keyboard: Keyboard.Numeric);
+        var answer = await MainThread.InvokeOnMainThreadAsync(() => CurrentPage.DisplayPromptAsync(
+            title, message, "OK", "Cancel", placeholder: $"{minimum}-{maximum}", maxLength: maximum.ToString(System.Globalization.CultureInfo.InvariantCulture).Length, keyboard: Keyboard.Numeric));
         return int.TryParse(answer, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var number) &&
                number >= minimum && number <= maximum
             ? number
@@ -53,11 +54,12 @@ internal sealed class MauiDialogService : IDialogService
 #endif
 
     public async Task<string?> AskTextAsync(string title, string message, string initialValue, int maxLength) =>
-        (await CurrentPage.DisplayPromptAsync(title, message, "OK", "Cancel", maxLength: maxLength, initialValue: initialValue))?.Trim();
+        (await MainThread.InvokeOnMainThreadAsync(() =>
+            CurrentPage.DisplayPromptAsync(title, message, "OK", "Cancel", maxLength: maxLength, initialValue: initialValue)))?.Trim();
 
     public async Task<string?> ChooseAsync(string title, string cancel, IReadOnlyList<string> options)
     {
-        var choice = await CurrentPage.DisplayActionSheetAsync(title, cancel, null, [.. options]);
+        var choice = await MainThread.InvokeOnMainThreadAsync(() => CurrentPage.DisplayActionSheetAsync(title, cancel, null, [.. options]));
         return options.FirstOrDefault(option => string.Equals(option, choice, StringComparison.Ordinal));
     }
 }

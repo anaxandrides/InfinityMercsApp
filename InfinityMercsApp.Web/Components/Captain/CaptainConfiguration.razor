@@ -1,0 +1,128 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Captain
+@using InfinityMercsApp.ViewModels.Captain.Items
+
+@* The shared captain view model: the captain's name, statline and kit, and the upgrades bought with its XP. *@
+<div class="dialog captain" role="dialog" aria-modal="true" aria-labelledby="captain-title">
+    <h2 id="captain-title">@ViewModel.Title</h2>
+
+    <div class="captain-body">
+        <section class="captain-profile">
+            <div class="captain-name">
+                <Logo Source="@ViewModel.LogoSource" Size="56" />
+                @if (ViewModel.IsEditingName)
+                {
+                    <input class="field" @bind="ViewModel.CaptainNameDraft" @bind:event="oninput" maxlength="40" aria-label="Captain's name" />
+                    <button class="primary small" @onclick="() => ViewModel.SaveNameCommand.Execute(null)">Save</button>
+                    <button class="secondary small" @onclick="() => ViewModel.RejectNameCommand.Execute(null)">Cancel</button>
+                }
+                else
+                {
+                    <span class="title">@ViewModel.CaptainName</span>
+                    <button class="link" @onclick="() => ViewModel.EditNameCommand.Execute(null)">Rename</button>
+                }
+            </div>
+
+            @if (ViewModel.HasStatline)
+            {
+                <table class="statline">
+                    <tr>@foreach (var cell in ViewModel.StatCells) { <th>@cell.Key</th> }</tr>
+                    <tr>@foreach (var cell in ViewModel.StatCells) { <td class="@(cell.IsModified ? "modified" : null)">@cell.Value</td> }</tr>
+                </table>
+            }
+
+            <dl class="kit">
+                <dt>Ranged</dt><dd class="ranged">@ViewModel.RangedText</dd>
+                <dt>CC</dt><dd class="melee">@ViewModel.CcText</dd>
+                <dt>Skills</dt>
+                <dd class="skills">
+                    @foreach (var run in ViewModel.SkillRuns)
+                    {
+                        <span class="@(run.IsLieutenant ? "lieutenant" : null)">@run.Text</span>
+                    }
+                </dd>
+                <dt>Equipment</dt><dd>@ViewModel.EquipmentText</dd>
+            </dl>
+        </section>
+
+        <section class="captain-upgrades">
+            <h3>@ViewModel.UpgradeOptionsHeader</h3>
+            <p class="@(ViewModel.IsOverspent ? "danger" : "muted")">@ViewModel.ExperienceRemainingText</p>
+            @if (ViewModel.HasProblems)
+            {
+                <ul class="problems">@foreach (var problem in ViewModel.Problems) { <li>@problem</li> }</ul>
+            }
+
+            <div class="stat-upgrades">
+                @foreach (var upgrade in ViewModel.StatUpgrades)
+                {
+                    <select aria-label="@upgrade.Stat upgrade" value="@SelectedIndex(upgrade)"
+                            @onchange="e => Pick(upgrade, e)">
+                        @for (var index = 0; index < upgrade.Options.Count; index++)
+                        {
+                            <option value="@index">@upgrade.Options[index].Label</option>
+                        }
+                    </select>
+                }
+            </div>
+
+            @foreach (var group in ViewModel.ChoiceGroups)
+            {
+                <h4>@group.Title</h4>
+                @if (!group.HasOptions)
+                {
+                    <p class="muted">@group.NoOptionsText</p>
+                }
+                else
+                {
+                    <div class="choice-slots">
+                        @foreach (var slot in group.Slots)
+                        {
+                            <select aria-label="@group.Title" value="@slot.SelectedChoice" @onchange="e => slot.SelectedChoice = e.Value as string">
+                                @foreach (var option in slot.Options)
+                                {
+                                    <option value="@option">@option</option>
+                                }
+                            </select>
+                        }
+                    </div>
+                }
+            }
+        </section>
+    </div>
+
+    <div class="buttons">
+        <button class="secondary" @onclick="() => ViewModel.CancelCommand.Execute(null)">BACK</button>
+        <button class="primary" disabled="@(!ViewModel.ConfirmCommand.CanExecute(null))" @onclick="() => ViewModel.ConfirmCommand.Execute(null)">@ViewModel.ConfirmText</button>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required ConfigureCaptainViewModel ViewModel { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(ViewModel);
+        foreach (var upgrade in ViewModel.StatUpgrades)
+        {
+            Watch(upgrade);
+        }
+
+        foreach (var slot in ViewModel.ChoiceGroups.SelectMany(group => group.Slots))
+        {
+            Watch(slot);
+        }
+    }
+
+    private static int SelectedIndex(CaptainStatUpgrade upgrade) =>
+        upgrade.SelectedOption is { } option ? upgrade.Options.ToList().IndexOf(option) : 0;
+
+    private static void Pick(CaptainStatUpgrade upgrade, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value as string, out var index) && index >= 0 && index < upgrade.Options.Count)
+        {
+            upgrade.SelectedOption = upgrade.Options[index];
+        }
+    }
+}

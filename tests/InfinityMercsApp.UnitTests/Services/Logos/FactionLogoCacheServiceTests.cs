@@ -14,7 +14,10 @@ public sealed class FactionLogoCacheServiceTests : IDisposable
     public void Dispose() => _records.Dispose();
 
     private FactionLogoCacheService Service(CountingLogoHandler handler) =>
-        new(new HttpClient(handler), _records.Paths with { FactionLogoDirectory = Path.Combine(_records.Paths.CompaniesDirectory, "svg-cache") }, Substitute.For<IAppPackageFiles>());
+        new(
+            new LogoFileStore(new HttpClient(handler), Substitute.For<IAppPackageFiles>()),
+            _records.Paths with { FactionLogoDirectory = Path.Combine(_records.Paths.CompaniesDirectory, "svg-cache") },
+            Substitute.For<IAppPackageFiles>());
 
     private static ArmyImportResume Unit(int id) => new() { Id = id, Logo = $"https://cdn.example/units/{id}.svg" };
 

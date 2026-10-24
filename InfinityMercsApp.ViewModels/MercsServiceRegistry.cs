@@ -56,7 +56,8 @@ public static class MercsServiceRegistry
                 .AddSingleton<IStoreProvider, StoreProvider>()
                 .AddSingleton<StoreCatalog>()
                 .AddSingleton<FactionLogoCacheService>()
-                .AddSingleton<LogoBundleInstaller>()
+                .AddSingleton<ILogoStore, LogoFileStore>()
+                .AddSingleton<ILogoBundleInstaller, LogoBundleInstaller>()
                 .AddSingleton<IFeedbackService, FeedbackService>()
                 .AddSingleton<IArmyDataUpdater, ArmyDataUpdater>()
                 .AddSingleton<ISeasonFileService, SeasonFileStore>()
@@ -86,7 +87,8 @@ public static class MercsServiceRegistry
                 // Companies and seasons kept online: every save goes in the outbox, which the platform's coordinator sends.
                 .AddSingleton<SyncLedger>()
                 .AddSingleton<ISyncOutbox>(provider => provider.GetRequiredService<SyncLedger>())
-                .AddSingleton<DocumentSync>();
+                .AddSingleton<DocumentSync>()
+                .AddSingleton<ISyncCoordinator, SyncCoordinator>();
 
         return services;
     }

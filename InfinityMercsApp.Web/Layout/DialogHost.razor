@@ -1,0 +1,78 @@
+@implements IDialogPresenter
+@inject WebDialogService Dialogs
+
+@* The shared view models' alerts, questions and choices, one at a time over the page. *@
+@if (_request is { } request)
+{
+    <div class="backdrop" @onclick="Dismiss"></div>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" @onkeydown="KeyDown">
+        <h2 id="dialog-title">@request.Title</h2>
+        @if (!string.IsNullOrEmpty(request.Message))
+        {
+            <p class="message">@request.Message</p>
+        }
+        @if (request.Kind != DialogKind.Buttons)
+        {
+            <input class="field" @ref="_input" @bind="_text" @bind:event="oninput" maxlength="@request.MaxLength"
+                   inputmode="@(request.Kind == DialogKind.Number ? "numeric" : "text")" />
+        }
+        <div class="@(request.IsList ? "choices" : "buttons")">
+            @foreach (var button in request.Buttons)
+            {
+                <button class="@ButtonClass(request, button)" @onclick="() => Answer(button)">@button</button>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private DialogRequest? _request;
+    private string _text = string.Empty;
+    private ElementReference _input;
+    private bool _focus;
+
+    protected override void OnInitialized() => Dialogs.Presenter = this;
+
+    public void Show(DialogRequest request)
+    {
+        _request = request;
+        _text = request.InitialText;
+        _focus = request.Kind != DialogKind.Buttons;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focus)
+        {
+            _focus = false;
+            await _input.FocusAsync();
+        }
+    }
+
+    private static string ButtonClass(DialogRequest request, string button) =>
+        button == request.CancelButton ? "secondary" : "primary";
+
+    private void Answer(string? button)
+    {
+        if (_request is { } request)
+        {
+            _request = null;
+            request.Complete(new DialogAnswer(button, _text));
+        }
+    }
+
+    private void Dismiss() => Answer(_request?.CancelButton);
+
+    private void KeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            Dismiss();
+        }
+        else if (e.Key == "Enter" && _request is { Kind: not DialogKind.Buttons } request)
+        {
+            Answer(request.Buttons[^1]);
+        }
+    }
+}

@@ -104,8 +104,7 @@ internal sealed class SyncCoordinator(
         try
         {
             var question = UnclaimedFilesQuestion.For(report.Unclaimed);
-            var answer = await MainThread.InvokeOnMainThreadAsync(() =>
-                dialogs.ChooseAsync(question.Question, UnclaimedFilesQuestion.NotNow, question.Answers));
+            var answer = await dialogs.ChooseAsync(question.Question, UnclaimedFilesQuestion.NotNow, question.Answers);
             switch (UnclaimedFilesQuestion.ChoiceFor(answer))
             {
                 case ClaimChoice.AddToAccount:
@@ -151,8 +150,7 @@ internal sealed class SyncCoordinator(
                 }
 
                 var question = SyncConflictQuestion.For(conflict);
-                var answer = await MainThread.InvokeOnMainThreadAsync(() =>
-                    dialogs.ChooseAsync(question.Question, SyncConflictQuestion.DecideLater, question.Answers));
+                var answer = await dialogs.ChooseAsync(question.Question, SyncConflictQuestion.DecideLater, question.Answers);
                 if (question.ChoiceFor(answer) is { } choice && await sync.ResolveAsync(conflict, choice))
                 {
                     resolved = true;

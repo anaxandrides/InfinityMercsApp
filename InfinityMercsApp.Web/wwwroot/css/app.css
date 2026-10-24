@@ -150,3 +150,100 @@ button.link { background: none; border: none; color: var(--signal); padding: 0; 
 }
 .loading-progress-text { position: absolute; text-align: center; font-weight: 700; inset: calc(20vh + 3.25rem) 0 auto 0.2rem; color: var(--text-muted); }
 .loading-progress-text:after { content: var(--blazor-load-percentage-text, "Loading"); }
+
+/* ── The builder ─────────────────────────────────────────────────────────── */
+
+.top .links { margin-right: auto; display: flex; gap: 16px; }
+.top .links a { text-decoration: none; }
+
+.notice { padding: 10px 14px; border: 1px solid var(--signal-dim); border-radius: 4px; background: var(--plate); }
+.danger { color: var(--danger); }
+
+button.primary, button.secondary {
+    font: inherit;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 10px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+button.primary { background: var(--signal); color: var(--void); border: 1px solid var(--signal); }
+button.primary:disabled { background: var(--signal-dim); border-color: var(--signal-dim); cursor: not-allowed; }
+button.secondary { background: transparent; color: var(--text); border: 1px solid var(--hairline); }
+button.small { padding: 4px 10px; font-size: 0.85rem; }
+button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+.field {
+    font: inherit;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    background: var(--void);
+    color: var(--text);
+}
+
+select {
+    font: inherit;
+    padding: 6px 8px;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    background: var(--void);
+    color: var(--text);
+    max-width: 100%;
+}
+
+.logo { display: inline-block; flex: none; object-fit: contain; }
+
+.army-loading { max-width: 520px; margin: 12vh auto; text-align: center; }
+.army-loading progress { width: 100%; height: 10px; accent-color: var(--signal); }
+
+.company-choices {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.company-choice {
+    font: inherit;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 14px;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    background: var(--plate);
+    color: var(--text);
+    cursor: pointer;
+    text-align: center;
+}
+.company-choice:hover { border-color: var(--signal-dim); background: var(--plate-raised); }
+
+.source-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+
+/* Dialogs: one at a time over a dimmed page. */
+.backdrop { position: fixed; inset: 0; background: rgba(14, 17, 22, 0.8); z-index: 900; }
+.dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 901;
+    width: min(480px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+    padding: 20px;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    background: var(--plate);
+}
+.dialog h2 { margin-top: 0; color: var(--text); }
+.dialog .message { white-space: pre-line; }
+.dialog .buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+.dialog .choices { display: grid; gap: 8px; margin-top: 12px; }
+
+.rich .entry-gap { display: block; height: 2px; }

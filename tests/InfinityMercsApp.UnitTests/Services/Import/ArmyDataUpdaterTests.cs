@@ -49,7 +49,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
             _armyImport,
             _settings,
             new FactionLogoCacheService(
-                _httpClient,
+                new LogoFileStore(_httpClient, Substitute.For<IAppPackageFiles>()),
                 _records.Paths with { FactionLogoDirectory = Path.Combine(_records.Paths.CompaniesDirectory, "logos") },
                 Substitute.For<IAppPackageFiles>()),
             new LogoBundleInstaller(_mirror, _records.Paths with { FactionLogoDirectory = Path.Combine(_records.Paths.CompaniesDirectory, "logos") }),

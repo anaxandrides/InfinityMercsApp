@@ -1,0 +1,22 @@
+@page "/companies/new/source"
+@inherits InfinityMercsApp.Web.Components.Base.ObservingComponent
+@using InfinityMercsApp.ViewModels.Company
+@inject StandardCompanySourcePopupPageViewModel ViewModel
+
+<PageTitle>Standard company · Infinity Mercs</PageTitle>
+
+<ArmyDataGate>
+    <h1>Standard Company</h1>
+    <p class="muted">Where its troopers come from.</p>
+    <div class="source-choices">
+        <button class="company-choice" @onclick="() => ViewModel.VanillaFactionSelectedCommand.ExecuteAsync(null)">
+            <span class="title">One vanilla faction</span>
+            <span class="muted">Every unit of one army.</span>
+        </button>
+        <button class="company-choice" @onclick="() => ViewModel.TwoSectorialsSelectedCommand.ExecuteAsync(null)">
+            <span class="title">Two sectorials</span>
+            <span class="muted">Units from two sectorial armies.</span>
+        </button>
+    </div>
+    <p><a href="companies/new">Back</a></p>
+</ArmyDataGate>

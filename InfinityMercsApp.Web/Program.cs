@@ -1,9 +1,25 @@
+using InfinityMercsApp;
 using InfinityMercsApp.ApiClient;
 using InfinityMercsApp.ApiClient.UserDocuments;
+using InfinityMercsApp.Infrastructure;
+using InfinityMercsApp.Infrastructure.API.ArmyMirror;
+using InfinityMercsApp.Infrastructure.API.InfinityArmy;
+using InfinityMercsApp.Infrastructure.Repositories;
+using InfinityMercsApp.Infrastructure.Repositories.InMemory;
+using InfinityMercsApp.Services.Dialogs;
+using InfinityMercsApp.Services.Links;
+using InfinityMercsApp.Services.Logos;
+using InfinityMercsApp.Services.Navigation;
+using InfinityMercsApp.Services.Packaging;
+using InfinityMercsApp.Services.Records;
+using InfinityMercsApp.Services.SignIn;
+using InfinityMercsApp.Services.Telemetry;
 using InfinityMercsApp.Web;
 using InfinityMercsApp.Web.Files;
+using InfinityMercsApp.Web.Platform;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -18,11 +34,43 @@ builder.Services.AddMsalAuthentication(options =>
     options.ProviderOptions.LoginMode = "redirect";
 });
 
-// The user's companies and seasons, from the app's own API.
-builder.Services.AddScoped(_ => new HttpClient())
-    .AddScoped(_ => new UserDocumentsEndpoint(string.IsNullOrWhiteSpace(api.BaseAddress) ? ApiAddress.Production : new Uri(api.BaseAddress)))
-    .AddScoped<IUserDocumentsApi, UserDocumentsClient>()
-    .AddScoped<IAccessTokens, MsalAccessTokens>()
-    .AddScoped<UserFiles>();
+var apiAddress = string.IsNullOrWhiteSpace(api.BaseAddress) ? ApiAddress.Production : new Uri(api.BaseAddress);
+
+// The shared services and view models, as the phone app has them. The army data lives in memory rather than SQLite,
+// read from the API's copy only (Corvus Belli's API doesn't answer browsers on other sites), and the companies and
+// seasons are files in the browser's memory, kept in the account by the same sync as the app's.
+builder.Services
+    .AddInfrastructureServices()
+    .AddMercsServices()
+    .AddViewModels();
+builder.Services.Replace(ServiceDescriptor.Singleton<ISQLiteRepository, InMemoryRepository>());
+builder.Services.Replace(ServiceDescriptor.Singleton(new ArmyMirrorEndpoint(apiAddress)));
+builder.Services.Replace(ServiceDescriptor.Singleton<IArmyPayloadSource>(provider => provider.GetRequiredService<ArmyMirrorClient>()));
+builder.Services.Replace(ServiceDescriptor.Singleton(new UserDocumentsEndpoint(apiAddress)));
+builder.Services.AddSingleton<RemoteLogoStore>();
+builder.Services.Replace(ServiceDescriptor.Singleton<ILogoStore>(provider => provider.GetRequiredService<RemoteLogoStore>()));
+builder.Services.Replace(ServiceDescriptor.Singleton<ILogoBundleInstaller, NoLogoBundle>());
+
+// The site's own platform services.
+builder.Services
+    .AddSingleton(_ => new HttpClient())
+    .AddSingleton(RecordPaths.ForAppData("/mercs"))
+    .AddSingleton<ArmyDataState>()
+    .AddSingleton<LogoUrls>()
+    .AddSingleton<CompanySelectionSession>()
+    .AddSingleton<WebDialogService>()
+    .AddSingleton<IDialogService>(provider => provider.GetRequiredService<WebDialogService>())
+    .AddSingleton<WebCaptainConfigurationDialog>()
+    .AddSingleton<ICaptainConfigurationDialog>(provider => provider.GetRequiredService<WebCaptainConfigurationDialog>())
+    .AddSingleton<INavigationService, WebNavigationService>()
+    .AddSingleton<ICompanySelectionNavigator, WebCompanySelectionNavigator>()
+    .AddSingleton<ILinkLauncher, WebLinkLauncher>()
+    .AddSingleton<IAppPackageFiles, WebPackageFiles>()
+    .AddSingleton<ITelemetryRecorder, NoTelemetry>()
+    .AddSingleton(TimeProvider.System)
+    .AddSingleton<IAccessTokens, MsalAccessTokens>()
+    .AddSingleton<ISignInService, WebSignInService>()
+    .AddSingleton<IUserDocumentsApi, UserDocumentsClient>()
+    .AddSingleton<UserFiles>();
 
 await builder.Build().RunAsync();
