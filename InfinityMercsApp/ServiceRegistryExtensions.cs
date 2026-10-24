@@ -56,6 +56,7 @@ using InfinityMercsApp.Views.Season.RankUp;
 using InfinityMercsApp.Views.Settings;
 using InfinityMercsApp.Views.Splash;
 using InfinityMercsApp.Views.UnitBrowser;
+using InfinityMercsApp.Services.Links;
 using InfinityMercsApp.Services.SignIn;
 using InfinityMercsApp.Services.Telemetry;
 using InfinityMercsApp.ApiClient.Telemetry;
@@ -132,6 +133,7 @@ public static class ServiceRegistryExtensions
     {
         services.AddSingleton<INavigationService, MauiNavigationService>()
                 .AddSingleton(Launcher.Default)
+                .AddSingleton<ILinkLauncher, MauiLinkLauncher>()
                 .AddTransient<CompanySelectionServices>()
                 .AddSingleton<ICompanySelectionNavigator, CompanySelectionNavigator>()
                 .AddSingleton<IArmyDataService, ArmyDataService>()

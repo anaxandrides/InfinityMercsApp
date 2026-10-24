@@ -93,22 +93,4 @@ internal sealed class MauiNavigationService(IServiceProvider serviceProvider) : 
 
         return $"///{trimmed}";
     }
-
-    /// <inheritdoc/>
-    public async Task PushModalAsync(Page page)
-    {
-        var shell = GetActiveShell()
-            ?? throw new InvalidOperationException("No active Shell is available for modal navigation.");
-        var currentPage = shell.CurrentPage;
-        await currentPage.Navigation.PushModalAsync(page);
-    }
-
-    /// <inheritdoc/>
-    public async Task PopModalAsync()
-    {
-        var shell = GetActiveShell()
-            ?? throw new InvalidOperationException("No active Shell is available for modal navigation.");
-        var currentPage = shell.CurrentPage;
-        await currentPage.Navigation.PopModalAsync();
-    }
 }

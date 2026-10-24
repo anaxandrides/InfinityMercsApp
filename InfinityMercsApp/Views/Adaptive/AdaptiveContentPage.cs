@@ -15,7 +15,7 @@ namespace InfinityMercsApp.Views.Adaptive;
 /// <see cref="BindableObject.OnPropertyChanged"/> so bindings such as
 /// <c>{Binding Source={x:Reference Root}, Path=IsCompact}</c> re-evaluate on every mode change.
 /// </remarks>
-public abstract class AdaptiveContentPage : ContentPage
+public abstract class AdaptiveContentPage : ContentPage, IQueryAttributable
 {
     // Breakpoints (logical units of page width) from AdaptiveLayoutDefinitions.md.
     private const double MediumMinWidth = 600d;
@@ -60,6 +60,9 @@ public abstract class AdaptiveContentPage : ContentPage
     public bool IsWide => _layoutMode == AdaptiveLayoutMode.Wide;
     public bool IsMediumOrWider => _layoutMode >= AdaptiveLayoutMode.Medium;
     public bool IsExpandedOrWider => _layoutMode >= AdaptiveLayoutMode.Expanded;
+
+    /// <summary>Shell gives the page its query; the view model, which knows nothing of Shell, takes it from here.</summary>
+    public void ApplyQueryAttributes(IDictionary<string, object> query) => (BindingContext as IViewModelBase)?.ApplyQueryAttributes(query);
 
     /// <summary>Reports the page shown; subclasses that override this call it first.</summary>
     protected override void OnAppearing()

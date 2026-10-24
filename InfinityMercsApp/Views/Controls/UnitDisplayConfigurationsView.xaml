@@ -3,8 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
-             xmlns:components="clr-namespace:InfinityMercsApp.ViewModels.Components"
-             xmlns:unitBrowserItems="clr-namespace:InfinityMercsApp.ViewModels.UnitBrowser.Items"
+             xmlns:components="clr-namespace:InfinityMercsApp.ViewModels.Components;assembly=InfinityMercsApp.ViewModels"
+             xmlns:unitBrowserItems="clr-namespace:InfinityMercsApp.ViewModels.UnitBrowser.Items;assembly=InfinityMercsApp.ViewModels"
              x:Class="InfinityMercsApp.Views.Controls.UnitDisplayConfigurationsView"
              x:Name="UnitDisplayConfigurationsRoot"
              HorizontalOptions="Fill">
@@ -151,15 +151,15 @@
                             <Label Grid.Column="9" Text="{Binding Peripheral.Stats.Ava}" Style="{StaticResource PeripheralStatLabel}" IsVisible="{Binding ShowAva, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}" />
                         </Grid>
                     </Border>
-                    <Label FormattedText="{Binding Peripheral.EquipmentFormatted}" TextColor="White" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap"
+                    <Label FormattedText="{Binding Peripheral.EquipmentFormatted, Converter={StaticResource RichText}}" TextColor="White" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap"
                            IsVisible="{Binding Peripheral.HasEquipment}" />
-                    <Label FormattedText="{Binding Peripheral.SkillsFormatted}" TextColor="White" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap"
+                    <Label FormattedText="{Binding Peripheral.SkillsFormatted, Converter={StaticResource RichText}}" TextColor="White" FontSize="{DynamicResource FontSizeCaption}" LineBreakMode="WordWrap"
                            IsVisible="{Binding Peripheral.HasSkills}" />
                 </VerticalStackLayout>
             </Border>
             <Border Grid.Row="4" Grid.ColumnSpan="3" BackgroundColor="{Binding HeaderColors.Secondary}" StrokeThickness="0" Padding="6,2"
                     IsVisible="{Binding ShowSummaryRows, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}">
-                <Label FormattedText="{Binding EquipmentSummaryFormatted}" TextColor="{Binding HeaderColors.SecondaryText}" LineBreakMode="WordWrap">
+                <Label FormattedText="{Binding EquipmentSummaryFormatted, Converter={StaticResource RichText}}" TextColor="{Binding HeaderColors.SecondaryText}" LineBreakMode="WordWrap">
                     <Label.Shadow>
                         <Shadow Brush="#CC000000" Offset="1,1" Radius="2" Opacity="0.9" />
                     </Label.Shadow>
@@ -167,7 +167,7 @@
             </Border>
             <Border Grid.Row="5" Grid.ColumnSpan="3" BackgroundColor="{Binding HeaderColors.Secondary}" StrokeThickness="0" Padding="6,2"
                     IsVisible="{Binding ShowSummaryRows, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}">
-                <Label FormattedText="{Binding SpecialSkillsSummaryFormatted}" TextColor="{Binding HeaderColors.SecondaryText}" LineBreakMode="WordWrap">
+                <Label FormattedText="{Binding SpecialSkillsSummaryFormatted, Converter={StaticResource RichText}}" TextColor="{Binding HeaderColors.SecondaryText}" LineBreakMode="WordWrap">
                     <Label.Shadow>
                         <Shadow Brush="#CC000000" Offset="1,1" Radius="2" Opacity="0.9" />
                     </Label.Shadow>
@@ -202,7 +202,7 @@
                                 </Border.GestureRecognizers>
                                 <VerticalStackLayout Spacing="2">
                                     <Grid ColumnSpacing="12" ColumnDefinitions="*,60">
-                                        <Label Grid.Column="0" FormattedText="{Binding NameFormatted}" FontAttributes="Bold" />
+                                        <Label Grid.Column="0" FormattedText="{Binding NameFormatted, Converter={StaticResource RichText}}" FontAttributes="Bold" />
                                         <HorizontalStackLayout Grid.Column="1" Spacing="4" HorizontalOptions="End" VerticalOptions="Center">
                                             <controls:SvgIcon
                                                 WidthRequest="14"
@@ -216,18 +216,18 @@
                                     <!-- Wide layout: ranged | melee | equipment | skills in a single row of four columns. -->
                                     <Grid ColumnSpacing="8" ColumnDefinitions="*,*,*,*"
                                           IsVisible="{Binding IsCompactProfileLayout, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView, Converter={StaticResource InvertedBoolConverter}}">
-                                        <Label Grid.Column="0" FormattedText="{Binding RangedWeaponsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#EF4444" />
-                                        <Label Grid.Column="1" FormattedText="{Binding MeleeWeaponsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#22C55E" />
-                                        <Label Grid.Column="2" FormattedText="{Binding UniqueEquipmentFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#06B6D4" />
-                                        <Label Grid.Column="3" FormattedText="{Binding UniqueSkillsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#F59E0B" />
+                                        <Label Grid.Column="0" FormattedText="{Binding RangedWeaponsFormatted, Converter={StaticResource RichText}}" Style="{StaticResource ProfileColumnLabel}" TextColor="#EF4444" />
+                                        <Label Grid.Column="1" FormattedText="{Binding MeleeWeaponsFormatted, Converter={StaticResource RichText}}" Style="{StaticResource ProfileColumnLabel}" TextColor="#22C55E" />
+                                        <Label Grid.Column="2" FormattedText="{Binding UniqueEquipmentFormatted, Converter={StaticResource RichText}}" Style="{StaticResource ProfileColumnLabel}" TextColor="#06B6D4" />
+                                        <Label Grid.Column="3" FormattedText="{Binding UniqueSkillsFormatted, Converter={StaticResource RichText}}" Style="{StaticResource ProfileColumnLabel}" TextColor="#F59E0B" />
                                     </Grid>
                                     <!-- Small-screen layout: 2x2 grid. Top row equipment | skills, bottom row ranged | close combat. -->
                                     <Grid ColumnSpacing="8" RowSpacing="2" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto"
                                           IsVisible="{Binding IsCompactProfileLayout, Source={x:Reference UnitDisplayConfigurationsRoot}, x:DataType=controls:UnitDisplayConfigurationsView}">
-                                        <Label Grid.Row="0" Grid.Column="0" FormattedText="{Binding UniqueEquipmentFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#06B6D4" />
-                                        <Label Grid.Row="0" Grid.Column="1" FormattedText="{Binding UniqueSkillsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#F59E0B" />
-                                        <Label Grid.Row="1" Grid.Column="0" FormattedText="{Binding RangedWeaponsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#EF4444" />
-                                        <Label Grid.Row="1" Grid.Column="1" FormattedText="{Binding MeleeWeaponsFormatted}" Style="{StaticResource ProfileColumnLabel}" TextColor="#22C55E" />
+                                        <Label Grid.Row="0" Grid.Column="0" FormattedText="{Binding UniqueEquipmentFormatted, Converter={StaticResource RichText}}" Style="{StaticResource ProfileColumnLabel}" TextColor="#06B6D4" />
+                                        <Label Grid.Row="0" Grid.Column="1" FormattedText="{Binding UniqueSkillsFormatted, Converter={StaticResource RichText}}" Style="{StaticResource ProfileColumnLabel}" TextColor="#F59E0B" />
+                                        <Label Grid.Row="1" Grid.Column="0" FormattedText="{Binding RangedWeaponsFormatted, Converter={StaticResource RichText}}" Style="{StaticResource ProfileColumnLabel}" TextColor="#EF4444" />
+                                        <Label Grid.Row="1" Grid.Column="1" FormattedText="{Binding MeleeWeaponsFormatted, Converter={StaticResource RichText}}" Style="{StaticResource ProfileColumnLabel}" TextColor="#22C55E" />
                                     </Grid>
                                     <Label
                                         Text="{Binding Peripherals, StringFormat='Peripheral: {0}'}"

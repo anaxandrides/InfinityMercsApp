@@ -6,7 +6,7 @@
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
-             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels.Reference"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels.Reference;assembly=InfinityMercsApp.ViewModels"
              x:Class="InfinityMercsApp.Views.Reference.MercsGlossaryPage"
              x:Name="MercsGlossaryRoot"
              x:DataType="viewModels:MercsGlossaryViewModel"
@@ -101,7 +101,7 @@
                     <!-- The WebView has no width of its own, so it stays Fill and is capped rather than centred. -->
                     <WebView Grid.Row="0"
                              MaximumWidthRequest="{Binding Layout.ReadingMaxWidth}"
-                             Source="{Binding ContentSource}"
+                             Source="{Binding SelectedContentHtml, Converter={StaticResource HtmlSource}}"
                              VerticalOptions="Fill"
                              HorizontalOptions="Fill" />
                 </Grid>

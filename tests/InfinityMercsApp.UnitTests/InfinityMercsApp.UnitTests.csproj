@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\InfinityMercsApp.Infrastructure\InfinityMercsApp.Infrastructure.csproj" />
     <ProjectReference Include="..\..\InfinityMercsApp.Services\InfinityMercsApp.Services.csproj" />
+    <ProjectReference Include="..\..\InfinityMercsApp.ViewModels\InfinityMercsApp.ViewModels.csproj" />
     <!-- The app's plain net10.0 build, so ViewModels can be tested against fake services. -->
     <ProjectReference Include="..\..\InfinityMercsApp\InfinityMercsApp.csproj" SetTargetFramework="TargetFramework=net10.0" />
   </ItemGroup>

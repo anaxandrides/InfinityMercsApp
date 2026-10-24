@@ -11,6 +11,7 @@ using InfinityMercsApp.ViewModels.Marketplaces;
 using InfinityMercsApp.ViewModels.Marketplaces.Items;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using InfinityMercsApp.Services.Links;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Marketplaces;
 
@@ -19,7 +20,7 @@ public sealed class MarketplacesViewModelTests
     private readonly IStoreProvider _stores = Substitute.For<IStoreProvider>();
     private readonly IMetadataProvider _metadata = Substitute.For<IMetadataProvider>();
     private readonly IWikiDescriptionService _wiki = Substitute.For<IWikiDescriptionService>();
-    private readonly ILauncher _launcher = Substitute.For<ILauncher>();
+    private readonly ILinkLauncher _launcher = Substitute.For<ILinkLauncher>();
 
     private static readonly Store BlackMarket = new()
     {
@@ -268,18 +269,18 @@ public sealed class MarketplacesViewModelTests
     {
         await CreateViewModel().DetailPopup.OpenLinkCommand.ExecuteAsync("https://wiki/mimetism");
 
-        await _launcher.Received(1).OpenAsync(Arg.Is<Uri>(uri => uri.ToString() == "https://wiki/mimetism"));
+        await _launcher.Received(1).OpenAsync(Arg.Is<string>(uri => uri == "https://wiki/mimetism"));
     }
 
     [Fact]
     public async Task OpenLinkCommand_MissingOrFailingLink_IgnoresIt()
     {
-        _launcher.OpenAsync(Arg.Any<Uri>()).ThrowsAsync(new InvalidOperationException("no browser"));
+        _launcher.OpenAsync(Arg.Any<string>()).ThrowsAsync(new InvalidOperationException("no browser"));
         var viewModel = CreateViewModel();
 
         await viewModel.DetailPopup.OpenLinkCommand.ExecuteAsync(null);
         await viewModel.DetailPopup.OpenLinkCommand.ExecuteAsync("https://wiki/mimetism");
 
-        await _launcher.Received(1).OpenAsync(Arg.Any<Uri>());
+        await _launcher.Received(1).OpenAsync(Arg.Any<string>());
     }
 }
