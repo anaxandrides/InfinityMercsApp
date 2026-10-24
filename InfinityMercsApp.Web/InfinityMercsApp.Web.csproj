@@ -11,11 +11,15 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.12" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.12" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="10.0.12" />
+    <!-- Infrastructure's sqlite-net brings native SQLite, which the site never opens: its army data lives in memory
+         (InMemoryRepository). Leaving the native library out keeps it from being linked into WebAssembly. -->
+    <PackageReference Include="SourceGear.sqlite3" Version="3.53.3" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\InfinityMercsApp.Domain\InfinityMercsApp.Domain.csproj" />
     <ProjectReference Include="..\InfinityMercsApp.ApiClient\InfinityMercsApp.ApiClient.csproj" />
+    <ProjectReference Include="..\InfinityMercsApp.Services\InfinityMercsApp.Services.csproj" />
   </ItemGroup>
 
 </Project>
