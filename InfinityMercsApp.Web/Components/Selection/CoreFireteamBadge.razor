@@ -1,0 +1,27 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Company.Selection
+
+@* A Cohesive company's tracked fireteam, with its level and what that level gives. *@
+<div class="core-fireteam">
+    <span class="text">
+        <span class="name">@Tracker.NameDisplay</span>
+        @if (Tracker.HasLevelBonus)
+        {
+            <span class="subtitle">@Tracker.LevelBonusText</span>
+        }
+    </span>
+    @if (Tracker.LevelIcon is { } icon)
+    {
+        <Logo Source="@icon" Size="40" />
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required CoreFireteamTracker Tracker { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Tracker);
+    }
+}

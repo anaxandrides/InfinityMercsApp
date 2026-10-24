@@ -1,0 +1,58 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Company.Selection
+
+@* The company: its name, its troopers, and the button that founds it (or hires the recruits), with why it can't yet. *@
+<section class="pane roster-pane" aria-label="Company">
+    <div class="company-name">
+        <label for="company-name">Mercs Company</label>
+        <input id="company-name" class="field @(Screen.Roster.ShowCompanyNameValidationError ? "invalid" : null)" placeholder="Company Name"
+               maxlength="60" readonly="@Screen.IsRecruiting" @bind="Screen.Roster.CompanyName" @bind:event="oninput" />
+        @if (Screen.Roster.ShowCompanyNameValidationError)
+        {
+            <span class="danger">Enter Company Name</span>
+        }
+    </div>
+    @if (Screen.CoreFireteam is { } core)
+    {
+        <CoreFireteamBadge Tracker="core" />
+    }
+
+    <div class="entries">
+        @foreach (var entry in Screen.Roster.Entries)
+        {
+            <EntryCard @key="entry" Entry="entry" Screen="Screen" ShowOrderBadges="Screen.TracksCoreFireteam" />
+        }
+        @if (Screen.Roster.Entries.Count == 0)
+        {
+            <p class="muted">Pick a unit, then a profile, to hire a trooper.</p>
+        }
+    </div>
+
+    <div class="start">
+        @if (Screen.HasStartBlockedText)
+        {
+            <span class="danger">@Screen.StartBlockedText</span>
+        }
+        <AuthorizeView>
+            <Authorized>
+                <button class="primary" disabled="@(!Screen.StartCompanyCommand.CanExecute(null))" @onclick="() => Screen.StartCompanyCommand.ExecuteAsync(null)">@Screen.ConfirmText</button>
+            </Authorized>
+            <NotAuthorized>
+                <span class="muted">Log in to keep the company in your account.</span>
+                <a class="button" href="authentication/login">Log in</a>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public required CompanySelectionViewModel Screen { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Screen);
+        Watch(Screen.Roster);
+        WatchItems(Screen.Roster.Entries);
+    }
+}

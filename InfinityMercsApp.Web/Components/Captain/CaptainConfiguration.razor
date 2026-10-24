@@ -9,7 +9,7 @@
     <div class="captain-body">
         <section class="captain-profile">
             <div class="captain-name">
-                <Logo Source="@ViewModel.LogoSource" Size="56" />
+                <Logo Candidates="ViewModel.LogoCandidates" Size="56" />
                 @if (ViewModel.IsEditingName)
                 {
                     <input class="field" @bind="ViewModel.CaptainNameDraft" @bind:event="oninput" maxlength="40" aria-label="Captain's name" />

@@ -65,6 +65,9 @@ public class FactionLogoCacheService
             cancellationToken);
     }
 
+    /// <summary>Whether the cache holds a logo at <paramref name="localPath"/> (on the web site, whether it knows where one is).</summary>
+    public bool IsCached(string localPath) => _store.Has(localPath);
+
     public string GetCachedLogoPath(int factionId)
     {
         return Path.Combine(_localCacheDirectory, $"{factionId}.svg");

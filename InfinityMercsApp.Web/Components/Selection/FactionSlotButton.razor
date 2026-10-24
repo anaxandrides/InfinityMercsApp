@@ -1,0 +1,21 @@
+@using InfinityMercsApp.ViewModels.Company.Selection
+
+@* One of the company's faction slots: tapped, it is the one the next faction picked fills. *@
+<button class="faction-slot @(Screen.Slots.ActiveIndex == Slot ? "active" : null)" @onclick="() => Screen.SelectSlotCommand.Execute(Slot)"
+        aria-label="@(Slot == 0 ? "First faction" : "Second faction")">
+    @if ((Slot == 0 ? Screen.Slots.Left : Screen.Slots.Right) is { } faction)
+    {
+        <Logo Candidates="faction.LogoCandidates" Size="36" />
+        <span>@faction.Name</span>
+    }
+    else
+    {
+        <span class="muted">Choose…</span>
+    }
+</button>
+
+@code {
+    [Parameter, EditorRequired] public required CompanySelectionViewModel Screen { get; set; }
+
+    [Parameter] public int Slot { get; set; }
+}

@@ -23,7 +23,7 @@ public abstract class ObservingComponent : ComponentBase, IDisposable
     }
 
     /// <summary>Draws again whenever items are added to, removed from or moved in <paramref name="collection"/>.</summary>
-    protected void Watch(INotifyCollectionChanged? collection)
+    protected void WatchItems(INotifyCollectionChanged? collection)
     {
         if (collection is not null && _collections.Add(collection))
         {

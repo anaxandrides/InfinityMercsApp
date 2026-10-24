@@ -27,7 +27,7 @@ public sealed class UnitLogoSources(FactionLogoCacheService? logos, IAppPackageF
     /// </summary>
     public async Task<string?> SourceAsync(UnitLogoRequest unit)
     {
-        if (CachedCandidates(unit).FirstOrDefault(path => !string.IsNullOrWhiteSpace(path) && File.Exists(path)) is { } cachedPath)
+        if (CachedCandidates(unit).FirstOrDefault(path => !string.IsNullOrWhiteSpace(path) && IsCached(path)) is { } cachedPath)
         {
             return cachedPath;
         }
@@ -43,6 +43,8 @@ public sealed class UnitLogoSources(FactionLogoCacheService? logos, IAppPackageF
 
         return unit.PackagedLogoPath;
     }
+
+    private bool IsCached(string path) => logos?.IsCached(path) ?? File.Exists(path);
 
     // The unit's own downloaded logo, then its logo under each faction, then its faction's logo.
     private IEnumerable<string?> CachedCandidates(UnitLogoRequest unit)

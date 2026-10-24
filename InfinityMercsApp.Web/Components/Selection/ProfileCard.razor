@@ -1,0 +1,42 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Company.Selection
+@using InfinityMercsApp.ViewModels.UnitBrowser.Items
+
+@* A profile to hire: its name and cost, weapons, equipment and skills. One a lieutenant can't take shows in red. *@
+@if (Profile.IsVisible)
+{
+    <button class="profile-card @(Profile.IsLieutenantBlocked ? "blocked" : null)" @onclick="() => Screen.AddProfileToMercsCompanyCommand.ExecuteAsync(Profile)">
+        <span class="profile-heading">
+            <RichTextView Text="Profile.NameFormatted" Class="name" />
+            <span class="cost">
+                @if (Profile.ShowProfileTacticalAwarenessIcon)
+                {
+                    <Logo Source="SVGCache/CBIcons/tactical.svg" Size="14" />
+                }
+                C @Profile.Cost
+            </span>
+        </span>
+        <span class="profile-columns">
+            <RichTextView Text="Profile.RangedWeaponsFormatted" Class="ranged" />
+            <RichTextView Text="Profile.MeleeWeaponsFormatted" Class="melee" />
+            <RichTextView Text="Profile.UniqueEquipmentFormatted" Class="equipment" />
+            <RichTextView Text="Profile.UniqueSkillsFormatted" Class="skills" />
+        </span>
+        @if (Profile.HasPeripherals)
+        {
+            <span class="peripherals">Peripheral: @Profile.Peripherals</span>
+        }
+    </button>
+}
+
+@code {
+    [Parameter, EditorRequired] public required ViewerProfileItem Profile { get; set; }
+
+    [Parameter, EditorRequired] public required CompanySelectionViewModel Screen { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Profile);
+    }
+}

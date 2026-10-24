@@ -122,6 +122,9 @@ public sealed partial class ConfigureCaptainViewModel : ObservableObject
 
     public string? LogoSource => UnitLogo.Source(_context.Unit.CachedLogoPath, _context.Unit.PackagedLogoPath);
 
+    /// <summary>The logos to try in order, for a view that loads the first it can (the web site).</summary>
+    public IReadOnlyList<string> LogoCandidates => UnitLogo.Candidates(_context.Unit.CachedLogoPath, _context.Unit.PackagedLogoPath);
+
     public string UpgradeOptionsHeader => $"Upgrade Options ({_context.OptionFactionName})";
 
     /// <summary>CC, BS, PH, WIP, ARM, BTS and VITA, in the order the pickers are laid out.</summary>

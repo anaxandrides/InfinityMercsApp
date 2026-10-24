@@ -1,0 +1,16 @@
+@page "/companies/new/build"
+@inject CompanySelectionSession Session
+
+<PageTitle>Build a company · Infinity Mercs</PageTitle>
+
+<ArmyDataGate>
+    @if (Session.Current is { } screen)
+    {
+        <SelectionScreen Screen="screen" />
+    }
+    else
+    {
+        <h1>Nothing being built</h1>
+        <p><a href="companies/new">Found a company</a> to start one.</p>
+    }
+</ArmyDataGate>

@@ -17,11 +17,6 @@ namespace InfinityMercsApp.Views.Adaptive;
 /// </remarks>
 public abstract class AdaptiveContentPage : ContentPage, IQueryAttributable
 {
-    // Breakpoints (logical units of page width) from AdaptiveLayoutDefinitions.md.
-    private const double MediumMinWidth = 600d;
-    private const double ExpandedMinWidth = 900d;
-    private const double WideMinWidth = 1200d;
-
     private AdaptiveLayoutMode _layoutMode = AdaptiveLayoutMode.Compact;
 
     /// <summary>The active layout mode for the current page width.</summary>
@@ -80,7 +75,7 @@ public abstract class AdaptiveContentPage : ContentPage, IQueryAttributable
             return;
         }
 
-        LayoutMode = ResolveMode(width);
+        LayoutMode = AdaptiveLayoutModes.For(width);
     }
 
     /// <summary>
@@ -101,12 +96,4 @@ public abstract class AdaptiveContentPage : ContentPage, IQueryAttributable
     protected virtual void OnLayoutModeChanged(AdaptiveLayoutMode mode)
     {
     }
-
-    private static AdaptiveLayoutMode ResolveMode(double width) => width switch
-    {
-        >= WideMinWidth => AdaptiveLayoutMode.Wide,
-        >= ExpandedMinWidth => AdaptiveLayoutMode.Expanded,
-        >= MediumMinWidth => AdaptiveLayoutMode.Medium,
-        _ => AdaptiveLayoutMode.Compact
-    };
 }

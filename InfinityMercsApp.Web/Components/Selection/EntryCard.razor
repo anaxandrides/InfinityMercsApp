@@ -1,0 +1,76 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Company.Selection
+@using InfinityMercsApp.ViewModels.Company.Selection.Items
+
+@* A trooper in the company: tapped, it shows its unit; its kit opens below; new ones can be renamed or removed. *@
+<div class="entry-card @(Entry.IsSelected ? "selected" : null)">
+    <button class="entry-main" @onclick="() => Screen.SelectMercsCompanyEntryCommand.ExecuteAsync(Entry)">
+        <Logo Candidates="Entry.LogoCandidates" Size="36" />
+        <span class="text">
+            <span class="name">
+                @if (Entry.NameFormatted is { } name) { <RichTextView Text="name" /> } else { @Entry.Name }
+            </span>
+            @if (Entry.HasCustomName)
+            {
+                <span class="custom-name">“@Entry.CustomName”</span>
+            }
+            @if (Entry.IsServant)
+            {
+                <span class="subtitle">@Entry.ServantOfText</span>
+            }
+        </span>
+        @if (ShowOrderBadges && Entry.IsIrregular)
+        {
+            <span class="badge">IRREGULAR</span>
+        }
+        @if (ShowOrderBadges && Entry.ShowRegularModifier)
+        {
+            <span class="badge">REGULAR</span>
+        }
+        <span class="cost">@Entry.CostDisplay</span>
+    </button>
+    <div class="entry-actions">
+        <button class="link" @onclick="() => Entry.IsDetailsExpanded = !Entry.IsDetailsExpanded">@(Entry.IsDetailsExpanded ? "Hide kit" : "Kit")</button>
+        @if (Entry.CanRename)
+        {
+            <button class="link" @onclick="() => Screen.RenameMercsCompanyEntryCommand.ExecuteAsync(Entry)">Rename</button>
+        }
+        @if (Entry.CanRemove)
+        {
+            <button class="link danger" @onclick="() => Screen.RemoveMercsCompanyEntryCommand.Execute(Entry)">Remove</button>
+        }
+    </div>
+    @if (Entry.IsDetailsExpanded)
+    {
+        <dl class="kit">
+            <dt>Ranged</dt><dd class="ranged">@Entry.SavedRangedWeaponsDisplay</dd>
+            <dt>CC</dt><dd class="melee">@Entry.SavedCcWeaponsDisplay</dd>
+            <dt>Equipment</dt><dd class="equipment">@Entry.SavedEquipmentDisplay</dd>
+            <dt>Skills</dt><dd class="skills">@Entry.SavedSkillsDisplay</dd>
+        </dl>
+        @if (Entry.HasPeripheralStatBlock)
+        {
+            <div class="peripheral">
+                <span class="title">@Entry.PeripheralNameHeading</span>
+                <span class="subtitle">@Entry.PeripheralSubtitle</span>
+                @if (Entry.HasPeripheralEquipmentLine) { <RichTextView Text="Entry.PeripheralEquipmentLineFormatted" /> }
+                @if (Entry.HasPeripheralSkillsLine) { <RichTextView Text="Entry.PeripheralSkillsLineFormatted" /> }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required MercsCompanyEntry Entry { get; set; }
+
+    [Parameter, EditorRequired] public required CompanySelectionViewModel Screen { get; set; }
+
+    /// <summary>Whether to show the irregular and regular order badges (a Cohesive company's fireteam changes them).</summary>
+    [Parameter] public bool ShowOrderBadges { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Entry);
+    }
+}
