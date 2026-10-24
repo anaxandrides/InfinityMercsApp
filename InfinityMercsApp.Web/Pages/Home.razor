@@ -5,6 +5,7 @@
 <AuthorizeView>
     <Authorized>
         <h1>Your companies</h1>
+        <p><a class="button" href="companies/new">FOUND A COMPANY</a></p>
         <CompanyList />
         <h2>Your seasons</h2>
         <SeasonList />
@@ -12,6 +13,6 @@
     <NotAuthorized>
         <h1>Infinity Mercs</h1>
         <p>Your Mercenaries companies and seasons, kept in step with the Infinity Mercs app.</p>
-        <p><a class="button" href="authentication/login">Sign in</a></p>
+        <p><a class="button" href="authentication/login">Sign in</a> <a href="companies/new">or try the company builder</a></p>
     </NotAuthorized>
 </AuthorizeView>

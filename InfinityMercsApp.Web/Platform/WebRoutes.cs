@@ -7,12 +7,16 @@ public static class WebRoutes
     public const string NewCompany = "companies/new";
     public const string CompanySource = "companies/new/source";
     public const string CompanySelection = "companies/new/build";
-    public const string Recruitment = "companies/recruit";
+    public const string Season = "season";
+
+    /// <summary>A season by its id, to manage its company.</summary>
+    public static string SeasonById(string seasonIdentifier) => $"season/{Uri.EscapeDataString(seasonIdentifier)}";
 
     /// <summary>The site's address for a MAUI route, e.g. "//CreateNewCompanyPage"; null for a page the site doesn't have.</summary>
     public static string? For(string route) => route.TrimStart('/') switch
     {
-        "MercsSeasonPage" or "SeasonPage" or "LoadCompanyPage" or "LoadSeasonPage" => Home,
+        "MercsSeasonPage" or "LoadCompanyPage" or "LoadSeasonPage" => Home,
+        "SeasonPage" => Season,
         "CreateNewCompanyPage" => NewCompany,
         "StandardCompanySourcePopupPage" => CompanySource,
         _ => null

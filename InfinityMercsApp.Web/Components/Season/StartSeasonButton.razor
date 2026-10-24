@@ -1,0 +1,47 @@
+@using InfinityMercsApp.Services.Navigation
+@using InfinityMercsApp.Services.Records
+@using InfinityMercsApp.Services.Sync
+@inject ISyncCoordinator Sync
+@inject CompanyRecordCatalog Companies
+@inject NavigationQuery Query
+@inject NavigationManager Navigation
+
+@* Starts a new season for the company, as the app's season page does when opened with a company alone. *@
+<p>
+    <button class="primary" disabled="@_starting" @onclick="StartAsync">@(_starting ? "Starting…" : "START A SEASON")</button>
+    @if (_message is not null)
+    {
+        <span class="danger">@_message</span>
+    }
+</p>
+
+@code {
+    private bool _starting;
+    private string? _message;
+
+    [Parameter, EditorRequired] public required string CompanyIdentifier { get; set; }
+
+    private async Task StartAsync()
+    {
+        _starting = true;
+        _message = null;
+        try
+        {
+            // The company's file comes from the account; a sync brings it in.
+            await Sync.SyncNowAsync();
+            var company = (await Companies.ListAsync()).FirstOrDefault(record => record.CompanyIdentifier == CompanyIdentifier);
+            if (company is null)
+            {
+                _message = "The company hasn't synced to this browser yet. Try again in a moment.";
+                return;
+            }
+
+            Query.Hold(NavigationParameters.ForCompany(company.FilePath));
+            Navigation.NavigateTo(WebRoutes.Season);
+        }
+        finally
+        {
+            _starting = false;
+        }
+    }
+}

@@ -28,6 +28,16 @@ public sealed class CompanyRecordCatalogTests : IDisposable
     }
 
     [Fact]
+    public async Task ListAsync_CompanyWithIdentifier_ReportsIt()
+    {
+        _records.WriteCompany("c.json", """{"companyName":"Iron Wolves","companyIdentifier":"company-1"}""");
+
+        var record = Assert.Single(await new CompanyRecordCatalog(_records.Paths, Substitute.For<ISyncOutbox>()).ListAsync());
+
+        Assert.Equal("company-1", record.CompanyIdentifier);
+    }
+
+    [Fact]
     public async Task ListAsync_UnnamedCompany_TakesItsFileName()
     {
         _records.WriteCompany("Kestrel.json", "{}");

@@ -397,3 +397,29 @@ main:has(.selection-panes) { max-width: none; }
 .captain .skills .lieutenant { color: #34D399; }
 .stat-upgrades, .choice-slots { display: flex; flex-wrap: wrap; gap: 6px; }
 .problems { color: var(--danger); margin: 4px 0; padding-left: 18px; }
+
+/* The season page: the company's header, then its troopers one at a time. */
+main:has(.team-tab) { max-width: 1280px; }
+.season-header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.season-header h1 { margin: 0.6em 0 0; }
+.season-header .renown { margin-left: auto; color: var(--signal); font-weight: 700; }
+.season-header .resources { color: var(--text-secondary); }
+.team-tab { display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .team-tab { grid-template-columns: minmax(220px, 300px) 1fr; } }
+.team-list { display: grid; gap: 2px; align-content: start; }
+.trooper-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.trooper-heading h2 { margin: 0; color: var(--text); }
+.trooper-heading .rank { color: var(--signal); }
+.section-heading { font-size: 0.9rem; letter-spacing: 0.08em; color: var(--text-muted); border-bottom: 1px solid var(--hairline); padding-bottom: 2px; margin: 14px 0 6px; }
+.section-heading.danger { color: var(--danger); }
+.profile-lines { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.profile-lines.skills div:not(.muted) { color: #F59E0B; }
+.profile-lines.ranged div:not(.muted) { color: var(--danger); }
+.profile-lines.melee div:not(.muted) { color: var(--signal); }
+.profile-lines.equipment div:not(.muted) { color: var(--text-secondary); }
+.perk { color: var(--signal); }
+.gear-slots { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.gear-slot { display: grid; gap: 4px; }
+.slot-heading { font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); }
+.trooper-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+button.secondary.danger { color: var(--danger); border-color: var(--danger); }

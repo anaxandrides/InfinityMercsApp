@@ -1,0 +1,96 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.Services.Navigation
+@using InfinityMercsApp.Services.Season
+@using InfinityMercsApp.Services.Sync
+@using InfinityMercsApp.ViewModels.Season.Overview
+@inject SeasonViewModel ViewModel
+@inject NavigationQuery Query
+@inject SeasonRecordCatalog Seasons
+@inject ISyncCoordinator Sync
+@inject ISeasonFileService SeasonFiles
+@inject NavigationManager Navigation
+
+@* The shared season view model: the company's name and funds, its troopers one at a time, and recruiting. *@
+@switch (_state)
+{
+    case SeasonLoadState.Loading:
+        <p class="muted">Opening the season…</p>
+        break;
+    case SeasonLoadState.Missing:
+        <h1>Season not found</h1>
+        <p>It isn't in your account, or it hasn't synced yet. <a href="">See your seasons</a>.</p>
+        break;
+    default:
+        <div class="season-header">
+            <div>
+                <h1>@ViewModel.CompanyName</h1>
+                <span class="muted">@ViewModel.CompanyType · @ViewModel.RoundTitle</span>
+            </div>
+            <span class="renown">RENOWN @ViewModel.Renown</span>
+            <span class="resources">@ViewModel.Marketplace.ResourcesText</span>
+            <button class="primary" @onclick="() => ViewModel.RecruitCommand.ExecuteAsync(null)">RECRUIT TROOPERS</button>
+        </div>
+        <TeamTab Season="ViewModel" />
+        break;
+}
+
+@code {
+    private SeasonLoadState _state = SeasonLoadState.Loading;
+
+    // The season shown; its address names it once it is known, without opening it again.
+    private string? _shownSeasonId;
+
+    [Parameter] public string? SeasonId { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (SeasonId is not null && SeasonId == _shownSeasonId)
+        {
+            return;
+        }
+
+        StopWatching();
+        Watch(ViewModel);
+        Watch(ViewModel.Marketplace);
+        _state = SeasonLoadState.Loading;
+
+        if (SeasonId is null)
+        {
+            if (Query.Take() is not { } query)
+            {
+                _state = SeasonLoadState.Missing;
+                return;
+            }
+
+            ViewModel.ApplyQueryAttributes(query);
+        }
+        else
+        {
+            // The season's files come from the account; a sync brings them in (and any change since).
+            await Sync.SyncNowAsync();
+            var record = (await Seasons.ListAsync()).FirstOrDefault(season => season.SeasonIdentifier == SeasonId);
+            if (record is null || record.CompanyFilePath.Length == 0)
+            {
+                _state = SeasonLoadState.Missing;
+                return;
+            }
+
+            ViewModel.ApplyQueryAttributes(NavigationParameters.ForCompany(record.CompanyFilePath, record.SeasonFilePath));
+        }
+
+        await ViewModel.InitializeAsyncCommand.ExecuteAsync(null);
+        _state = SeasonLoadState.Shown;
+        await NameInAddressAsync();
+    }
+
+    // A season opened by a view model (a company just founded) gets its id in the address, so going back to the page
+    // (as recruiting does) or reloading it opens the same season.
+    private async Task NameInAddressAsync()
+    {
+        if (SeasonId is null && ViewModel.SeasonFilePath is { } path && await SeasonFiles.LoadAsync(path) is { SeasonIdentifier.Length: > 0 } season)
+        {
+            _shownSeasonId = season.SeasonIdentifier;
+            Navigation.NavigateTo(WebRoutes.SeasonById(season.SeasonIdentifier), replace: true);
+        }
+    }
+}

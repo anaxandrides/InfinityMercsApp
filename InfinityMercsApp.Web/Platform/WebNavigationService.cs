@@ -5,7 +5,12 @@ using Microsoft.JSInterop;
 namespace InfinityMercsApp.Web.Platform;
 
 /// <summary>Navigates the site for the shared view models, mapping their MAUI routes to the site's addresses.</summary>
-public sealed class WebNavigationService(NavigationManager navigation, IJSRuntime js, ArmyDataState armyData) : INavigationService
+public sealed class WebNavigationService(
+    NavigationManager navigation,
+    IJSRuntime js,
+    ArmyDataState armyData,
+    NavigationQuery query,
+    WebDialogService dialogs) : INavigationService
 {
     public Task InitializeAsync() => Task.CompletedTask;
 
@@ -17,11 +22,13 @@ public sealed class WebNavigationService(NavigationManager navigation, IJSRuntim
             return Task.CompletedTask;
         }
 
-        if (WebRoutes.For(route) is { } address)
+        if (WebRoutes.For(route) is not { } address)
         {
-            navigation.NavigateTo(address);
+            return dialogs.ShowAlertAsync("Only in the App", "This part of the season is only in the Infinity Mercs app for now.");
         }
 
+        query.Hold(routeParameters);
+        navigation.NavigateTo(address);
         return Task.CompletedTask;
     }
 

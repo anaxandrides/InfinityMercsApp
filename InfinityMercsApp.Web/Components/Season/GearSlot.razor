@@ -1,0 +1,43 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season.Overview.Items
+
+@* One of the trooper's gear slots: what fills it, chosen from what the company owns. *@
+@if (Picker.IsAvailable)
+{
+    <div class="gear-slot">
+        <span class="slot-heading">@Picker.Title</span>
+        @if (Picker.IsFilledByPerk)
+        {
+            <span class="muted">@Picker.FilledByPerkText</span>
+        }
+        else
+        {
+            <select aria-label="@Picker.Title" value="@SelectedIndex" @onchange="Pick">
+                @for (var index = 0; index < Picker.Options.Count; index++)
+                {
+                    <option value="@index">@Picker.Options[index].Display</option>
+                }
+            </select>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required GearSlotPicker Picker { get; set; }
+
+    private int SelectedIndex => Picker.SelectedOption is { } option ? Math.Max(0, Picker.Options.ToList().IndexOf(option)) : 0;
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Picker);
+    }
+
+    private void Pick(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value as string, out var index) && index >= 0 && index < Picker.Options.Count)
+        {
+            Picker.SelectedOption = Picker.Options[index];
+        }
+    }
+}

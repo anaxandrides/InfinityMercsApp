@@ -173,7 +173,7 @@ public sealed partial class SeasonTeamViewModel : ObservableObject
         SelectedUnit = null;
         foreach (var unit in _roster.UnitsOf(company, season, catalog))
         {
-            unit.LogoSource = await CompanyRoster.LogoSourceAsync(unit, _packageFiles);
+            unit.LogoSource = await _roster.LogoSourceAsync(unit, _packageFiles);
             Units.Add(unit);
         }
 

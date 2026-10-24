@@ -1,0 +1,13 @@
+@page "/season"
+@page "/season/{SeasonId}"
+
+<PageTitle>Season · Infinity Mercs</PageTitle>
+
+<ArmyDataGate>
+    <SeasonScreen SeasonId="@SeasonId" />
+</ArmyDataGate>
+
+@code {
+    /// <summary>The season to open; null for the one a view model just navigated to (a company just founded).</summary>
+    [Parameter] public string? SeasonId { get; set; }
+}

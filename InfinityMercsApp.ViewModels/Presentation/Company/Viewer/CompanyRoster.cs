@@ -252,9 +252,9 @@ public sealed class CompanyRoster(IArmyDataService armyData, FactionLogoCacheSer
     }
 
     /// <summary>The trooper's logo: the downloaded one, else the packaged one (in either case), else its fallback.</summary>
-    public static async Task<string?> LogoSourceAsync(CompanyViewerUnitListItem item, IAppPackageFiles packageFiles)
+    public async Task<string?> LogoSourceAsync(CompanyViewerUnitListItem item, IAppPackageFiles packageFiles)
     {
-        if (!string.IsNullOrWhiteSpace(item.CachedLogoPath) && File.Exists(item.CachedLogoPath))
+        if (!string.IsNullOrWhiteSpace(item.CachedLogoPath) && (logoCache?.IsCached(item.CachedLogoPath) ?? File.Exists(item.CachedLogoPath)))
         {
             return item.CachedLogoPath;
         }

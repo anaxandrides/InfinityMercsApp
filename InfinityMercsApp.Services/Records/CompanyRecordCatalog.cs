@@ -38,7 +38,7 @@ public sealed class CompanyRecordCatalog(RecordPaths paths, ISyncOutbox outbox)
                     : new DateTimeOffset(File.GetLastWriteTimeUtc(filePath), TimeSpan.Zero);
                 var factionIcons = SourceFactionIds(payload).Take(2).Select(paths.FactionLogoPath).ToList();
 
-                records.Add(new CompanyRecord(filePath, name, payload.CompanyType, factionIcons, created));
+                records.Add(new CompanyRecord(filePath, name, payload.CompanyType, factionIcons, created) { CompanyIdentifier = payload.CompanyIdentifier });
             }
             catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
             {

@@ -1,0 +1,102 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season.Overview
+
+@* The company's troopers, one at a time: the list on the left, the chosen trooper's profile, gear and actions beside it. *@
+<div class="team-tab">
+    <nav class="team-list" aria-label="Troopers">
+        @foreach (var unit in Team.Units)
+        {
+            <TeamMember @key="unit" Unit="unit" Team="Team" />
+        }
+    </nav>
+
+    <section class="trooper" aria-live="polite">
+        @if (Team.SelectedUnit is null)
+        {
+            <p class="muted">Choose a trooper.</p>
+        }
+        else
+        {
+            <div class="trooper-heading">
+                <div>
+                    <h2>@Team.SelectedName</h2>
+                    <span class="rank">@Team.RankText</span>
+                </div>
+                <span class="muted">
+                    @if (Team.HasSelectedBaseName) { @Team.SelectedBaseName }
+                    @if (Team.HasSelectedUnitType) { <span> · @Team.SelectedUnitType</span> }
+                </span>
+            </div>
+            <StatLine Stats="Team.Detail.Stats" />
+
+            <ProfileLines Title="EQUIPMENT" Columns="Team.Equipment" Class="equipment" />
+            <ProfileLines Title="SPECIAL SKILLS" Columns="Team.Skills" Class="skills" />
+
+            <h3 class="section-heading">PERKS</h3>
+            @if (Team.HasPerkPointsToSpend)
+            {
+                <button class="secondary small" @onclick="() => Season.RankUpCommand.ExecuteAsync(null)">SPEND PERK POINTS</button>
+            }
+            @if (Team.HasOwedRoll)
+            {
+                <button class="secondary small" @onclick="() => Team.RollOwedCommand.ExecuteAsync(null)">@Team.OwedRollText</button>
+            }
+            @if (Team.HasPerks)
+            {
+                @foreach (var perk in Team.Perks) { <div class="perk">@perk</div> }
+            }
+            else
+            {
+                <div class="muted">(none)</div>
+            }
+
+            @if (Team.HasInjuries)
+            {
+                <h3 class="section-heading danger">INJURIES</h3>
+                @foreach (var injury in Team.Injuries) { <div class="danger">@injury</div> }
+            }
+
+            <ProfileLines Title="WEAPONS" Columns="Team.RangedWeapons" Class="ranged" />
+            <ProfileLines Title="CC WEAPONS" Columns="Team.MeleeWeapons" Class="melee" />
+
+            <h3 class="section-heading">GEAR</h3>
+            <p class="muted">@Team.Gear.SwcText</p>
+            <div class="gear-slots">
+                @foreach (var slot in Team.Gear.Slots)
+                {
+                    <GearSlot @key="slot" Picker="slot" />
+                }
+            </div>
+
+            <div class="trooper-actions">
+                @if (Team.CanSellSelected)
+                {
+                    <button class="secondary danger" @onclick="() => Team.SellPeripheralCommand.ExecuteAsync(null)">@Team.SellText</button>
+                }
+                @if (Team.CanRenameSelected)
+                {
+                    <button class="secondary" @onclick="() => Team.RenameCommand.ExecuteAsync(null)">RENAME TROOPER</button>
+                }
+                @if (Team.CanRetireSelected)
+                {
+                    <button class="secondary danger" @onclick="() => Team.RetireCommand.ExecuteAsync(null)">RETIRE TROOPER</button>
+                }
+            </div>
+        }
+    </section>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required SeasonViewModel Season { get; set; }
+
+    private SeasonTeamViewModel Team => Season.Team;
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Team);
+        Watch(Team.Detail);
+        Watch(Team.Gear);
+        WatchItems(Team.Units);
+    }
+}

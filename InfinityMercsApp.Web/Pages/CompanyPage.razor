@@ -18,6 +18,7 @@ else
 {
     <h1>@company.Name</h1>
     <p class="muted">@company.Type · @company.Armies · founded with @company.StartingPoints points</p>
+    <StartSeasonButton CompanyIdentifier="@Id" />
 
     <ul class="troopers">
         @foreach (var trooper in company.Troopers)

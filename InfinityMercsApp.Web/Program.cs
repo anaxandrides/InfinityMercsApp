@@ -58,6 +58,7 @@ builder.Services
     .AddSingleton<ArmyDataState>()
     .AddSingleton<LogoUrls>()
     .AddSingleton<CompanySelectionSession>()
+    .AddSingleton<NavigationQuery>()
     .AddSingleton<WebDialogService>()
     .AddSingleton<IDialogService>(provider => provider.GetRequiredService<WebDialogService>())
     .AddSingleton<WebCaptainConfigurationDialog>()

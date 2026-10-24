@@ -83,6 +83,9 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
 
     public SeasonTeamViewModel Team { get; }
 
+    /// <summary>The season's file once loaded (made when the company was just founded); null before.</summary>
+    public string? SeasonFilePath => _seasonFilePath;
+
     public SeasonInventoryViewModel Inventory { get; }
 
     public SeasonMarketplaceViewModel Marketplace { get; }

@@ -17,6 +17,7 @@ else if (_season.Value is not { } season)
 else
 {
     <h1>@season.CompanyName</h1>
+    <p><a class="button" href="@WebRoutes.SeasonById(Id)">MANAGE THE COMPANY</a></p>
     <p class="muted">
         Started @season.Started · @season.Contracts.Count @(season.Contracts.Count == 1 ? "contract" : "contracts"), @season.Wins won ·
         <a href="companies/@season.CompanyId">the company</a>

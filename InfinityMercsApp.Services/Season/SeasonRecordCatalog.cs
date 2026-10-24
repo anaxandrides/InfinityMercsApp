@@ -45,7 +45,7 @@ public sealed class SeasonRecordCatalog(RecordPaths paths)
                     ? created
                     : new DateTimeOffset(File.GetLastWriteTimeUtc(filePath), TimeSpan.Zero);
 
-                records.Add(new SeasonRecord(filePath, companyFilePath ?? string.Empty, companyName, started));
+                records.Add(new SeasonRecord(filePath, companyFilePath ?? string.Empty, companyName, started) { SeasonIdentifier = header.SeasonIdentifier });
             }
             catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
             {
@@ -84,6 +84,7 @@ public sealed class SeasonRecordCatalog(RecordPaths paths)
 
     private sealed class SeasonFileHeader
     {
+        public string SeasonIdentifier { get; init; } = string.Empty;
         public string CompanyName { get; init; } = string.Empty;
         public string CompanyIdentifier { get; init; } = string.Empty;
         public string CompanyFilePath { get; init; } = string.Empty;
