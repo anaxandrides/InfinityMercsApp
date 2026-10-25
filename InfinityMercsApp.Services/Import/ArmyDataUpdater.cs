@@ -19,7 +19,7 @@ internal sealed class ArmyDataUpdater(
     IArmyImportProvider armyImportProvider,
     IAppSettingsProvider appSettingsProvider,
     FactionLogoCacheService factionLogoCacheService,
-    LogoBundleInstaller logoBundleInstaller,
+    ILogoBundleInstaller logoBundleInstaller,
     IInspiringCompanyFactionGenerator inspiringCompanyFactionGenerator,
     IAirborneCompanyFactionGenerator airborneCompanyFactionGenerator,
     ITagCompanyFactionGenerator tagCompanyFactionGenerator) : IArmyDataUpdater

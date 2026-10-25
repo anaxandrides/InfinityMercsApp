@@ -1,0 +1,60 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Company.Selection
+
+@* The selected unit: its header in its faction's colours, its statline and kit, then the profiles to hire from. *@
+<section class="pane profile-pane" aria-label="Selected unit">
+    @if (Screen.Preview.SelectedUnit is null)
+    {
+        <p class="muted">@Screen.Preview.ProfilesStatus</p>
+    }
+    else
+    {
+        var detail = Screen.Preview.Detail;
+        <div class="unit-header" style="background:@detail.HeaderColors.Primary.ToRgbaHex(includeAlpha: true);color:@detail.HeaderColors.PrimaryText.ToRgbaHex(includeAlpha: true)">
+            <Logo Source="@detail.LogoSource" Size="56" />
+            <span class="name">@detail.UnitNameHeading</span>
+            @if (detail.Icons.HasAny)
+            {
+                <span class="icons" title="@detail.Icons.Meanings">
+                    @foreach (var icon in detail.Icons.Sources)
+                    {
+                        <Logo Source="@icon" Size="22" />
+                    }
+                </span>
+            }
+        </div>
+        <StatLine Stats="detail.Stats" />
+        @if (detail.Peripheral is { } peripheral)
+        {
+            <div class="peripheral">
+                <span class="title">@peripheral.NameHeading</span>
+                <StatLine Stats="peripheral.Stats" />
+                @if (peripheral.HasEquipment) { <RichTextView Text="peripheral.EquipmentFormatted" /> }
+                @if (peripheral.HasSkills) { <RichTextView Text="peripheral.SkillsFormatted" /> }
+            </div>
+        }
+        <p class="summary"><RichTextView Text="detail.EquipmentSummaryFormatted" /></p>
+        <p class="summary"><RichTextView Text="detail.SpecialSkillsSummaryFormatted" /></p>
+
+        <h3>Profiles</h3>
+        <p class="muted">@Screen.Preview.ProfilesStatus</p>
+        <div class="profiles">
+            @foreach (var profile in Screen.Preview.Profiles)
+            {
+                <ProfileCard @key="profile" Profile="profile" Screen="Screen" />
+            }
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public required CompanySelectionViewModel Screen { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Screen.Preview);
+        Watch(Screen.Preview.Detail);
+        WatchItems(Screen.Preview.Profiles);
+    }
+}

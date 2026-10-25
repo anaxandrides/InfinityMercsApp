@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
              xmlns:behaviors="clr-namespace:InfinityMercsApp.Views.Behaviors"
-             xmlns:components="clr-namespace:InfinityMercsApp.ViewModels.Components"
+             xmlns:components="clr-namespace:InfinityMercsApp.ViewModels.Components;assembly=InfinityMercsApp.ViewModels"
              x:Class="InfinityMercsApp.Views.Controls.CompanyViewerUnitTileView"
              x:DataType="components:IUnitTile"
              x:Name="TileRoot">

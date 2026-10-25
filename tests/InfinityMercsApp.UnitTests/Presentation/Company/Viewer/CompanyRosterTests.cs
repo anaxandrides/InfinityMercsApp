@@ -311,7 +311,9 @@ public sealed class CompanyRosterTests
         var packaged = new CompanyViewerUnitListItem { PackagedLogoPath = "/SVGCache/units/101-11.svg" };
         var missing = new CompanyViewerUnitListItem { PackagedLogoPath = "SVGCache/units/9-9.svg", FallbackLogoPath = "fallback.svg" };
 
-        Assert.Equal("svgcache/units/101-11.svg", await CompanyRoster.LogoSourceAsync(packaged, packageFiles));
-        Assert.Equal("fallback.svg", await CompanyRoster.LogoSourceAsync(missing, packageFiles));
+        var roster = new CompanyRoster(Substitute.For<IArmyDataService>());
+
+        Assert.Equal("svgcache/units/101-11.svg", await roster.LogoSourceAsync(packaged, packageFiles));
+        Assert.Equal("fallback.svg", await roster.LogoSourceAsync(missing, packageFiles));
     }
 }

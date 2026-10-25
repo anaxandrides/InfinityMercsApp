@@ -1,0 +1,40 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Company.Selection
+@using InfinityMercsApp.ViewModels.Company.Selection.Items
+
+@* The units the company can hire, or its fireteams with the troopers each allows. *@
+<section class="pane units-pane" aria-label="Units">
+    @if (Screen.UnitList.IsLoading)
+    {
+        <p class="muted">Loading the units…</p>
+    }
+    @if (Screen.UnitList.ShowUnitsList)
+    {
+        <div class="unit-list">
+            @foreach (var unit in Screen.UnitList.Units)
+            {
+                <UnitRow @key="unit" Item="unit" Command="Screen.SelectUnitFromListCommand" IsHighlighted="unit.UseBlueHalfOpacityBackground" />
+            }
+        </div>
+    }
+    @if (Screen.UnitList.ShowTeamsList)
+    {
+        <p class="rule">@Screen.FireteamRuleText</p>
+        @foreach (var team in Screen.UnitList.TeamEntries)
+        {
+            <TeamCard @key="team" Team="team" Screen="Screen" />
+        }
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public required CompanySelectionViewModel Screen { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Screen.UnitList);
+        WatchItems(Screen.UnitList.Units);
+        WatchItems(Screen.UnitList.TeamEntries);
+    }
+}

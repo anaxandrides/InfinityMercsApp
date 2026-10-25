@@ -1,0 +1,27 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Company.Viewer.Items
+@using InfinityMercsApp.ViewModels.Season.Overview
+
+@* A trooper in the team list; the chosen one is raised. *@
+<button class="unit-row @(Unit.IsSelected ? "selected" : null)" @onclick="() => Team.SelectUnitCommand.Execute(Unit)">
+    <Logo Candidates="Unit.LogoCandidates" Size="32" />
+    <span class="text">
+        <span class="name">@Unit.Name</span>
+    </span>
+    @if (Unit.IsLieutenant)
+    {
+        <span title="Captain"><Logo Source="SVGCache/CBIcons/lieutenant.svg" Size="18" /></span>
+    }
+</button>
+
+@code {
+    [Parameter, EditorRequired] public required CompanyViewerUnitListItem Unit { get; set; }
+
+    [Parameter, EditorRequired] public required SeasonTeamViewModel Team { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Unit);
+    }
+}

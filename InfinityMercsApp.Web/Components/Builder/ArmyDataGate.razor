@@ -1,0 +1,47 @@
+@inherits InfinityMercsApp.Web.Components.Base.ObservingComponent
+@implements IArmyDataWatcher
+@inject ArmyDataState ArmyData
+@inject InfinityMercsApp.ViewModels.Splash.SplashPageViewModel Splash
+
+@* Shows the page once the army data is in the browser's memory; until then, how loading it is going. *@
+@if (ArmyData.IsLoaded)
+{
+    @ChildContent
+}
+else
+{
+    <section class="army-loading" aria-live="polite">
+        <h1>Loading the army data</h1>
+        <p class="muted">Every army, from Infinity Mercs' own copy of the Infinity Army data. This takes a few seconds the first time on each visit.</p>
+        <progress max="1" value="@_loader?.UpdateProgress"></progress>
+        <p>@_loader?.UpdateProgressMessage</p>
+    </section>
+}
+
+@code {
+    private InfinityMercsApp.ViewModels.Splash.SplashPageViewModel? _loader;
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    protected override void OnInitialized()
+    {
+        ArmyData.Watcher = this;
+        if (!ArmyData.IsLoaded)
+        {
+            _loader = ArmyData.Load(Splash);
+            Watch(_loader);
+        }
+    }
+
+    public void ArmyDataLoaded() => _ = InvokeAsync(StateHasChanged);
+
+    public override void Dispose()
+    {
+        if (ReferenceEquals(ArmyData.Watcher, this))
+        {
+            ArmyData.Watcher = null;
+        }
+
+        base.Dispose();
+    }
+}

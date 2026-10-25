@@ -2,7 +2,7 @@
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:view="clr-namespace:InfinityMercsApp.Views.Season"
-             xmlns:seasonViewModels="clr-namespace:InfinityMercsApp.ViewModels.Season"
+             xmlns:seasonViewModels="clr-namespace:InfinityMercsApp.ViewModels.Season;assembly=InfinityMercsApp.ViewModels"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:season="clr-namespace:InfinityMercsApp.Services.Season;assembly=InfinityMercsApp.Services"
@@ -25,7 +25,7 @@
           RowDefinitions="Auto,*"
           RowSpacing="12"
           MaximumWidthRequest="{Binding Layout.MaximumWidth}"
-          HorizontalOptions="{Binding Layout.HorizontalOptions}">
+          HorizontalOptions="{Binding Layout.HorizontalOptions, Converter={StaticResource Alignment}}">
 
         <VerticalStackLayout Grid.Row="0" Spacing="4">
             <Label Text="Load Season"

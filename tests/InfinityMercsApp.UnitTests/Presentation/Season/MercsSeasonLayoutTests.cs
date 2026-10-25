@@ -13,9 +13,9 @@ public sealed class MercsSeasonLayoutTests
         Assert.Equal("*", layout.Columns);
         Assert.Equal("*,Auto", layout.Rows);
         Assert.Equal(new GridCell(1, 0), layout.ActionCell);
-        Assert.Equal(new Thickness(24, 0, 24, 40), layout.ActionPadding);
-        Assert.Equal(LayoutOptions.End, layout.ActionVerticalOptions);
-        Assert.Equal(LayoutOptions.Fill, layout.ActionHorizontalOptions);
+        Assert.Equal(new Inset(24, 0, 24, 40), layout.ActionPadding);
+        Assert.Equal(Alignment.End, layout.ActionVerticalOptions);
+        Assert.Equal(Alignment.Fill, layout.ActionHorizontalOptions);
         Assert.Equal(double.PositiveInfinity, layout.ActionMaximumWidth);
     }
 
@@ -25,7 +25,7 @@ public sealed class MercsSeasonLayoutTests
         var layout = MercsSeasonLayout.For(AdaptiveLayoutMode.Medium);
 
         Assert.Equal(new GridCell(1, 0), layout.ActionCell);
-        Assert.Equal(LayoutOptions.Center, layout.ActionHorizontalOptions);
+        Assert.Equal(Alignment.Center, layout.ActionHorizontalOptions);
         Assert.Equal(520, layout.ActionMaximumWidth);
     }
 
@@ -39,8 +39,8 @@ public sealed class MercsSeasonLayoutTests
         Assert.Equal("*,*", layout.Columns);
         Assert.Equal("*", layout.Rows);
         Assert.Equal(new GridCell(0, 1), layout.ActionCell);
-        Assert.Equal(new Thickness(24, 0), layout.ActionPadding);
-        Assert.Equal(LayoutOptions.Center, layout.ActionVerticalOptions);
+        Assert.Equal(Inset.Of(24, 0), layout.ActionPadding);
+        Assert.Equal(Alignment.Center, layout.ActionVerticalOptions);
         Assert.Equal(420, layout.ActionMaximumWidth);
     }
 }

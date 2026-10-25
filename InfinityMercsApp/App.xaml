@@ -12,6 +12,10 @@
             </ResourceDictionary.MergedDictionaries>
 
             <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+            <converters:RichTextConverter x:Key="RichText" />
+            <converters:AlignmentConverter x:Key="Alignment" />
+            <converters:InsetConverter x:Key="Inset" />
+            <converters:HtmlSourceConverter x:Key="HtmlSource" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

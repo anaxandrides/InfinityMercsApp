@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <layout:AdaptiveContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:seasonViewModels="clr-namespace:InfinityMercsApp.ViewModels.Season"
+             xmlns:seasonViewModels="clr-namespace:InfinityMercsApp.ViewModels.Season;assembly=InfinityMercsApp.ViewModels"
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="InfinityMercsApp.Views.Season.MercsSeasonPage"
@@ -46,9 +46,9 @@
 
         <!-- Action panel -->
         <Grid layout:GridLayout.Cell="{Binding Layout.ActionCell}"
-              Padding="{Binding Layout.ActionPadding}"
-              VerticalOptions="{Binding Layout.ActionVerticalOptions}"
-              HorizontalOptions="{Binding Layout.ActionHorizontalOptions}"
+              Padding="{Binding Layout.ActionPadding, Converter={StaticResource Inset}}"
+              VerticalOptions="{Binding Layout.ActionVerticalOptions, Converter={StaticResource Alignment}}"
+              HorizontalOptions="{Binding Layout.ActionHorizontalOptions, Converter={StaticResource Alignment}}"
               MaximumWidthRequest="{Binding Layout.ActionMaximumWidth}">
 
             <!-- Main actions, then the account, set apart so it doesn't read as part of the same group -->

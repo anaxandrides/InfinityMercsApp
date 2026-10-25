@@ -1,0 +1,21 @@
+@implements ICaptainPresenter
+@inject WebCaptainConfigurationDialog Captains
+
+@* The captain configuration, over the page while a company is being founded. *@
+@if (_viewModel is { } viewModel)
+{
+    <div class="backdrop"></div>
+    <CaptainConfiguration ViewModel="viewModel" />
+}
+
+@code {
+    private InfinityMercsApp.ViewModels.Captain.ConfigureCaptainViewModel? _viewModel;
+
+    protected override void OnInitialized() => Captains.Presenter = this;
+
+    public void Show(InfinityMercsApp.ViewModels.Captain.ConfigureCaptainViewModel? viewModel)
+    {
+        _viewModel = viewModel;
+        _ = InvokeAsync(StateHasChanged);
+    }
+}

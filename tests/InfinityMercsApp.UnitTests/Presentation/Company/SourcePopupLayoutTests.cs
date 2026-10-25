@@ -10,7 +10,7 @@ public sealed class SourcePopupLayoutTests
     {
         var layout = SourcePopupLayout.For(AdaptiveLayoutMode.Compact);
 
-        Assert.Equal(LayoutOptions.Fill, layout.ModalHorizontalOptions);
+        Assert.Equal(Alignment.Fill, layout.ModalHorizontalOptions);
         Assert.Equal("*", layout.CardsColumns);
         Assert.Equal("Auto,Auto", layout.CardsRows);
         Assert.Equal(new GridCell(1, 0), layout.SecondCardCell);
@@ -26,7 +26,7 @@ public sealed class SourcePopupLayoutTests
     {
         var layout = SourcePopupLayout.For(mode);
 
-        Assert.Equal(LayoutOptions.Center, layout.ModalHorizontalOptions);
+        Assert.Equal(Alignment.Center, layout.ModalHorizontalOptions);
         Assert.Equal(maximumWidth, layout.ModalMaximumWidth);
         Assert.Equal("*,*", layout.CardsColumns);
         Assert.Equal(new GridCell(0, 1), layout.SecondCardCell);

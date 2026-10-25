@@ -18,6 +18,7 @@ using InfinityMercsApp.UnitTests.Presentation.Company.Viewer;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Season.Overview;
 using NSubstitute;
+using InfinityMercsApp.Services.Links;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Season.Overview;
 
@@ -132,7 +133,7 @@ internal sealed class SeasonTestKit
         ]
     };
 
-    public MarketplaceDetailViewModel Popup() => new(Metadata, Substitute.For<IWikiDescriptionService>(), Substitute.For<ILauncher>());
+    public MarketplaceDetailViewModel Popup() => new(Metadata, Substitute.For<IWikiDescriptionService>(), Substitute.For<ILinkLauncher>());
 
     public SeasonViewModel SeasonViewModel() => new(
         Navigation, CompanyFiles, SeasonFiles, Stores, new StoreCatalog(Stores), ArmyData, Dialogs, CompanySelection, Dice, PackageFiles,

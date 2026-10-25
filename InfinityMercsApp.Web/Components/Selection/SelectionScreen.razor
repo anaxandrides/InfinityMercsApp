@@ -1,0 +1,65 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.Presentation.Company.Selection
+@using InfinityMercsApp.ViewModels.Company.Selection
+
+@* The shared selection view model: factions, units, the chosen unit's profiles, and the company. Wide windows show the
+   three side by side; narrow ones one at a time, chosen by the tabs. *@
+<LayoutWidth Apply="Screen.ApplyLayoutCommand" />
+
+<div class="selection-header">
+    <h1>@Screen.PageTitle</h1>
+    @if (Screen.IsFoundingCompany)
+    {
+        <label class="points">
+            <span>@Screen.SeasonPointsCapText /</span>
+            <select @bind="Screen.StartPointsChoice">
+                <option>60</option>
+                <option>75</option>
+                <option>90</option>
+            </select>
+            <span>points</span>
+            <span class="@(Screen.IsCompanyValid ? "ok" : "danger")" aria-label="@(Screen.IsCompanyValid ? "Ready to found" : "Not ready")">@(Screen.IsCompanyValid ? "✓" : "✗")</span>
+        </label>
+    }
+    @if (Screen.IsRecruiting)
+    {
+        <span class="credits">@Screen.CreditsLeftText</span>
+    }
+</div>
+
+<FactionPicker Screen="Screen" />
+
+@if (Screen.IsCompact)
+{
+    <div class="tabs" role="tablist">
+        <button role="tab" class="@(Screen.IsUnitsPaneActive ? "active" : null)" @onclick="() => Screen.ShowPaneCommand.Execute(CompanySelectionPane.Units)">UNITS</button>
+        <button role="tab" class="@(Screen.IsProfilePaneActive ? "active" : null)" @onclick="() => Screen.ShowPaneCommand.Execute(CompanySelectionPane.Profile)">PROFILE</button>
+        <button role="tab" class="@(Screen.IsCompanyPaneActive ? "active" : null)" @onclick="() => Screen.ShowPaneCommand.Execute(CompanySelectionPane.Company)">COMPANY</button>
+    </div>
+}
+
+<div class="selection-panes">
+    @if (Screen.ShowsUnitsPane)
+    {
+        <UnitListPane Screen="Screen" />
+    }
+    @if (Screen.ShowsDetailPane)
+    {
+        <ProfilePane Screen="Screen" />
+    }
+    @if (Screen.ShowsCompanyPane)
+    {
+        <RosterPane Screen="Screen" />
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required CompanySelectionViewModel Screen { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        StopWatching();
+        Watch(Screen);
+        await Screen.InitializeAsyncCommand.ExecuteAsync(null);
+    }
+}

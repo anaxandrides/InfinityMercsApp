@@ -1,0 +1,41 @@
+@inject LogoUrls Urls
+
+@* A logo from the view model's candidates: the first that loads; a blank of the same size while none does. *@
+@if (_index < _urls.Count)
+{
+    <img class="logo @Class" src="@_urls[_index]" alt="" width="@Size" height="@Size" loading="lazy" @onerror="TryNext" />
+}
+else
+{
+    <span class="logo logo-blank @Class" style="width:@(Size)px;height:@(Size)px"></span>
+}
+
+@code {
+    private IReadOnlyList<string> _urls = [];
+    private IReadOnlyList<string>? _resolved;
+    private int _index;
+
+    [Parameter] public IReadOnlyList<string>? Candidates { get; set; }
+
+    /// <summary>One source, as a view model gives it when it has only one.</summary>
+    [Parameter] public string? Source { get; set; }
+
+    [Parameter] public int Size { get; set; } = 32;
+
+    [Parameter] public string Class { get; set; } = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var candidates = Candidates ?? (Source is null ? [] : [Source]);
+        if (_resolved is not null && candidates.SequenceEqual(_resolved))
+        {
+            return;
+        }
+
+        _resolved = candidates;
+        _index = 0;
+        _urls = await Urls.ForAsync(candidates);
+    }
+
+    private void TryNext() => _index++;
+}

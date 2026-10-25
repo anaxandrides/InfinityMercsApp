@@ -15,13 +15,8 @@ namespace InfinityMercsApp.Views.Adaptive;
 /// <see cref="BindableObject.OnPropertyChanged"/> so bindings such as
 /// <c>{Binding Source={x:Reference Root}, Path=IsCompact}</c> re-evaluate on every mode change.
 /// </remarks>
-public abstract class AdaptiveContentPage : ContentPage
+public abstract class AdaptiveContentPage : ContentPage, IQueryAttributable
 {
-    // Breakpoints (logical units of page width) from AdaptiveLayoutDefinitions.md.
-    private const double MediumMinWidth = 600d;
-    private const double ExpandedMinWidth = 900d;
-    private const double WideMinWidth = 1200d;
-
     private AdaptiveLayoutMode _layoutMode = AdaptiveLayoutMode.Compact;
 
     /// <summary>The active layout mode for the current page width.</summary>
@@ -61,6 +56,9 @@ public abstract class AdaptiveContentPage : ContentPage
     public bool IsMediumOrWider => _layoutMode >= AdaptiveLayoutMode.Medium;
     public bool IsExpandedOrWider => _layoutMode >= AdaptiveLayoutMode.Expanded;
 
+    /// <summary>Shell gives the page its query; the view model, which knows nothing of Shell, takes it from here.</summary>
+    public void ApplyQueryAttributes(IDictionary<string, object> query) => (BindingContext as IViewModelBase)?.ApplyQueryAttributes(query);
+
     /// <summary>Reports the page shown; subclasses that override this call it first.</summary>
     protected override void OnAppearing()
     {
@@ -77,7 +75,7 @@ public abstract class AdaptiveContentPage : ContentPage
             return;
         }
 
-        LayoutMode = ResolveMode(width);
+        LayoutMode = AdaptiveLayoutModes.For(width);
     }
 
     /// <summary>
@@ -98,12 +96,4 @@ public abstract class AdaptiveContentPage : ContentPage
     protected virtual void OnLayoutModeChanged(AdaptiveLayoutMode mode)
     {
     }
-
-    private static AdaptiveLayoutMode ResolveMode(double width) => width switch
-    {
-        >= WideMinWidth => AdaptiveLayoutMode.Wide,
-        >= ExpandedMinWidth => AdaptiveLayoutMode.Expanded,
-        >= MediumMinWidth => AdaptiveLayoutMode.Medium,
-        _ => AdaptiveLayoutMode.Compact
-    };
 }

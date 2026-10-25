@@ -31,7 +31,6 @@ public sealed class MercsGlossaryViewModelTests
         Assert.Equal(3, viewModel.GlossaryItems.Count);
         Assert.Equal("Orders", viewModel.SelectedTitle);
         Assert.Contains("<h1", viewModel.SelectedContentHtml);
-        Assert.Equal(viewModel.SelectedContentHtml, viewModel.ContentSource.Html);
         Assert.False(viewModel.IsShowingDetail);
     }
 

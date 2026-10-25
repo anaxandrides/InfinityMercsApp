@@ -1,0 +1,26 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Company.Selection
+@using InfinityMercsApp.ViewModels.Company.Selection.Items
+
+@* A faction to pick: its logo over its name, ticked once chosen. *@
+<button class="faction-tile @(Item.IsSelected ? "chosen" : null)" @onclick="() => Screen.SelectFactionCommand.ExecuteAsync(Item)"
+        aria-pressed="@(Item.IsSelected ? "true" : "false")">
+    <Logo Candidates="Item.LogoCandidates" Size="48" />
+    <span class="name">@Item.Name</span>
+    @if (Item.IsSelected)
+    {
+        <span class="tick" aria-hidden="true">✓</span>
+    }
+</button>
+
+@code {
+    [Parameter, EditorRequired] public required ArmyFactionSelectionItem Item { get; set; }
+
+    [Parameter, EditorRequired] public required CompanySelectionViewModel Screen { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Item);
+    }
+}

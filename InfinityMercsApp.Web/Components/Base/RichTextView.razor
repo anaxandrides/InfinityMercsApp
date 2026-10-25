@@ -1,0 +1,29 @@
+@using InfinityMercsApp.Presentation.Text
+@inject InfinityMercsApp.Services.Links.ILinkLauncher Links
+
+@* A view model's rich text: each run in its colour, links opening the wiki in a new tab. *@
+<span class="rich @Class">
+    @foreach (var run in Text?.Runs ?? [])
+    {
+        if (run.IsEntryGap)
+        {
+            <span class="entry-gap"></span>
+        }
+        else if (run.Link is { } link)
+        {
+            <a href="@link" target="_blank" rel="noopener" style="@ColorOf(run)">@run.Text</a>
+        }
+        else
+        {
+            <span style="@ColorOf(run)">@run.Text</span>
+        }
+    }
+</span>
+
+@code {
+    [Parameter] public RichText? Text { get; set; }
+
+    [Parameter] public string Class { get; set; } = string.Empty;
+
+    private static string? ColorOf(RichTextRun run) => run.Color is { } color ? $"color:{color.ToRgbaHex(includeAlpha: true)}" : null;
+}

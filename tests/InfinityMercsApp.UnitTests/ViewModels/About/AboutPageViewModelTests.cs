@@ -2,12 +2,13 @@ using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.About;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using InfinityMercsApp.Services.Links;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.About;
 
 public sealed class AboutPageViewModelTests
 {
-    private readonly ILauncher _launcher = Substitute.For<ILauncher>();
+    private readonly ILinkLauncher _launcher = Substitute.For<ILinkLauncher>();
 
     private AboutPageViewModel Create() => new(Substitute.For<INavigationService>(), _launcher);
 
@@ -33,17 +34,17 @@ public sealed class AboutPageViewModelTests
     {
         await Create().OpenEmailCommand.ExecuteAsync(null);
 
-        await _launcher.Received(1).OpenAsync(Arg.Is<Uri>(uri => uri.ToString() == AboutPageViewModel.AuthorEmailUri));
+        await _launcher.Received(1).OpenAsync(Arg.Is<string>(uri => uri == AboutPageViewModel.AuthorEmailUri));
     }
 
     [Fact]
     public async Task OpenDiscordCommand_NoDiscordApp_FallsBackToTheWeb()
     {
-        _launcher.OpenAsync(Arg.Is<Uri>(uri => uri.Scheme == "discord")).ThrowsAsync(new InvalidOperationException());
+        _launcher.OpenAsync(Arg.Is<string>(uri => uri.StartsWith("discord:", StringComparison.Ordinal))).ThrowsAsync(new InvalidOperationException());
 
         await Create().OpenDiscordCommand.ExecuteAsync(null);
 
-        await _launcher.Received(1).OpenAsync(Arg.Is<Uri>(uri => uri.ToString().StartsWith(AboutPageViewModel.DiscordWebUri)));
+        await _launcher.Received(1).OpenAsync(Arg.Is<string>(uri => uri.StartsWith(AboutPageViewModel.DiscordWebUri, StringComparison.Ordinal)));
     }
 
     [Fact]
@@ -51,6 +52,6 @@ public sealed class AboutPageViewModelTests
     {
         await Create().OpenLinkCommand.ExecuteAsync(" ");
 
-        await _launcher.DidNotReceiveWithAnyArgs().OpenAsync(Arg.Any<Uri>());
+        await _launcher.DidNotReceiveWithAnyArgs().OpenAsync(Arg.Any<string>());
     }
 }

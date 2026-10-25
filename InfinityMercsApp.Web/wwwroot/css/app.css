@@ -150,3 +150,276 @@ button.link { background: none; border: none; color: var(--signal); padding: 0; 
 }
 .loading-progress-text { position: absolute; text-align: center; font-weight: 700; inset: calc(20vh + 3.25rem) 0 auto 0.2rem; color: var(--text-muted); }
 .loading-progress-text:after { content: var(--blazor-load-percentage-text, "Loading"); }
+
+/* ── The builder ─────────────────────────────────────────────────────────── */
+
+.top .links { margin-right: auto; display: flex; gap: 16px; }
+.top .links a { text-decoration: none; }
+
+.notice { padding: 10px 14px; border: 1px solid var(--signal-dim); border-radius: 4px; background: var(--plate); }
+.danger { color: var(--danger); }
+
+button.primary, button.secondary {
+    font: inherit;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 10px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+button.primary { background: var(--signal); color: var(--void); border: 1px solid var(--signal); }
+button.primary:disabled { background: var(--signal-dim); border-color: var(--signal-dim); cursor: not-allowed; }
+button.secondary { background: transparent; color: var(--text); border: 1px solid var(--hairline); }
+button.small { padding: 4px 10px; font-size: 0.85rem; }
+button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+.field {
+    font: inherit;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    background: var(--void);
+    color: var(--text);
+}
+
+select {
+    font: inherit;
+    padding: 6px 8px;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    background: var(--void);
+    color: var(--text);
+    max-width: 100%;
+}
+
+.logo { display: inline-block; flex: none; object-fit: contain; }
+
+.army-loading { max-width: 520px; margin: 12vh auto; text-align: center; }
+.army-loading progress { width: 100%; height: 10px; accent-color: var(--signal); }
+
+.company-choices {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.company-choice {
+    font: inherit;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 14px;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    background: var(--plate);
+    color: var(--text);
+    cursor: pointer;
+    text-align: center;
+}
+.company-choice:hover { border-color: var(--signal-dim); background: var(--plate-raised); }
+
+.source-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+
+/* Dialogs: one at a time over a dimmed page. */
+.backdrop { position: fixed; inset: 0; background: rgba(14, 17, 22, 0.8); z-index: 900; }
+.dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 901;
+    width: min(480px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+    padding: 20px;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    background: var(--plate);
+}
+.dialog h2 { margin-top: 0; color: var(--text); }
+.dialog .message { white-space: pre-line; }
+.dialog .buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+.dialog .choices { display: grid; gap: 8px; margin-top: 12px; }
+
+.rich .entry-gap { display: block; height: 2px; }
+
+/* The selection screen: factions on top, then units | the chosen unit | the company. */
+main:has(.selection-panes) { max-width: none; }
+
+.selection-header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.selection-header h1 { margin: 0.6em 0 0.3em; }
+.selection-header .points { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.selection-header .ok { color: var(--signal); font-weight: 700; }
+.selection-header .credits { margin-left: auto; color: var(--signal); font-weight: 700; }
+
+.faction-picker { border-bottom: 1px solid var(--hairline); padding-bottom: 8px; margin-bottom: 10px; }
+.faction-slots { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.faction-slot {
+    font: inherit;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 4px 12px;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    background: var(--plate);
+    color: var(--text);
+    cursor: pointer;
+}
+.faction-slot.active { border-color: var(--signal); }
+.faction-strip { display: flex; gap: 4px; overflow-x: auto; padding: 8px 0; }
+.faction-tile {
+    font: inherit;
+    position: relative;
+    flex: none;
+    width: 138px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 6px;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    text-align: center;
+}
+.faction-tile:hover { background: var(--plate); }
+.faction-tile.chosen { border-color: var(--signal); background: var(--plate-raised); }
+.faction-tile .tick { position: absolute; top: 4px; right: 8px; color: var(--signal); font-weight: 700; }
+
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.tabs button { font: inherit; font-weight: 700; padding: 8px; border: 1px solid var(--hairline); border-radius: 4px; background: transparent; color: var(--text-muted); cursor: pointer; }
+.tabs button.active { background: var(--signal); color: var(--void); border-color: var(--signal); }
+
+.selection-panes { display: grid; gap: 12px; grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 900px) { .selection-panes { grid-template-columns: minmax(240px, 1fr) minmax(320px, 1.4fr); } }
+@media (min-width: 1200px) { .selection-panes { grid-template-columns: minmax(260px, 0.9fr) minmax(380px, 1.4fr) minmax(320px, 1.1fr); } }
+.pane { min-width: 0; max-height: calc(100vh - 220px); overflow-y: auto; padding-right: 4px; }
+@media (max-width: 899px) { .pane { max-height: none; } }
+
+.unit-row {
+    font: inherit;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 50px;
+    padding: 6px 8px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+}
+.unit-row:hover { background: var(--plate); }
+.unit-row.highlighted { background: rgba(0, 0, 255, 0.5); }
+.unit-row.selected { background: #334155; }
+.unit-row .text, .entry-main .text, .core-fireteam .text { display: flex; flex-direction: column; min-width: 0; }
+.subtitle { color: var(--text-muted); font-size: 0.85rem; }
+.rule { font-weight: 700; margin: 6px 8px 8px; }
+
+.team-card { border: 1px solid var(--hairline); border-radius: 4px; padding: 8px; margin-bottom: 6px; }
+.team-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.team-slots { display: grid; grid-template-columns: 44px 44px 1fr; align-items: center; column-gap: 8px; margin-top: 6px; }
+.team-slots .heading { font-weight: 700; font-size: 0.85rem; }
+.team-slots .count { text-align: center; }
+
+.unit-header { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 4px 4px 0 0; }
+.unit-header .name { font-weight: 700; font-size: 1.15rem; }
+.unit-header .icons { margin-left: auto; display: flex; gap: 4px; }
+.statline { width: 100%; border-collapse: collapse; text-align: center; margin: 6px 0; }
+.statline th { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+.statline td, .statline th { padding: 2px 4px; border-bottom: 1px solid var(--hairline); }
+.statline td.modified { color: var(--signal); font-weight: 700; }
+.summary { margin: 4px 0; }
+.peripheral { padding: 6px 10px; border-left: 3px solid #FACC15; margin: 6px 0; }
+.profiles { display: grid; gap: 6px; }
+.profile-card {
+    font: inherit;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+}
+.profile-card:hover { border-color: var(--signal-dim); background: var(--plate); }
+.profile-card.blocked { background: #7F1D1D; }
+.profile-heading { display: flex; justify-content: space-between; gap: 12px; font-weight: 700; }
+.profile-heading .cost { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; font-weight: 400; white-space: nowrap; }
+.profile-columns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; font-size: 0.85rem; }
+@media (max-width: 599px) { .profile-columns { grid-template-columns: repeat(2, 1fr); } }
+.profile-columns .ranged { color: #EF4444; }
+.profile-columns .melee { color: #22C55E; }
+.profile-columns .equipment { color: #06B6D4; }
+.profile-columns .skills { color: #F59E0B; }
+.peripherals { color: #FACC15; font-size: 0.85rem; margin-left: 12px; }
+
+.company-name { display: grid; gap: 4px; margin-bottom: 8px; }
+.company-name label { font-weight: 700; }
+.field.invalid { border-color: var(--danger); }
+.core-fireteam { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; }
+.entries { display: grid; gap: 6px; }
+.entry-card { border: 1px solid var(--hairline); border-radius: 4px; padding: 6px 8px; }
+.entry-card.selected { border-color: var(--signal-dim); background: var(--plate); }
+.entry-main { font: inherit; width: 100%; display: flex; align-items: center; gap: 10px; border: none; background: transparent; color: var(--text); text-align: left; cursor: pointer; padding: 0; }
+.entry-main .cost { margin-left: auto; color: var(--text-secondary); white-space: nowrap; }
+.custom-name { color: var(--text-secondary); font-style: italic; }
+.badge { font-size: 0.75rem; padding: 0 6px; border: 1px solid var(--signal-dim); border-radius: 999px; color: var(--signal); }
+.entry-actions { display: flex; gap: 14px; justify-content: flex-end; margin-top: 4px; font-size: 0.9rem; }
+.entry-actions .danger { color: var(--danger); }
+.kit { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 6px 0; font-size: 0.9rem; }
+.kit dt { color: var(--text-muted); }
+.kit dd { margin: 0; }
+.kit .ranged { color: #F87171; }
+.kit .melee { color: #34D399; }
+.start { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; margin-top: 12px; position: sticky; bottom: 0; padding: 8px 0; background: var(--void); }
+
+/* The captain configuration. */
+.dialog.captain { width: min(980px, calc(100vw - 32px)); }
+.captain-body { display: grid; gap: 16px; }
+@media (min-width: 800px) { .captain-body { grid-template-columns: 1fr 1fr; } }
+.captain-name { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.captain .skills .lieutenant { color: #34D399; }
+.stat-upgrades, .choice-slots { display: flex; flex-wrap: wrap; gap: 6px; }
+.problems { color: var(--danger); margin: 4px 0; padding-left: 18px; }
+
+/* The season page: the company's header, then its troopers one at a time. */
+main:has(.team-tab) { max-width: 1280px; }
+.season-header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.season-header h1 { margin: 0.6em 0 0; }
+.season-header .renown { margin-left: auto; color: var(--signal); font-weight: 700; }
+.season-header .resources { color: var(--text-secondary); }
+.team-tab { display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .team-tab { grid-template-columns: minmax(220px, 300px) 1fr; } }
+.team-list { display: grid; gap: 2px; align-content: start; }
+.trooper-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.trooper-heading h2 { margin: 0; color: var(--text); }
+.trooper-heading .rank { color: var(--signal); }
+.section-heading { font-size: 0.9rem; letter-spacing: 0.08em; color: var(--text-muted); border-bottom: 1px solid var(--hairline); padding-bottom: 2px; margin: 14px 0 6px; }
+.section-heading.danger { color: var(--danger); }
+.profile-lines { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.profile-lines.skills div:not(.muted) { color: #F59E0B; }
+.profile-lines.ranged div:not(.muted) { color: var(--danger); }
+.profile-lines.melee div:not(.muted) { color: var(--signal); }
+.profile-lines.equipment div:not(.muted) { color: var(--text-secondary); }
+.perk { color: var(--signal); }
+.gear-slots { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.gear-slot { display: grid; gap: 4px; }
+.slot-heading { font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); }
+.trooper-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+button.secondary.danger { color: var(--danger); border-color: var(--danger); }

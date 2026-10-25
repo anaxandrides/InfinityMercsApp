@@ -35,7 +35,7 @@ public sealed class CreateNewCompanyLayoutTests
         Assert.Equal("Auto,*", card.Columns);
         Assert.Equal(new GridCell(0, 1), card.TitleCell);
         Assert.Equal(56, card.IconSize);
-        Assert.Equal(TextAlignment.Start, card.TitleTextAlignment);
+        Assert.Equal(Alignment.Start, card.TitleTextAlignment);
         Assert.True(card.UsesCompactTitle);
         Assert.Equal(72, card.MinimumHeight);
     }

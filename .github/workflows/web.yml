@@ -8,15 +8,33 @@ on:
     branches: [main]
     paths:
       - InfinityMercsApp.Web/**
+      - InfinityMercsApp.ViewModels/**
+      - InfinityMercsApp.Services/**
+      - InfinityMercsApp.Infrastructure/**
       - InfinityMercsApp.ApiClient/**
       - InfinityMercsApp.Domain/**
+      # The app's bundled files the site serves under package/ (InfinityMercsApp.Web.csproj).
+      - InfinityMercsApp/Resources/Raw/**
+      - InfinityMercsApp/Resources/Images/MercsIcons/**
+      - InfinityMercsApp/SVGCache/CBIcons/**
+      - InfinityMercsApp/SVGCache/NonCBIcons/**
+      - InfinityMercsApp/SVGCache/MercsIcons/**
       - tests/InfinityMercsApp.Web.UnitTests/**
       - .github/workflows/web.yml
   pull_request:
     paths:
       - InfinityMercsApp.Web/**
+      - InfinityMercsApp.ViewModels/**
+      - InfinityMercsApp.Services/**
+      - InfinityMercsApp.Infrastructure/**
       - InfinityMercsApp.ApiClient/**
       - InfinityMercsApp.Domain/**
+      # The app's bundled files the site serves under package/ (InfinityMercsApp.Web.csproj).
+      - InfinityMercsApp/Resources/Raw/**
+      - InfinityMercsApp/Resources/Images/MercsIcons/**
+      - InfinityMercsApp/SVGCache/CBIcons/**
+      - InfinityMercsApp/SVGCache/NonCBIcons/**
+      - InfinityMercsApp/SVGCache/MercsIcons/**
       - tests/InfinityMercsApp.Web.UnitTests/**
       - .github/workflows/web.yml
   workflow_dispatch:

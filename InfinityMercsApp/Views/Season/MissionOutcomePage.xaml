@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:seasonViewModels="clr-namespace:InfinityMercsApp.ViewModels.Season"
+             xmlns:seasonViewModels="clr-namespace:InfinityMercsApp.ViewModels.Season;assembly=InfinityMercsApp.ViewModels"
              xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
              x:Class="InfinityMercsApp.Views.Season.MissionOutcomePage"
              x:DataType="seasonViewModels:MissionOutcomeViewModel"

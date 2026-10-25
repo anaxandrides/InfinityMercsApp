@@ -10,7 +10,7 @@ namespace InfinityMercsApp.Services.Logos;
 /// the manifest names a new one, and again if the cache is cleared. Any logo the bundle lacks is downloaded on its own
 /// afterwards, by <see cref="FactionLogoCacheService"/>.
 /// </summary>
-public sealed class LogoBundleInstaller(IArmyMirror mirror, RecordPaths paths)
+public sealed class LogoBundleInstaller(IArmyMirror mirror, RecordPaths paths) : ILogoBundleInstaller
 {
     public const string MarkerFileName = ".logo-bundle";
 

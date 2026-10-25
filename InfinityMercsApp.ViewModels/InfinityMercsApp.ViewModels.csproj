@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The view models and what they present, free of MAUI's controls, so the phone and Windows app and the web site
+       share them: the MAUI pages and the Blazor components bind to the same view models. Colors are
+       Microsoft.Maui.Graphics colors, a standalone library that needs no MAUI app. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>InfinityMercsApp</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Maui.Graphics" Version="10.0.110" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.Maui.Graphics" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="InfinityMercsApp" />
+    <InternalsVisibleTo Include="InfinityMercsApp.Web" />
+    <InternalsVisibleTo Include="InfinityMercsApp.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InfinityMercsApp.Services\InfinityMercsApp.Services.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -4,7 +4,7 @@
              xmlns:layout="clr-namespace:InfinityMercsApp.Views.Adaptive"
              xmlns:perkTables="clr-namespace:InfinityMercsApp.Views.Controls.PerkTables"
              x:Class="InfinityMercsApp.Views.Reference.PerksTablesPage"
-             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels.Reference"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels.Reference;assembly=InfinityMercsApp.ViewModels"
              xmlns:perks="clr-namespace:InfinityMercsApp.Domain.Models.Perks.Tables;assembly=InfinityMercsApp.Domain"
              x:DataType="viewModels:PerksTablesViewModel"
              Title="Perks Tables">

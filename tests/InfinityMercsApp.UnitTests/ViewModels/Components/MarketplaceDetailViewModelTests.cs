@@ -4,6 +4,7 @@ using InfinityMercsApp.Services.Wiki;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Marketplaces.Items;
 using NSubstitute;
+using InfinityMercsApp.Services.Links;
 
 namespace InfinityMercsApp.UnitTests.ViewModels.Components;
 
@@ -12,7 +13,7 @@ public sealed class MarketplaceDetailViewModelTests
     private readonly IMetadataProvider _metadata = Substitute.For<IMetadataProvider>();
 
     private MarketplaceDetailViewModel Create() =>
-        new(_metadata, Substitute.For<IWikiDescriptionService>(), Substitute.For<ILauncher>());
+        new(_metadata, Substitute.For<IWikiDescriptionService>(), Substitute.For<ILinkLauncher>());
 
     [Fact]
     public async Task ShowWeaponAsync_KnownWeapon_ShowsItsProfiles()

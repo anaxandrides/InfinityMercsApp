@@ -1,0 +1,40 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Company.Selection
+@using InfinityMercsApp.ViewModels.Company.Selection.Items
+
+@* A fireteam: the troopers it allows, with how few and how many; a Cohesive company picks the one it tracks. *@
+@if (Team.IsVisible)
+{
+    <div class="team-card">
+        <div class="team-heading">
+            <span class="name">@Team.Name</span>
+            @if (Screen.TracksCoreFireteam && Team.ShowTrackingRadioButton)
+            {
+                <label class="track">
+                    <input type="radio" name="core-fireteam" checked="@Team.IsTrackedTeam" @onchange="() => Team.IsTrackedTeam = true" />
+                    Core fireteam
+                </label>
+            }
+        </div>
+        <div class="team-slots">
+            <span class="heading">MIN</span><span class="heading">MAX</span><span class="heading">UNIT</span>
+            @foreach (var slot in Team.AllowedProfiles)
+            {
+                <TeamSlotRow @key="slot" Slot="slot" Screen="Screen" />
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required ArmyTeamListItem Team { get; set; }
+
+    [Parameter, EditorRequired] public required CompanySelectionViewModel Screen { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Team);
+        WatchItems(Team.AllowedProfiles);
+    }
+}

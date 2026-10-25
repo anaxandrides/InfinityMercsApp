@@ -1,0 +1,11 @@
+@using InfinityMercsApp.Presentation.Units
+
+@* A unit's statline in a row of headings over values. *@
+<table class="statline">
+    <tr><th>MOV</th><th>CC</th><th>BS</th><th>PH</th><th>WIP</th><th>ARM</th><th>BTS</th><th>@Stats.VitalityHeader</th><th>S</th><th>AVA</th></tr>
+    <tr><td>@Stats.Mov</td><td>@Stats.Cc</td><td>@Stats.Bs</td><td>@Stats.Ph</td><td>@Stats.Wip</td><td>@Stats.Arm</td><td>@Stats.Bts</td><td>@Stats.Vitality</td><td>@Stats.S</td><td>@Stats.Ava</td></tr>
+</table>
+
+@code {
+    [Parameter, EditorRequired] public required UnitStatLine Stats { get; set; }
+}

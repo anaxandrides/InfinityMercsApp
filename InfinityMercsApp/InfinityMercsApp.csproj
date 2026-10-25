@@ -123,6 +123,7 @@
 	  <ProjectReference Include="..\InfinityMercsApp.Infrastructure\InfinityMercsApp.Infrastructure.csproj" />
 	  <ProjectReference Include="..\InfinityMercsApp.Domain\InfinityMercsApp.Domain.csproj" />
 	  <ProjectReference Include="..\InfinityMercsApp.Services\InfinityMercsApp.Services.csproj" />
+	  <ProjectReference Include="..\InfinityMercsApp.ViewModels\InfinityMercsApp.ViewModels.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

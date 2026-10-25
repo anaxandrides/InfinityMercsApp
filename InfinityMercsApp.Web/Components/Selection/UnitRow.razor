@@ -1,0 +1,41 @@
+@inherits ObservingComponent
+@using System.ComponentModel
+@using System.Windows.Input
+@using InfinityMercsApp.ViewModels.Company.Selection.Items
+@using InfinityMercsApp.ViewModels.UnitBrowser.Items
+
+@* A unit in the list: its logo, name and subtitle; the selected one is raised. Tapping runs the screen's command with it. *@
+@if (IsVisible)
+{
+    <button class="unit-row @(Item.IsSelected ? "selected" : null) @(IsHighlighted ? "highlighted" : null)" @onclick="() => Command.Execute(Item)">
+        <Logo Candidates="Item.LogoCandidates" Size="32" />
+        <span class="text">
+            <span class="name">@Item.Name</span>
+            @if (Item.HasSubtitle)
+            {
+                <span class="subtitle">@Item.Subtitle</span>
+            }
+        </span>
+    </button>
+}
+
+@code {
+    [Parameter, EditorRequired] public required IViewerListItem Item { get; set; }
+
+    [Parameter, EditorRequired] public required ICommand Command { get; set; }
+
+    [Parameter] public bool IsHighlighted { get; set; }
+
+    private bool IsVisible => Item switch
+    {
+        ArmyUnitSelectionItem unit => unit.IsVisible,
+        ArmyTeamUnitLimitItem slot => slot.IsVisible,
+        _ => true
+    };
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Item as INotifyPropertyChanged);
+    }
+}

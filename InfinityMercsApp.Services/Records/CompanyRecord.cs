@@ -9,6 +9,9 @@ public sealed record CompanyRecord(
     IReadOnlyList<string> FactionIconPaths,
     DateTimeOffset CreatedUtc)
 {
+    /// <summary>The company's own id, which names it online.</summary>
+    public string CompanyIdentifier { get; init; } = string.Empty;
+
     public string Subtitle => $"{CreatedUtc:yyyy-MM-dd HH:mm:ss} UTC";
 
     public string CompanyIconPath => CompanyType switch

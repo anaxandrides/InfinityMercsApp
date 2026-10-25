@@ -25,6 +25,14 @@ public sealed class SeasonRecordCatalogTests : IDisposable
     }
 
     [Fact]
+    public async Task ListAsync_SeasonWithIdentifier_ReportsIt()
+    {
+        _records.WriteSeason("s.json", """{"seasonIdentifier":"season-1","companyName":"Iron Wolves","createdDate":"2026-01-02"}""");
+
+        Assert.Equal("season-1", Assert.Single(await new SeasonRecordCatalog(_records.Paths).ListAsync()).SeasonIdentifier);
+    }
+
+    [Fact]
     public async Task ListAsync_CompanyPathMissing_FindsTheCompanyByIdentifier()
     {
         _records.WriteCompany("other.json", """{"companyIdentifier":"zzz"}""");

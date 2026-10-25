@@ -1,0 +1,31 @@
+@page "/companies/new"
+@inherits InfinityMercsApp.Web.Components.Base.ObservingComponent
+@using InfinityMercsApp.ViewModels.Company
+@inject CreateNewCompanyPageViewModel ViewModel
+
+<PageTitle>New company · Infinity Mercs</PageTitle>
+
+<ArmyDataGate>
+    <h1>Found a company</h1>
+    <p class="muted">Choose the kind of Mercenaries company to build.</p>
+    <ul class="company-choices">
+        @foreach (var choice in ViewModel.Choices)
+        {
+            <li>
+                <button class="company-choice" @onclick="() => choice.Command.ExecuteAsync(null)">
+                    <Logo Source="@choice.IconSource" Size="96" />
+                    <span class="title">@choice.Title</span>
+                </button>
+            </li>
+        }
+    </ul>
+    <SignInReminder />
+</ArmyDataGate>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        Watch(ViewModel);
+        await ViewModel.InitializeAsyncCommand.ExecuteAsync(null);
+    }
+}

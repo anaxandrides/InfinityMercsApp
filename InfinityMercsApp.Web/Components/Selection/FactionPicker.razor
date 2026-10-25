@@ -1,0 +1,47 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Company.Selection
+
+@* The factions to pick from, for the slot being filled; chosen ones are ticked. *@
+<section class="faction-picker" aria-label="Factions">
+    <div class="faction-slots">
+        <span class="muted">@Screen.Heading</span>
+        <FactionSlotButton Screen="Screen" Slot="0" />
+        @if (Screen.Slots.HasRightSlot)
+        {
+            <FactionSlotButton Screen="Screen" Slot="1" />
+        }
+        @if (Screen.ShowFactionStrip)
+        {
+            <button class="link" @onclick="() => Screen.CloseFactionStripCommand.Execute(null)">Hide factions</button>
+        }
+        else if (Screen.IsFoundingCompany)
+        {
+            <button class="link" @onclick="() => Screen.OpenFactionStripCommand.Execute(null)">Change factions</button>
+        }
+    </div>
+    @if (Screen.Slots.IsLoading)
+    {
+        <p class="muted">Loading the factions…</p>
+    }
+    @if (Screen.ShowFactionStrip)
+    {
+        <div class="faction-strip">
+            @foreach (var faction in Screen.Slots.Factions)
+            {
+                <FactionTile @key="faction" Item="faction" Screen="Screen" />
+            }
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public required CompanySelectionViewModel Screen { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Screen);
+        Watch(Screen.Slots);
+        WatchItems(Screen.Slots.Factions);
+    }
+}
