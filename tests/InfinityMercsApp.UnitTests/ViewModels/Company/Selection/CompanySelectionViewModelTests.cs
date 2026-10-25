@@ -66,6 +66,16 @@ public sealed class CompanySelectionViewModelTests
     }
 
     [Fact]
+    public async Task SelectFactionCommand_Faction_LoadsItsArmyFirst()
+    {
+        var viewModel = await OpenWithFactionAsync();
+
+        await _kit.ArmyLoader.Received().EnsureAsync(
+            Arg.Is<IReadOnlyCollection<int>>(ids => ids.Contains(viewModel.Slots.Factions[0].Id)), Arg.Any<CancellationToken>());
+        await _kit.ArmyLoader.DidNotReceive().EnsureEveryArmyAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task SelectFactionCommand_Faction_LoadsItsUnitsAndShowsTheFirst()
     {
         var viewModel = await OpenWithFactionAsync();

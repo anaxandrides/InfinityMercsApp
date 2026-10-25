@@ -43,6 +43,9 @@ public sealed class CohesiveCompanyRules(ArmySourceSelectionMode mode) : Company
 
     // ── Factions ────────────────────────────────────────────────────────────
 
+    /// <summary>Only factions with a valid core fireteam are listed, so each army is read.</summary>
+    public override bool ListsFromEveryArmy => true;
+
     /// <summary>The sectorials that can field a valid Core fireteam; each answer is cached per points limit and filter.</summary>
     public override async Task<IReadOnlyList<FactionRecord>> LoadFactionsAsync(CompanySelectionViewModel screen, CancellationToken cancellationToken)
     {

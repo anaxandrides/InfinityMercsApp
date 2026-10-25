@@ -84,6 +84,12 @@ public abstract class CompanyRules(ArmySourceSelectionMode mode)
     /// <summary>The factions the picker offers.</summary>
     public abstract Task<IReadOnlyList<FactionRecord>> LoadFactionsAsync(CompanySelectionViewModel screen, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Whether listing the factions reads every army (to find those fit for this company), so every army must be in the
+    /// army data first; otherwise the metadata is enough, and a faction's army is needed only once it is picked.
+    /// </summary>
+    public virtual bool ListsFromEveryArmy => false;
+
     /// <summary>Puts a picked faction in its slot and lists the units.</summary>
     public virtual Task AssignFactionAsync(CompanySelectionViewModel screen, ArmyFactionSelectionItem faction) =>
         screen.AssignToSlotAsync(faction);

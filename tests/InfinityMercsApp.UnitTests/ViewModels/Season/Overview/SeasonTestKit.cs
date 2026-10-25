@@ -135,10 +135,13 @@ internal sealed class SeasonTestKit
 
     public MarketplaceDetailViewModel Popup() => new(Metadata, Substitute.For<IWikiDescriptionService>(), Substitute.For<ILinkLauncher>());
 
+    public IArmyDataLoader ArmyLoader { get; } = Substitute.For<IArmyDataLoader>();
+
     public SeasonViewModel SeasonViewModel() => new(
         Navigation, CompanyFiles, SeasonFiles, Stores, new StoreCatalog(Stores), ArmyData, Dialogs, CompanySelection, Dice, PackageFiles,
         new CompanyRoster(ArmyData), new UnitDetailViewModel(ArmyData, Settings), Popup(),
-        new PeripheralTrades(CompanyFiles, SeasonFiles, Dialogs, ArmyData));
+        new PeripheralTrades(CompanyFiles, SeasonFiles, Dialogs, ArmyData),
+        ArmyLoader);
 
     /// <summary>A season page opened on the company with its season file, as the page would be on appearing.</summary>
     public async Task<SeasonViewModel> OpenAsync(bool withSeasonFile = true)

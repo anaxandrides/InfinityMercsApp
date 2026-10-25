@@ -49,6 +49,14 @@ public sealed class CohesiveCompanySelectionTests
     }
 
     [Fact]
+    public async Task InitializeAsync_Cohesive_LoadsEveryArmyToListTheFactions()
+    {
+        await OpenAsync();
+
+        await _kit.ArmyLoader.Received(1).EnsureEveryArmyAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task InitializeAsync_Sectorials_OffersThoseWithACoreFireteamAndCaches()
     {
         var viewModel = await OpenAsync();

@@ -53,6 +53,7 @@ public static class MercsServiceRegistry
         services.AddTransient<CompanySelectionServices>()
                 .AddTransient<CompanySelectionScreens>()
                 .AddSingleton<IArmyDataService, ArmyDataService>()
+                .AddSingleton<IArmyDataLoader, StoredArmyData>()
                 .AddSingleton<IStoreProvider, StoreProvider>()
                 .AddSingleton<StoreCatalog>()
                 .AddSingleton<FactionLogoCacheService>()

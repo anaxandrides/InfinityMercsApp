@@ -48,6 +48,9 @@ public abstract class GeneratedFactionCompanyRules(int companyFactionId, string 
         screen.UnitList.ShowLieutenantsOnly(true);
     }
 
+    /// <summary>Only sectorials with a lieutenant for the captain are listed, so each army is read.</summary>
+    public override bool ListsFromEveryArmy => true;
+
     /// <summary>The sectorials that have a unit able to be lieutenant.</summary>
     public override async Task<IReadOnlyList<FactionRecord>> LoadFactionsAsync(CompanySelectionViewModel screen, CancellationToken cancellationToken)
     {
