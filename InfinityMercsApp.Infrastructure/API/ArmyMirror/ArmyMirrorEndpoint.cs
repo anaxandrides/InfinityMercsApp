@@ -15,6 +15,9 @@ public sealed record ArmyMirrorEndpoint(Uri BaseAddress)
 
     public Uri Army(int factionId) => new(BaseAddress, $"army/units/{factionId}");
 
+    /// <summary>A generated company's faction (Airborne, Inspiring, TAG), already built (ArmyDefinitionJson).</summary>
+    public Uri Generated(int factionId) => new(BaseAddress, $"army/generated/{factionId}");
+
     /// <summary>Every faction's and unit's logo in one zip.</summary>
     public Uri Logos => new(BaseAddress, "army/logos");
 }

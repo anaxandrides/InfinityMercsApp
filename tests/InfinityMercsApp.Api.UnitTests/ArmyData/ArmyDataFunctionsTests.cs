@@ -15,7 +15,8 @@ public sealed class ArmyDataFunctionsTests
     {
         SnapshotId = SnapshotId,
         Metadata = new MirroredPayload("m1", DateTimeOffset.UnixEpoch),
-        Armies = [new MirroredArmy(101, "1.0", "a1", DateTimeOffset.UnixEpoch)]
+        Armies = [new MirroredArmy(101, "1.0", "a1", DateTimeOffset.UnixEpoch)],
+        Generated = [new MirroredArmy(2001, "g1", "generated-1", DateTimeOffset.UnixEpoch)]
     };
 
     private readonly IArmySnapshotStore _snapshots = Substitute.For<IArmySnapshotStore>();
@@ -156,5 +157,23 @@ public sealed class ArmyDataFunctionsTests
         var result = await _functions.GetLogosAsync(request, CancellationToken.None);
 
         Assert.Equal(StatusCodes.Status304NotModified, Assert.IsType<StatusCodeResult>(result).StatusCode);
+    }
+
+    [Fact]
+    public async Task GetGeneratedArmyAsync_Built_SendsItsPayload()
+    {
+        _snapshots.ReadLatestAsync(Arg.Any<CancellationToken>()).Returns(Snapshot);
+
+        await _functions.GetGeneratedArmyAsync(Request(), 2001, CancellationToken.None);
+
+        await _payloads.Received(1).OpenAsync("generated-1", Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetGeneratedArmyAsync_NotBuilt_IsNotFound()
+    {
+        _snapshots.ReadLatestAsync(Arg.Any<CancellationToken>()).Returns(Snapshot);
+
+        Assert.IsType<NotFoundResult>(await _functions.GetGeneratedArmyAsync(Request(), 2003, CancellationToken.None));
     }
 }

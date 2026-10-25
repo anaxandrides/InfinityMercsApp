@@ -26,12 +26,6 @@ internal sealed class ArmyDataUpdater(
 {
     private const int ConcurrentDownloads = 6;
 
-    /// <summary>
-    /// The version of the generated companies' rules (who may join the Airborne, Inspiring and TAG companies).
-    /// Raise it whenever a generator changes, so stored companies are rebuilt.
-    /// </summary>
-    internal const string GeneratedCompaniesVersion = "2";
-
     private static readonly HashSet<int> SuppressedFactionIds = [901];
 
     /// <inheritdoc/>
@@ -158,7 +152,7 @@ internal sealed class ArmyDataUpdater(
     /// <inheritdoc/>
     public bool RebuildOutdatedGeneratedCompanies(IProgress<ArmyDataProgress>? progress = null, CancellationToken cancellationToken = default)
     {
-        if (!HasStoredData() || appSettingsProvider.GetGeneratedCompaniesVersion() == GeneratedCompaniesVersion)
+        if (!HasStoredData() || appSettingsProvider.GetGeneratedCompaniesVersion() == GeneratedCompanies.RulesVersion)
         {
             return false;
         }
@@ -173,7 +167,7 @@ internal sealed class ArmyDataUpdater(
         Generate("Airborne Company", airborneCompanyFactionGenerator.Generate, cancellationToken);
         Generate("Inspiring Company", inspiringCompanyFactionGenerator.Generate, cancellationToken);
         Generate("TAG Company", tagCompanyFactionGenerator.Generate, cancellationToken);
-        appSettingsProvider.SetGeneratedCompaniesVersion(GeneratedCompaniesVersion);
+        appSettingsProvider.SetGeneratedCompaniesVersion(GeneratedCompanies.RulesVersion);
     }
 
     // True when the army is stored, usably, at the version the copy holds.

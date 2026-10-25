@@ -1,7 +1,6 @@
 using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Infrastructure.Repositories;
-using DbMetadataFaction = InfinityMercsApp.Infrastructure.Models.Database.Metadata.Faction;
 
 namespace InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
 
@@ -17,6 +16,12 @@ public sealed class TagCompanyFactionGenerator(
     private const string TagCompanyDefaultUnitName = "Repurposed Mining Equipment";
     private const string TagCompanyVersion = "tag-company-repurposed-mining-equipment-v3";
 
+    private static readonly GeneratedFactionListing Listing =
+        new(TagCompanyFactionId, "TAG Company", "tag-company", "SVGCache/MercsIcons/noun-battle-mech-1731140.svg");
+
+    /// <inheritdoc/>
+    public int FactionId => TagCompanyFactionId;
+
     /// <inheritdoc/>
     public void Generate(CancellationToken cancellationToken = default)
     {
@@ -25,34 +30,24 @@ public sealed class TagCompanyFactionGenerator(
         var existing = factionProvider.GetFactionSnapshot(TagCompanyFactionId);
         if (existing is not null && string.Equals(existing.Version, TagCompanyVersion, StringComparison.Ordinal))
         {
-            InsertMetadataFactionEntry();
+            Listing.StoreIn(sqliteRepository);
             Console.WriteLine($"[TagGen] No changes detected (version {TagCompanyVersion}), metadata refreshed.");
             return;
         }
 
         var tagFaction = BuildTagFaction();
-
-        armyImportProvider.Import(TagCompanyFactionId, tagFaction, cancellationToken);
-        InsertMetadataFactionEntry();
-
+        Store(tagFaction, cancellationToken);
         Console.WriteLine($"[TagGen] Synthetic faction {TagCompanyFactionId} imported with {tagFaction.Units.Count} unit.");
     }
 
-    private void InsertMetadataFactionEntry()
+    /// <inheritdoc/>
+    public ArmyDefinition? Build(CancellationToken cancellationToken = default) => BuildTagFaction();
+
+    /// <inheritdoc/>
+    public void Store(ArmyDefinition army, CancellationToken cancellationToken = default)
     {
-        sqliteRepository.Delete<DbMetadataFaction>(x => x.Id == TagCompanyFactionId);
-        sqliteRepository.Insert<DbMetadataFaction>(
-        [
-            new DbMetadataFaction
-            {
-                Id = TagCompanyFactionId,
-                ParentId = TagCompanyFactionId,
-                Name = "TAG Company",
-                Slug = "tag-company",
-                Discontinued = false,
-                Logo = "SVGCache/MercsIcons/noun-battle-mech-1731140.svg"
-            }
-        ]);
+        armyImportProvider.Import(TagCompanyFactionId, army, cancellationToken);
+        Listing.StoreIn(sqliteRepository);
     }
 
     /// <summary>The TAG company army: one unit, defined by the JSON templates below and parsed into typed models.</summary>

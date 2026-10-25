@@ -64,6 +64,20 @@ public sealed class ArmyDataFunctions(IArmySnapshotStore snapshots, IArmyPayload
         return new FileStreamResult(zip, "application/zip");
     }
 
+    /// <summary>
+    /// A generated company's faction (Airborne, Inspiring, TAG) as the current snapshot's armies build it
+    /// (ArmyDefinitionJson), for the web site, which reads it rather than build it in the browser.
+    /// </summary>
+    [Function("GetGeneratedArmy")]
+    public async Task<IActionResult> GetGeneratedArmyAsync(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "army/generated/{factionId:int}")] HttpRequest request,
+        int factionId,
+        CancellationToken cancellationToken)
+    {
+        var hash = (await snapshots.ReadLatestAsync(cancellationToken))?.Generated.FirstOrDefault(army => army.FactionId == factionId)?.Hash;
+        return PayloadResponses.For(request, hash is null ? null : await payloads.OpenAsync(hash, cancellationToken), PayloadResponses.CurrentCacheControl);
+    }
+
     /// <summary>A snapshot's manifest; it never changes.</summary>
     [Function("GetArmySnapshot")]
     public async Task<IActionResult> GetSnapshotAsync(

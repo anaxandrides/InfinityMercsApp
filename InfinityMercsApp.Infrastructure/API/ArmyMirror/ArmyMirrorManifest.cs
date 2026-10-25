@@ -24,4 +24,14 @@ public sealed record ArmyMirrorManifest
     /// was first built. Not part of the snapshot id: logos don't change what a company was built with.
     /// </summary>
     public MirroredPayload? Logos { get; init; }
+
+    /// <summary>
+    /// The Airborne, Inspiring and TAG companies' factions, built from this snapshot's armies so a client needn't build
+    /// them itself (GET army/generated/{factionId}); empty until first built. Not part of the snapshot id: they follow
+    /// from its armies and <see cref="GeneratedRulesVersion"/>.
+    /// </summary>
+    public IReadOnlyList<MirroredArmy> Generated { get; init; } = [];
+
+    /// <summary>The generated companies' rules version (GeneratedCompanies.RulesVersion) they were built by; null before.</summary>
+    public string? GeneratedRulesVersion { get; init; }
 }
