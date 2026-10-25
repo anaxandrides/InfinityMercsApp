@@ -1,5 +1,7 @@
 using InfinityMercsApp.Domain.Models.Company;
+using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
+using NSubstitute;
 using InfinityMercsApp.ViewModels.Company.Selection;
 using InfinityMercsApp.ViewModels.Company.Selection.Rules;
 using InfinityMercsApp.ViewModels.Components.UnitFilter;
@@ -36,6 +38,25 @@ public sealed class GeneratedFactionCompanySelectionTests
         Assert.True(viewModel.UnitList.LieutenantOnlyUnits);
         Assert.True(viewModel.UnitList.IsFilterActive);
         Assert.Equal([SelectionTestKit.Sectorial], viewModel.Slots.Factions.Select(faction => faction.Id));
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ListingsWorkedOutAhead_ListsTheirLieutenantSectorialsWithoutReadingEveryArmy()
+    {
+        _kit.ArmyLoader.Listings.Returns(new FactionListings { LieutenantFactionIds = [] });
+
+        var viewModel = await SelectionTestKit.OpenAsync(new CompanySelectionViewModel(_kit.Services, new InspiringCompanyRules()));
+
+        Assert.Empty(viewModel.Slots.Factions);
+        await _kit.ArmyLoader.DidNotReceive().EnsureEveryArmyAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task InitializeAsync_NoListings_ReadsEveryArmy()
+    {
+        await SelectionTestKit.OpenAsync(new CompanySelectionViewModel(_kit.Services, new AirborneCompanyRules()));
+
+        await _kit.ArmyLoader.Received(1).EnsureEveryArmyAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]

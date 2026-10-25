@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Infrastructure.API.ArmyMirror;
@@ -8,6 +9,7 @@ using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
 using InfinityMercsApp.Services.ArmyData;
+using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Sync;
 using InfinityMercsApp.Services.Telemetry;
@@ -25,6 +27,8 @@ public sealed partial class WebArmyData : ObservableObject, IArmyDataLoader
 {
     // The faction the app never loads (ArmyDataUpdater): a placeholder in the metadata with no army of its own.
     private const int SuppressedFactionId = 901;
+
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     // A pause between background loads, so the page can draw and answer between armies.
     private static readonly TimeSpan BackgroundPause = TimeSpan.FromMilliseconds(20);
@@ -95,6 +99,9 @@ public sealed partial class WebArmyData : ObservableObject, IArmyDataLoader
 
     public int TotalArmies => _armyIds.Count;
 
+    /// <inheritdoc/>
+    public FactionListings? Listings { get; private set; }
+
     /// <summary>Loads the metadata and starts on the armies, once however often it is called.</summary>
     public Task StartAsync() => _starting ??= StartOnceAsync();
 
@@ -129,8 +136,10 @@ public sealed partial class WebArmyData : ObservableObject, IArmyDataLoader
             _payloads.Use(_manifest);
             _ = _cache.PruneAsync(Hashes(_manifest));
 
+            var listings = _payloads.GetListingsAsync();
             var metadata = await _api.GetMetaDataAsync() ?? throw new InvalidDataException("The army data came back without its metadata.");
             _metadata.Import(metadata);
+            Listings = await ReadListingsAsync(listings);
             await _logos.CacheAllAsync(metadata.Factions);
             var listed = metadata.Factions.Select(faction => faction.Id).ToHashSet();
             _armyIds = _manifest.Armies
@@ -148,6 +157,21 @@ public sealed partial class WebArmyData : ObservableObject, IArmyDataLoader
         {
             Console.Error.WriteLine($"Loading the army data failed: {ex.Message}");
             FailureMessage = $"The army data couldn't be loaded ({ex.Message}). Reload the page to try again.";
+        }
+    }
+
+    // The listings the API worked out; null when it hasn't (an older API) or they can't be had, and the screens read every
+    // army to list those factions instead.
+    private static async Task<FactionListings?> ReadListingsAsync(Task<string?> listings)
+    {
+        try
+        {
+            return await listings is { } json ? JsonSerializer.Deserialize<FactionListings>(json, JsonOptions) : null;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException)
+        {
+            Console.Error.WriteLine($"The faction listings couldn't be read: {ex.Message}");
+            return null;
         }
     }
 

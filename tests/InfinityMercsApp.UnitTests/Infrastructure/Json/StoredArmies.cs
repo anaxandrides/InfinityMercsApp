@@ -34,7 +34,7 @@ internal sealed class StoredArmies
 
     public IReadOnlyList<ICompanyFactionGenerator> Generators { get; }
 
-    private MetadataProvider Metadata { get; }
+    public MetadataProvider Metadata { get; }
 
     public static async Task<StoredArmies> CreateAsync()
     {

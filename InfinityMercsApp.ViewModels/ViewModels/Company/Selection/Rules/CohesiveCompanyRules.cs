@@ -1,5 +1,6 @@
 using System.Globalization;
 using InfinityMercsApp.Domain.Company;
+using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
@@ -43,15 +44,26 @@ public sealed class CohesiveCompanyRules(ArmySourceSelectionMode mode) : Company
 
     // ── Factions ────────────────────────────────────────────────────────────
 
-    /// <summary>Only factions with a valid core fireteam are listed, so each army is read.</summary>
-    public override bool ListsFromEveryArmy => true;
+    /// <summary>
+    /// Only factions with a valid core fireteam are listed: each army is read, unless that was worked out ahead for this
+    /// points limit. It was worked out with no unit filter, so a filter set before a faction is picked reads every army.
+    /// </summary>
+    public override bool ReadsEveryArmyToList(CompanySelectionViewModel screen) => ListingFor(screen) is null;
 
     /// <summary>The sectorials that can field a valid Core fireteam; each answer is cached per points limit and filter.</summary>
     public override async Task<IReadOnlyList<FactionRecord>> LoadFactionsAsync(CompanySelectionViewModel screen, CancellationToken cancellationToken)
     {
         var services = screen.Services;
-        var maxCost = int.TryParse(screen.SelectedStartSeasonPoints, NumberStyles.Integer, CultureInfo.InvariantCulture, out var limit) ? limit : 0;
         var ordered = await services.FactionCatalog.LoadAsync(Mode, cancellationToken);
+        if (ListingFor(screen) is { } listing)
+        {
+            var fireteams = listing.Factions.ToDictionary(faction => faction.FactionId);
+            screen.CoreFireteam?.SetValidTeams(fireteams.Values.ToDictionary(
+                faction => faction.FactionId, faction => CoreFireteamEligibility.ToValidCoreFireteamSet(faction.ValidCoreFireteams.ToList())));
+            return ordered.Where(faction => fireteams.ContainsKey(faction.Id)).ToList();
+        }
+
+        var maxCost = PointsLimit(screen);
         var filterKey = ValidityFilterKey(screen.UnitList, maxCost);
         var cachedByFaction = services.SpecOps
             .GetCCFactionFireteamValidity(filterKey, ordered.Select(faction => faction.Id).ToList(), cancellationToken)
@@ -76,6 +88,23 @@ public sealed class CohesiveCompanyRules(ArmySourceSelectionMode mode) : Company
         screen.CoreFireteam?.SetValidTeams(cachedByFaction.Values.ToDictionary(
             row => row.FactionId, row => CoreFireteamEligibility.ToValidCoreFireteamSet(row.ValidCoreFireteams)));
         return ordered.Where(faction => cachedByFaction.TryGetValue(faction.Id, out var row) && row.HasValidCoreFireteams).ToList();
+    }
+
+    private static int PointsLimit(CompanySelectionViewModel screen) =>
+        int.TryParse(screen.SelectedStartSeasonPoints, NumberStyles.Integer, CultureInfo.InvariantCulture, out var limit) ? limit : 0;
+
+    // The listing worked out ahead for the screen's points limit, when there is one and no unit filter is set (it was
+    // worked out without one); a recruiting company's limit (its CR) is never one of the starting limits.
+    private static CohesiveListing? ListingFor(CompanySelectionViewModel screen)
+    {
+        var unitList = screen.UnitList;
+        var filter = unitList.ActiveFilter;
+        var unfiltered = filter.ToQuery().Terms.Count == 0 &&
+                         filter.MinPoints is null &&
+                         filter.MaxPoints is null &&
+                         !filter.LieutenantOnlyUnits &&
+                         !unitList.LieutenantOnlyUnits;
+        return unfiltered ? screen.Services.ArmyLoader?.Listings?.CohesiveAt(PointsLimit(screen)) : null;
     }
 
     // What the cached validity depends on: the points limit and the filter.

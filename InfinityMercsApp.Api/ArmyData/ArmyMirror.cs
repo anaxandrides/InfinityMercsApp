@@ -1,11 +1,12 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Azure;
-using InfinityMercsApp.Api.ArmyData.Generated;
 using InfinityMercsApp.Api.ArmyData.Logos;
-using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
+using InfinityMercsApp.Api.ArmyData.Prebuilt;
 using InfinityMercsApp.Infrastructure.API.ArmyMirror;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
+using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
+using InfinityMercsApp.Services.CompanySelection.Factions;
 using Microsoft.Extensions.Logging;
 
 namespace InfinityMercsApp.Api.ArmyData;
@@ -13,14 +14,15 @@ namespace InfinityMercsApp.Api.ArmyData;
 /// <summary>
 /// Copies Corvus Belli's army data, so the app and the web site read it from here: the metadata and each faction's
 /// army, kept exactly as served under their hashes. Each distinct set of them is a snapshot, kept for good. The logos
-/// they name are bundled into one zip whenever they change, and the generated companies' factions are built from them.
+/// they name are bundled into one zip whenever they change, and what the web site needs from every army (the generated
+/// companies' factions, the faction listings) is built from them ahead.
 /// </summary>
 public sealed class ArmyMirror(
     IArmyPayloadSource source,
     IArmyPayloadStore payloads,
     IArmySnapshotStore snapshots,
     LogoBundler logoBundler,
-    GeneratedArmyBuilder generatedArmies,
+    PrebuiltArmyBuilder prebuiltArmies,
     TimeProvider time,
     ILogger<ArmyMirror> logger)
 {
@@ -85,8 +87,8 @@ public sealed class ArmyMirror(
             ? await BundleLogosAsync(previous.Logos, [.. ArmyLogos.OfMetadata(metadataJson), .. armyLogos], now, cancellationToken)
             : previous.Logos;
         var snapshotId = ArmySnapshots.IdFor(metadata, kept);
-        var generated = failed.IsEmpty && NeedsGenerating(previous, snapshotId)
-            ? await BuildGeneratedAsync(previous, new CopiedPayloads(metadataJson, armyJson), now, cancellationToken)
+        var prebuilt = failed.IsEmpty && NeedsPrebuilding(previous, snapshotId)
+            ? await PrebuildAsync(previous, new CopiedPayloads(metadataJson, armyJson), now, cancellationToken)
             : previous;
         var manifest = new ArmyMirrorManifest
         {
@@ -95,8 +97,10 @@ public sealed class ArmyMirror(
             Metadata = metadata,
             Armies = kept,
             Logos = logos,
-            Generated = generated.Generated,
-            GeneratedRulesVersion = generated.GeneratedRulesVersion
+            Generated = prebuilt.Generated,
+            GeneratedRulesVersion = prebuilt.GeneratedRulesVersion,
+            Listings = prebuilt.Listings,
+            ListingsVersion = prebuilt.ListingsVersion
         };
 
         // The snapshot is kept before it becomes current, so the current one can always be read by its id.
@@ -114,29 +118,40 @@ public sealed class ArmyMirror(
             updated.Order().ToList(),
             failed.Order().ToList(),
             logos != previous.Logos,
-            !ReferenceEquals(generated, previous));
+            !ReferenceEquals(prebuilt, previous));
     }
 
-    // The generated factions follow from the armies and the rules that build them, so they are built again when either
-    // changed, or when there are none yet.
-    private static bool NeedsGenerating(ArmyMirrorManifest previous, string snapshotId) =>
+    // What is built ahead follows from the armies and the rules that build it, so it is built again when either changed,
+    // or when there is none yet.
+    private static bool NeedsPrebuilding(ArmyMirrorManifest previous, string snapshotId) =>
         previous.Generated.Count == 0 ||
+        previous.Listings is null ||
         previous.SnapshotId != snapshotId ||
-        previous.GeneratedRulesVersion != GeneratedCompanies.RulesVersion;
+        previous.GeneratedRulesVersion != GeneratedCompanies.RulesVersion ||
+        previous.ListingsVersion != FactionListings.Version;
 
-    // The manifest with newly built generated factions; the previous one when building failed, so they are kept.
-    private async Task<ArmyMirrorManifest> BuildGeneratedAsync(
+    // The manifest with what was newly built ahead; the previous one when building failed, so what was built stays.
+    private async Task<ArmyMirrorManifest> PrebuildAsync(
         ArmyMirrorManifest previous, CopiedPayloads copied, DateTimeOffset now, CancellationToken cancellationToken)
     {
         try
         {
-            var built = await generatedArmies.BuildAsync(copied, now, cancellationToken);
-            logger.LogInformation("Generated factions built: {Factions}.", string.Join(", ", built.Select(army => army.FactionId)));
-            return previous with { Generated = built, GeneratedRulesVersion = GeneratedCompanies.RulesVersion };
+            var built = await prebuiltArmies.BuildAsync(copied, now, cancellationToken);
+            logger.LogInformation(
+                "Built ahead: generated factions {Factions}, faction listings {Listings}.",
+                string.Join(", ", built.Generated.Select(army => army.FactionId)),
+                built.Listings.Hash);
+            return previous with
+            {
+                Generated = built.Generated,
+                GeneratedRulesVersion = GeneratedCompanies.RulesVersion,
+                Listings = built.Listings,
+                ListingsVersion = FactionListings.Version
+            };
         }
         catch (Exception ex) when (ex is RequestFailedException or IOException or InvalidDataException or JsonException)
         {
-            logger.LogWarning(ex, "The generated factions couldn't be built; the current ones stay.");
+            logger.LogWarning(ex, "Building ahead failed; what was built before stays.");
             return previous;
         }
     }

@@ -1,3 +1,5 @@
+using InfinityMercsApp.Services.CompanySelection.Factions;
+
 namespace InfinityMercsApp.Services.ArmyData;
 
 /// <summary>
@@ -11,4 +13,10 @@ public interface IArmyDataLoader
 
     /// <summary>Has every army in the army data, for a screen that compares them all.</summary>
     Task EnsureEveryArmyAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Which factions the company types that judge every army list, worked out ahead (by the API), so listing them
+    /// needn't read every army; null when there are none, and the screens work them out themselves.
+    /// </summary>
+    FactionListings? Listings { get; }
 }

@@ -32,6 +32,28 @@ public sealed class WebArmyDataTests
     }
 
     [Fact]
+    public async Task StartAsync_ApiWorkedOutListings_OffersThem()
+    {
+        var kit = new WebArmyDataKit();
+
+        await kit.Data.StartAsync();
+
+        Assert.Equal(WebArmyDataKit.Listings.LieutenantFactionIds, kit.Data.Listings?.LieutenantFactionIds);
+        Assert.Equal(["Haris"], kit.Data.Listings?.CohesiveAt(75)?.Factions.Single().ValidCoreFireteams);
+    }
+
+    [Fact]
+    public async Task StartAsync_ApiWithoutListings_OffersNone()
+    {
+        var kit = new WebArmyDataKit(apiBuiltGeneratedFactions: false);
+
+        await kit.Data.StartAsync();
+
+        Assert.True(kit.Data.IsReady);
+        Assert.Null(kit.Data.Listings);
+    }
+
+    [Fact]
     public async Task EnsureAsync_Army_StoresIt()
     {
         var kit = new WebArmyDataKit();

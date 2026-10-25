@@ -46,6 +46,17 @@ public sealed class CachedArmyPayloads(ArmyMirrorClient mirror, BrowserPayloadCa
     /// <summary>Lets go of an army once it is stored (or failed), so a later ask fetches it again.</summary>
     public void Release(int factionId) => _armies.TryRemove(factionId, out _);
 
+    /// <summary>Which factions the Airborne, Inspiring and Cohesive companies list, as the API worked them out; null when it hasn't.</summary>
+    public async Task<string?> GetListingsAsync(CancellationToken cancellationToken = default)
+    {
+        if (_manifest.Listings?.Hash is not { } hash)
+        {
+            return null;
+        }
+
+        return await KeptAsync(hash) ?? await KeepAsync(hash, await mirror.GetListingsAsync(cancellationToken));
+    }
+
     /// <summary>A generated company's faction as the API built it.</summary>
     public async Task<string> GetGeneratedArmyAsync(int factionId, CancellationToken cancellationToken = default)
     {

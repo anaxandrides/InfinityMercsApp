@@ -34,4 +34,13 @@ public sealed record ArmyMirrorManifest
 
     /// <summary>The generated companies' rules version (GeneratedCompanies.RulesVersion) they were built by; null before.</summary>
     public string? GeneratedRulesVersion { get; init; }
+
+    /// <summary>
+    /// Which factions the Airborne, Inspiring and Cohesive companies list (FactionListings), worked out from this
+    /// snapshot's armies so a client needn't read every army to list them (GET army/listings); null until first built.
+    /// </summary>
+    public MirroredPayload? Listings { get; init; }
+
+    /// <summary>The version of how the listings were worked out (FactionListings.Version); null before.</summary>
+    public string? ListingsVersion { get; init; }
 }

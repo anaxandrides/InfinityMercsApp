@@ -25,7 +25,7 @@
     {
         <p class="muted">
             Loading the factions…
-            @if (Screen.Rules.ListsFromEveryArmy && ArmyData.LoadedArmies < ArmyData.TotalArmies)
+            @if (Screen.Rules.ReadsEveryArmyToList(Screen) && ArmyData.LoadedArmies < ArmyData.TotalArmies)
             {
                 <span>(this company reads every army: @ArmyData.LoadedArmies of @ArmyData.TotalArmies loaded)</span>
             }

@@ -1,5 +1,4 @@
 using System.Globalization;
-using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Presentation.Company.Selection;
 using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Teams;
@@ -48,25 +47,21 @@ public abstract class GeneratedFactionCompanyRules(int companyFactionId, string 
         screen.UnitList.ShowLieutenantsOnly(true);
     }
 
-    /// <summary>Only sectorials with a lieutenant for the captain are listed, so each army is read.</summary>
-    public override bool ListsFromEveryArmy => true;
+    /// <summary>Only sectorials with a lieutenant for the captain are listed: each army is read, unless that was worked out ahead.</summary>
+    public override bool ReadsEveryArmyToList(CompanySelectionViewModel screen) => screen.Services.ArmyLoader?.Listings is null;
 
     /// <summary>The sectorials that have a unit able to be lieutenant.</summary>
     public override async Task<IReadOnlyList<FactionRecord>> LoadFactionsAsync(CompanySelectionViewModel screen, CancellationToken cancellationToken)
     {
         var factions = await screen.Services.FactionCatalog.LoadAsync(Mode, cancellationToken);
         _hasLoadedFactions = true;
-        return factions.Where(faction => HasLieutenant(screen, faction.Id, cancellationToken)).ToList();
-    }
+        if (screen.Services.ArmyLoader?.Listings is { } listings)
+        {
+            var lieutenants = listings.LieutenantFactionIds.ToHashSet();
+            return factions.Where(faction => lieutenants.Contains(faction.Id)).ToList();
+        }
 
-    private static bool HasLieutenant(CompanySelectionViewModel screen, int factionId, CancellationToken cancellationToken)
-    {
-        var armyData = screen.Services.ArmyData;
-        var skills = (armyData.GetFactionSnapshot(factionId, cancellationToken)?.Filters ?? ArmyFilterCatalog.Empty)
-            .Names(ArmyFilterSection.Skills);
-        return armyData
-            .GetMergedMercsArmyList([factionId], cancellationToken)
-            .Any(entry => entry.ProfileGroups.HasLieutenantOption(skills));
+        return factions.Where(faction => LieutenantFactions.Has(screen.Services.ArmyData, faction.Id, cancellationToken)).ToList();
     }
 
     /// <summary>The picked sectorial always goes in the left slot, whose units then show.</summary>

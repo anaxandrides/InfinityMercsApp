@@ -7,6 +7,7 @@ using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
 using InfinityMercsApp.Infrastructure.Providers.Metadata;
 using InfinityMercsApp.Infrastructure.Repositories.InMemory;
+using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Packaging;
 using InfinityMercsApp.Services.Records;
@@ -27,6 +28,13 @@ internal sealed class WebArmyDataKit
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
+    /// <summary>The listings the fake API serves when it built ahead.</summary>
+    public static FactionListings Listings { get; } = new()
+    {
+        LieutenantFactionIds = [102],
+        Cohesive = [new CohesiveListing(75, [new FactionFireteams(102, ["Haris"])])]
+    };
+
     public WebArmyDataKit(bool apiBuiltGeneratedFactions = true, bool manifestServed = true)
     {
         var tag = new TagCompanyFactionGenerator(new InMemoryRepository(), Substitute.For<IFactionProvider>(), Substitute.For<IArmyImportProvider>(), ArmyJsonReader.Shared)
@@ -36,10 +44,12 @@ internal sealed class WebArmyDataKit
             SnapshotId = "0123456789abcdef",
             Metadata = new MirroredPayload("metadata-hash", DateTimeOffset.UnixEpoch),
             Armies = [new MirroredArmy(PanOceania, "1", "army-hash", DateTimeOffset.UnixEpoch)],
-            Generated = apiBuiltGeneratedFactions ? [new MirroredArmy(TagCompanyFactionGenerator.TagCompanyFactionId, "t", "tag-hash", DateTimeOffset.UnixEpoch)] : []
+            Generated = apiBuiltGeneratedFactions ? [new MirroredArmy(TagCompanyFactionGenerator.TagCompanyFactionId, "t", "tag-hash", DateTimeOffset.UnixEpoch)] : [],
+            Listings = apiBuiltGeneratedFactions ? new MirroredPayload("listings-hash", DateTimeOffset.UnixEpoch) : null
         };
         var bodies = new Dictionary<string, string>
         {
+            ["army/listings"] = JsonSerializer.Serialize(Listings, JsonOptions),
             ["army/metadata"] = RepoFile.Read("InfinityMercsApp/ReferenceData/metadata.json"),
             [$"army/units/{PanOceania}"] = RepoFile.Read("InfinityMercsApp/ReferenceData/army-101.json"),
             [$"army/generated/{TagCompanyFactionGenerator.TagCompanyFactionId}"] = ArmyDefinitionJson.Write(tag)

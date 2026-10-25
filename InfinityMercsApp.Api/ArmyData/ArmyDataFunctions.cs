@@ -78,6 +78,19 @@ public sealed class ArmyDataFunctions(IArmySnapshotStore snapshots, IArmyPayload
         return PayloadResponses.For(request, hash is null ? null : await payloads.OpenAsync(hash, cancellationToken), PayloadResponses.CurrentCacheControl);
     }
 
+    /// <summary>
+    /// Which factions the Airborne, Inspiring and Cohesive companies list (FactionListings), worked out from the current
+    /// snapshot's armies, so the web site needn't read every army to list them.
+    /// </summary>
+    [Function("GetArmyListings")]
+    public async Task<IActionResult> GetListingsAsync(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "army/listings")] HttpRequest request,
+        CancellationToken cancellationToken)
+    {
+        var hash = (await snapshots.ReadLatestAsync(cancellationToken))?.Listings?.Hash;
+        return PayloadResponses.For(request, hash is null ? null : await payloads.OpenAsync(hash, cancellationToken), PayloadResponses.CurrentCacheControl);
+    }
+
     /// <summary>A snapshot's manifest; it never changes.</summary>
     [Function("GetArmySnapshot")]
     public async Task<IActionResult> GetSnapshotAsync(

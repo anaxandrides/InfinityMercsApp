@@ -32,6 +32,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\InfinityMercsApp.ApiClient\InfinityMercsApp.ApiClient.csproj" />
+    <!-- The selection screens' checks, to work out the faction listings ahead (FactionListingsBuilder). -->
+    <ProjectReference Include="..\InfinityMercsApp.Services\InfinityMercsApp.Services.csproj" />
     <ProjectReference Include="..\InfinityMercsApp.Domain\InfinityMercsApp.Domain.csproj" />
     <ProjectReference Include="..\InfinityMercsApp.Infrastructure\InfinityMercsApp.Infrastructure.csproj" />
   </ItemGroup>

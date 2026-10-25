@@ -1,10 +1,11 @@
 using System.Text.Json;
 using InfinityMercsApp.Api.ArmyData;
-using InfinityMercsApp.Api.ArmyData.Generated;
 using InfinityMercsApp.Api.ArmyData.Logos;
-using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
+using InfinityMercsApp.Api.ArmyData.Prebuilt;
 using InfinityMercsApp.Infrastructure.API.ArmyMirror;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
+using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
+using InfinityMercsApp.Services.CompanySelection.Factions;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -42,7 +43,7 @@ public sealed class ArmyMirrorTests
             _payloads,
             _snapshots,
             new LogoBundler(_logoSource, _logoBundles),
-            new GeneratedArmyBuilder(_payloads, NullLogger<InfinityArmyAPI>.Instance),
+            new PrebuiltArmyBuilder(_payloads, NullLogger<InfinityArmyAPI>.Instance),
             _time,
             NullLogger<ArmyMirror>.Instance);
     }
@@ -63,7 +64,9 @@ public sealed class ArmyMirrorTests
             Metadata = metadata,
             Armies = armies,
             Generated = [new MirroredArmy(TagCompanyFactionGenerator.TagCompanyFactionId, "tag", "tag-hash", Earlier)],
-            GeneratedRulesVersion = GeneratedCompanies.RulesVersion
+            GeneratedRulesVersion = GeneratedCompanies.RulesVersion,
+            Listings = new MirroredPayload("listings-hash", Earlier),
+            ListingsVersion = FactionListings.Version
         };
     }
 
@@ -255,43 +258,58 @@ public sealed class ArmyMirrorTests
     }
 
     [Fact]
-    public async Task RefreshAsync_EmptyMirror_BuildsTheGeneratedFactions()
+    public async Task RefreshAsync_EmptyMirror_BuildsTheGeneratedFactionsAndListings()
     {
         var refresh = await _mirror.RefreshAsync();
 
         var manifest = Written();
         var tag = Assert.Single(manifest.Generated, army => army.FactionId == TagCompanyFactionGenerator.TagCompanyFactionId);
         Assert.Equal(GeneratedCompanies.RulesVersion, manifest.GeneratedRulesVersion);
-        Assert.True(refresh.GeneratedUpdated);
+        Assert.Equal(FactionListings.Version, manifest.ListingsVersion);
+        Assert.True(refresh.PrebuiltUpdated);
         await _payloads.Received(1).SaveAsync(tag.Hash, Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _payloads.Received(1).SaveAsync(
+            manifest.Listings?.Hash ?? throw new InvalidOperationException("No listings."), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task RefreshAsync_NothingChanged_KeepsTheGeneratedFactions()
+    public async Task RefreshAsync_NothingChanged_KeepsWhatWasBuiltAhead()
     {
         var current = Current();
         _snapshots.ReadLatestAsync(Arg.Any<CancellationToken>()).Returns(current);
 
         var refresh = await _mirror.RefreshAsync();
 
-        Assert.False(refresh.GeneratedUpdated);
+        Assert.False(refresh.PrebuiltUpdated);
         Assert.Equal(current.Generated, Written().Generated);
+        Assert.Equal(current.Listings, Written().Listings);
     }
 
     [Fact]
-    public async Task RefreshAsync_RulesVersionChanged_RebuildsTheGeneratedFactions()
+    public async Task RefreshAsync_RulesVersionChanged_BuildsAheadAgain()
     {
         _snapshots.ReadLatestAsync(Arg.Any<CancellationToken>()).Returns(Current() with { GeneratedRulesVersion = "0" });
 
         var refresh = await _mirror.RefreshAsync();
 
-        Assert.True(refresh.GeneratedUpdated);
+        Assert.True(refresh.PrebuiltUpdated);
         Assert.Equal(GeneratedCompanies.RulesVersion, Written().GeneratedRulesVersion);
         Assert.DoesNotContain(Written().Generated, army => army.Hash == "tag-hash");
     }
 
     [Fact]
-    public async Task RefreshAsync_ArmyFailed_KeepsTheGeneratedFactions()
+    public async Task RefreshAsync_ListingsVersionChanged_BuildsAheadAgain()
+    {
+        _snapshots.ReadLatestAsync(Arg.Any<CancellationToken>()).Returns(Current() with { ListingsVersion = "0" });
+
+        var refresh = await _mirror.RefreshAsync();
+
+        Assert.True(refresh.PrebuiltUpdated);
+        Assert.NotEqual("listings-hash", Written().Listings?.Hash);
+    }
+
+    [Fact]
+    public async Task RefreshAsync_ArmyFailed_KeepsWhatWasBuiltAhead()
     {
         var current = Current() with { GeneratedRulesVersion = "0" };
         _snapshots.ReadLatestAsync(Arg.Any<CancellationToken>()).Returns(current);
@@ -299,7 +317,8 @@ public sealed class ArmyMirrorTests
 
         var refresh = await _mirror.RefreshAsync();
 
-        Assert.False(refresh.GeneratedUpdated);
+        Assert.False(refresh.PrebuiltUpdated);
         Assert.Equal(current.Generated, Written().Generated);
+        Assert.Equal(current.Listings, Written().Listings);
     }
 }

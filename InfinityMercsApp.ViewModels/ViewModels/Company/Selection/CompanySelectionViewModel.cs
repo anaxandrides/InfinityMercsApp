@@ -257,7 +257,7 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
         Slots.IsLoading = true;
         try
         {
-            if (Rules.ListsFromEveryArmy && Services.ArmyLoader is { } loader)
+            if (Rules.ReadsEveryArmyToList(this) && Services.ArmyLoader is { } loader)
             {
                 await loader.EnsureEveryArmyAsync(cancellationToken);
             }

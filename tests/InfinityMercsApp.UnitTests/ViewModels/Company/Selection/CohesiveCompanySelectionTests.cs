@@ -1,6 +1,7 @@
 using InfinityMercsApp.Domain.Fireteams;
 using InfinityMercsApp.Domain.Models.Filtering;
 using InfinityMercsApp.Domain.Models.Company;
+using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection;
@@ -53,6 +54,41 @@ public sealed class CohesiveCompanySelectionTests
     {
         await OpenAsync();
 
+        await _kit.ArmyLoader.Received(1).EnsureEveryArmyAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ListingsWorkedOutAhead_ListsThemWithoutReadingEveryArmy()
+    {
+        _kit.ArmyLoader.Listings.Returns(new FactionListings
+        {
+            Cohesive = [new CohesiveListing(75, [new FactionFireteams(SelectionTestKit.Sectorial, ["Haris"])])]
+        });
+
+        var viewModel = await OpenAsync();
+
+        Assert.Equal([SelectionTestKit.Sectorial], viewModel.Slots.Factions.Select(faction => faction.Id));
+        await _kit.ArmyLoader.DidNotReceive().EnsureEveryArmyAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ListingsWorkedOutAheadListNone_ListsNone()
+    {
+        _kit.ArmyLoader.Listings.Returns(new FactionListings { Cohesive = [new CohesiveListing(75, [])] });
+
+        var viewModel = await OpenAsync();
+
+        Assert.Empty(viewModel.Slots.Factions);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ListingsLackThePointsLimit_ReadsEveryArmy()
+    {
+        _kit.ArmyLoader.Listings.Returns(new FactionListings { Cohesive = [new CohesiveListing(60, [])] });
+
+        var viewModel = await OpenAsync();
+
+        Assert.NotEmpty(viewModel.Slots.Factions);
         await _kit.ArmyLoader.Received(1).EnsureEveryArmyAsync(Arg.Any<CancellationToken>());
     }
 
