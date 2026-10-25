@@ -175,6 +175,14 @@ public sealed class CompanyFunctionsTests
     }
 
     [Fact]
+    public async Task SaveAsync_BadId_IsNotFound() =>
+        Assert.IsType<NotFoundResult>(await _functions.SaveAsync(Request(Save(0)), "../other", CancellationToken.None));
+
+    [Fact]
+    public async Task DeleteAsync_BadId_IsNotFound() =>
+        Assert.IsType<NotFoundResult>(await _functions.DeleteAsync(Request(query: "?baseRevision=1"), "../other", CancellationToken.None));
+
+    [Fact]
     public async Task GetAsync_OwnCompany_IsReturned()
     {
         Store(3);

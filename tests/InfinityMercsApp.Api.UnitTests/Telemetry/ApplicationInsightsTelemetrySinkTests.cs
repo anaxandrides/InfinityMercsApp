@@ -70,4 +70,30 @@ public sealed class ApplicationInsightsTelemetrySinkTests
 
         Assert.Equal(900, Assert.IsType<EventTelemetry>(Assert.Single(_channel.Sent)).Metrics["Milliseconds"]);
     }
+
+    [Fact]
+    public void Write_SyncFailure_IsAnEventWithItsDetailAndNoMeasurement()
+    {
+        _sink.Write(TelemetryBatches.With(TelemetryBatches.PageShown with { Kind = TelemetryKind.SyncFailure, Name = "Save", Detail = "Rejected", Value = null }), userId: null);
+
+        var record = Assert.IsType<EventTelemetry>(Assert.Single(_channel.Sent));
+        Assert.Equal("Rejected", record.Properties["Detail"]);
+        Assert.Empty(record.Metrics);
+    }
+
+    [Fact]
+    public void Write_CrashWithoutDetails_IsAnExceptionWithoutAStack()
+    {
+        _sink.Write(TelemetryBatches.With(TelemetryBatches.Crash with { Detail = null, StackTrace = null }), userId: null);
+
+        var details = Assert.Single(Assert.IsType<ExceptionTelemetry>(Assert.Single(_channel.Sent)).ExceptionDetailsInfoList);
+        Assert.Equal(string.Empty, details.Message);
+    }
+
+    [Theory]
+    [InlineData(TelemetryKind.PageShown, "JavaObjects")]
+    [InlineData(TelemetryKind.Startup, "Milliseconds")]
+    [InlineData(TelemetryKind.SyncFailure, "Value")]
+    public void MeasurementName_Kind_NamesWhatItMeasures(TelemetryKind kind, string expected) =>
+        Assert.Equal(expected, ApplicationInsightsTelemetrySink.MeasurementName(kind));
 }
