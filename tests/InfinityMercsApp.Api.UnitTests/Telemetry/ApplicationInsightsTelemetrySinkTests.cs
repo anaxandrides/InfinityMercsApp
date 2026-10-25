@@ -1,3 +1,4 @@
+using InfinityMercsApp.ApiClient.Telemetry;
 using InfinityMercsApp.Api.Telemetry;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -60,5 +61,13 @@ public sealed class ApplicationInsightsTelemetrySinkTests
         _sink.Write(TelemetryBatches.With(TelemetryBatches.PageShown), "user-1");
 
         Assert.Equal("user-1", Assert.Single(_channel.Sent).Context.User.AuthenticatedUserId);
+    }
+
+    [Fact]
+    public void Write_Timing_IsAnEventWithItsMilliseconds()
+    {
+        _sink.Write(TelemetryBatches.With(TelemetryBatches.PageShown with { Kind = TelemetryKind.Timing, Name = "ArmyWait", Value = 900 }), userId: null);
+
+        Assert.Equal(900, Assert.IsType<EventTelemetry>(Assert.Single(_channel.Sent)).Metrics["Milliseconds"]);
     }
 }

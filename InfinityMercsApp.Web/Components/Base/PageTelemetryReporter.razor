@@ -1,0 +1,20 @@
+@using InfinityMercsApp.Services.Telemetry
+@inject ITelemetryRecorder Telemetry
+@inject TimeProvider Time
+
+@* Reports each page shown, by its component's name, as the app reports its pages. *@
+
+@code {
+    private Type? _reported;
+
+    [Parameter, EditorRequired] public required Type PageType { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (PageType != _reported)
+        {
+            _reported = PageType;
+            Telemetry.Record(TelemetryEvents.PageShown(PageType.Name, javaObjects: null, Time.GetUtcNow()));
+        }
+    }
+}

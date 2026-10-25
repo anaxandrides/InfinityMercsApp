@@ -1,0 +1,17 @@
+@using InfinityMercsApp.Services.Telemetry
+@inject ITelemetrySettings Telemetry
+@inject BrowserTelemetry Browser
+
+@* The site's diagnostics switch, as the app's Settings has. *@
+<label class="diagnostics" title="Pages shown, crashes, load times and sync failures, to help fix problems. Never your companies, names or account.">
+    <input type="checkbox" checked="@Telemetry.IsEnabled" @onchange="ToggleAsync" />
+    Send anonymous diagnostics
+</label>
+
+@code {
+    private async Task ToggleAsync(ChangeEventArgs e)
+    {
+        Telemetry.SetEnabled(e.Value is true);
+        await Browser.SaveAsync();
+    }
+}

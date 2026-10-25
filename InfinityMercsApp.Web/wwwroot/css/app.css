@@ -423,3 +423,6 @@ main:has(.team-tab) { max-width: 1280px; }
 .slot-heading { font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); }
 .trooper-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
 button.secondary.danger { color: var(--danger); border-color: var(--danger); }
+
+.bottom { max-width: 960px; margin: 0 auto; padding: 16px; border-top: 1px solid var(--hairline); color: var(--text-muted); font-size: 0.85rem; }
+.diagnostics { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
