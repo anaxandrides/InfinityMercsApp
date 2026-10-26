@@ -42,7 +42,7 @@ public sealed class DocumentSyncTests : IDisposable
         var report = await _sync.RunAsync();
 
         Assert.Equal(SyncRunStatus.SignedOut, report.Status);
-        await _api.DidNotReceiveWithAnyArgs().ListAsync<SavedCompanyFile>(default, default!, default);
+        await _api.DidNotReceive().ListAsync<SavedCompanyFile>(Arg.Any<UserDocumentKind>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public sealed class DocumentSyncTests : IDisposable
 
         await _sync.RunAsync();
 
-        await _api.DidNotReceiveWithAnyArgs().SaveAsync<SavedCompanyFile>(default, default!, default!, default!, default);
+        await _api.DidNotReceive().SaveAsync(Arg.Any<UserDocumentKind>(), Arg.Any<string>(), Arg.Any<UserDocumentWrite<SavedCompanyFile>>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         Assert.Equal(SyncOperation.None, _ledger.Find(Wolves)?.Pending);
     }
 
@@ -87,7 +87,7 @@ public sealed class DocumentSyncTests : IDisposable
         var report = await _sync.RunAsync();
 
         Assert.Equal(new FileCounts(1, 0), report.Unclaimed);
-        await _api.DidNotReceiveWithAnyArgs().SaveAsync<SavedCompanyFile>(default, default!, default!, default!, default);
+        await _api.DidNotReceive().SaveAsync(Arg.Any<UserDocumentKind>(), Arg.Any<string>(), Arg.Any<UserDocumentWrite<SavedCompanyFile>>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
 
         _ledger.ClaimAll();
         await _sync.RunAsync();
@@ -105,7 +105,7 @@ public sealed class DocumentSyncTests : IDisposable
         var report = await _sync.RunAsync();
 
         Assert.Equal(0, report.Unclaimed.Total);
-        await _api.DidNotReceiveWithAnyArgs().SaveAsync<SavedCompanyFile>(default, default!, default!, default!, default);
+        await _api.DidNotReceive().SaveAsync(Arg.Any<UserDocumentKind>(), Arg.Any<string>(), Arg.Any<UserDocumentWrite<SavedCompanyFile>>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

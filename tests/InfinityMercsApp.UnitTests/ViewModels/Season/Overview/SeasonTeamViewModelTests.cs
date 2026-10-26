@@ -737,7 +737,7 @@ public sealed class SeasonTeamViewModelTests
 
         await _team.RenameCommand.ExecuteAsync(null);
 
-        await _changes.DidNotReceiveWithAnyArgs().RenameAsync(default, default!);
+        await _changes.DidNotReceive().RenameAsync(Arg.Any<int>(), Arg.Any<string>());
     }
 
     [Fact]

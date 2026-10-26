@@ -241,7 +241,7 @@ public sealed class ArmyMirrorTests
 
         Assert.False(refresh.LogosUpdated);
         Assert.Equal(Earlier, Written().Logos?.UpdatedAt);
-        await _logoBundles.DidNotReceiveWithAnyArgs().SaveAsync(default!, default!, default);
+        await _logoBundles.DidNotReceive().SaveAsync(Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -254,7 +254,7 @@ public sealed class ArmyMirrorTests
         await _mirror.RefreshAsync();
 
         Assert.Equal(earlier, Written().Logos);
-        await _logoBundles.DidNotReceiveWithAnyArgs().SaveAsync(default!, default!, default);
+        await _logoBundles.DidNotReceive().SaveAsync(Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
