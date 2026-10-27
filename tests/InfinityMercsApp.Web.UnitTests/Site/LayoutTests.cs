@@ -85,6 +85,7 @@ public sealed class LayoutTests : SiteContext
         toggle.Find("input").Change(false);
 
         Assert.False(settings.IsEnabled);
-        Assert.Contains(JSInterop.Invocations, invocation => invocation.Identifier == "saveSettings");
+        // Saving reads the setting's file before handing it to the browser, after the change event has returned.
+        toggle.WaitForAssertion(() => Assert.Contains(JSInterop.Invocations, invocation => invocation.Identifier == "saveSettings"), Patience);
     }
 }
