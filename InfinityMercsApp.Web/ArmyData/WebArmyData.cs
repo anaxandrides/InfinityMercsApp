@@ -23,7 +23,7 @@ namespace InfinityMercsApp.Web.ArmyData;
 /// memory without a long wait up front. Payloads are kept in the browser's cache, so later visits load them from there.
 /// The generated companies' factions come from the API ready built.
 /// </summary>
-public sealed partial class WebArmyData : ObservableObject, IArmyDataLoader
+public sealed partial class WebArmyData : ObservableObject, IArmyDataLoader, IDisposable
 {
     // The faction the app never loads (ArmyDataUpdater): a placeholder in the metadata with no army of its own.
     private const int SuppressedFactionId = 901;
@@ -50,6 +50,7 @@ public sealed partial class WebArmyData : ObservableObject, IArmyDataLoader
     private readonly TimeProvider _time;
     private readonly IJSRuntime _js;
     private readonly SemaphoreSlim _one = new(1, 1);
+    private readonly CancellationTokenSource _stopping = new();
     private readonly HashSet<int> _loaded = [];
     private ArmyMirrorManifest _manifest = new();
     private IReadOnlyList<int> _armyIds = [];
@@ -175,15 +176,27 @@ public sealed partial class WebArmyData : ObservableObject, IArmyDataLoader
         }
     }
 
-    // Loads the armies no screen has asked for yet, one at a time, pausing between them.
+    /// <summary>Stops loading armies in the background, as when the site's services are disposed.</summary>
+    /// <remarks>The source is only cancelled: a fill starting afterwards still reads its token, and it holds no timer.</remarks>
+    public void Dispose() => _stopping.Cancel();
+
+    // Loads the armies no screen has asked for yet, one at a time, pausing between them, until the services are disposed.
     private async Task FillAsync()
     {
+        var stopping = _stopping.Token;
         var watch = Stopwatch.StartNew();
-        for (var index = 0; index < _armyIds.Count; index++)
+        try
         {
-            _payloads.FetchAhead(_armyIds.Skip(index).Take(BackgroundFetchAhead).Where(factionId => !_loaded.Contains(factionId)));
-            await LoadAsync(_armyIds[index], CancellationToken.None);
-            await Task.Delay(BackgroundPause);
+            for (var index = 0; index < _armyIds.Count; index++)
+            {
+                _payloads.FetchAhead(_armyIds.Skip(index).Take(BackgroundFetchAhead).Where(factionId => !_loaded.Contains(factionId)));
+                await LoadAsync(_armyIds[index], stopping);
+                await Task.Delay(BackgroundPause, stopping);
+            }
+        }
+        catch (OperationCanceledException) when (stopping.IsCancellationRequested)
+        {
+            return;
         }
 
         _telemetry.Record(TelemetryEvents.Timing(

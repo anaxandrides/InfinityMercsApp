@@ -84,4 +84,35 @@ public sealed class WebArmyDataTests
         Assert.NotEmpty(kit.Factions.GetUnitsByFaction(AirborneCompanyFactionGenerator.AirborneCompanyFactionId));
         Assert.DoesNotContain(kit.Api.Requested, path => path.StartsWith("army/generated/", StringComparison.Ordinal));
     }
+
+    [Fact]
+    public async Task StartAsync_LeftRunning_FillsTheRestAndSaysHowLongItTook()
+    {
+        var kit = new WebArmyDataKit();
+
+        await kit.Data.StartAsync();
+
+        await WaitForFill(kit);
+        kit.Telemetry.Received(1).Record(Arg.Is<TelemetryEvent>(e => e.Kind == TelemetryKind.Timing && e.Name == "ArmyFill"));
+    }
+
+    [Fact]
+    public async Task Dispose_WhileFilling_StopsWithoutReporting()
+    {
+        var kit = new WebArmyDataKit();
+        await kit.Data.StartAsync();
+
+        kit.Data.Dispose();
+
+        await Task.Delay(200);
+        kit.Telemetry.DidNotReceive().Record(Arg.Is<TelemetryEvent>(e => e.Name == "ArmyFill"));
+    }
+
+    private static async Task WaitForFill(WebArmyDataKit kit)
+    {
+        for (var tries = 0; tries < 100 && !kit.Telemetry.ReceivedCalls().Any(call => call.GetArguments()[0] is TelemetryEvent { Name: "ArmyFill" }); tries++)
+        {
+            await Task.Delay(20);
+        }
+    }
 }

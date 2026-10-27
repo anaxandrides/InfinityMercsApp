@@ -117,12 +117,26 @@ public abstract class SiteContext : BunitContext
     protected T Get<T>()
         where T : notnull => Services.GetRequiredService<T>();
 
+    // Disposing the services stops the background army fill; a page's load started without waiting (ArmyDataGate) may
+    // still write a telemetry line or a file as the folder goes, so it is tried again for a moment.
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        if (disposing && Directory.Exists(_folder))
+        if (!disposing)
         {
-            Directory.Delete(_folder, recursive: true);
+            return;
+        }
+
+        for (var attempt = 1; Directory.Exists(_folder); attempt++)
+        {
+            try
+            {
+                Directory.Delete(_folder, recursive: true);
+            }
+            catch (IOException) when (attempt < 10)
+            {
+                Thread.Sleep(50);
+            }
         }
     }
 
