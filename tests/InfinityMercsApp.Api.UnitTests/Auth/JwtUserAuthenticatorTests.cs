@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
+using NSubstitute;
 
 namespace InfinityMercsApp.Api.UnitTests.Auth;
 
@@ -121,4 +122,29 @@ public sealed class JwtUserAuthenticatorTests : IDisposable
 
         Assert.Null(await authenticator.AuthenticateAsync(Request($"Bearer {Token()}")));
     }
+
+    [Fact]
+    public async Task AuthenticateAsync_TenantRolledItsKeys_FetchesThemAgain()
+    {
+        var stale = new OpenIdConnectConfiguration { Issuer = Issuer };
+        stale.SigningKeys.Add(new RsaSecurityKey(_otherRsa) { KeyId = "key-0" });
+        var fresh = new OpenIdConnectConfiguration { Issuer = Issuer };
+        fresh.SigningKeys.Add(_key);
+        var keys = Substitute.For<IConfigurationManager<OpenIdConnectConfiguration>>();
+        keys.GetConfigurationAsync(Arg.Any<CancellationToken>()).Returns(stale, fresh);
+        var authenticator = new JwtUserAuthenticator(keys, Settings, NullLogger<JwtUserAuthenticator>.Instance);
+
+        var user = await authenticator.AuthenticateAsync(Request($"Bearer {Token()}"));
+
+        Assert.Equal("user-1", user?.UserId);
+        keys.Received(1).RequestRefresh();
+    }
+
+    [Fact]
+    public async Task AuthenticateAsync_TokenNamingNobody_IsNobody() =>
+        Assert.Null(await _authenticator.AuthenticateAsync(Request($"Bearer {Token(claims: new Dictionary<string, object> { ["name"] = "Kestrel" })}")));
+
+    [Fact]
+    public async Task AuthenticateAsync_SetUpButNoToken_IsNobodyWithoutAskingTheTenant() =>
+        Assert.Null(await new JwtUserAuthenticator(Settings, NullLogger<JwtUserAuthenticator>.Instance).AuthenticateAsync(Request("Basic abc")));
 }

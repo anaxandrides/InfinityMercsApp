@@ -293,6 +293,6 @@ public sealed class PlayModeViewModelTests : IDisposable
         await viewModel.DeployCommand.ExecuteAsync(null);
 
         await _dialogs.Received(1).ShowAlertAsync("Too Many Inducements Spent", Arg.Any<string>());
-        await _navigation.DidNotReceiveWithAnyArgs().PushAsync(default!, default!);
+        await _navigation.DidNotReceive().PushAsync(Arg.Any<string>(), Arg.Any<IDictionary<string, object>?>());
     }
 }

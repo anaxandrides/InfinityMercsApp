@@ -24,6 +24,16 @@ public static class TelemetryEvents
         Value = Math.Max(0, milliseconds)
     };
 
+    /// <param name="what">What the work covered, e.g. "3 armies".</param>
+    public static TelemetryEvent Timing(string name, double milliseconds, string what, DateTimeOffset at) => new()
+    {
+        Kind = TelemetryKind.Timing,
+        At = at,
+        Name = Cut(name, TelemetryLimits.MaxNameLength),
+        Value = Math.Max(0, milliseconds),
+        Detail = Cut(what, TelemetryLimits.MaxDetailLength)
+    };
+
     /// <param name="source">Where the crash was caught, e.g. "AppDomain.UnhandledException".</param>
     public static TelemetryEvent Crash(string source, Exception exception, DateTimeOffset at) => new()
     {

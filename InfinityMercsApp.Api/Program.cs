@@ -1,6 +1,7 @@
 using Azure.Identity;
 using InfinityMercsApp.Api.ArmyData;
 using InfinityMercsApp.Api.ArmyData.Logos;
+using InfinityMercsApp.Api.ArmyData.Prebuilt;
 using InfinityMercsApp.Api.Auth;
 using InfinityMercsApp.Api.Cosmos;
 using InfinityMercsApp.Api.Telemetry;
@@ -37,6 +38,7 @@ builder.Services
     .AddSingleton<IArmySnapshotStore, CosmosArmySnapshotStore>()
     .AddSingleton<ILogoBundleStore, BlobLogoBundleStore>()
     .AddTransient<LogoBundler>()
+    .AddTransient<PrebuiltArmyBuilder>()
     .AddTransient<ArmyMirror>()
     .AddSingleton<IUserDocumentStore, CosmosUserDocumentStore>()
     .AddSingleton<UserDocumentService>()

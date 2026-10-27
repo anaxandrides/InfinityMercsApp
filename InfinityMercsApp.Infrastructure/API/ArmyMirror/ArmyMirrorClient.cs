@@ -51,6 +51,14 @@ public sealed class ArmyMirrorClient(HttpClient httpClient, ArmyMirrorEndpoint e
     /// <inheritdoc/>
     public Task<string> GetMetadataAsync(CancellationToken cancellationToken = default) => GetAsync(endpoint.Metadata, cancellationToken);
 
+    /// <summary>Which factions the Airborne, Inspiring and Cohesive companies list, as JSON (FactionListings).</summary>
+    public Task<string> GetListingsAsync(CancellationToken cancellationToken = default) =>
+        GetAsync(endpoint.Listings, cancellationToken);
+
+    /// <summary>A generated company's faction, already built by the API (ArmyDefinitionJson).</summary>
+    public Task<string> GetGeneratedArmyAsync(int factionId, CancellationToken cancellationToken = default) =>
+        GetAsync(endpoint.Generated(factionId), cancellationToken);
+
     /// <inheritdoc/>
     public Task<string> GetArmyAsync(int factionId, CancellationToken cancellationToken = default) =>
         GetAsync(endpoint.Army(factionId), cancellationToken);

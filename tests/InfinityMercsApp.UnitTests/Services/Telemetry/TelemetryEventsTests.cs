@@ -33,4 +33,14 @@ public sealed class TelemetryEventsTests
     [Fact]
     public void PageShown_NoJavaObjectCount_HasNoValue() =>
         Assert.Null(TelemetryEvents.PageShown("SettingsPage", javaObjects: null, TempTelemetry.Now).Value);
+
+    [Fact]
+    public void Timing_Work_CarriesItsMillisecondsAndWhatItCovered()
+    {
+        var timing = TelemetryEvents.Timing("ArmyWait", 1234, "3 armies", TempTelemetry.Now);
+
+        Assert.Equal(TelemetryKind.Timing, timing.Kind);
+        Assert.Equal(1234, timing.Value);
+        Assert.Equal("3 armies", timing.Detail);
+    }
 }

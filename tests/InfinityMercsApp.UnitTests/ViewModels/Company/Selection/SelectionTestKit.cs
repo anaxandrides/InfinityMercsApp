@@ -92,6 +92,8 @@ internal sealed class SelectionTestKit
             .ToList()
     };
 
+    public IArmyDataLoader ArmyLoader { get; } = Substitute.For<IArmyDataLoader>();
+
     public CompanySelectionServices Services
     {
         get
@@ -110,7 +112,8 @@ internal sealed class SelectionTestKit
                 Captains: captains,
                 Founder: new CompanyFounder(captains, entries, Paths, new CompanyFileStore(Substitute.For<ISyncOutbox>())),
                 Recruiter: new CompanyRecruiter(entries, CompanyFiles, SeasonFiles),
-                Settings: Settings);
+                Settings: Settings,
+                ArmyLoader: ArmyLoader);
         }
     }
 

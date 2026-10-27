@@ -1,5 +1,7 @@
 @inherits ObservingComponent
 @using InfinityMercsApp.ViewModels.Company.Selection
+@using InfinityMercsApp.Web.ArmyData
+@inject WebArmyData ArmyData
 
 @* The factions to pick from, for the slot being filled; chosen ones are ticked. *@
 <section class="faction-picker" aria-label="Factions">
@@ -21,7 +23,13 @@
     </div>
     @if (Screen.Slots.IsLoading)
     {
-        <p class="muted">Loading the factions…</p>
+        <p class="muted">
+            Loading the factions…
+            @if (Screen.Rules.ReadsEveryArmyToList(Screen) && ArmyData.LoadedArmies < ArmyData.TotalArmies)
+            {
+                <span>(this company reads every army: @ArmyData.LoadedArmies of @ArmyData.TotalArmies loaded)</span>
+            }
+        </p>
     }
     @if (Screen.ShowFactionStrip)
     {
@@ -42,6 +50,7 @@
         StopWatching();
         Watch(Screen);
         Watch(Screen.Slots);
+        Watch(ArmyData);
         WatchItems(Screen.Slots.Factions);
     }
 }

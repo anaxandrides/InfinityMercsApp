@@ -2,8 +2,11 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using Azure;
 using InfinityMercsApp.Api.ArmyData.Logos;
+using InfinityMercsApp.Api.ArmyData.Prebuilt;
 using InfinityMercsApp.Infrastructure.API.ArmyMirror;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
+using InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
+using InfinityMercsApp.Services.CompanySelection.Factions;
 using Microsoft.Extensions.Logging;
 
 namespace InfinityMercsApp.Api.ArmyData;
@@ -11,13 +14,15 @@ namespace InfinityMercsApp.Api.ArmyData;
 /// <summary>
 /// Copies Corvus Belli's army data, so the app and the web site read it from here: the metadata and each faction's
 /// army, kept exactly as served under their hashes. Each distinct set of them is a snapshot, kept for good. The logos
-/// they name are bundled into one zip whenever they change.
+/// they name are bundled into one zip whenever they change, and what the web site needs from every army (the generated
+/// companies' factions, the faction listings) is built from them ahead.
 /// </summary>
 public sealed class ArmyMirror(
     IArmyPayloadSource source,
     IArmyPayloadStore payloads,
     IArmySnapshotStore snapshots,
     LogoBundler logoBundler,
+    PrebuiltArmyBuilder prebuiltArmies,
     TimeProvider time,
     ILogger<ArmyMirror> logger)
 {
@@ -49,6 +54,7 @@ public sealed class ArmyMirror(
         var updated = new ConcurrentBag<int>();
         var failed = new ConcurrentBag<int>();
         var armyLogos = new ConcurrentBag<LogoFile>();
+        var armyJson = new ConcurrentDictionary<int, string>();
         using var gate = new SemaphoreSlim(ConcurrentDownloads);
         var armies = await Task.WhenAll(factionIds.Select(async factionId =>
         {
@@ -56,7 +62,7 @@ public sealed class ArmyMirror(
             try
             {
                 var kept = previousArmies.GetValueOrDefault(factionId);
-                var copied = await CopyAsync(factionId, kept, now, armyLogos, cancellationToken);
+                var copied = await CopyAsync(factionId, kept, now, armyLogos, armyJson, cancellationToken);
                 if (copied is null)
                 {
                     failed.Add(factionId);
@@ -80,13 +86,21 @@ public sealed class ArmyMirror(
         var logos = failed.IsEmpty
             ? await BundleLogosAsync(previous.Logos, [.. ArmyLogos.OfMetadata(metadataJson), .. armyLogos], now, cancellationToken)
             : previous.Logos;
+        var snapshotId = ArmySnapshots.IdFor(metadata, kept);
+        var prebuilt = failed.IsEmpty && NeedsPrebuilding(previous, snapshotId)
+            ? await PrebuildAsync(previous, new CopiedPayloads(metadataJson, armyJson), now, cancellationToken)
+            : previous;
         var manifest = new ArmyMirrorManifest
         {
-            SnapshotId = ArmySnapshots.IdFor(metadata, kept),
+            SnapshotId = snapshotId,
             CheckedAt = now,
             Metadata = metadata,
             Armies = kept,
-            Logos = logos
+            Logos = logos,
+            Generated = prebuilt.Generated,
+            GeneratedRulesVersion = prebuilt.GeneratedRulesVersion,
+            Listings = prebuilt.Listings,
+            ListingsVersion = prebuilt.ListingsVersion
         };
 
         // The snapshot is kept before it becomes current, so the current one can always be read by its id.
@@ -98,7 +112,48 @@ public sealed class ArmyMirror(
 
         await snapshots.SetLatestAsync(manifest, cancellationToken);
         return new ArmyMirrorRefresh(
-            manifest.SnapshotId, newSnapshot, metadataUpdated, updated.Order().ToList(), failed.Order().ToList(), logos != previous.Logos);
+            manifest.SnapshotId,
+            newSnapshot,
+            metadataUpdated,
+            updated.Order().ToList(),
+            failed.Order().ToList(),
+            logos != previous.Logos,
+            !ReferenceEquals(prebuilt, previous));
+    }
+
+    // What is built ahead follows from the armies and the rules that build it, so it is built again when either changed,
+    // or when there is none yet.
+    private static bool NeedsPrebuilding(ArmyMirrorManifest previous, string snapshotId) =>
+        previous.Generated.Count == 0 ||
+        previous.Listings is null ||
+        previous.SnapshotId != snapshotId ||
+        previous.GeneratedRulesVersion != GeneratedCompanies.RulesVersion ||
+        previous.ListingsVersion != FactionListings.Version;
+
+    // The manifest with what was newly built ahead; the previous one when building failed, so what was built stays.
+    private async Task<ArmyMirrorManifest> PrebuildAsync(
+        ArmyMirrorManifest previous, CopiedPayloads copied, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var built = await prebuiltArmies.BuildAsync(copied, now, cancellationToken);
+            logger.LogInformation(
+                "Built ahead: generated factions {Factions}, faction listings {Listings}.",
+                string.Join(", ", built.Generated.Select(army => army.FactionId)),
+                built.Listings.Hash);
+            return previous with
+            {
+                Generated = built.Generated,
+                GeneratedRulesVersion = GeneratedCompanies.RulesVersion,
+                Listings = built.Listings,
+                ListingsVersion = FactionListings.Version
+            };
+        }
+        catch (Exception ex) when (ex is RequestFailedException or IOException or InvalidDataException or JsonException)
+        {
+            logger.LogWarning(ex, "Building ahead failed; what was built before stays.");
+            return previous;
+        }
     }
 
     // The bundle of these logos: the current one when they haven't changed, else a new one. Built only when every army
@@ -127,9 +182,14 @@ public sealed class ArmyMirror(
     }
 
     // The kept copy when the payload is unchanged, a new one when it changed, or null when it couldn't be downloaded.
-    // Its units' logos go into armyLogos.
+    // Its units' logos go into armyLogos, and the payload into armyJson.
     private async Task<MirroredArmy?> CopyAsync(
-        int factionId, MirroredArmy? kept, DateTimeOffset now, ConcurrentBag<LogoFile> armyLogos, CancellationToken cancellationToken)
+        int factionId,
+        MirroredArmy? kept,
+        DateTimeOffset now,
+        ConcurrentBag<LogoFile> armyLogos,
+        ConcurrentDictionary<int, string> armyJson,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -140,6 +200,7 @@ public sealed class ArmyMirror(
                 return null;
             }
 
+            armyJson[factionId] = json;
             foreach (var logo in ArmyLogos.OfArmy(factionId, json))
             {
                 armyLogos.Add(logo);

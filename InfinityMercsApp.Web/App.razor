@@ -17,6 +17,7 @@
                 </Authorizing>
             </AuthorizeRouteView>
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+            <PageTelemetryReporter PageType="routeData.PageType" />
         </Found>
     </Router>
 </CascadingAuthenticationState>

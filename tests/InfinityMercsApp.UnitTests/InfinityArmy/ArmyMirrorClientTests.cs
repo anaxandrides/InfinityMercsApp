@@ -63,4 +63,66 @@ public sealed class ArmyMirrorClientTests
 
         Assert.Equal(HttpStatusCode.NotFound, ex.StatusCode);
     }
+
+    [Fact]
+    public async Task GetManifestAsync_Unreachable_IsNull() =>
+        Assert.Null(await new ArmyMirrorClient(new HttpClient(new ThrowingHandler()), Endpoint).GetManifestAsync());
+
+    [Fact]
+    public async Task GetListingsAsync_Served_ReadsTheListingsRoute()
+    {
+        var handler = new RecordingHandler(HttpStatusCode.OK, new StringContent("{}"));
+
+        Assert.Equal("{}", await ClientOver(handler).GetListingsAsync());
+        Assert.Equal("https://mirror.example/api/army/listings", handler.Request?.RequestUri?.ToString());
+    }
+
+    [Fact]
+    public async Task GetGeneratedArmyAsync_Served_ReadsTheFactionsRoute()
+    {
+        var handler = new RecordingHandler(HttpStatusCode.OK, new StringContent("{}"));
+
+        Assert.Equal("{}", await ClientOver(handler).GetGeneratedArmyAsync(2001));
+        Assert.Equal("https://mirror.example/api/army/generated/2001", handler.Request?.RequestUri?.ToString());
+    }
+
+    [Fact]
+    public async Task DownloadLogoBundleAsync_Served_WritesTheFile()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"logos-{Guid.NewGuid():N}.zip");
+        try
+        {
+            var downloaded = await ClientOver(new RecordingHandler(HttpStatusCode.OK, new ByteArrayContent([1, 2, 3]))).DownloadLogoBundleAsync(path);
+
+            Assert.True(downloaded);
+            Assert.Equal([1, 2, 3], await File.ReadAllBytesAsync(path));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task DownloadLogoBundleAsync_NotServed_IsFalseAndWritesNothing()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"logos-{Guid.NewGuid():N}.zip");
+
+        var downloaded = await ClientOver(new RecordingHandler(HttpStatusCode.NotFound, new StringContent(string.Empty))).DownloadLogoBundleAsync(path);
+
+        Assert.False(downloaded);
+        Assert.False(File.Exists(path));
+    }
+
+    [Fact]
+    public async Task DownloadLogoBundleAsync_Unreachable_IsFalse() =>
+        Assert.False(await new ArmyMirrorClient(new HttpClient(new ThrowingHandler()), Endpoint).DownloadLogoBundleAsync("unused.zip"));
+
+    [Fact]
+    public async Task DownloadLogoBundleAsync_FolderMissing_IsFalse()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"missing-{Guid.NewGuid():N}", "logos.zip");
+
+        Assert.False(await ClientOver(new RecordingHandler(HttpStatusCode.OK, new ByteArrayContent([1]))).DownloadLogoBundleAsync(path));
+    }
 }

@@ -16,5 +16,8 @@ public enum TelemetryKind
     Startup,
 
     /// <summary>A sync failed with an error: the error's type as the name, its message as the detail.</summary>
-    SyncFailure
+    SyncFailure,
+
+    /// <summary>How long a piece of work took: its name, milliseconds as the value, and what it covered as the detail.</summary>
+    Timing
 }

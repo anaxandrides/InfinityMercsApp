@@ -33,6 +33,7 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
 {
     public const string DefaultName = "Season";
 
+    private readonly IArmyDataLoader _armyLoader;
     private readonly ICompanyFileService _companyFiles;
     private readonly ISeasonFileService _seasonFiles;
     private readonly StoreCatalog _stores;
@@ -62,8 +63,10 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
         CompanyRoster roster,
         UnitDetailViewModel detail,
         MarketplaceDetailViewModel detailPopup,
-        PeripheralTrades peripheralTrades) : base(navigationService)
+        PeripheralTrades peripheralTrades,
+        IArmyDataLoader armyLoader) : base(navigationService)
     {
+        _armyLoader = armyLoader;
         _companyFiles = companyFiles;
         _seasonFiles = seasonFiles;
         _stores = stores;
@@ -151,11 +154,24 @@ public partial class SeasonViewModel : ViewModelBase, ITeamChanges
             await ReloadCompanyAsync();
         }
 
+        if (_company is { } company)
+        {
+            await _armyLoader.EnsureAsync(FactionIdsOf(company));
+        }
+
         await RefreshSeasonAsync();
         var newTroopers = _rollsToAskFor.ToList();
         _rollsToAskFor.Clear();
         await RollOwedAsync(newTroopers);
     }
+
+    // Every army the company's troopers and factions come from.
+    private static List<int> FactionIdsOf(SavedCompanyFile company) =>
+        company.SourceFactions.Select(faction => faction.FactionId)
+            .Concat(company.Entries.Select(entry => entry.SourceFactionId))
+            .Where(factionId => factionId > 0)
+            .Distinct()
+            .ToList();
 
     private async Task ReloadCompanyAsync()
     {

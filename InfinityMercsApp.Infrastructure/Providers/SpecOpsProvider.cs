@@ -96,6 +96,7 @@ public sealed class SpecOpsProvider(ISQLiteRepository sqliteRepository, IArmyCon
         cancellationToken.ThrowIfCancellationRequested();
         if (factionId <= 0 || string.IsNullOrWhiteSpace(filterKey))
         {
+            return;
         }
 
         var normalizedFilterKey = filterKey.Trim();

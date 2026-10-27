@@ -27,4 +27,10 @@ public sealed class ArmyLogosTests
         Assert.NotEqual(
             ArmyLogos.Hash([new LogoFile("a.svg", "https://x/a")]),
             ArmyLogos.Hash([new LogoFile("a.svg", "https://x/a2")]));
+
+    [Fact]
+    public void OfMetadata_UnusableIdsOrLinks_AreLeftOut() =>
+        Assert.Equal(
+            [new LogoFile("104.svg", "http://cdn.example/104.svg")],
+            ArmyLogos.OfMetadata("""{"factions":[7,{"id":true,"logo":"https://cdn.example/x.svg"},{"id":"x","logo":"https://cdn.example/y.svg"},{"id":105,"logo":5},{"id":"104","logo":"http://cdn.example/104.svg"}]}"""));
 }

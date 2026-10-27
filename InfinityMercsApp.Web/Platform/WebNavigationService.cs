@@ -8,7 +8,6 @@ namespace InfinityMercsApp.Web.Platform;
 public sealed class WebNavigationService(
     NavigationManager navigation,
     IJSRuntime js,
-    ArmyDataState armyData,
     NavigationQuery query,
     WebDialogService dialogs) : INavigationService
 {
@@ -16,12 +15,6 @@ public sealed class WebNavigationService(
 
     public Task NavigateToAsync(string route, IDictionary<string, object>? routeParameters = null)
     {
-        // The splash view model goes home once the army data is in; the site stays on the page that was asked for.
-        if (!armyData.IsLoaded || armyData.TakeSplashNavigation(route))
-        {
-            return Task.CompletedTask;
-        }
-
         if (WebRoutes.For(route) is not { } address)
         {
             return dialogs.ShowAlertAsync("Only in the App", "This part of the season is only in the Infinity Mercs app for now.");

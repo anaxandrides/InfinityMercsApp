@@ -56,7 +56,7 @@ public sealed class ApplicationInsightsTelemetrySink(TelemetryClient insights) :
     public static string MeasurementName(TelemetryKind kind) => kind switch
     {
         TelemetryKind.PageShown => "JavaObjects",
-        TelemetryKind.Startup => "Milliseconds",
+        TelemetryKind.Startup or TelemetryKind.Timing => "Milliseconds",
         _ => "Value"
     };
 

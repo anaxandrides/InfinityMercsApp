@@ -257,6 +257,11 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
         Slots.IsLoading = true;
         try
         {
+            if (Rules.ReadsEveryArmyToList(this) && Services.ArmyLoader is { } loader)
+            {
+                await loader.EnsureEveryArmyAsync(cancellationToken);
+            }
+
             var records = await Rules.LoadFactionsAsync(this, cancellationToken);
             Slots.Factions.ReplaceRange(records.Select(record => ArmyFactionSelectionItem.From(record, Services.Logos)));
             Slots.MarkChosenFactions();
@@ -380,6 +385,11 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
         UnitList.IsLoading = true;
         try
         {
+            if (Services.ArmyLoader is { } loader)
+            {
+                await loader.EnsureAsync(factions.Select(faction => faction.Id).ToList(), cancellationToken);
+            }
+
             var read = new List<FactionUnits>();
             foreach (var faction in factions)
             {

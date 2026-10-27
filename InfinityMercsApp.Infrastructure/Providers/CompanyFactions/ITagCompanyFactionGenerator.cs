@@ -4,10 +4,6 @@ namespace InfinityMercsApp.Infrastructure.Providers.CompanyFactions;
 /// Ensures the synthetic "TAG Company" faction (ID 2003) exists in the database.
 /// The faction is created with metadata and an empty army payload until units are added later.
 /// </summary>
-public interface ITagCompanyFactionGenerator
+public interface ITagCompanyFactionGenerator : ICompanyFactionGenerator
 {
-    /// <summary>
-    /// Creates or refreshes the synthetic TAG Company faction.
-    /// </summary>
-    void Generate(CancellationToken cancellationToken = default);
 }

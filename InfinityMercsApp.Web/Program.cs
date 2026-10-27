@@ -1,11 +1,14 @@
+using System.Reflection;
 using InfinityMercsApp;
 using InfinityMercsApp.ApiClient;
+using InfinityMercsApp.ApiClient.Telemetry;
 using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Infrastructure;
 using InfinityMercsApp.Infrastructure.API.ArmyMirror;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
 using InfinityMercsApp.Infrastructure.Repositories;
 using InfinityMercsApp.Infrastructure.Repositories.InMemory;
+using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Links;
 using InfinityMercsApp.Services.Logos;
@@ -15,6 +18,7 @@ using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.SignIn;
 using InfinityMercsApp.Services.Telemetry;
 using InfinityMercsApp.Web;
+using InfinityMercsApp.Web.ArmyData;
 using InfinityMercsApp.Web.Files;
 using InfinityMercsApp.Web.Platform;
 using Microsoft.AspNetCore.Components.Web;
@@ -45,7 +49,13 @@ builder.Services
     .AddViewModels();
 builder.Services.Replace(ServiceDescriptor.Singleton<ISQLiteRepository, InMemoryRepository>());
 builder.Services.Replace(ServiceDescriptor.Singleton(new ArmyMirrorEndpoint(apiAddress)));
-builder.Services.Replace(ServiceDescriptor.Singleton<IArmyPayloadSource>(provider => provider.GetRequiredService<ArmyMirrorClient>()));
+// Payloads come from the browser's cache when kept there, else from the API's copy; armies load as pages need them.
+builder.Services
+    .AddSingleton<BrowserPayloadCache>()
+    .AddSingleton<CachedArmyPayloads>()
+    .AddSingleton<WebArmyData>();
+builder.Services.Replace(ServiceDescriptor.Singleton<IArmyPayloadSource>(provider => provider.GetRequiredService<CachedArmyPayloads>()));
+builder.Services.Replace(ServiceDescriptor.Singleton<IArmyDataLoader>(provider => provider.GetRequiredService<WebArmyData>()));
 builder.Services.Replace(ServiceDescriptor.Singleton(new UserDocumentsEndpoint(apiAddress)));
 builder.Services.AddSingleton<RemoteLogoStore>();
 builder.Services.Replace(ServiceDescriptor.Singleton<ILogoStore>(provider => provider.GetRequiredService<RemoteLogoStore>()));
@@ -55,7 +65,6 @@ builder.Services.Replace(ServiceDescriptor.Singleton<ILogoBundleInstaller, NoLog
 builder.Services
     .AddSingleton(_ => new HttpClient())
     .AddSingleton(RecordPaths.ForAppData("/mercs"))
-    .AddSingleton<ArmyDataState>()
     .AddSingleton<LogoUrls>()
     .AddSingleton<CompanySelectionSession>()
     .AddSingleton<NavigationQuery>()
@@ -67,11 +76,30 @@ builder.Services
     .AddSingleton<ICompanySelectionNavigator, WebCompanySelectionNavigator>()
     .AddSingleton<ILinkLauncher, WebLinkLauncher>()
     .AddSingleton<IAppPackageFiles, WebPackageFiles>()
-    .AddSingleton<ITelemetryRecorder, NoTelemetry>()
     .AddSingleton(TimeProvider.System)
     .AddSingleton<IAccessTokens, MsalAccessTokens>()
     .AddSingleton<ISignInService, WebSignInService>()
     .AddSingleton<IUserDocumentsApi, UserDocumentsClient>()
     .AddSingleton<UserFiles>();
 
-await builder.Build().RunAsync();
+// Telemetry, as the app sends it: noted in an outbox, sent to the API every few minutes and when the tab is hidden.
+builder.Services
+    .AddSingleton(TelemetryPaths.ForAppData("/"))
+    .AddSingleton<TelemetryStore>()
+    .AddSingleton<ITelemetryRecorder>(provider => provider.GetRequiredService<TelemetryStore>())
+    .AddSingleton<ITelemetrySettings>(provider => provider.GetRequiredService<TelemetryStore>())
+    .AddSingleton(new TelemetrySource(
+        typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "web",
+        "Web",
+        string.Empty,
+        string.Empty))
+    .AddSingleton(new TelemetryEndpoint(apiAddress))
+    .AddSingleton<ITelemetryApi>(provider => new TelemetryApiClient(new HttpClient(new KeepAliveHandler()), provider.GetRequiredService<TelemetryEndpoint>()))
+    .AddSingleton<TelemetrySender>()
+    .AddSingleton<ITelemetryCoordinator, TelemetryCoordinator>()
+    .AddSingleton<BrowserTelemetry>()
+    .AddSingleton<ILoggerProvider, TelemetryLoggerProvider>();
+
+var host = builder.Build();
+await host.Services.GetRequiredService<BrowserTelemetry>().StartAsync();
+await host.RunAsync();

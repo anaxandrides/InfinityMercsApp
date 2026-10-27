@@ -24,6 +24,15 @@ public sealed class SeasonViewModelTests
     private readonly SeasonTestKit _kit = new();
 
     [Fact]
+    public async Task InitializeAsync_Company_LoadsItsArmiesFirst()
+    {
+        await _kit.OpenAsync();
+
+        await _kit.ArmyLoader.Received().EnsureAsync(
+            Arg.Is<IReadOnlyCollection<int>>(ids => ids.Contains(101)), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task InitializeAsyncCommand_Season_ShowsTheCompanyAndRound()
     {
         _kit.Season.Rounds[0].TemporaryStore = "Jade Temu";

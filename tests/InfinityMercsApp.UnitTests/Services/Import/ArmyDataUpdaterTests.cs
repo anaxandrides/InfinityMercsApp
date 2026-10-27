@@ -321,7 +321,7 @@ public sealed class ArmyDataUpdaterTests : IDisposable
         _airborne.Received(1).Generate(Arg.Any<CancellationToken>());
         _inspiring.Received(1).Generate(Arg.Any<CancellationToken>());
         _tag.Received(1).Generate(Arg.Any<CancellationToken>());
-        _settings.Received(1).SetGeneratedCompaniesVersion(ArmyDataUpdater.GeneratedCompaniesVersion);
+        _settings.Received(1).SetGeneratedCompaniesVersion(GeneratedCompanies.RulesVersion);
     }
 
     [Fact]
@@ -335,14 +335,14 @@ public sealed class ArmyDataUpdaterTests : IDisposable
         _airborne.Received(1).Generate(Arg.Any<CancellationToken>());
         _inspiring.Received(1).Generate(Arg.Any<CancellationToken>());
         _tag.Received(1).Generate(Arg.Any<CancellationToken>());
-        _settings.Received(1).SetGeneratedCompaniesVersion(ArmyDataUpdater.GeneratedCompaniesVersion);
+        _settings.Received(1).SetGeneratedCompaniesVersion(GeneratedCompanies.RulesVersion);
     }
 
     [Fact]
     public void RebuildOutdatedGeneratedCompanies_CurrentRules_LeavesThem()
     {
         _factions.HasAnyFactionData().Returns(true);
-        _settings.GetGeneratedCompaniesVersion().Returns(ArmyDataUpdater.GeneratedCompaniesVersion);
+        _settings.GetGeneratedCompaniesVersion().Returns(GeneratedCompanies.RulesVersion);
 
         Assert.False(_updater.RebuildOutdatedGeneratedCompanies());
 

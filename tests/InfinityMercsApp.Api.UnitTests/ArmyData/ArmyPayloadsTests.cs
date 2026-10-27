@@ -37,4 +37,8 @@ public sealed class ArmyPayloadsTests
     [Fact]
     public void Hash_Text_IsItsLowerCaseSha256() =>
         Assert.Equal("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", ArmyPayloads.Hash("abc"));
+
+    [Fact]
+    public void FactionIds_UnusableIds_AreLeftOut() =>
+        Assert.Equal([101], ArmyPayloads.FactionIds("""{"factions":[5,{"id":1.5},{"id":"x"},{"id":true},{"id":101}]}"""));
 }

@@ -60,7 +60,7 @@ public sealed class InducementShopViewModelTests
 
         Assert.Single(_inducements.Hired);
         Assert.All(_shop.HireOffers, offer => Assert.False(offer.IsEnabled));
-        await _dialogs.DidNotReceiveWithAnyArgs().ChooseAsync(default!, default!, default!);
+        await _dialogs.DidNotReceive().ChooseAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IReadOnlyList<string>>());
     }
 
     [Fact]

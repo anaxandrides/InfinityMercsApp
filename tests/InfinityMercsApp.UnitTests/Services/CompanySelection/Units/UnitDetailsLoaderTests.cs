@@ -52,4 +52,100 @@ public sealed class UnitDetailsLoaderTests
     [Fact]
     public void HighestAva_NoFactionListsIt_IsNull() =>
         Assert.Null(Loader().HighestAva(UnitId, [101]));
+
+    [Fact]
+    public void Load_SpecOpsUnit_UsesItsSpecOpsProfilesAndIsLieutenant()
+    {
+        var specOps = Substitute.For<ISpecOpsProvider>();
+        Snapshot(101);
+        _armyData.GetUnit(101, UnitId, Arg.Any<CancellationToken>()).Returns(new Unit { UnitId = UnitId, ProfileGroups = Groups(Option(1, "0", Camo)) });
+        specOps.GetSpecopsUnitsByFaction(101, Arg.Any<CancellationToken>()).Returns(
+            [new Domain.Models.Army.SpecOps.SpecopsUnit { UnitId = UnitId, ProfileGroups = Groups(Option(2, "0", Doctor)) }]);
+
+        var details = new UnitDetailsLoader(_armyData, specOps).Load(101, UnitId, isSpecOps: true, lieutenantOnly: false, showUnitsInInches: false);
+
+        Assert.True(details.TreatAsSpecOps);
+        Assert.Equal(2, details.ProfileGroups.Groups.Single().Options.Single().Id);
+        Assert.Contains("Lieutenant", details.CommonSkills);
+        Assert.Contains("Doctor", details.CommonSkills);
+    }
+
+    [Fact]
+    public void Load_UnitOnlyInSpecOps_IsTreatedAsSpecOps()
+    {
+        var specOps = Substitute.For<ISpecOpsProvider>();
+        specOps.GetSpecopsUnitsByFaction(101, Arg.Any<CancellationToken>()).Returns(
+            [new Domain.Models.Army.SpecOps.SpecopsUnit { UnitId = UnitId, ProfileGroups = Groups(Option(2, "0")) }]);
+
+        var details = new UnitDetailsLoader(_armyData, specOps).Load(101, UnitId, isSpecOps: false, lieutenantOnly: true, showUnitsInInches: false);
+
+        Assert.True(details.TreatAsSpecOps);
+        Assert.Null(details.Unit);
+        Assert.False(details.ProfileGroups.IsEmpty);
+    }
+
+    [Fact]
+    public void Load_SpecOpsWithoutProfiles_KeepsTheUnitsOwn()
+    {
+        var specOps = Substitute.For<ISpecOpsProvider>();
+        _armyData.GetUnit(101, UnitId, Arg.Any<CancellationToken>()).Returns(new Unit { UnitId = UnitId, ProfileGroups = Groups(Option(1, "0")) });
+        specOps.GetSpecopsUnitsByFaction(101, Arg.Any<CancellationToken>()).Returns([new Domain.Models.Army.SpecOps.SpecopsUnit { UnitId = UnitId }]);
+
+        var details = new UnitDetailsLoader(_armyData, specOps).Load(101, UnitId, isSpecOps: true, lieutenantOnly: false, showUnitsInInches: false);
+
+        Assert.Equal(1, details.ProfileGroups.Groups.Single().Options.Single().Id);
+    }
+
+    [Fact]
+    public void Load_NoUnitAnywhere_HasNoProfiles()
+    {
+        var details = Loader().Load(101, UnitId, isSpecOps: false, lieutenantOnly: false, showUnitsInInches: false);
+
+        Assert.True(details.ProfileGroups.IsEmpty);
+        Assert.False(details.TreatAsSpecOps);
+    }
+
+    [Fact]
+    public void Load_LieutenantOnly_SharesOnlyLieutenantOptionsAndHidesTheSkill()
+    {
+        Snapshot(101);
+        _armyData.GetUnit(101, UnitId, Arg.Any<CancellationToken>()).Returns(new Unit
+        {
+            UnitId = UnitId,
+            ProfileGroups = Groups(Option(1, "0", Lieutenant, Doctor), Option(2, "0", Camo), Option(3, "1", Lieutenant, Camo))
+        });
+
+        var details = Loader().Load(101, UnitId, isSpecOps: false, lieutenantOnly: true, showUnitsInInches: false);
+
+        Assert.Equal(["Doctor"], details.CommonSkills);
+    }
+
+    private const int Camo = 1;
+    private const int Doctor = 2;
+    private const int Lieutenant = 3;
+
+    private void Snapshot(int factionId) =>
+        _armyData.GetFactionSnapshot(factionId, Arg.Any<CancellationToken>()).Returns(new Faction
+        {
+            FactionId = factionId,
+            Filters = new Domain.Models.Army.Filters.ArmyFilterCatalog(new Dictionary<string, IReadOnlyList<Domain.Models.Army.Filters.ArmyFilterItem>>
+            {
+                [Domain.Models.Army.Filters.ArmyFilterSection.Skills] =
+                [
+                    new(Camo, "Camouflage", null, null),
+                    new(Doctor, "Doctor", null, null),
+                    new(Lieutenant, "Lieutenant", null, null)
+                ]
+            })
+        });
+
+    private static UnitProfileGroups Groups(params IEnumerable<ProfileOption> options) =>
+        new([new ProfileGroup { Id = 1, Profiles = [new UnitProfile { Id = 1, Name = "Trooper" }], Options = options.ToList() }]);
+
+    private static ProfileOption Option(int id, string swc, params IEnumerable<int> skills) => new()
+    {
+        Id = id,
+        Swc = swc,
+        Skills = skills.Select(ProfileEntry.ForId).ToList()
+    };
 }
