@@ -1,0 +1,57 @@
+# Compiles the client libraries with .NET Native AOT, as iOS can compile the app, and runs the smoke test
+# (tests/InfinityMercsApp.AotSmokeTests): any trim or AOT warning fails the publish, and the native run must report
+# exactly what a normal run does. A smoke test on Linux with clang, not a substitute for an iOS build.
+name: Native AOT
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - InfinityMercsApp.ApiClient/**
+      - InfinityMercsApp.Domain/**
+      - InfinityMercsApp.Infrastructure/**
+      - InfinityMercsApp.Services/**
+      - InfinityMercsApp/ReferenceData/**
+      - InfinityMercsApp/Resources/Raw/**
+      - tests/InfinityMercsApp.AotSmokeTests/**
+      - .github/workflows/aot.yml
+  pull_request:
+    paths:
+      - InfinityMercsApp.ApiClient/**
+      - InfinityMercsApp.Domain/**
+      - InfinityMercsApp.Infrastructure/**
+      - InfinityMercsApp.Services/**
+      - InfinityMercsApp/ReferenceData/**
+      - InfinityMercsApp/Resources/Raw/**
+      - tests/InfinityMercsApp.AotSmokeTests/**
+      - .github/workflows/aot.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      # Native AOT links with clang and needs zlib's headers.
+      - name: Install the native toolchain
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+
+      - name: Run normally
+        run: dotnet run -c Release --project tests/InfinityMercsApp.AotSmokeTests -- "$GITHUB_WORKSPACE" | tee jit.txt
+
+      - name: Publish with Native AOT
+        run: dotnet publish tests/InfinityMercsApp.AotSmokeTests -c Release -r linux-x64 -o aot
+
+      - name: Run natively
+        run: ./aot/InfinityMercsApp.AotSmokeTests "$GITHUB_WORKSPACE" | tee aot.txt
+
+      - name: Compare the reports
+        run: diff jit.txt aot.txt

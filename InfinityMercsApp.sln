@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfinityMercsApp.Web.UnitTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfinityMercsApp.ViewModels", "InfinityMercsApp.ViewModels\InfinityMercsApp.ViewModels.csproj", "{06EA0AE8-761B-4F53-86FC-2F15E32068B4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfinityMercsApp.AotSmokeTests", "tests\InfinityMercsApp.AotSmokeTests\InfinityMercsApp.AotSmokeTests.csproj", "{0D879305-D19F-4655-8BD5-B3041E733BAD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -183,6 +185,18 @@ Global
 		{06EA0AE8-761B-4F53-86FC-2F15E32068B4}.Release|x64.Build.0 = Release|Any CPU
 		{06EA0AE8-761B-4F53-86FC-2F15E32068B4}.Release|x86.ActiveCfg = Release|Any CPU
 		{06EA0AE8-761B-4F53-86FC-2F15E32068B4}.Release|x86.Build.0 = Release|Any CPU
+		{0D879305-D19F-4655-8BD5-B3041E733BAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D879305-D19F-4655-8BD5-B3041E733BAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D879305-D19F-4655-8BD5-B3041E733BAD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0D879305-D19F-4655-8BD5-B3041E733BAD}.Debug|x64.Build.0 = Debug|Any CPU
+		{0D879305-D19F-4655-8BD5-B3041E733BAD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0D879305-D19F-4655-8BD5-B3041E733BAD}.Debug|x86.Build.0 = Debug|Any CPU
+		{0D879305-D19F-4655-8BD5-B3041E733BAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D879305-D19F-4655-8BD5-B3041E733BAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D879305-D19F-4655-8BD5-B3041E733BAD}.Release|x64.ActiveCfg = Release|Any CPU
+		{0D879305-D19F-4655-8BD5-B3041E733BAD}.Release|x64.Build.0 = Release|Any CPU
+		{0D879305-D19F-4655-8BD5-B3041E733BAD}.Release|x86.ActiveCfg = Release|Any CPU
+		{0D879305-D19F-4655-8BD5-B3041E733BAD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -192,6 +206,7 @@ Global
 		{F18F1E92-E764-45DB-9834-54B112FEB661} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{0B192EF3-0A0E-4E2E-885C-9D4001D9250D} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{9984E1C9-FE19-401E-83BB-394ED0A54CFB} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{0D879305-D19F-4655-8BD5-B3041E733BAD} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E8394E38-A959-4FC8-87F0-5BBE4D6E57BE}
