@@ -1,6 +1,8 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using InfinityMercsApp.ApiClient.Telemetry;
+using InfinityMercsApp.Infrastructure.Json;
 
 namespace InfinityMercsApp.Services.Telemetry;
 
@@ -16,7 +18,11 @@ public sealed class TelemetryStore : ITelemetryRecorder, ITelemetrySettings
     /// <summary>The most the outbox holds; the oldest files go first.</summary>
     public const long MaxOutboxBytes = 2 * 1024 * 1024;
 
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { TypeInfoResolver = TelemetryJsonContext.Default };
+
+    private static JsonTypeInfo<TelemetryEvent> Event => JsonContracts.For<TelemetryEvent>(JsonOptions);
+
+    private static JsonTypeInfo<TelemetrySettings> Settings => JsonContracts.For<TelemetrySettings>(JsonOptions);
 
     private readonly Lock _sync = new();
     private readonly TelemetryPaths _paths;
@@ -78,7 +84,7 @@ public sealed class TelemetryStore : ITelemetryRecorder, ITelemetrySettings
     {
         try
         {
-            var line = JsonSerializer.Serialize(telemetryEvent, JsonOptions) + "\n";
+            var line = JsonSerializer.Serialize(telemetryEvent, Event) + "\n";
             lock (_sync)
             {
                 if (!_settings.IsEnabled)
@@ -123,7 +129,7 @@ public sealed class TelemetryStore : ITelemetryRecorder, ITelemetrySettings
         {
             try
             {
-                if (JsonSerializer.Deserialize<TelemetryEvent>(line, JsonOptions) is { } telemetryEvent)
+                if (JsonSerializer.Deserialize(line, Event) is { } telemetryEvent)
                 {
                     events.Add(telemetryEvent);
                 }
@@ -148,7 +154,7 @@ public sealed class TelemetryStore : ITelemetryRecorder, ITelemetrySettings
                 return;
             }
 
-            File.WriteAllLines(file, unsent.Select(telemetryEvent => JsonSerializer.Serialize(telemetryEvent, JsonOptions)), Encoding.UTF8);
+            File.WriteAllLines(file, unsent.Select(telemetryEvent => JsonSerializer.Serialize(telemetryEvent, Event)), Encoding.UTF8);
         }
     }
 
@@ -185,7 +191,7 @@ public sealed class TelemetryStore : ITelemetryRecorder, ITelemetrySettings
     private void SaveSettings()
     {
         Directory.CreateDirectory(_paths.Directory);
-        File.WriteAllText(_paths.SettingsPath, JsonSerializer.Serialize(_settings, JsonOptions));
+        File.WriteAllText(_paths.SettingsPath, JsonSerializer.Serialize(_settings, Settings));
     }
 
     private static TelemetrySettings LoadSettings(string path)
@@ -193,7 +199,7 @@ public sealed class TelemetryStore : ITelemetryRecorder, ITelemetrySettings
         try
         {
             if (File.Exists(path) &&
-                JsonSerializer.Deserialize<TelemetrySettings>(File.ReadAllText(path), JsonOptions) is { } saved &&
+                JsonSerializer.Deserialize(File.ReadAllText(path), Settings) is { } saved &&
                 Guid.TryParse(saved.InstallId, out _))
             {
                 return saved;
@@ -208,7 +214,7 @@ public sealed class TelemetryStore : ITelemetryRecorder, ITelemetrySettings
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
-            File.WriteAllText(path, JsonSerializer.Serialize(settings, JsonOptions));
+            File.WriteAllText(path, JsonSerializer.Serialize(settings, Settings));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

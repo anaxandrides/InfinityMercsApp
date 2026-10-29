@@ -30,6 +30,7 @@ public static class ServiceRegistryExtensions
                     TimeProvider.System))
                 // The signed-in user's companies and seasons, kept by the same API.
                 .AddSingleton(UserDocumentsEndpoint.Production)
+                .AddSingleton(new UserDocumentTypes(UserDocumentJsonContext.Default))
                 .AddSingleton<IUserDocumentsApi, UserDocumentsClient>()
                 .AddSingleton<IAppSettingsProvider, AppSettingsProvider>()
                 .AddSingleton<IArmyImportProvider, ArmyImportProvider>()

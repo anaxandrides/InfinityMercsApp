@@ -8,7 +8,7 @@ namespace InfinityMercsApp.Infrastructure.API.ArmyMirror;
 public sealed record ArmyMirrorManifest
 {
     /// <summary>The snapshot's id, worked out from its payloads' hashes: the same army data always has the same id.</summary>
-    public string SnapshotId { get; init; } = string.Empty;
+    public string SnapshotId { get; set; } = string.Empty;
 
     /// <summary>When the mirror last checked Corvus Belli; for a pinned snapshot, when it was taken.</summary>
     public DateTimeOffset CheckedAt { get; init; }
@@ -17,7 +17,7 @@ public sealed record ArmyMirrorManifest
     public MirroredPayload? Metadata { get; init; }
 
     /// <summary>The armies copied, by faction id.</summary>
-    public IReadOnlyList<MirroredArmy> Armies { get; init; } = [];
+    public IReadOnlyList<MirroredArmy> Armies { get; set; } = [];
 
     /// <summary>
     /// Every faction's and unit's logo in one zip (GET army/logos), named by the hash of the logos in it; null until it
@@ -30,7 +30,7 @@ public sealed record ArmyMirrorManifest
     /// them itself (GET army/generated/{factionId}); empty until first built. Not part of the snapshot id: they follow
     /// from its armies and <see cref="GeneratedRulesVersion"/>.
     /// </summary>
-    public IReadOnlyList<MirroredArmy> Generated { get; init; } = [];
+    public IReadOnlyList<MirroredArmy> Generated { get; set; } = [];
 
     /// <summary>The generated companies' rules version (GeneratedCompanies.RulesVersion) they were built by; null before.</summary>
     public string? GeneratedRulesVersion { get; init; }

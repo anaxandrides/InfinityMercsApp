@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq.Expressions;
 
@@ -13,7 +14,7 @@ public sealed class InMemoryRepository : ISQLiteRepository
     private readonly Lock _sync = new();
 
     /// <inheritdoc/>
-    public void Insert<T>(IEnumerable<T> recordsToInsert) where T : new()
+    public void Insert<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(IEnumerable<T> recordsToInsert) where T : new()
     {
         lock (_sync)
         {
@@ -26,7 +27,7 @@ public sealed class InMemoryRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public void Update<T>(T item) where T : new()
+    public void Update<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(T item) where T : new()
     {
         lock (_sync)
         {
@@ -35,7 +36,7 @@ public sealed class InMemoryRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public T? GetById<T>(int id) where T : new()
+    public T? GetById<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(int id) where T : new()
     {
         lock (_sync)
         {
@@ -44,19 +45,19 @@ public sealed class InMemoryRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public IReadOnlyList<T> GetAll<T>(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? orderBy = null) where T : new() =>
+    public IReadOnlyList<T> GetAll<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? orderBy = null) where T : new() =>
         Query(filter, orderBy, int.MaxValue);
 
     /// <inheritdoc/>
-    public IReadOnlyList<T> GetAll<T>(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? orderBy, int limit) where T : new() =>
+    public IReadOnlyList<T> GetAll<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? orderBy, int limit) where T : new() =>
         Query(filter, orderBy, limit);
 
     /// <inheritdoc/>
-    public T? FirstOrDefault<T>(Expression<Func<T, bool>> filter) where T : new() =>
+    public T? FirstOrDefault<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter) where T : new() =>
         Query(filter, null, 1) is [var first] ? first : default;
 
     /// <inheritdoc/>
-    public int Count<T>(Expression<Func<T, bool>> filter) where T : new()
+    public int Count<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter) where T : new()
     {
         var matches = Compile(filter);
         lock (_sync)
@@ -66,7 +67,7 @@ public sealed class InMemoryRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public bool Exists<T>(Expression<Func<T, bool>> filter) where T : new()
+    public bool Exists<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter) where T : new()
     {
         var matches = Compile(filter);
         lock (_sync)
@@ -76,7 +77,7 @@ public sealed class InMemoryRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public bool Any<T>() where T : new()
+    public bool Any<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>() where T : new()
     {
         lock (_sync)
         {
@@ -85,7 +86,7 @@ public sealed class InMemoryRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public IReadOnlyList<TResult> QueryColumn<T, TResult>(string columnName) where T : new()
+    public IReadOnlyList<TResult> QueryColumn<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T, TResult>(string columnName) where T : new()
     {
         var property = InMemoryTable<T>.ColumnProperty(columnName);
         lock (_sync)
@@ -95,7 +96,7 @@ public sealed class InMemoryRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public void Delete<T>(Expression<Func<T, bool>> filter) where T : new()
+    public void Delete<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter) where T : new()
     {
         var matches = Compile(filter);
         lock (_sync)
@@ -105,7 +106,7 @@ public sealed class InMemoryRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public void DeleteAll<T>() where T : new()
+    public void DeleteAll<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>() where T : new()
     {
         lock (_sync)
         {
@@ -123,7 +124,7 @@ public sealed class InMemoryRepository : ISQLiteRepository
         }
     }
 
-    private List<T> Query<T>(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? orderBy, int limit) where T : new()
+    private List<T> Query<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? orderBy, int limit) where T : new()
     {
         var matches = Compile(filter);
         lock (_sync)
@@ -148,7 +149,7 @@ public sealed class InMemoryRepository : ISQLiteRepository
     private static Func<T, bool> Compile<T>(Expression<Func<T, bool>> filter) =>
         ((Expression<Func<T, bool>>)SqliteTextSemantics.Instance.Visit(filter)).Compile();
 
-    private InMemoryTable<T> Table<T>() where T : new()
+    private InMemoryTable<T> Table<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>() where T : new()
     {
         if (!_tables.TryGetValue(typeof(T), out var table))
         {

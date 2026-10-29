@@ -4,6 +4,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- The phone app compiles ahead of time on iOS: flag anything that needs reflection or runtime code (JSON goes
+         through source-generated contexts). Analysis only; it doesn't make the assembly trimmable. -->
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,11 +1,14 @@
 using System.Net;
 using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Infrastructure.Json;
 
 namespace InfinityMercsApp.UnitTests.ApiClient.UserDocuments;
 
 public sealed class UserDocumentsClientTests
 {
+    private static readonly UserDocumentTypes Types = new(UserDocumentJsonContext.Default);
+
     private static readonly UserDocumentsEndpoint Endpoint = new(new Uri("https://api.example/api/"));
 
     private const string SeasonView =
@@ -17,7 +20,7 @@ public sealed class UserDocumentsClientTests
         var handler = new CapturingHandler(HttpStatusCode.OK, SeasonView);
         var write = new UserDocumentWrite<SeasonFile> { BaseRevision = 2, Content = new SeasonFile { CompanyName = "Iron Wolves", CompanyIdentifier = "c1" } };
 
-        var reply = await new UserDocumentsClient(new HttpClient(handler), Endpoint).SaveAsync(UserDocumentKind.Season, "s1", write, "token-1");
+        var reply = await new UserDocumentsClient(new HttpClient(handler), Endpoint, Types).SaveAsync(UserDocumentKind.Season, "s1", write, "token-1");
 
         Assert.Equal(UserDocumentsStatus.Ok, reply.Status);
         Assert.Equal(3, reply.Value?.Revision);
@@ -34,7 +37,7 @@ public sealed class UserDocumentsClientTests
         var handler = new CapturingHandler(HttpStatusCode.Conflict, SeasonView);
         var write = new UserDocumentWrite<SeasonFile> { BaseRevision = 1, Content = new SeasonFile() };
 
-        var reply = await new UserDocumentsClient(new HttpClient(handler), Endpoint).SaveAsync(UserDocumentKind.Season, "s1", write, "token-1");
+        var reply = await new UserDocumentsClient(new HttpClient(handler), Endpoint, Types).SaveAsync(UserDocumentKind.Season, "s1", write, "token-1");
 
         Assert.Equal(UserDocumentsStatus.Conflict, reply.Status);
         Assert.Equal("Iron Wolves", reply.Value?.Content?.CompanyName);
@@ -45,7 +48,7 @@ public sealed class UserDocumentsClientTests
     {
         var handler = new CapturingHandler(HttpStatusCode.OK, SeasonView);
 
-        await new UserDocumentsClient(new HttpClient(handler), Endpoint).DeleteAsync<SeasonFile>(UserDocumentKind.Company, "c1", 4, "token-1");
+        await new UserDocumentsClient(new HttpClient(handler), Endpoint, Types).DeleteAsync<SeasonFile>(UserDocumentKind.Company, "c1", 4, "token-1");
 
         Assert.Equal(HttpMethod.Delete, handler.Request?.Method);
         Assert.Equal("https://api.example/api/me/companies/c1?baseRevision=4", handler.Request?.RequestUri?.ToString());
@@ -61,7 +64,7 @@ public sealed class UserDocumentsClientTests
     {
         var handler = new CapturingHandler(code, string.Empty);
 
-        var reply = await new UserDocumentsClient(new HttpClient(handler), Endpoint).GetAsync<SeasonFile>(UserDocumentKind.Season, "s1", "token-1");
+        var reply = await new UserDocumentsClient(new HttpClient(handler), Endpoint, Types).GetAsync<SeasonFile>(UserDocumentKind.Season, "s1", "token-1");
 
         Assert.Equal(expected, reply.Status);
         Assert.Null(reply.Value);
@@ -70,8 +73,16 @@ public sealed class UserDocumentsClientTests
     [Fact]
     public async Task ListAsync_Unreachable_IsUnavailable()
     {
-        var reply = await new UserDocumentsClient(new HttpClient(new FailingHandler()), Endpoint).ListAsync<SeasonFile>(UserDocumentKind.Season, "token-1");
+        var reply = await new UserDocumentsClient(new HttpClient(new FailingHandler()), Endpoint, Types).ListAsync<SeasonFile>(UserDocumentKind.Season, "token-1");
 
         Assert.Equal(UserDocumentsStatus.Unavailable, reply.Status);
+    }
+
+    [Fact]
+    public async Task GetAsync_FileTypeWithoutAContract_IsRefused()
+    {
+        var client = new UserDocumentsClient(new HttpClient(new FailingHandler()), Endpoint, Types);
+
+        await Assert.ThrowsAsync<NotSupportedException>(() => client.SaveAsync(UserDocumentKind.Season, "s1", new UserDocumentWrite<Uri> { Content = new Uri("https://x.example") }, "token-1"));
     }
 }

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using InfinityMercsApp.ApiClient.UserDocuments;
+using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Services.Records;
 
 namespace InfinityMercsApp.Services.Sync;
@@ -12,7 +13,12 @@ namespace InfinityMercsApp.Services.Sync;
 /// </summary>
 public sealed class SyncLedger : ISyncOutbox
 {
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true, Converters = { new JsonStringEnumConverter() } };
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        Converters = { new JsonStringEnumConverter<SyncOperation>(), new JsonStringEnumConverter<SyncOwnership>() },
+        TypeInfoResolver = SyncJsonContext.Default
+    };
 
     private readonly RecordPaths _paths;
     private readonly Lock _lock = new();
@@ -388,7 +394,7 @@ public sealed class SyncLedger : ISyncOutbox
             var path = _paths.SyncStatePath;
             Directory.CreateDirectory(Path.GetDirectoryName(path) ?? _paths.CompaniesDirectory);
             var temporary = path + ".tmp";
-            File.WriteAllText(temporary, JsonSerializer.Serialize(_state, JsonOptions));
+            File.WriteAllText(temporary, JsonSerializer.Serialize(_state, JsonContracts.For<SyncState>(JsonOptions)));
             File.Move(temporary, path, overwrite: true);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -401,7 +407,7 @@ public sealed class SyncLedger : ISyncOutbox
     {
         try
         {
-            return File.Exists(path) ? JsonSerializer.Deserialize<SyncState>(File.ReadAllText(path), JsonOptions) ?? new SyncState() : new SyncState();
+            return File.Exists(path) ? JsonSerializer.Deserialize(File.ReadAllText(path), JsonContracts.For<SyncState>(JsonOptions)) ?? new SyncState() : new SyncState();
         }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {

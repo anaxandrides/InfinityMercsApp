@@ -13,33 +13,33 @@ public sealed class ProfileOption
     public string? Name { get; init; }
 
     /// <summary>Support-weapon cost as display text (<c>"0"</c>, <c>"1.5"</c>, <c>"+1"</c>), <c>"-"</c> when absent.</summary>
-    public string Swc { get; init; } = "-";
+    public string Swc { get; set; } = "-";
 
     /// <summary>Point cost as display text, <c>"-"</c> when absent. Taken from <c>points</c>, then <c>cost</c>, then <c>pts</c>.</summary>
-    public string Cost { get; init; } = "-";
+    public string Cost { get; set; } = "-";
 
     /// <summary>Number of miniatures the option fields; never negative.</summary>
     public int Minis { get; init; }
 
     public bool Disabled { get; init; }
 
-    public IReadOnlyList<OrderEntry> Orders { get; init; } = [];
+    public IReadOnlyList<OrderEntry> Orders { get; set; } = [];
 
-    public IReadOnlyList<IncludeReference> Includes { get; init; } = [];
+    public IReadOnlyList<IncludeReference> Includes { get; set; } = [];
 
-    public IReadOnlyList<ProfileEntry> Chars { get; init; } = [];
+    public IReadOnlyList<ProfileEntry> Chars { get; set; } = [];
 
-    public IReadOnlyList<ProfileEntry> Skills { get; init; } = [];
+    public IReadOnlyList<ProfileEntry> Skills { get; set; } = [];
 
-    public IReadOnlyList<ProfileEntry> Equip { get; init; } = [];
+    public IReadOnlyList<ProfileEntry> Equip { get; set; } = [];
 
-    public IReadOnlyList<ProfileEntry> Weapons { get; init; } = [];
+    public IReadOnlyList<ProfileEntry> Weapons { get; set; } = [];
 
-    public IReadOnlyList<ProfileEntry> Peripheral { get; init; } = [];
+    public IReadOnlyList<ProfileEntry> Peripheral { get; set; } = [];
 
-    public IReadOnlyList<ProfileEntry> Ammunition { get; init; } = [];
+    public IReadOnlyList<ProfileEntry> Ammunition { get; set; } = [];
 
-    public IReadOnlyList<ProfileEntry> Ammo { get; init; } = [];
+    public IReadOnlyList<ProfileEntry> Ammo { get; set; } = [];
 
     /// <summary>The option's cost as a number (see <see cref="ProfileValues.ParseCost"/>).</summary>
     public int CostValue => ProfileValues.ParseCost(Cost);

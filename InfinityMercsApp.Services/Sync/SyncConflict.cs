@@ -11,10 +11,10 @@ public sealed record SyncConflict
 {
     public UserDocumentKind Kind { get; init; }
 
-    public string DocumentId { get; init; } = string.Empty;
+    public string DocumentId { get; set; } = string.Empty;
 
     /// <summary>The company's name, for a company or a season.</summary>
-    public string Name { get; init; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>The revision online when the conflict was found.</summary>
     public int OtherRevision { get; init; }

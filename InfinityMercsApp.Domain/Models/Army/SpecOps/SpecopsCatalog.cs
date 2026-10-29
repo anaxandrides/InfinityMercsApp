@@ -14,5 +14,5 @@ public sealed class SpecopsCatalog
 
     public IReadOnlyList<SpecopsChoice>? Weapons { get; init; }
 
-    public IReadOnlyList<ArmyUnitDefinition> Units { get; init; } = [];
+    public IReadOnlyList<ArmyUnitDefinition> Units { get; set; } = [];
 }

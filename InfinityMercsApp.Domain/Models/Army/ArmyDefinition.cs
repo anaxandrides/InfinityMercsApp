@@ -10,21 +10,21 @@ namespace InfinityMercsApp.Domain.Models.Army;
 /// </summary>
 public sealed class ArmyDefinition
 {
-    public string Version { get; init; } = string.Empty;
+    public string Version { get; set; } = string.Empty;
 
-    public IReadOnlyList<ArmyUnitDefinition> Units { get; init; } = [];
+    public IReadOnlyList<ArmyUnitDefinition> Units { get; set; } = [];
 
     /// <summary>The army's unit index (<c>resume</c>).</summary>
-    public IReadOnlyList<ArmyImportResume> Resume { get; init; } = [];
+    public IReadOnlyList<ArmyImportResume> Resume { get; set; } = [];
 
     /// <summary>The army that provides this army's reinforcements, when it has one.</summary>
     public int? ReinforcementsFactionId { get; init; }
 
-    public ArmyFilterCatalog Filters { get; init; } = ArmyFilterCatalog.Empty;
+    public ArmyFilterCatalog Filters { get; set; } = ArmyFilterCatalog.Empty;
 
-    public IReadOnlyList<ArmyRelation> Relations { get; init; } = [];
+    public IReadOnlyList<ArmyRelation> Relations { get; set; } = [];
 
-    public SpecopsCatalog Specops { get; init; } = SpecopsCatalog.Empty;
+    public SpecopsCatalog Specops { get; set; } = SpecopsCatalog.Empty;
 
-    public FireteamChart FireteamChart { get; init; } = FireteamChart.Empty;
+    public FireteamChart FireteamChart { get; set; } = FireteamChart.Empty;
 }

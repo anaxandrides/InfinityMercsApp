@@ -1,6 +1,7 @@
 using System.Text.Json;
 using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Models.Company;
+using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Services.Season;
 using InfinityMercsApp.Services.Sync;
 
@@ -14,13 +15,13 @@ internal sealed class CompanyFileStore(ISyncOutbox outbox) : ICompanyFileService
     public bool Exists(string? filePath) => !string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath);
 
     public async Task<SavedCompanyFile?> LoadAsync(string filePath) =>
-        JsonSerializer.Deserialize<SavedCompanyFile>(await File.ReadAllTextAsync(filePath), RecordJson.ReadOptions);
+        JsonSerializer.Deserialize(await File.ReadAllTextAsync(filePath), JsonContracts.For<SavedCompanyFile>(RecordJson.ReadOptions));
 
     /// <summary>Writes the company; a Lone Wolf's Aspects are copied from it again first, so they never fall behind.</summary>
     public async Task SaveAsync(string filePath, SavedCompanyFile company)
     {
         LoneWolfAspects.Refresh(company);
-        await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(company, RecordJson.CompanyWriteOptions));
+        await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(company, JsonContracts.For<SavedCompanyFile>(RecordJson.CompanyWriteOptions)));
         if (!string.IsNullOrEmpty(company.CompanyIdentifier))
         {
             outbox.RecordSave(UserDocumentKind.Company, company.CompanyIdentifier, filePath);

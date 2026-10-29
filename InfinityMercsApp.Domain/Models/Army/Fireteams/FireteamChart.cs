@@ -10,9 +10,9 @@ public sealed class FireteamChart
     public static FireteamChart Empty { get; } = new();
 
     /// <summary>The <c>spec</c> entries in payload order.</summary>
-    public IReadOnlyList<FireteamSpecEntry> Spec { get; init; } = [];
+    public IReadOnlyList<FireteamSpecEntry> Spec { get; set; } = [];
 
-    public IReadOnlyList<FireteamTeam> Teams { get; init; } = [];
+    public IReadOnlyList<FireteamTeam> Teams { get; set; } = [];
 
     /// <summary>
     /// A spec count as shown in the viewer: the first entry whose key matches (ignoring case),

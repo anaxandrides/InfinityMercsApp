@@ -12,7 +12,7 @@ public sealed class FireteamTeam
     /// <summary>The <c>type</c> when the payload sends a single string.</summary>
     public string? TypeText { get; init; }
 
-    public IReadOnlyList<FireteamUnitLimit> Units { get; init; } = [];
+    public IReadOnlyList<FireteamUnitLimit> Units { get; set; } = [];
 
     /// <summary>How many times DUO, HARIS and CORE appear in the type list.</summary>
     public FireteamTypeCounts TypeCounts => FireteamTypeCounts.Of(TypeList);

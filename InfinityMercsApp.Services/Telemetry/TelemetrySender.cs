@@ -1,5 +1,6 @@
 using System.Text.Json;
 using InfinityMercsApp.ApiClient.Telemetry;
+using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Services.SignIn;
 
 namespace InfinityMercsApp.Services.Telemetry;
@@ -13,7 +14,7 @@ public sealed class TelemetrySender(TelemetryStore store, ITelemetryApi api, ISi
     /// <summary>A batch's events stay under this many bytes of JSON, well inside what the API reads.</summary>
     public const int MaxBatchBytes = TelemetryLimits.MaxBodyBytes / 2;
 
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { TypeInfoResolver = TelemetryJsonContext.Default };
 
     private readonly SemaphoreSlim _sending = new(1, 1);
 
@@ -61,7 +62,7 @@ public sealed class TelemetrySender(TelemetryStore store, ITelemetryApi api, ISi
         var bytes = 0;
         foreach (var telemetryEvent in events)
         {
-            var size = JsonSerializer.SerializeToUtf8Bytes(telemetryEvent, JsonOptions).Length;
+            var size = JsonSerializer.SerializeToUtf8Bytes(telemetryEvent, JsonContracts.For<TelemetryEvent>(JsonOptions)).Length;
             if (batch.Count > 0 && (batch.Count == TelemetryLimits.MaxEvents || bytes + size > MaxBatchBytes))
             {
                 batches.Add(batch);

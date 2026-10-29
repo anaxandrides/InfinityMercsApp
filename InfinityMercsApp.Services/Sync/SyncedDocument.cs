@@ -8,10 +8,10 @@ public sealed record SyncedDocument
 {
     public UserDocumentKind Kind { get; init; }
 
-    public string DocumentId { get; init; } = string.Empty;
+    public string DocumentId { get; set; } = string.Empty;
 
     /// <summary>The file, relative to the MercenaryRecords folder.</summary>
-    public string RelativePath { get; init; } = string.Empty;
+    public string RelativePath { get; set; } = string.Empty;
 
     /// <summary>The revision online that this device's copy builds on; 0 for a file never sent.</summary>
     public int Revision { get; init; }

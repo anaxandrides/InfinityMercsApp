@@ -11,7 +11,7 @@ namespace InfinityMercsApp.Domain.Models.Company;
 public sealed class SavedImprovedCaptainStats
 {
     public bool IsEnabled { get; init; }
-    public string CaptainName { get; init; } = string.Empty;
+    public string CaptainName { get; set; } = string.Empty;
     public int CcTier { get; init; }
     public int BsTier { get; init; }
     public int PhTier { get; init; }
@@ -31,17 +31,17 @@ public sealed class SavedImprovedCaptainStats
     [System.Text.Json.Serialization.JsonIgnore]
     public CaptainStatBonuses Bonuses =>
         new(CcBonus, BsBonus, PhBonus, WipBonus, ArmBonus, BtsBonus, VitalityBonus);
-    public string WeaponChoice1 { get; init; } = string.Empty;
-    public string WeaponChoice2 { get; init; } = string.Empty;
-    public string WeaponChoice3 { get; init; } = string.Empty;
-    public string SkillChoice1 { get; init; } = string.Empty;
-    public string SkillChoice2 { get; init; } = string.Empty;
-    public string SkillChoice3 { get; init; } = string.Empty;
-    public string EquipmentChoice1 { get; init; } = string.Empty;
-    public string EquipmentChoice2 { get; init; } = string.Empty;
-    public string EquipmentChoice3 { get; init; } = string.Empty;
+    public string WeaponChoice1 { get; set; } = string.Empty;
+    public string WeaponChoice2 { get; set; } = string.Empty;
+    public string WeaponChoice3 { get; set; } = string.Empty;
+    public string SkillChoice1 { get; set; } = string.Empty;
+    public string SkillChoice2 { get; set; } = string.Empty;
+    public string SkillChoice3 { get; set; } = string.Empty;
+    public string EquipmentChoice1 { get; set; } = string.Empty;
+    public string EquipmentChoice2 { get; set; } = string.Empty;
+    public string EquipmentChoice3 { get; set; } = string.Empty;
     public int OptionFactionId { get; init; }
-    public string OptionFactionName { get; init; } = string.Empty;
+    public string OptionFactionName { get; set; } = string.Empty;
 
     /// <summary>
     /// What was bought with the captain's Spec-Ops XP, as an army sheet lists it among the perks: "Spec-Ops: +1 VITA",
