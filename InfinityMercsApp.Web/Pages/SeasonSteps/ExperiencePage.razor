@@ -1,0 +1,15 @@
+@page "/season/{SeasonId}/experience"
+@using InfinityMercsApp.ViewModels.Season
+@inject ExperienceViewModel ViewModel
+
+<PageTitle>Experience · Infinity Mercs</PageTitle>
+
+<ArmyDataGate>
+    <SeasonStepHost SeasonId="@SeasonId" Step="SeasonStep.Experience" ViewModel="ViewModel">
+        <ExperienceScreen ViewModel="ViewModel" />
+    </SeasonStepHost>
+</ArmyDataGate>
+
+@code {
+    [Parameter] public string SeasonId { get; set; } = string.Empty;
+}

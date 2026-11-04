@@ -1,0 +1,15 @@
+@page "/season/{SeasonId}/rank-up"
+@using InfinityMercsApp.ViewModels.Season.RankUp
+@inject RankUpViewModel ViewModel
+
+<PageTitle>Rank Up · Infinity Mercs</PageTitle>
+
+<ArmyDataGate>
+    <SeasonStepHost SeasonId="@SeasonId" Step="SeasonStep.RankUp" ViewModel="ViewModel">
+        <RankUpScreen ViewModel="ViewModel" />
+    </SeasonStepHost>
+</ArmyDataGate>
+
+@code {
+    [Parameter] public string SeasonId { get; set; } = string.Empty;
+}

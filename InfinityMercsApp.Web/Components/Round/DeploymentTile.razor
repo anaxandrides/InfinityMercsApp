@@ -1,0 +1,25 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season
+@using InfinityMercsApp.ViewModels.Season.Items
+
+@* A trooper in the deployment strip: its tile shows it in full, its box deploys it (the captain always goes). *@
+<div class="deploy-tile">
+    <UnitTile Tile="Unit" Command="Play.SelectUnitCommand" />
+    <label class="deploy-check">
+        <input type="checkbox" checked="@Unit.IsChecked" disabled="@(!Unit.IsCheckboxEnabled)"
+               @onchange="e => Unit.IsChecked = e.Value is true" />
+        DEPLOY
+    </label>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required DeploymentUnitItem Unit { get; set; }
+
+    [Parameter, EditorRequired] public required PlayModeViewModel Play { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Unit);
+    }
+}

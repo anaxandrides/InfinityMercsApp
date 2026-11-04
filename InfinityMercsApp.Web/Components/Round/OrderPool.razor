@@ -1,0 +1,42 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.Domain.Season.Game
+@using InfinityMercsApp.ViewModels.Season.Game.Items
+
+@* One kind of order: the ones left this round (choose to spend one), or the ones spent (choose to take one back). *@
+@if (Spent)
+{
+    <button class="order spent" aria-label="Take back a spent @Kind order" disabled="@(Pool.Used == 0)" @onclick="() => Pool.RestoreCommand.Execute(null)">
+        <Logo Source="@Pool.IconPath" Size="40" Class="greyscale" />
+        <span class="order-count muted">@Pool.Used</span>
+    </button>
+}
+else
+{
+    <button class="order" aria-label="Spend a @Kind order" disabled="@(Pool.Available == 0)" @onclick="() => Pool.UseCommand.Execute(null)">
+        <Logo Source="@Pool.IconPath" Size="40" />
+        <span class="order-count @KindClass">@Pool.Available</span>
+    </button>
+}
+
+@code {
+    [Parameter, EditorRequired] public required OrderPoolItem Pool { get; set; }
+
+    /// <summary>Shows the orders spent rather than those left.</summary>
+    [Parameter] public bool Spent { get; set; }
+
+    private string Kind => Pool.Kind.ToString().ToLowerInvariant();
+
+    private string KindClass => Pool.Kind switch
+    {
+        OrderKind.Lieutenant => "order-lieutenant",
+        OrderKind.Impetuous => "order-impetuous",
+        OrderKind.Irregular => "caution",
+        _ => "signal"
+    };
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Pool);
+    }
+}

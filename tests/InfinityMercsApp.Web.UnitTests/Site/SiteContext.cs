@@ -73,6 +73,7 @@ public abstract class SiteContext : BunitContext
             .AddSingleton<LogoUrls>()
             .AddSingleton<CompanySelectionSession>()
             .AddSingleton<NavigationQuery>()
+            .AddSingleton<SeasonLookup>()
             .AddSingleton<WebDialogService>()
             .AddSingleton<IDialogService>(provider => provider.GetRequiredService<WebDialogService>())
             .AddSingleton<WebCaptainConfigurationDialog>()

@@ -1,0 +1,22 @@
+@using CommunityToolkit.Mvvm.Input
+@using InfinityMercsApp.Presentation.Season.Overview
+
+@* One line of a trooper's profile: a weapon that can be picked is a button showing its profiles. *@
+@if (Line.IsPlaceholder)
+{
+    <div class="muted">@Line.Text</div>
+}
+else if (Pick is { } pick)
+{
+    <div><button class="line-link" @onclick="() => pick.ExecuteAsync(Line)">@Line.Text</button></div>
+}
+else
+{
+    <div>@Line.Text</div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required ProfileLine Line { get; set; }
+
+    [Parameter] public IAsyncRelayCommand<ProfileLine?>? Pick { get; set; }
+}

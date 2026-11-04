@@ -1,0 +1,81 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Components.UnitFilter
+
+@* Filtering the units: by criteria (any or all of the values chosen), points, lieutenants only, and the fireteam view. *@
+<div class="backdrop" @onclick="() => Filter.CloseCommand.Execute(null)"></div>
+<div class="dialog unit-filter" role="dialog" aria-modal="true" aria-labelledby="filter-title">
+    <h2 id="filter-title">Filter Units</h2>
+
+    <h3 class="section-heading">Criteria</h3>
+    <div class="chips">
+        @foreach (var criterion in Filter.CriteriaItems)
+        {
+            <CriterionChip @key="criterion" Criterion="criterion" Filter="Filter" />
+        }
+    </div>
+
+    <div class="criterion-heading">
+        <span class="bold">@Filter.SelectedCriterionTitle</span>
+        <button class="secondary small" @onclick="() => Filter.ClearCriterionCommand.Execute(null)">Clear</button>
+        <label>
+            Match
+            <PickList TItem="string" Items="Filter.MatchModeOptions" Value="Filter.SelectedActiveMatchMode"
+                      ValueChanged="Match" Prompt="Match" />
+        </label>
+    </div>
+    <div class="chips">
+        @foreach (var option in Filter.ActiveCriterionOptions)
+        {
+            <FilterChip @key="option" Option="option" Filter="Filter" />
+        }
+    </div>
+
+    <h3 class="section-heading">Points</h3>
+    <div class="points-range">
+        <PickList TItem="string" Items="Filter.PointsOptions" Value="Filter.SelectedMinPoints"
+                  ValueChanged="points => Filter.SelectedMinPoints = points" Prompt="Min" />
+        <span>to</span>
+        <PickList TItem="string" Items="Filter.PointsOptions" Value="Filter.SelectedMaxPoints"
+                  ValueChanged="points => Filter.SelectedMaxPoints = points" Prompt="Max" />
+    </div>
+
+    @if (Filter.LieutenantOnlyUnitsEnabled)
+    {
+        <label class="check-label">
+            <input type="checkbox" checked="@Filter.SelectedLieutenantOnlyUnits" @onchange="e => Filter.SelectedLieutenantOnlyUnits = e.Value is true" />
+            Lieutenant Only Units
+        </label>
+    }
+    @if (Filter.TeamsViewEnabled)
+    {
+        <label class="check-label">
+            <input type="checkbox" checked="@Filter.SelectedTeamsView" @onchange="e => Filter.SelectedTeamsView = e.Value is true" />
+            Fireteam View
+        </label>
+    }
+
+    <div class="buttons">
+        <button class="secondary" @onclick="() => Filter.CloseCommand.Execute(null)">Back</button>
+        <button class="secondary" @onclick="() => Filter.ResetCommand.Execute(null)">Reset</button>
+        <button class="primary" @onclick="() => Filter.ApplyCommand.Execute(null)">Update</button>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required UnitFilterViewModel Filter { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Filter);
+        WatchItems(Filter.ActiveCriterionOptions);
+    }
+
+    private void Match(string? mode)
+    {
+        if (mode is not null)
+        {
+            Filter.SelectedActiveMatchMode = mode;
+        }
+    }
+}

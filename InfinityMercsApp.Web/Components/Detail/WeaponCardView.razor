@@ -1,0 +1,57 @@
+@using InfinityMercsApp.Domain.Models.Metadata
+@using InfinityMercsApp.Presentation.Weapons
+
+@* One weapon profile: its mode, Burst, Damage and saves, its special rules (linked to the wiki), and its range. *@
+<article class="weapon-card">
+    <header>
+        <span class="name">@Weapon.Name</span>
+        @if (Card.HasMode) { <span class="mode">@Card.Mode</span> }
+    </header>
+    @if (Card.HasStats)
+    {
+        <div class="weapon-stats">
+            <dl>
+                @foreach (var stat in Card.LeftStats)
+                {
+                    <dt>@stat.Label</dt>
+                    <dd>@stat.Value</dd>
+                }
+            </dl>
+            <dl>
+                @foreach (var stat in Card.RightStats)
+                {
+                    <dt>@stat.Label</dt>
+                    <dd>@stat.Value</dd>
+                }
+            </dl>
+        </div>
+    }
+    @if (Card.HasSpecialRules)
+    {
+        <ul class="weapon-rules">
+            @foreach (var row in Card.RuleRows)
+            {
+                <li><RuleLink Text="row.Left" /></li>
+                @if (row.Right is { } right) { <li><RuleLink Text="right" /></li> }
+            }
+        </ul>
+    }
+    <RangeBarView Bar="RangeBar.From(Weapon.Distance, XVisor, InInches)" />
+</article>
+
+@code {
+    [Parameter, EditorRequired] public required Weapon Weapon { get; set; }
+
+    [Parameter] public bool InInches { get; set; } = true;
+
+    /// <summary>A trooper's X Visor, which eases the range penalties.</summary>
+    [Parameter] public bool XVisor { get; set; }
+
+    [Parameter] public int DamageReduction { get; set; }
+
+    [Parameter] public int BurstBonus { get; set; }
+
+    [Parameter] public string? Ammo { get; set; }
+
+    private WeaponCard Card => WeaponCard.From(Weapon, DamageReduction, BurstBonus, Ammo);
+}

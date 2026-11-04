@@ -1,0 +1,77 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Components
+
+@* A weapon or market row in full: its facts, abilities linked to the wiki, weapon profiles, and its wiki description. *@
+@if (ViewModel.Detail is { } detail)
+{
+    <div class="backdrop" @onclick="() => ViewModel.CloseCommand.Execute(null)"></div>
+    <div class="dialog detail" role="dialog" aria-modal="true" aria-labelledby="detail-title" @onkeydown="KeyDown">
+        <div class="detail-heading">
+            <button class="link" @onclick="() => ViewModel.CloseCommand.Execute(null)">← Back</button>
+            <h2 id="detail-title">@detail.Title</h2>
+        </div>
+        @if (detail.Rows.Count > 0)
+        {
+            <dl class="kit">
+                @foreach (var row in detail.Rows)
+                {
+                    <dt>@row.Label</dt>
+                    <dd>@row.Value</dd>
+                }
+            </dl>
+        }
+        @if (detail.HasAbilities)
+        {
+            <h3 class="section-heading">ABILITIES &amp; EQUIPMENT</h3>
+            <ul class="abilities">
+                @foreach (var ability in detail.Abilities)
+                {
+                    <li>
+                        @if (ability.WikiUrl is { Length: > 0 } url)
+                        {
+                            <a href="@url" target="_blank" rel="noopener">@ability.Text</a>
+                        }
+                        else
+                        {
+                            @ability.Text
+                        }
+                    </li>
+                }
+            </ul>
+        }
+        @if (ViewModel.IsWikiLoading)
+        {
+            <p class="muted">Loading…</p>
+        }
+        else if (ViewModel.IsWikiEmpty)
+        {
+            <p class="muted">(No description available)</p>
+        }
+        else if (ViewModel.HasWikiBlocks)
+        {
+            <WikiBlocks Blocks="ViewModel.WikiBlocks" />
+        }
+        @foreach (var weapon in detail.Weapons)
+        {
+            <WeaponCardView Weapon="weapon" InInches="ViewModel.ShowUnitsInInches" />
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required MarketplaceDetailViewModel ViewModel { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(ViewModel);
+    }
+
+    private void KeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            ViewModel.CloseCommand.Execute(null);
+        }
+    }
+}

@@ -1,0 +1,34 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.Domain.Season.Injuries
+@using InfinityMercsApp.ViewModels.Season.Items
+
+@* A trooper shedding an injury (one that rested, or the captain's healing): who, when there's a choice, and which injury. *@
+<li class="injury-check">
+    <span class="name">@Recovery.Name</span>
+    <span class="subtitle muted">@Recovery.Reason</span>
+    @if (Recovery.HasRecipientChoice)
+    {
+        <PickList TItem="RecoveryRecipient" Items="Recovery.Recipients" Value="Recovery.SelectedRecipient"
+                  ValueChanged="Pick" Prompt="Trooper to heal…" />
+    }
+    <PickList TItem="InjuryTableEntry" Items="Recovery.Injuries" Value="Recovery.SelectedInjury"
+              ValueChanged="injury => Recovery.SelectedInjury = injury" Prompt="Injury to shed…" />
+</li>
+
+@code {
+    [Parameter, EditorRequired] public required InjuryRecoveryItem Recovery { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Recovery);
+    }
+
+    private void Pick(RecoveryRecipient? recipient)
+    {
+        if (recipient is not null)
+        {
+            Recovery.SelectedRecipient = recipient;
+        }
+    }
+}

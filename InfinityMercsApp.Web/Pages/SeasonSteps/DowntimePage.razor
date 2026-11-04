@@ -1,0 +1,15 @@
+@page "/season/{SeasonId}/downtime"
+@using InfinityMercsApp.ViewModels.Season.Downtime
+@inject DowntimeViewModel ViewModel
+
+<PageTitle>Downtime · Infinity Mercs</PageTitle>
+
+<ArmyDataGate>
+    <SeasonStepHost SeasonId="@SeasonId" Step="SeasonStep.Downtime" ViewModel="ViewModel">
+        <DowntimeScreen ViewModel="ViewModel" />
+    </SeasonStepHost>
+</ArmyDataGate>
+
+@code {
+    [Parameter] public string SeasonId { get; set; } = string.Empty;
+}

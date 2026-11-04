@@ -1,0 +1,128 @@
+@inherits ObservingComponent
+@using System.Globalization
+@using InfinityMercsApp.Domain.Season.Downtime
+@using InfinityMercsApp.ViewModels.Season.Downtime
+
+@* Downtime: an event rolled (or picked in a quiet week), a choice, who performs it, the test, and what follows. *@
+<h1>DOWNTIME EVENT</h1>
+
+@if (!ViewModel.HasEvent)
+{
+    <p class="muted center">Press Roll for a random event, or Real to enter a roll made with real dice.</p>
+}
+else
+{
+    <section class="event-card">
+        <div class="signal bold">@ViewModel.RollHeader</div>
+        <p>@ViewModel.CurrentEvent?.Description</p>
+        @if (ViewModel.HasEventTraits) { <p class="caution subtitle">@ViewModel.EventTraitsText</p> }
+    </section>
+}
+
+@if (ViewModel.IsChoosingFromEventList)
+{
+    <h3 class="section-heading">SELECT AN EVENT</h3>
+    <ul class="rows">
+        @foreach (var option in ViewModel.EventOptions)
+        {
+            <li>
+                <button class="row-card choice" disabled="@ViewModel.IsEventListClosed" @onclick="() => ViewModel.PickEventCommand.ExecuteAsync(option)">@option.Text</button>
+            </li>
+        }
+    </ul>
+    <button class="secondary" disabled="@ViewModel.IsEventListClosed" @onclick="() => ViewModel.NoEventCommand.ExecuteAsync(null)">NO EVENT</button>
+}
+
+@foreach (var card in ViewModel.ChoiceCards)
+{
+    <section class="event-card" @key="card">
+        <h3 class="section-heading">@card.Header</h3>
+        <p>@card.Description</p>
+        @if (card.HasTraits) { <p class="caution subtitle bold">@card.TraitsText</p> }
+        @if (!ViewModel.HasChoice)
+        {
+            <button class="primary small" @onclick="() => ViewModel.PickChoiceCommand.ExecuteAsync(card)">PICK</button>
+        }
+    </section>
+}
+
+@if (ViewModel.HasChoice)
+{
+    <section class="resolution">
+        <p class="bold">@ViewModel.ParticipantPrompt</p>
+        @if (ViewModel.HasNoCandidates) { <p class="danger">No eligible mercs found.</p> }
+        <ul class="rows">
+            @foreach (var participant in ViewModel.Participants)
+            {
+                <ParticipantRow @key="participant" Participant="participant" Downtime="ViewModel" />
+            }
+        </ul>
+        @if (ViewModel.HasParticipant) { <p class="signal">@ViewModel.PerformedByText</p> }
+
+        @if (ViewModel.ShowsCrSpend)
+        {
+            <div class="cr-spend">
+                <span class="bold">P2P — Spend CR to boost target (optional):</span>
+                <label>
+                    CR to spend:
+                    <input class="field narrow" type="number" min="0" max="999" disabled="@(!ViewModel.IsSpendingCr)"
+                           value="@(((int)ViewModel.CrToSpend).ToString(CultureInfo.InvariantCulture))" @oninput="SpendCr" />
+                </label>
+                <span>@ViewModel.CrSpendTargetText</span>
+                <button class="secondary" disabled="@(!ViewModel.IsSpendingCr)" @onclick="() => ViewModel.ConfirmSpendCommand.ExecuteAsync(null)">CONFIRM SPEND</button>
+            </div>
+        }
+
+        @if (ViewModel.HasTestText) { <p class="@(ViewModel.IsTestUnresolvable ? "danger" : null)">@ViewModel.TestText</p> }
+        @if (ViewModel.HasRolledText) { <p class="bold">@ViewModel.RolledText</p> }
+        @if (ViewModel.HasOutcome)
+        {
+            <p class="bold @OutcomeClass">@ViewModel.OutcomeText</p>
+            @if (ViewModel.HasNoConsequences) { <p class="muted">No mechanical effect.</p> }
+            <ul class="consequences">
+                @foreach (var line in ViewModel.ConsequenceLines) { <li>@line</li> }
+            </ul>
+        }
+    </section>
+}
+
+<div class="step-bar">
+    @if (!ViewModel.IsResolved) { <span class="muted">@ViewModel.RollPrompt</span> }
+    @if (ViewModel.CanGoBackToBase)
+    {
+        <button class="primary" @onclick="() => ViewModel.BackToBaseCommand.ExecuteAsync(null)">CONTINUE</button>
+    }
+    else
+    {
+        <button class="primary" disabled="@(!ViewModel.CanRollDice)" @onclick="() => ViewModel.RollCommand.ExecuteAsync(null)">ROLL</button>
+        <button class="secondary" disabled="@(!ViewModel.CanRollDice)" @onclick="() => ViewModel.RealCommand.ExecuteAsync(null)">REAL</button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required DowntimeViewModel ViewModel { get; set; }
+
+    private string? OutcomeClass => ViewModel.Outcome switch
+    {
+        PassFailOutcome.Fail => "danger",
+        PassFailOutcome.Pass => "signal",
+        PassFailOutcome.CritPass => "caution",
+        _ => null
+    };
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(ViewModel);
+        WatchItems(ViewModel.ChoiceCards);
+        WatchItems(ViewModel.Participants);
+    }
+
+    private void SpendCr(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value as string, NumberStyles.Integer, CultureInfo.InvariantCulture, out var credits))
+        {
+            ViewModel.CrToSpend = Math.Clamp(credits, 0, 999);
+        }
+    }
+}

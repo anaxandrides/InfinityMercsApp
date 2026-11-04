@@ -12,6 +12,14 @@ public static class WebRoutes
     /// <summary>A season by its id, to manage its company.</summary>
     public static string SeasonById(string seasonIdentifier) => $"season/{Uri.EscapeDataString(seasonIdentifier)}";
 
+    /// <summary>The season a step's address is under ("season/{id}/rank-up" is under "season/{id}"); null for any other address.</summary>
+    public static string? SeasonOf(string relativeAddress)
+    {
+        var path = relativeAddress.Split('?', '#')[0];
+        var parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length > 2 && parts[0] == Season ? $"{Season}/{parts[1]}" : null;
+    }
+
     /// <summary>The site's address for a MAUI route, e.g. "//CreateNewCompanyPage"; null for a page the site doesn't have.</summary>
     public static string? For(string route) => route.TrimStart('/') switch
     {

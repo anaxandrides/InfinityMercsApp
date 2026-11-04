@@ -1,0 +1,27 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season.Downtime
+@using InfinityMercsApp.ViewModels.Season.Downtime.Items
+
+@* A trooper who could perform the downtime test: what it lacks if it can't, and its target if it can. *@
+<li>
+    <button class="row-card choice @(Participant.IsSelected ? "selected" : null) @(Participant.IsDimmed ? "dimmed" : null)"
+            aria-pressed="@Participant.IsSelected" @onclick="() => Downtime.PickParticipantCommand.ExecuteAsync(Participant)">
+        <span class="text">
+            <span class="name">@Participant.DisplayName</span>
+            @if (!Participant.IsEligible) { <span class="subtitle danger">@Participant.MissingText</span> }
+        </span>
+        @if (Participant.ShowTarget) { <span class="cost">@Participant.TargetText</span> }
+    </button>
+</li>
+
+@code {
+    [Parameter, EditorRequired] public required DowntimeParticipantItem Participant { get; set; }
+
+    [Parameter, EditorRequired] public required DowntimeViewModel Downtime { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Participant);
+    }
+}

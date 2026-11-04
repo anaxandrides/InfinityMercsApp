@@ -1,0 +1,39 @@
+@using InfinityMercsApp.Presentation.Weapons
+
+@* A weapon's range bands, each coloured by its modifier, with the distance at each band edge. *@
+@if (Bar.Bands.Count > 0)
+{
+    <div class="range-bar" role="img" aria-label="@Description">
+        <div class="bands">
+            @foreach (var band in Bar.Bands)
+            {
+                <span class="band @ToneClass(band.Tone)" style="@Width(band)">@band.Modifier</span>
+            }
+        </div>
+        <div class="marks">
+            @foreach (var mark in Bar.Marks)
+            {
+                <span style="@Left(mark)">@mark.Label</span>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required RangeBar Bar { get; set; }
+
+    private string Description => string.Join(", ", Bar.Bands.Zip(Bar.Marks.Skip(1), (band, mark) => $"{band.Modifier} to {mark.Label}"));
+
+    private static string ToneClass(RangeBandTone tone) => tone switch
+    {
+        RangeBandTone.Bonus => "bonus",
+        RangeBandTone.Penalty => "penalty",
+        RangeBandTone.Severe => "severe",
+        _ => "neutral"
+    };
+
+    private static string Width(RangeBarBand band) =>
+        FormattableString.Invariant($"width:{(band.EndFraction - band.StartFraction) * 100:0.###}%");
+
+    private static string Left(RangeBarMark mark) => FormattableString.Invariant($"left:{mark.Fraction * 100:0.###}%");
+}

@@ -1,0 +1,34 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season
+
+@* After the game: the troopers who went down roll to avoid injury, and those resting (and the captain's healing) shed one. *@
+<h1>INJURIES</h1>
+@if (ViewModel.HasInjuryChecks)
+{
+    <h3 class="section-heading">INJURY CHECKS</h3>
+    <ul class="rows">
+        @foreach (var check in ViewModel.Injuries) { <InjuryCheckRow @key="check" Check="check" /> }
+    </ul>
+}
+@if (ViewModel.HasRecoveries)
+{
+    <h3 class="section-heading">RECOVERY</h3>
+    <ul class="rows">
+        @foreach (var recovery in ViewModel.Recoveries) { <RecoveryRow @key="recovery" Recovery="recovery" /> }
+    </ul>
+}
+<div class="step-bar">
+    <button class="primary" disabled="@(!ViewModel.CanContinue)" @onclick="() => ViewModel.ContinueCommand.ExecuteAsync(null)">CONTINUE</button>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required InjuriesViewModel ViewModel { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(ViewModel);
+        WatchItems(ViewModel.Injuries);
+        WatchItems(ViewModel.Recoveries);
+    }
+}

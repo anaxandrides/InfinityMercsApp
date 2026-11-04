@@ -1,0 +1,80 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.Presentation.Season.RankUp
+@using InfinityMercsApp.ViewModels.Season.RankUp
+
+@* Spending perk points: each trooper with points in turn, choosing a perk from a list or rolling for one. *@
+<h1>RANK UP</h1>
+<div class="unit-strip">
+    @foreach (var trooper in ViewModel.Troopers)
+    {
+        <UnitTile @key="trooper" Tile="trooper" Command="ViewModel.SelectTrooperCommand" />
+    }
+</div>
+
+@if (ViewModel.AllSpent)
+{
+    <p class="muted center">Every perk point has been spent.</p>
+    <div class="step-bar">
+        <button class="primary" @onclick="() => ViewModel.BackToBaseCommand.ExecuteAsync(null)">BACK TO BASE</button>
+    </div>
+}
+else if (ViewModel.Trooper is { } trooper)
+{
+    <section class="rank-up">
+        <h2>@trooper.Name</h2>
+        <div class="muted">@ViewModel.RankText</div>
+        <div class="signal bold">@ViewModel.PointsText</div>
+
+        <div class="mode-buttons">
+            <button class="secondary @(ViewModel.IsChoosing ? "active" : null)" @onclick="() => ViewModel.ChooseCommand.Execute(null)">CHOOSE</button>
+            <button class="secondary @(ViewModel.IsRolling ? "active" : null)" disabled="@(!ViewModel.CanRoll)" @onclick="() => ViewModel.RollListCommand.Execute(null)">ROLL</button>
+        </div>
+
+        @if (ViewModel.IsChoosing)
+        {
+            <h3 class="section-heading">PERK LIST</h3>
+            <PickList TItem="PerkListChoice" Items="ViewModel.Lists" Value="ViewModel.SelectedList"
+                      ValueChanged="list => ViewModel.SelectedList = list" Text="list => list.Name" Prompt="Pick a list…" />
+        }
+        @if (ViewModel.IsRolling)
+        {
+            <div class="caution bold">@ViewModel.RollText</div>
+            @if (ViewModel.HasRolledLists)
+            {
+                <div class="mode-buttons">
+                    @foreach (var list in ViewModel.RolledLists)
+                    {
+                        <button class="secondary" @onclick="() => ViewModel.RollTrackCommand.Execute(list)">@list.Name</button>
+                    }
+                </div>
+            }
+        }
+
+        @if (ViewModel.HasOptions)
+        {
+            <h3 class="section-heading">TAP A PERK TO TAKE IT</h3>
+            <ul class="rows">
+                @foreach (var option in ViewModel.Options)
+                {
+                    <li>
+                        <button class="row-card choice" @onclick="() => ViewModel.TakePerkCommand.ExecuteAsync(option)">
+                            <span class="name">@option.Name</span>
+                            <span class="subtitle">@option.PlaceText</span>
+                        </button>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+}
+
+@code {
+    [Parameter, EditorRequired] public required RankUpViewModel ViewModel { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(ViewModel);
+        WatchItems(ViewModel.Troopers);
+    }
+}

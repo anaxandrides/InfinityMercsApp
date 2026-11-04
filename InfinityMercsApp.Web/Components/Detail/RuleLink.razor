@@ -1,0 +1,15 @@
+@using InfinityMercsApp.Presentation
+
+@* A rule's name, opening its wiki page in a new tab when it has one. *@
+@if (Text.Url is { Length: > 0 } url)
+{
+    <a href="@url" target="_blank" rel="noopener">@Text.Text</a>
+}
+else
+{
+    <span>@Text.Text</span>
+}
+
+@code {
+    [Parameter, EditorRequired] public required LinkedText Text { get; set; }
+}

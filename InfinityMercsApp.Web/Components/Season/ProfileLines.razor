@@ -1,17 +1,21 @@
+@using CommunityToolkit.Mvvm.Input
 @using InfinityMercsApp.Presentation.Season.Overview
 
-@* A section of the trooper's profile in two columns; placeholders such as "(none)" are muted. *@
+@* A section of the trooper's profile in two columns; placeholders such as "(none)" are muted. Weapons open their profiles. *@
 <h3 class="section-heading">@Title</h3>
 <div class="profile-lines @Class">
-    @foreach (var column in new[] { Columns.Left, Columns.Right })
-    {
-        <div>
-            @foreach (var line in column)
-            {
-                <div class="@(line.IsPlaceholder ? "muted" : null)">@line.Text</div>
-            }
-        </div>
-    }
+    <div>
+        @foreach (var line in Columns.Left)
+        {
+            <ProfileLineView Line="line" Pick="Pick" />
+        }
+    </div>
+    <div>
+        @foreach (var line in Columns.Right)
+        {
+            <ProfileLineView Line="line" Pick="Pick" />
+        }
+    </div>
 </div>
 
 @code {
@@ -20,4 +24,7 @@
     [Parameter, EditorRequired] public required ProfileColumns Columns { get; set; }
 
     [Parameter] public string Class { get; set; } = string.Empty;
+
+    /// <summary>What choosing a line does, for weapons; lines of other sections are plain text.</summary>
+    [Parameter] public IAsyncRelayCommand<ProfileLine?>? Pick { get; set; }
 }

@@ -1,0 +1,24 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season.Bye
+@using InfinityMercsApp.ViewModels.Season.Bye.Items
+
+@* A trooper that can share the bye's XP: ticking it picks it. *@
+<li>
+    <label class="row-card check-row">
+        <input type="checkbox" checked="@Trooper.IsSelected" @onchange="() => Bye.ToggleTrooperCommand.Execute(Trooper)" />
+        <Logo Candidates="Trooper.Unit.LogoCandidates" Size="32" />
+        <span class="name">@Trooper.Name</span>
+    </label>
+</li>
+
+@code {
+    [Parameter, EditorRequired] public required ByeTrooperItem Trooper { get; set; }
+
+    [Parameter, EditorRequired] public required ByeRoundViewModel Bye { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Trooper);
+    }
+}

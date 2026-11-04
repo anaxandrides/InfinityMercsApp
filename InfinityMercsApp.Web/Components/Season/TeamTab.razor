@@ -56,8 +56,8 @@
                 @foreach (var injury in Team.Injuries) { <div class="danger">@injury</div> }
             }
 
-            <ProfileLines Title="WEAPONS" Columns="Team.RangedWeapons" Class="ranged" />
-            <ProfileLines Title="CC WEAPONS" Columns="Team.MeleeWeapons" Class="melee" />
+            <ProfileLines Title="WEAPONS" Columns="Team.RangedWeapons" Class="ranged" Pick="Team.ShowWeaponCommand" />
+            <ProfileLines Title="CC WEAPONS" Columns="Team.MeleeWeapons" Class="melee" Pick="Team.ShowWeaponCommand" />
 
             <h3 class="section-heading">GEAR</h3>
             <p class="muted">@Team.Gear.SwcText</p>

@@ -1,0 +1,21 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Components.UnitFilter
+
+@* A criterion to filter by; the one being edited is lit, and one with values chosen carries a dot. *@
+<button class="chip-button @(Criterion.IsCurrent ? "active" : null) @(Criterion.HasSelections ? "has-selections" : null)"
+        aria-pressed="@Criterion.IsCurrent" @onclick="() => Filter.SelectCriterionCommand.Execute(Criterion)">
+    @Criterion.Title
+    @if (Criterion.HasSelections) { <span class="dot" aria-label="values chosen"></span> }
+</button>
+
+@code {
+    [Parameter, EditorRequired] public required FilterCriterionItem Criterion { get; set; }
+
+    [Parameter, EditorRequired] public required UnitFilterViewModel Filter { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Criterion);
+    }
+}

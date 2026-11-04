@@ -1,0 +1,25 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season.Game
+
+@* The XP a trooper earned during the game, ticked as it happens. *@
+@if (Game.OpenXpSheet is { } sheet)
+{
+    <div class="backdrop" @onclick="() => Game.CloseXpCommand.Execute(null)"></div>
+    <div class="dialog xp-sheet" role="dialog" aria-modal="true" aria-labelledby="xp-title">
+        <XpSheetView Sheet="sheet" />
+
+        <div class="buttons">
+            <button class="primary" @onclick="() => Game.CloseXpCommand.Execute(null)">Done</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required GameModeViewModel Game { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Game);
+    }
+}

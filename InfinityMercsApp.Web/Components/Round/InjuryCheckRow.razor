@@ -1,0 +1,39 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.Domain.Season.Injuries
+@using InfinityMercsApp.ViewModels.Season.Items
+
+@* A trooper that may be injured: roll to avoid it (or record the roll made at the table), then pick the injury when it fails. *@
+<li class="injury-check">
+    <div class="injury-heading">
+        <Logo Source="@Check.LogoSource" Size="32" />
+        <span class="name">@Check.Name</span>
+        <span class="@(Check.IsInjured ? "danger bold" : "muted")">@Check.AvoidText</span>
+        <button class="secondary small" disabled="@Check.IsRollLocked" @onclick="() => Check.RollCommand.Execute(null)">Roll</button>
+    </div>
+    @if (Check.HasRolled)
+    {
+        <div class="@(Check.RollPassed ? "signal" : "danger")">@Check.RollResultText</div>
+    }
+    @if (Check.IsInjured)
+    {
+        <PickList TItem="InjuryTableEntry" Items="Check.InjuryOptions" Value="Check.SelectedInjury"
+                  ValueChanged="injury => Check.SelectedInjury = injury" Prompt="Select Injury…" />
+    }
+    else
+    {
+        <div class="mode-buttons">
+            <button class="secondary @(Check.IsPassed ? "active" : null)" @onclick="() => Check.PassCommand.Execute(null)">PASS</button>
+            <button class="secondary danger" @onclick="() => Check.FailCommand.Execute(null)">FAIL</button>
+        </div>
+    }
+</li>
+
+@code {
+    [Parameter, EditorRequired] public required InjuryCheckItem Check { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Check);
+    }
+}

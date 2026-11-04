@@ -1,0 +1,68 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season.Game
+@using InfinityMercsApp.ViewModels.Season.Game.Items
+
+@* A deployed trooper in the game: its wounds and Tactical Awareness token; opened, its profile, weapons and XP. *@
+<li class="game-unit @(Unit.IsExpanded ? "open" : null)">
+    <div class="game-unit-heading">
+        <button class="game-unit-toggle" aria-expanded="@Unit.IsExpanded" @onclick="() => Game.ToggleUnitCommand.Execute(Unit)">
+            <span class="chevron" aria-hidden="true">▶</span>
+            <span class="text">
+                <span class="name">@Unit.Name</span>
+                @if (Unit.IsPartOfLoneWolf) { <span class="subtitle signal">@Unit.LoneWolfRole</span> }
+                @if (Unit.Unit.IsHired) { <span class="subtitle caution">@Unit.HiredRole</span> }
+                @if (Unit.IsTransmuted) { <span class="subtitle caution">@Unit.FormName</span> }
+                @if (Unit.ShowsCoreFireteamTacticalNote) { <span class="subtitle muted">TA: NOT FOR THE CORE FIRETEAM</span> }
+            </span>
+        </button>
+        @if (Unit.HasTacticalToken)
+        {
+            <button class="icon-button" aria-label="@(Unit.IsTacticalTokenSpent ? "Tactical Awareness spent" : "Spend Tactical Awareness")"
+                    aria-pressed="@Unit.IsTacticalTokenSpent" @onclick="() => Unit.ToggleTacticalTokenCommand.Execute(null)">
+                <Logo Source="SVGCache/CBIcons/tactical.svg" Size="30" Class="@(Unit.IsTacticalTokenSpent ? "greyscale" : string.Empty)" />
+            </button>
+        }
+        <span class="wound-icon" title="@Unit.WoundState">
+            <Logo Source="@Unit.WoundIconPath" Size="30" />
+            @if (Unit.IsOnSecondBody) { <span class="second-body">2</span> }
+        </span>
+    </div>
+
+    @if (Unit.IsExpanded)
+    {
+        <div class="game-unit-body">
+            <div class="mode-buttons">
+                <button class="secondary" @onclick="() => Unit.TakeWoundCommand.Execute(null)">Take Wound</button>
+                <button class="secondary" @onclick="() => Unit.HealWoundCommand.Execute(null)">Heal Wound</button>
+                <button class="secondary signal" @onclick="() => Game.ShowXpCommand.Execute(Unit)">@Unit.XpButtonText</button>
+            </div>
+            @if (Unit.CanReceiveLoneWolf)
+            {
+                <button class="secondary signal" @onclick="() => Game.TransferConsciousnessCommand.Execute(Unit)">TRANSFER CONSCIOUSNESS HERE</button>
+            }
+            <StatValues Stats="Unit.Statline" />
+            <ul class="two-columns equipment-list">
+                @foreach (var item in Unit.EquipmentItems) { <li>@item</li> }
+            </ul>
+            <ul class="two-columns skill-list">
+                @foreach (var skill in Unit.SkillItems) { <li>@skill</li> }
+            </ul>
+            @foreach (var card in Unit.WeaponCards)
+            {
+                <GameWeaponCardView Card="card" Game="Game" />
+            }
+        </div>
+    }
+</li>
+
+@code {
+    [Parameter, EditorRequired] public required GameUnitItem Unit { get; set; }
+
+    [Parameter, EditorRequired] public required GameModeViewModel Game { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Unit);
+    }
+}

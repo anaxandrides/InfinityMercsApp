@@ -1,0 +1,22 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season
+
+@* The XP each deployed trooper earned, and the contract's MVP. *@
+<h1>EXPERIENCE</h1>
+<ul class="rows">
+    @foreach (var unit in ViewModel.Units) { <ExperienceRow @key="unit" Unit="unit" /> }
+</ul>
+<div class="step-bar">
+    <button class="primary" disabled="@(!ViewModel.CanConfirm)" @onclick="() => ViewModel.ConfirmCommand.ExecuteAsync(null)">CONFIRM EXPERIENCE GAINS</button>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required ExperienceViewModel ViewModel { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(ViewModel);
+        WatchItems(ViewModel.Units);
+    }
+}

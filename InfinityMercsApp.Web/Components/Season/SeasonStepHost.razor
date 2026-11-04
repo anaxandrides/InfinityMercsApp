@@ -1,0 +1,64 @@
+@using InfinityMercsApp.ViewModels.Base
+@inject NavigationQuery Query
+@inject SeasonLookup Seasons
+@inject NavigationManager Navigation
+
+@* A season step's page: its view model gets the parameters it was opened with (or its season's, opened from the address),
+   is set up as the app's page sets it up on appearing, and the page shows once it is ready. *@
+@switch (_state)
+{
+    case SeasonLoadState.Loading:
+        <p class="muted">Opening the season…</p>
+        break;
+    case SeasonLoadState.Missing:
+        <h1>Season not found</h1>
+        <p>It isn't in your account, or it hasn't synced yet. <a href="">See your seasons</a>.</p>
+        break;
+    default:
+        @ChildContent
+        break;
+}
+
+@code {
+    private SeasonLoadState _state = SeasonLoadState.Loading;
+    private bool _opened;
+
+    [Parameter, EditorRequired] public required string SeasonId { get; set; }
+
+    [Parameter, EditorRequired] public required SeasonStep Step { get; set; }
+
+    [Parameter, EditorRequired] public required IViewModelBase ViewModel { get; set; }
+
+    [Parameter, EditorRequired] public required RenderFragment ChildContent { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_opened)
+        {
+            return;
+        }
+
+        _opened = true;
+        if (Query.Take() is not { } parameters)
+        {
+            if (!Step.OpensFromAddress())
+            {
+                // What the game left in memory is gone (a reload): the round starts again from the season.
+                Navigation.NavigateTo(WebRoutes.SeasonById(SeasonId), replace: true);
+                return;
+            }
+
+            if (await Seasons.ParametersForAsync(SeasonId) is not { } found)
+            {
+                _state = SeasonLoadState.Missing;
+                return;
+            }
+
+            parameters = found;
+        }
+
+        ViewModel.ApplyQueryAttributes(parameters);
+        await ViewModel.InitializeAsyncCommand.ExecuteAsync(null);
+        _state = SeasonLoadState.Shown;
+    }
+}

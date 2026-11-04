@@ -1,0 +1,87 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.Presentation.Season.Overview
+@using InfinityMercsApp.ViewModels.Season.Overview
+
+@* The markets: a store at a time, buying into a cart kept across stores, bought from the bar at the bottom. *@
+<div class="market-tab">
+    <div class="store-bar">
+        <PickList TItem="StoreChoice" Items="Market.Stores" Value="Market.SelectedStore" ValueChanged="Pick"
+                  Text="store => store.Label" Prompt="Select store..." Class="store-picker" />
+        @if (Season.WarMarketChoice.IsNeeded)
+        {
+            <button class="secondary" @onclick="() => Season.WarMarketChoice.OpenCommand.Execute(null)">CHOOSE WAR MARKET</button>
+        }
+    </div>
+
+    @if (Market.IsRecruitmentStore)
+    {
+        <section class="store-panel">
+            <h3>ADDITIONAL RECRUITMENT</h3>
+            <p class="muted">Hire new troopers with the CR the company has left. They follow the same rules as the first recruits, and AVA counts every trooper the company has had.</p>
+            <button class="primary" @onclick="() => Season.RecruitCommand.ExecuteAsync(null)">RECRUIT TROOPERS</button>
+        </section>
+    }
+    else if (Market.IsServicesStore)
+    {
+        <ServicesPanel Services="Season.Services" />
+    }
+    else if (Market.ShowsStock)
+    {
+        @if (Market.HasAlignmentText)
+        {
+            <p class="muted">@Market.AlignmentText</p>
+        }
+        @foreach (var group in Market.ItemGroups)
+        {
+            <h3 class="section-heading">@group.Category</h3>
+            <ul class="rows">
+                @foreach (var row in group.Items)
+                {
+                    <MarketRowCard @key="row" Row="row" Market="Market" />
+                }
+            </ul>
+        }
+        @if (Market.HasTroopTypes)
+        {
+            <h3 class="section-heading">ARMOR UPGRADES</h3>
+            <ul class="rows">
+                @foreach (var row in Market.TroopTypeRows)
+                {
+                    <MarketRowCard @key="row" Row="row" Market="Market" />
+                }
+            </ul>
+        }
+        @if (Market.HasAugments)
+        {
+            <h3 class="section-heading">AUGMENTS</h3>
+            <ul class="rows">
+                @foreach (var row in Market.AugmentRows)
+                {
+                    <MarketRowCard @key="row" Row="row" Market="Market" />
+                }
+            </ul>
+        }
+    }
+
+    @if (Market.HasCartItems)
+    {
+        <div class="cart-bar">
+            <button class="primary" @onclick="() => Market.BuyCommand.ExecuteAsync(null)">@Market.BuyText</button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required SeasonViewModel Season { get; set; }
+
+    private SeasonMarketplaceViewModel Market => Season.Marketplace;
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Market);
+        Watch(Season.WarMarketChoice);
+    }
+
+    private void Pick(StoreChoice? store) => Market.SelectedStore = store;
+}

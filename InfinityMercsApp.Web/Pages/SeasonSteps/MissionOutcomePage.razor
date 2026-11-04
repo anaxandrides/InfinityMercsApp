@@ -1,0 +1,15 @@
+@page "/season/{SeasonId}/outcome"
+@using InfinityMercsApp.ViewModels.Season
+@inject MissionOutcomeViewModel ViewModel
+
+<PageTitle>Mission Outcome · Infinity Mercs</PageTitle>
+
+<ArmyDataGate>
+    <SeasonStepHost SeasonId="@SeasonId" Step="SeasonStep.Outcome" ViewModel="ViewModel">
+        <MissionOutcomeScreen ViewModel="ViewModel" />
+    </SeasonStepHost>
+</ArmyDataGate>
+
+@code {
+    [Parameter] public string SeasonId { get; set; } = string.Empty;
+}

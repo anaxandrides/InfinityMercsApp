@@ -1,0 +1,51 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.Domain.Season.Byes
+@using InfinityMercsApp.Presentation.Season.Bye
+@using InfinityMercsApp.ViewModels.Season.Bye
+
+@* A bye, for a contract the company can't play: the round's rewards, XP shared among the troopers ticked, and an injury written off. *@
+<h1>ROUND @ViewModel.RoundNumber BYE</h1>
+<p class="muted">Round rewards plus 3 OP worth of CR: @ViewModel.Credits CR and 0.5 SWC.</p>
+
+<h3 class="section-heading">SHARE THE XP</h3>
+<div class="mode-buttons">
+    <button class="secondary @(ViewModel.IsFourTroopers ? "active" : null)" aria-pressed="@ViewModel.IsFourTroopers"
+            @onclick="() => ViewModel.SelectSplitCommand.Execute(ByeXpSplit.FourTroopers)">UP TO 4 · 7 XP</button>
+    <button class="secondary @(ViewModel.IsSixTroopers ? "active" : null)" aria-pressed="@ViewModel.IsSixTroopers"
+            @onclick="() => ViewModel.SelectSplitCommand.Execute(ByeXpSplit.SixTroopers)">UP TO 6 · 5 XP</button>
+</div>
+<p class="muted">@ViewModel.SelectionText</p>
+@if (!ViewModel.IsValid)
+{
+    <p class="danger">Too many troopers are ticked for this choice.</p>
+}
+
+<ul class="rows">
+    @foreach (var trooper in ViewModel.Troopers)
+    {
+        <ByeTrooperRow @key="trooper" Trooper="trooper" Bye="ViewModel" />
+    }
+</ul>
+
+@if (ViewModel.HasInjuries)
+{
+    <h3 class="section-heading">WRITE OFF AN INJURY</h3>
+    <PickList TItem="ByeInjuryOption" Items="ViewModel.InjuryOptions" Value="ViewModel.SelectedInjury"
+              ValueChanged="injury => ViewModel.SelectedInjury = injury" Prompt="Injury to write off…" />
+}
+
+<div class="step-bar">
+    <button class="primary" disabled="@(!ViewModel.IsValid)" @onclick="() => ViewModel.ConfirmCommand.ExecuteAsync(null)">TAKE THE BYE</button>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required ByeRoundViewModel ViewModel { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(ViewModel);
+        WatchItems(ViewModel.Troopers);
+        WatchItems(ViewModel.InjuryOptions);
+    }
+}
