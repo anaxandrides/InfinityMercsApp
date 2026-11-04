@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Season.Inducements;
 using InfinityMercsApp.UnitTests.Support;
@@ -11,18 +12,29 @@ namespace InfinityMercsApp.UnitTests.ViewModels.Season.Inducements;
 public sealed class InducementShopViewModelTests
 {
     private readonly IDialogService _dialogs = Substitute.For<IDialogService>();
+    private readonly IArmyDataLoader _armies = Substitute.For<IArmyDataLoader>();
     private readonly ContractInducements _inducements = new() { Received = 40 };
     private readonly InducementShopViewModel _shop;
 
     public InducementShopViewModelTests()
     {
-        _shop = new InducementShopViewModel(_dialogs, new HiredTroops(Army101Data.Create()));
+        _shop = new InducementShopViewModel(_dialogs, new HiredTroops(Army101Data.Create()), _armies);
         _shop.Update(_inducements, [new ContractTrooper(0, "Lt"), new ContractTrooper(1, "Bolt")], companySlots: 2);
     }
 
     private HireOfferItem Hire(string profile) => _shop.HireOffers.First(offer => offer.Offer.Profile == profile);
 
     private RentalOfferItem Rental(string name) => _shop.RentalOffers.First(offer => offer.Name == name);
+
+    [Fact]
+    public async Task HireCommand_AnyRow_LoadsEveryArmyBeforeLookingItUp()
+    {
+        _dialogs.ChooseAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IReadOnlyList<string>>()).Returns((string?)null);
+
+        await _shop.HireCommand.ExecuteAsync(Hire("SMG or BSG"));
+
+        await _armies.Received(1).EnsureEveryArmyAsync(Arg.Any<CancellationToken>());
+    }
 
     // The Bounty Hunter's SMG or BSG row has two PanOceania loadouts: Boarding Shotgun, then Submachine Gun.
     [Fact]

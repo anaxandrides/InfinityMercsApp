@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Season.Gear;
 using InfinityMercsApp.Domain.Season.Inducements;
+using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Season.Inducements;
 using InfinityMercsApp.ViewModels.Season.Inducements.Items;
@@ -12,9 +13,10 @@ namespace InfinityMercsApp.ViewModels.Season.Inducements;
 
 /// <summary>
 /// The deployment page's inducements pop-up: hiring troops, buying command tokens and renting gear for the contract,
-/// out of the inducements the company got. It works on the deployment's <see cref="ContractInducements"/>.
+/// out of the inducements the company got. It works on the deployment's <see cref="ContractInducements"/>. A hire can
+/// come from any army, so every army is loaded before one is looked up (the web site loads armies as pages need them).
 /// </summary>
-public sealed partial class InducementShopViewModel(IDialogService dialogs, HiredTroops hiredTroops) : ObservableObject
+public sealed partial class InducementShopViewModel(IDialogService dialogs, HiredTroops hiredTroops, IArmyDataLoader armies) : ObservableObject
 {
     private ContractInducements _inducements = new();
     private IReadOnlyList<ContractTrooper> _troopers = [];
@@ -83,6 +85,7 @@ public sealed partial class InducementShopViewModel(IDialogService dialogs, Hire
             return;
         }
 
+        await armies.EnsureEveryArmyAsync();
         var choices = hiredTroops.ChoicesFor(item.Offer);
         if (choices.Count == 0)
         {

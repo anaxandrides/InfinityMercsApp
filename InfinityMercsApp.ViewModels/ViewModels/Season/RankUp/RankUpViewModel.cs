@@ -156,7 +156,11 @@ public partial class RankUpViewModel(
         _owned = TrooperPerks.Owned(trooper, progress);
         Mode = RankUpMode.Choose;
         Lists = PerkChoices.ListsFor(kind).Select(list => new PerkListChoice(list.ListId, list.ListName)).ToList();
+
+        // The list chosen before may be the same list (an equal record), which wouldn't count as a change; the options,
+        // cleared above, are worked out again for this trooper either way.
         SelectedList = Lists.FirstOrDefault();
+        OnSelectedListChanged(SelectedList);
     }
 
     partial void OnSelectedListChanged(PerkListChoice? value)

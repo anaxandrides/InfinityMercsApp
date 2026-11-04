@@ -6,6 +6,7 @@ using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Season.Inducements;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Presentation.Season;
+using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Season;
@@ -29,6 +30,7 @@ public partial class PlayModeViewModel(
     IDialogService dialogs,
     DeploymentRoster roster,
     HiredTroops hiredTroops,
+    IArmyDataLoader armies,
     IAppSettingsProvider? settings = null) : ViewModelBase(navigationService), IDeploymentChoice, IInducementShopOwner
 {
     public const int MaxSlots = 6;
@@ -100,7 +102,7 @@ public partial class PlayModeViewModel(
     public ContractInducements Inducements { get; } = new();
 
     /// <summary>The inducements pop-up.</summary>
-    public InducementShopViewModel Shop { get; } = new(dialogs, hiredTroops);
+    public InducementShopViewModel Shop { get; } = new(dialogs, hiredTroops, armies);
 
     partial void OnOpponentRenownTextChanged(string value) => RefreshInducements();
 

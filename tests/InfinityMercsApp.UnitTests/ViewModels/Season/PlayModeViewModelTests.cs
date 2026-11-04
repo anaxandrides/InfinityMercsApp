@@ -44,7 +44,7 @@ public sealed class PlayModeViewModelTests : IDisposable
         _companyPath = _records.WriteCompany("c.json", JsonSerializer.Serialize(new { entries }));
         var viewModel = new PlayModeViewModel(
             _navigation, _dialogs, new DeploymentRoster(_armyData, new CompanyFileStore(Substitute.For<ISyncOutbox>()), _seasonFiles, new StoreCatalog(Substitute.For<IStoreProvider>())),
-            new HiredTroops(_armyData), _settings);
+            new HiredTroops(_armyData), new StoredArmyData(), _settings);
         viewModel.ApplyQueryAttributes(NavigationParameters.ForCompany(_companyPath, "/s.json"));
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         return viewModel;

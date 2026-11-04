@@ -2,6 +2,7 @@ using System.Text.Json;
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Presentation.Season;
+using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Records;
@@ -36,7 +37,7 @@ public sealed class LoneWolfDeploymentTests : IDisposable
         var viewModel = new PlayModeViewModel(
             _navigation, Substitute.For<IDialogService>(),
             new DeploymentRoster(armyData, new CompanyFileStore(Substitute.For<ISyncOutbox>()), Substitute.For<ISeasonFileService>(), new StoreCatalog(Substitute.For<IStoreProvider>())),
-            new HiredTroops(armyData), Substitute.For<IAppSettingsProvider>());
+            new HiredTroops(armyData), new StoredArmyData(), Substitute.For<IAppSettingsProvider>());
         viewModel.ApplyQueryAttributes(NavigationParameters.ForCompany(companyPath, "/s.json"));
         await viewModel.InitializeAsyncCommand.ExecuteAsync(null);
         return viewModel;
