@@ -143,6 +143,33 @@ the API, the app and the web site always agree on their shape.
 - **Sign-in:** every route needs `Authorization: Bearer <token>` from the sign-in tenant, issued for the API. Until
   `authAuthority` and `authAudience` are set in `infra/main.bicepparam`, every request gets `401 Unauthorized`.
 
+## The leagues API
+
+A league is one document in the Cosmos DB `leagues` container, in its own partition: its members, the company seasons
+entered and the games recorded. Invite codes are kept by code in `league-invites`, so joining reads one document.
+League types live in `InfinityMercsApp.Domain` (`Models/Leagues`), checked by the validators in `Validation/Leagues`.
+
+| Route | What |
+| --- | --- |
+| `GET /api/me/leagues` | The leagues the user belongs to. |
+| `POST /api/leagues` | Starts a league: `{ "name", "displayName", "armySnapshotId" }`. The user organizes it; it comes with an invite code. |
+| `GET /api/leagues/{id}` | The league, for its members. |
+| `POST /api/leagues/{id}/invite`, `DELETE ...` | The organizer issues a new invite code (the old one stops working), or closes joining. |
+| `GET /api/invites/{code}`, `POST ...` | What a code leads to; joining with `{ "displayName" }`. |
+| `PUT /api/leagues/{id}/entries/{seasonId}` | Enters one of the user's seasons in the current league season, or updates its renown: `{ "renown" }`. |
+| `DELETE /api/leagues/{id}/entries/{seasonId}` | Withdraws it (its owner or the organizer), unless it has played. |
+| `GET /api/leagues/{id}/entries/{seasonId}` | The entered company and season, as their owner keeps them, for any member to look at. |
+| `POST /api/leagues/{id}/games`, `DELETE .../games/{gameId}` | A player records a game their company played: `{ "playedOn", "mission", "sides": [{ "seasonId", "result", "objectivePoints" }] }`; the recorder or organizer removes one. |
+| `PUT /api/leagues/{id}/army` | The organizer moves the league to other army data: `{ "armySnapshotId" }`. |
+| `POST /api/leagues/{id}/seasons?from=n` | The organizer starts the league's next season. |
+
+- **Privacy:** someone outside a league gets `404` for it. Members are shown by a member id of the league's own,
+  never their account.
+- **Invite codes** are six characters from `23456789ABCDEFGHJKMNPQRSTUVWXYZ` (no 0/O, 1/I/L), picked at random and
+  read in any case. The join link is `https://www.infinitythemercs.com/join/{code}`.
+- **Renown** is worked out by the owner's app, which needs the army data, and reported with the entry.
+- **Concurrency:** changes are made against the league's ETag and worked out again when two land at once.
+
 ## The web domain
 
 `infinitythemercs.com` is registered outside Azure; its DNS records are kept wherever it was registered.
