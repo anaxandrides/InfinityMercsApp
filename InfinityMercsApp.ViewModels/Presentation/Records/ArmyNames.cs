@@ -1,6 +1,6 @@
 using InfinityMercsApp.Domain.Models.Company;
 
-namespace InfinityMercsApp.Web.Presentation;
+namespace InfinityMercsApp.Presentation.Records;
 
 /// <summary>The armies a company comes from, as one line.</summary>
 public static class ArmyNames

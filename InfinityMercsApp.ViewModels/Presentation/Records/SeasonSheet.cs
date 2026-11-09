@@ -1,6 +1,6 @@
 using InfinityMercsApp.Domain.Models.Season;
 
-namespace InfinityMercsApp.Web.Presentation;
+namespace InfinityMercsApp.Presentation.Records;
 
 /// <summary>A season's page: its company, each contract in order, and the troopers who retired.</summary>
 public sealed record SeasonSheet(

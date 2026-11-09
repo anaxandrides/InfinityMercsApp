@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels.Leagues;assembly=InfinityMercsApp.ViewModels"
+             x:Class="InfinityMercsApp.Views.Leagues.JoinLeaguePage"
+             x:DataType="viewModels:JoinLeagueViewModel"
+             Title="Join a League"
+             BackgroundColor="{StaticResource Void}">
+
+    <VerticalStackLayout Padding="16" Spacing="12" MaximumWidthRequest="{DynamicResource MaxContentWidth}">
+        <Label Text="Join a League"
+               FontSize="{DynamicResource FontSizeDisplay}"
+               FontAttributes="Bold"
+               TextColor="{StaticResource TextPrimary}" />
+
+        <Border IsVisible="{Binding HasLeague}"
+                StrokeThickness="1"
+                Stroke="{StaticResource Hairline}"
+                BackgroundColor="{StaticResource Plate}"
+                Padding="{DynamicResource PaddingSection}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="{DynamicResource CornerRadiusDefault}" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="8">
+                <Label Text="{Binding Preview.Name, FallbackValue=''}"
+                       FontSize="{DynamicResource FontSizeHeadline}"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource TextPrimary}" />
+                <Label Text="{Binding Details}"
+                       FontSize="{DynamicResource FontSizeBody}"
+                       TextColor="{StaticResource TextMuted}" />
+                <Button Text="Join" Command="{Binding JoinCommand}" HorizontalOptions="Fill" />
+            </VerticalStackLayout>
+        </Border>
+
+        <Button Text="Log in"
+                Command="{Binding LogInCommand}"
+                IsVisible="{Binding ShowLogIn}"
+                HorizontalOptions="Fill" />
+
+        <Label Text="{Binding Status}"
+               FontSize="{DynamicResource FontSizeBody}"
+               TextColor="{StaticResource TextMuted}"
+               LineBreakMode="WordWrap" />
+    </VerticalStackLayout>
+
+</baseViews:ContentPageBase>

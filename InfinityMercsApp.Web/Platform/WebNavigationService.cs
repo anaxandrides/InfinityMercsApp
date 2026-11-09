@@ -28,6 +28,12 @@ public sealed class WebNavigationService(
             return;
         }
 
+        if (WebRoutes.ForLeague(route, routeParameters) is { } leagueAddress)
+        {
+            navigation.NavigateTo(leagueAddress);
+            return;
+        }
+
         if (WebRoutes.For(route) is not { } address)
         {
             await dialogs.ShowAlertAsync("Only in the App", OnlyInTheApp);

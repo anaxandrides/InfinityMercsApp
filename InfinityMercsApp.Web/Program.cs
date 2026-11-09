@@ -6,6 +6,7 @@ using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Infrastructure;
 using InfinityMercsApp.Infrastructure.API.ArmyMirror;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
+using InfinityMercsApp.Infrastructure.API.Leagues;
 using InfinityMercsApp.Infrastructure.Repositories;
 using InfinityMercsApp.Infrastructure.Repositories.InMemory;
 using InfinityMercsApp.Services.ArmyData;
@@ -57,6 +58,7 @@ builder.Services
 builder.Services.Replace(ServiceDescriptor.Singleton<IArmyPayloadSource>(provider => provider.GetRequiredService<CachedArmyPayloads>()));
 builder.Services.Replace(ServiceDescriptor.Singleton<IArmyDataLoader>(provider => provider.GetRequiredService<WebArmyData>()));
 builder.Services.Replace(ServiceDescriptor.Singleton(new UserDocumentsEndpoint(apiAddress)));
+builder.Services.Replace(ServiceDescriptor.Singleton(new LeaguesEndpoint(apiAddress)));
 builder.Services.AddSingleton<RemoteLogoStore>();
 builder.Services.Replace(ServiceDescriptor.Singleton<ILogoStore>(provider => provider.GetRequiredService<RemoteLogoStore>()));
 builder.Services.Replace(ServiceDescriptor.Singleton<ILogoBundleInstaller, NoLogoBundle>());

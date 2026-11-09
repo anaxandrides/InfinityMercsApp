@@ -1,0 +1,67 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.Domain.Leagues
+@using InfinityMercsApp.ViewModels.Leagues
+
+@* The leagues the user is in, starting one, and joining one by its code. *@
+<h1>Leagues</h1>
+
+@if (ViewModel.ShowLogIn)
+{
+    <p class="notice">Leagues are kept online. <button class="link" @onclick="() => ViewModel.LogInCommand.ExecuteAsync(null)">Log in</button> to start or join one.</p>
+}
+
+@if (ViewModel.Status.Length > 0)
+{
+    <p class="muted" role="status">@ViewModel.Status</p>
+}
+
+@if (ViewModel.Leagues.Count > 0)
+{
+    <ul class="rows leagues">
+        @foreach (var league in ViewModel.Leagues)
+        {
+            <li @key="league.LeagueId">
+                <button class="row-button" @onclick="() => ViewModel.OpenCommand.ExecuteAsync(league)">
+                    <span class="title">@league.Name</span>
+                    <span class="muted">Season @league.CurrentSeason · @league.MemberCount @(league.MemberCount == 1 ? "member" : "members")@(league.IsOrganizer ? " · you organize it" : null)</span>
+                </button>
+            </li>
+        }
+    </ul>
+}
+
+@if (ViewModel.IsSignedIn)
+{
+    <div class="league-forms">
+        <section>
+            <h3 class="section-heading">JOIN A LEAGUE</h3>
+            <p class="muted">Type the code the organizer gave you, or open their link.</p>
+            <div class="inline-form">
+                <input aria-label="Invite code" class="code" placeholder="ABC234" maxlength="@(InviteCodes.Length + 2)"
+                       value="@ViewModel.InviteCode" @oninput="e => ViewModel.InviteCode = e.Value as string ?? string.Empty" />
+                <button class="primary" disabled="@(!ViewModel.JoinCommand.CanExecute(null))" @onclick="() => ViewModel.JoinCommand.ExecuteAsync(null)">JOIN</button>
+            </div>
+        </section>
+        <section>
+            <h3 class="section-heading">START A LEAGUE</h3>
+            <p class="muted">You'll organize it: invite players, and start each league season.</p>
+            <div class="inline-form">
+                <input aria-label="League name" placeholder="League name" maxlength="@LeagueLimits.NameLength"
+                       value="@ViewModel.NewLeagueName" @oninput="e => ViewModel.NewLeagueName = e.Value as string ?? string.Empty" />
+                <button class="primary" disabled="@(!ViewModel.CreateLeagueCommand.CanExecute(null))" @onclick="() => ViewModel.CreateLeagueCommand.ExecuteAsync(null)">START</button>
+            </div>
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required LeaguesViewModel ViewModel { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        StopWatching();
+        Watch(ViewModel);
+        WatchItems(ViewModel.Leagues);
+        await ViewModel.InitializeAsyncCommand.ExecuteAsync(null);
+    }
+}

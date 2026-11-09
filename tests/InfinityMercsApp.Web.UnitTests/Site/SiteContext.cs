@@ -6,6 +6,7 @@ using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Infrastructure;
 using InfinityMercsApp.Infrastructure.API.ArmyMirror;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
+using InfinityMercsApp.Infrastructure.API.Leagues;
 using InfinityMercsApp.Infrastructure.Repositories;
 using InfinityMercsApp.Infrastructure.Repositories.InMemory;
 using InfinityMercsApp.Services.ArmyData;
@@ -66,6 +67,7 @@ public abstract class SiteContext : BunitContext
         Services.Replace(ServiceDescriptor.Singleton<ILogoBundleInstaller, NoLogoBundle>());
         Services.Replace(ServiceDescriptor.Singleton(Sync));
         Services.Replace(ServiceDescriptor.Singleton(Api));
+        Services.Replace(ServiceDescriptor.Singleton(Leagues));
 
         Services
             .AddSingleton(new HttpClient())
@@ -104,6 +106,8 @@ public abstract class SiteContext : BunitContext
     protected RecordPaths Paths { get; }
 
     protected IUserDocumentsApi Api { get; } = Substitute.For<IUserDocumentsApi>();
+
+    protected ILeaguesApi Leagues { get; } = Substitute.For<ILeaguesApi>();
 
     protected IAccessTokens Tokens { get; } = Substitute.For<IAccessTokens>();
 

@@ -1,6 +1,6 @@
 using InfinityMercsApp.Domain.Models.Company;
 
-namespace InfinityMercsApp.Web.Presentation;
+namespace InfinityMercsApp.Presentation.Records;
 
 /// <summary>One trooper or peripheral on a company sheet.</summary>
 /// <param name="Role">"Captain", "Lone Wolf", "Aspect", "Peripheral" or empty.</param>

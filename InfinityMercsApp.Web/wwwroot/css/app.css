@@ -610,3 +610,31 @@ main:has(.unit-strip), main:has(.game-units) { max-width: 1100px; }
 .chip-button .dot { width: 6px; height: 6px; border-radius: 3px; background: var(--signal); }
 .criterion-heading { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 0 6px; }
 .points-range { display: flex; align-items: center; gap: 8px; }
+
+/* Leagues: the list, the forms to start or join one, standings, games and the organizer's invite. */
+.row-button {
+    display: grid; gap: 2px; width: 100%; text-align: left; padding: 10px 14px; cursor: pointer;
+    font: inherit; color: var(--text); background: var(--plate); border: 1px solid var(--hairline); border-radius: 4px;
+}
+.row-button:hover, .row-button:focus-visible { border-color: var(--signal-dim); background: var(--plate-raised); }
+.row-button .title, .rows.games .title { font-weight: 600; }
+.league-forms { display: grid; gap: 8px 24px; margin-top: 8px; }
+@media (min-width: 800px) { .league-forms { grid-template-columns: 1fr 1fr; } }
+.inline-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.inline-form input, .inline-form select { flex: 1 1 180px; min-width: 0; }
+input.code { text-transform: uppercase; letter-spacing: 0.2em; font-weight: 600; }
+.league-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 16px; }
+.standings { width: 100%; border-collapse: collapse; }
+.standings th, .standings td { padding: 6px 8px; border-bottom: 1px solid var(--hairline); text-align: left; vertical-align: baseline; }
+.standings th { color: var(--text-muted); font-weight: 600; }
+.standings .number { text-align: right; white-space: nowrap; }
+.standings tr.yours td:first-child { box-shadow: inset 3px 0 0 var(--signal); }
+.standings td .muted { display: block; font-size: 0.85rem; }
+.rows.games li { padding: 8px 12px; background: var(--plate); border: 1px solid var(--hairline); border-radius: 4px; }
+.record-game { display: grid; gap: 8px 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); }
+.record-game label { display: grid; gap: 4px; color: var(--text-muted); font-size: 0.9rem; }
+.members { padding-left: 1.2em; margin: 0; }
+.invite { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.invite p { margin: 0 0 8px; overflow-wrap: anywhere; }
+.invite-qr { width: min(220px, 100%); height: auto; border-radius: 4px; flex: 0 0 auto; }
+.invite-code { font-size: 1.4rem; letter-spacing: 0.2em; color: var(--signal); }

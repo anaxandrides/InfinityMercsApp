@@ -1,0 +1,14 @@
+@page "/leagues/{LeagueId}"
+@using InfinityMercsApp.ViewModels.Leagues
+@inject LeagueViewModel ViewModel
+
+<PageTitle>@ViewModel.Name · Infinity Mercs</PageTitle>
+
+@* Renown is worked out from the army data, and the user's seasons arrive with it. *@
+<ArmyDataGate>
+    <LeagueScreen ViewModel="ViewModel" LeagueId="@LeagueId" />
+</ArmyDataGate>
+
+@code {
+    [Parameter] public string LeagueId { get; set; } = string.Empty;
+}

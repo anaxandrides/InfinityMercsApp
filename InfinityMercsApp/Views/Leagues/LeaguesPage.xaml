@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views.Leagues"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels.Leagues;assembly=InfinityMercsApp.ViewModels"
+             xmlns:leagues="clr-namespace:InfinityMercsApp.Domain.Models.Leagues;assembly=InfinityMercsApp.Domain"
+             x:Class="InfinityMercsApp.Views.Leagues.LeaguesPage"
+             x:Name="Root"
+             x:DataType="viewModels:LeaguesViewModel"
+             Title="Leagues"
+             BackgroundColor="{StaticResource Void}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12" MaximumWidthRequest="{DynamicResource MaxContentWidth}">
+            <Label Text="Leagues"
+                   FontSize="{DynamicResource FontSizeDisplay}"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource TextPrimary}" />
+
+            <Button Text="Log in"
+                    Command="{Binding LogInCommand}"
+                    IsVisible="{Binding ShowLogIn}"
+                    HorizontalOptions="Fill" />
+
+            <Label Text="{Binding Status}"
+                   FontSize="{DynamicResource FontSizeBody}"
+                   TextColor="{StaticResource TextMuted}"
+                   LineBreakMode="WordWrap" />
+
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Leagues}" Spacing="6">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="leagues:LeagueSummary">
+                        <Border StrokeThickness="1"
+                                Stroke="{StaticResource Hairline}"
+                                BackgroundColor="{StaticResource Plate}"
+                                Padding="14,12">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="{DynamicResource CornerRadiusDefault}" />
+                            </Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ViewModel.OpenCommand, Source={x:Reference Root}, x:DataType=view:LeaguesPage}"
+                                                      CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="{Binding Name}"
+                                       FontSize="{DynamicResource FontSizeSubHeadline}"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label FontSize="{DynamicResource FontSizeCaption}" TextColor="{StaticResource TextMuted}">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Season " />
+                                            <Span Text="{Binding CurrentSeason}" />
+                                            <Span Text=" · members: " />
+                                            <Span Text="{Binding MemberCount}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="8" IsVisible="{Binding IsSignedIn}">
+                <Label Text="JOIN A LEAGUE"
+                       FontSize="{DynamicResource FontSizeSectionHeader}"
+                       TextColor="{StaticResource TextMuted}" />
+                <Label Text="Type the code the organizer gave you, or scan their QR code with the camera."
+                       FontSize="{DynamicResource FontSizeCaption}"
+                       TextColor="{StaticResource TextMuted}"
+                       LineBreakMode="WordWrap" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <Entry Text="{Binding InviteCode}"
+                           Placeholder="ABC234"
+                           Keyboard="Plain"
+                           FontSize="{DynamicResource FontSizeBody}" />
+                    <Button Grid.Column="1" Text="Join" Command="{Binding JoinCommand}" />
+                </Grid>
+
+                <Label Text="START A LEAGUE"
+                       FontSize="{DynamicResource FontSizeSectionHeader}"
+                       TextColor="{StaticResource TextMuted}" />
+                <Label Text="You'll organize it: invite players, and start each league season."
+                       FontSize="{DynamicResource FontSizeCaption}"
+                       TextColor="{StaticResource TextMuted}"
+                       LineBreakMode="WordWrap" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <Entry Text="{Binding NewLeagueName}"
+                           Placeholder="League name"
+                           MaxLength="60"
+                           FontSize="{DynamicResource FontSizeBody}" />
+                    <Button Grid.Column="1" Text="Start" Command="{Binding CreateLeagueCommand}" />
+                </Grid>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</baseViews:ContentPageBase>

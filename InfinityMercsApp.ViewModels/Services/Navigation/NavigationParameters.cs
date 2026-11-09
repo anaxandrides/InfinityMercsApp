@@ -30,6 +30,27 @@ public static class NavigationParameters
     /// </summary>
     public const string Inducements = "inducements";
 
+    /// <summary>The league a page shows (string).</summary>
+    public const string LeagueId = "leagueId";
+
+    /// <summary>The company season entered in a league that a page shows (string).</summary>
+    public const string SeasonId = "seasonId";
+
+    /// <summary>The invite code a page joins a league with (string).</summary>
+    public const string InviteCode = "inviteCode";
+
+    /// <summary>Parameters for a page that shows a league, or a company entered in it.</summary>
+    public static Dictionary<string, object> ForLeague(string leagueId, string? seasonId = null)
+    {
+        var parameters = new Dictionary<string, object> { [LeagueId] = leagueId };
+        if (seasonId is not null)
+        {
+            parameters[SeasonId] = seasonId;
+        }
+
+        return parameters;
+    }
+
     /// <summary>Parameters for a page that works on a company, optionally within a season.</summary>
     public static Dictionary<string, object> ForCompany(string companyFilePath, string? seasonFilePath = null)
     {

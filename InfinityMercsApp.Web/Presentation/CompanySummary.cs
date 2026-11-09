@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Models.Company;
+using InfinityMercsApp.Presentation.Records;
 
 namespace InfinityMercsApp.Web.Presentation;
 

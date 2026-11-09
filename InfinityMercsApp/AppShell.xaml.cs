@@ -23,5 +23,10 @@ public partial class AppShell : Shell
 
         // MERCS Season home sub-pages.
         Routing.RegisterRoute(nameof(Views.Season.LoadSeasonPage), typeof(Views.Season.LoadSeasonPage));
+
+        // Leagues — pushed on top of the Leagues page.
+        Routing.RegisterRoute(nameof(Views.Leagues.LeaguePage), typeof(Views.Leagues.LeaguePage));
+        Routing.RegisterRoute(nameof(Views.Leagues.JoinLeaguePage), typeof(Views.Leagues.JoinLeaguePage));
+        Routing.RegisterRoute(nameof(Views.Leagues.LeagueCompanyPage), typeof(Views.Leagues.LeagueCompanyPage));
     }
 }

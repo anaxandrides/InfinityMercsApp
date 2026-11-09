@@ -1,0 +1,13 @@
+@using InfinityMercsApp.Presentation.Leagues
+
+@* An invite's QR code, drawn as SVG at whatever size the page gives it. *@
+<svg class="invite-qr" viewBox="0 0 @Qr.Size @Qr.Size" role="img" aria-label="@Label" shape-rendering="crispEdges">
+    <rect width="@Qr.Size" height="@Qr.Size" fill="#fff" />
+    <path d="@Qr.Path" fill="#000" />
+</svg>
+
+@code {
+    [Parameter, EditorRequired] public required InviteQr Qr { get; set; }
+
+    [Parameter] public string Label { get; set; } = "QR code of the invite link";
+}

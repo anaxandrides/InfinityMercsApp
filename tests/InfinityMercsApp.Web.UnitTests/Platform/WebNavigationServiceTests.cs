@@ -35,6 +35,28 @@ public sealed class WebNavigationServiceTests
         Assert.Null(_query.Take());
     }
 
+    [Theory]
+    [InlineData("LeaguePage", "https://site.example/leagues/l1")]
+    [InlineData("LeagueCompanyPage", "https://site.example/leagues/l1/companies/s1")]
+    [InlineData("JoinLeaguePage", "https://site.example/join/ABC234")]
+    public async Task PushAsync_LeaguePage_GoesToItsAddress(string route, string address)
+    {
+        var parameters = NavigationParameters.ForLeague("l1", "s1");
+        parameters[NavigationParameters.InviteCode] = "ABC234";
+
+        await _service.PushAsync(route, parameters);
+
+        Assert.Equal([address], _navigation.Visited);
+    }
+
+    [Fact]
+    public async Task NavigateToAsync_Leagues_GoesToTheList()
+    {
+        await _service.NavigateToAsync("//LeaguesPage");
+
+        Assert.Equal(["https://site.example/leagues"], _navigation.Visited);
+    }
+
     [Fact]
     public async Task PushAsync_PageOnlyInTheApp_SaysSoAndStays()
     {

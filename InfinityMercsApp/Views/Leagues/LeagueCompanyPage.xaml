@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels.Leagues;assembly=InfinityMercsApp.ViewModels"
+             xmlns:records="clr-namespace:InfinityMercsApp.Presentation.Records;assembly=InfinityMercsApp.ViewModels"
+             x:Class="InfinityMercsApp.Views.Leagues.LeagueCompanyPage"
+             x:DataType="viewModels:LeagueCompanyViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="{StaticResource Void}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="10" MaximumWidthRequest="{DynamicResource MaxContentWidth}">
+            <Label Text="{Binding Title}"
+                   FontSize="{DynamicResource FontSizeDisplay}"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource TextPrimary}" />
+            <Label Text="{Binding Status}"
+                   FontSize="{DynamicResource FontSizeBody}"
+                   TextColor="{StaticResource TextMuted}"
+                   LineBreakMode="WordWrap" />
+
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Company.Troopers, FallbackValue={x:Null}}" Spacing="6">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="records:TrooperRow">
+                        <Border StrokeThickness="1"
+                                Stroke="{StaticResource Hairline}"
+                                BackgroundColor="{StaticResource Plate}"
+                                Padding="12,10">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="{DynamicResource CornerRadiusDefault}" />
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="2">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <Label Text="{Binding Name}"
+                                           FontSize="{DynamicResource FontSizeSubHeadline}"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Grid.Column="1"
+                                           Text="{Binding Role}"
+                                           FontSize="{DynamicResource FontSizeCaption}"
+                                           TextColor="{StaticResource Signal}"
+                                           VerticalOptions="Center" />
+                                </Grid>
+                                <Label Text="{Binding Unit}"
+                                       FontSize="{DynamicResource FontSizeCaption}"
+                                       TextColor="{StaticResource TextMuted}" />
+                                <Label Text="{Binding Attributes}"
+                                       FontSize="{DynamicResource FontSizeCaption}"
+                                       TextColor="{StaticResource TextSecondary}"
+                                       LineBreakMode="WordWrap" />
+                                <Label FontSize="{DynamicResource FontSizeCaption}" TextColor="{StaticResource TextMuted}">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding Rank}" />
+                                            <Span Text=" · XP " />
+                                            <Span Text="{Binding Experience}" />
+                                            <Span Text=" · CR " />
+                                            <Span Text="{Binding Cost}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <Label Text="CONTRACTS"
+                   IsVisible="{Binding HasSeason}"
+                   FontSize="{DynamicResource FontSizeSectionHeader}"
+                   TextColor="{StaticResource TextMuted}" />
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Season.Contracts, FallbackValue={x:Null}}" Spacing="4">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="records:ContractRow">
+                        <Label FontSize="{DynamicResource FontSizeBody}" TextColor="{StaticResource TextPrimary}">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="Contract " />
+                                    <Span Text="{Binding Number}" />
+                                    <Span Text=": " />
+                                    <Span Text="{Binding Result}" FontAttributes="Bold" />
+                                    <Span Text=" · OP " />
+                                    <Span Text="{Binding ObjectivePoints}" />
+                                    <Span Text=" · XP " />
+                                    <Span Text="{Binding Experience}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</baseViews:ContentPageBase>

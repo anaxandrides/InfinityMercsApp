@@ -1,6 +1,6 @@
 using InfinityMercsApp.Domain.Models.Season;
 
-namespace InfinityMercsApp.Web.Presentation;
+namespace InfinityMercsApp.Presentation.Records;
 
 /// <summary>One contract of a season: its result and the XP it gave.</summary>
 /// <param name="Result">"Won", "Lost" or "Bye".</param>

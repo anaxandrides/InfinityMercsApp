@@ -11,6 +11,7 @@ using InfinityMercsApp.Views.About;
 using InfinityMercsApp.Views.Armory;
 using InfinityMercsApp.Views.Company;
 using InfinityMercsApp.Views.Feedback;
+using InfinityMercsApp.Views.Leagues;
 using InfinityMercsApp.Views.Marketplaces;
 using InfinityMercsApp.Views.Reference;
 using InfinityMercsApp.Views.Season;
@@ -55,7 +56,11 @@ public static class ServiceRegistryExtensions
                 .AddTransient<RankUpPage>()
                 .AddTransient<ByeRoundPage>()
                 .AddTransient<LootBoxPage>()
-                .AddTransient<MarketplacesPage>();
+                .AddTransient<MarketplacesPage>()
+                .AddTransient<LeaguesPage>()
+                .AddTransient<LeaguePage>()
+                .AddTransient<JoinLeaguePage>()
+                .AddTransient<LeagueCompanyPage>();
 
         return services;
     }

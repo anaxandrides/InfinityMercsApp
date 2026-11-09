@@ -1,0 +1,13 @@
+@page "/leagues/{LeagueId}/companies/{SeasonId}"
+@using InfinityMercsApp.ViewModels.Leagues
+@inject LeagueCompanyViewModel ViewModel
+
+<PageTitle>@ViewModel.Title · Infinity Mercs</PageTitle>
+
+<LeagueCompanyScreen ViewModel="ViewModel" LeagueId="@LeagueId" SeasonId="@SeasonId" />
+
+@code {
+    [Parameter] public string LeagueId { get; set; } = string.Empty;
+
+    [Parameter] public string SeasonId { get; set; } = string.Empty;
+}

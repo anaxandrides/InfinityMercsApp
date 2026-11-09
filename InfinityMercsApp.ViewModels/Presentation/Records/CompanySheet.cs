@@ -1,6 +1,6 @@
 using InfinityMercsApp.Domain.Models.Company;
 
-namespace InfinityMercsApp.Web.Presentation;
+namespace InfinityMercsApp.Presentation.Records;
 
 /// <summary>A company's page: what it is, and every trooper with its attributes, Captain first.</summary>
 public sealed record CompanySheet(string Id, string Name, string Type, string Armies, int StartingPoints, IReadOnlyList<TrooperRow> Troopers)
