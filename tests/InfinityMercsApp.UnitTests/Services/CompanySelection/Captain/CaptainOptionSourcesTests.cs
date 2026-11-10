@@ -38,7 +38,7 @@ public sealed class CaptainOptionSourcesTests
     {
         Skill(MilitaryOrders, "Courage");
 
-        await _setup.ConfigureCaptainAsync(Unit, new CaptainFactions(MilitaryOrders, MilitaryOrders, []), isSpecOps: false, isLoneWolf: false, showUnitsInInches: false);
+        await _setup.ConfigureCaptainAsync(Unit, new CaptainFactions(MilitaryOrders, MilitaryOrders, []), tookUpgrades: false, isLoneWolf: false, showUnitsInInches: false);
 
         await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context =>
             context.OptionFactionId == MilitaryOrders && context.SkillOptions.Contains("(5) - Courage") && context.OptionFactionName == "Military Orders"));
@@ -49,7 +49,7 @@ public sealed class CaptainOptionSourcesTests
     {
         Skill(PanOceania, "Doctor");
 
-        await _setup.ConfigureCaptainAsync(Unit, new CaptainFactions(MilitaryOrders, null, []), isSpecOps: false, isLoneWolf: false, showUnitsInInches: false);
+        await _setup.ConfigureCaptainAsync(Unit, new CaptainFactions(MilitaryOrders, null, []), tookUpgrades: false, isLoneWolf: false, showUnitsInInches: false);
 
         await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context => context.OptionFactionId == PanOceania));
     }
@@ -57,7 +57,7 @@ public sealed class CaptainOptionSourcesTests
     [Fact]
     public async Task ConfigureCaptainAsync_FactionNobodyKnows_IsNamedByItsId()
     {
-        await _setup.ConfigureCaptainAsync(Unit, new CaptainFactions(Unlisted, null, []), isSpecOps: false, isLoneWolf: false, showUnitsInInches: false);
+        await _setup.ConfigureCaptainAsync(Unit, new CaptainFactions(Unlisted, null, []), tookUpgrades: false, isLoneWolf: false, showUnitsInInches: false);
 
         await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context => context.OptionFactionName == $"Faction {Unlisted}"));
     }
@@ -65,7 +65,7 @@ public sealed class CaptainOptionSourcesTests
     [Fact]
     public async Task ConfigureCaptainAsync_NoFactionAtAll_IsJustAFaction()
     {
-        await _setup.ConfigureCaptainAsync(Unit, new CaptainFactions(0, null, []), isSpecOps: false, isLoneWolf: false, showUnitsInInches: false);
+        await _setup.ConfigureCaptainAsync(Unit, new CaptainFactions(0, null, []), tookUpgrades: false, isLoneWolf: false, showUnitsInInches: false);
 
         await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context => context.OptionFactionName == "Faction"));
     }

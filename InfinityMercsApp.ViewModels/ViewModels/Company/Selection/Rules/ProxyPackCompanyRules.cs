@@ -1,6 +1,5 @@
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Army.Traits;
-using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
@@ -25,19 +24,8 @@ public sealed class ProxyPackCompanyRules(ArmySourceSelectionMode mode) : Standa
     public override bool OffersSpecOps => false;
 
     /// <summary>Every faction but the Non-Aligned Armies, in the Infinity Army's order, with their logos cached.</summary>
-    public override async Task<IReadOnlyList<FactionRecord>> LoadFactionsAsync(CompanySelectionViewModel screen, CancellationToken cancellationToken)
-    {
-        var factions = screen.Services.ArmyData
-            .GetMetadataFactions(includeDiscontinued: true, cancellationToken)
-            .Where(faction => !CompanyFactionCatalog.IsNonAlignedArmyName(faction.Name))
-            .ToList();
-        if (screen.Services.Logos is { } logos)
-        {
-            await logos.CacheFactionLogosFromRecordsAsync(factions, cancellationToken);
-        }
-
-        return WithoutGeneratedFactions(CompanyFactionCatalog.CollapseContractedBackUpVariants(factions).OrderBy(faction => faction.Id));
-    }
+    public override Task<IReadOnlyList<FactionRecord>> LoadFactionsAsync(CompanySelectionViewModel screen, CancellationToken cancellationToken) =>
+        EveryArmyAsync(screen, cancellationToken);
 
     /// <summary>Only regular troopers show, and an empty list stays empty.</summary>
     public override void AdjustUnitVisibility(

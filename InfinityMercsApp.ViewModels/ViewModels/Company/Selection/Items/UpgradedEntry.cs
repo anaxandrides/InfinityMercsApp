@@ -51,6 +51,7 @@ public static class UpgradedEntry
             CostDisplay = $"C {cost}",
             CostValue = cost,
             ProfileKey = entry.ProfileKey,
+            ProfileGroupId = entry.ProfileGroupId,
             IsLieutenant = entry.IsLieutenant,
             IsLoneWolf = entry.IsLoneWolf,
             IsSpecOps = entry.IsSpecOps,

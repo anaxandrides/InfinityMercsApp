@@ -35,7 +35,7 @@ public sealed class CaptainSetupTests
     [Fact]
     public async Task ConfigureCaptainAsync_NotSpecOps_UsesTheMercenariesChart()
     {
-        await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), PanOceania, isSpecOps: false, isLoneWolf: false, showUnitsInInches: true);
+        await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), PanOceania, tookUpgrades: false, isLoneWolf: false, showUnitsInInches: true);
 
         await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context => context.StatChart == CaptainStatChart.Mercenaries));
     }
@@ -43,7 +43,7 @@ public sealed class CaptainSetupTests
     [Fact]
     public async Task ConfigureCaptainAsync_SpecOps_OffersNoUpgradesOrExperience()
     {
-        await _setup.ConfigureCaptainAsync(Unit("Indigo", 20), PanOceania, isSpecOps: true, isLoneWolf: false, showUnitsInInches: true);
+        await _setup.ConfigureCaptainAsync(Unit("Indigo", 20), PanOceania, tookUpgrades: true, isLoneWolf: false, showUnitsInInches: true);
 
         await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context =>
             context.BaseExperienceOverride == 0 &&
@@ -60,7 +60,7 @@ public sealed class CaptainSetupTests
         var chosen = new SavedImprovedCaptainStats { IsEnabled = true, CaptainName = "Kestrel" };
         _dialog.ShowAsync(Arg.Any<CaptainUpgradePopupContext>()).Returns(chosen);
 
-        var result = await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), PanOceania, isSpecOps: false, isLoneWolf: false, showUnitsInInches: true);
+        var result = await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), PanOceania, tookUpgrades: false, isLoneWolf: false, showUnitsInInches: true);
 
         Assert.Same(chosen, result);
         await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context =>
@@ -72,7 +72,7 @@ public sealed class CaptainSetupTests
     [InlineData(35, 10)]
     public async Task ConfigureCaptainAsync_LoneWolf_GetsTenMoreSpecOpsXpWhateverItCosts(int cost, int experience)
     {
-        await _setup.ConfigureCaptainAsync(Unit("Fusilier", cost), PanOceania, isSpecOps: false, isLoneWolf: true, showUnitsInInches: true);
+        await _setup.ConfigureCaptainAsync(Unit("Fusilier", cost), PanOceania, tookUpgrades: false, isLoneWolf: true, showUnitsInInches: true);
 
         await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context =>
             context.BaseExperienceOverride == experience &&
@@ -83,7 +83,7 @@ public sealed class CaptainSetupTests
     [Fact]
     public async Task ConfigureCaptainAsync_Captain_UsesTheUsualExperience()
     {
-        await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), PanOceania, isSpecOps: false, isLoneWolf: false, showUnitsInInches: true);
+        await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), PanOceania, tookUpgrades: false, isLoneWolf: false, showUnitsInInches: true);
 
         await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context => context.BaseExperienceOverride == null));
     }
@@ -104,7 +104,7 @@ public sealed class CaptainSetupTests
     [Fact]
     public async Task ConfigureCaptainAsync_UnknownFaction_NamesItByIdWhenNothingKnowsIt()
     {
-        await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), new CaptainFactions(4242, null, []), isSpecOps: false, isLoneWolf: false, showUnitsInInches: true);
+        await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), new CaptainFactions(4242, null, []), tookUpgrades: false, isLoneWolf: false, showUnitsInInches: true);
 
         await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context => context.OptionFactionName == "Faction 4242"));
     }

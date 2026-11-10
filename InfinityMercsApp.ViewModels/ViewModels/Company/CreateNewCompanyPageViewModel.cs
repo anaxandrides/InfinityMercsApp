@@ -42,7 +42,8 @@ public partial class CreateNewCompanyPageViewModel : AdaptiveViewModelBase<Creat
             ("Inspiring Leader", "MercsIcons/inspiring_leadership.svg", OpenInspiringLeadershipPageCommand),
             ("Airborne Company", "MercsIcons/airborne_company.svg", OpenAirborneCompanyPageCommand),
             ("TAG Company", "MercsIcons/tag_company.svg", OpenTAGCompanyPageCommand),
-            ("Proxy Pack", "MercsIcons/proxy_pack.svg", OpenProxyPackCompanyPageCommand)
+            ("Proxy Pack", "MercsIcons/proxy_pack.svg", OpenProxyPackCompanyPageCommand),
+            ("Team-Ops Company", "MercsIcons/team_ops_company.svg", OpenTeamOpsCompanyPageCommand)
         ];
         return cards.Select((card, index) => new CompanyChoice(card.Title, card.Icon, card.Command, layout.CellFor(index), layout.Card)).ToList();
     }
@@ -67,4 +68,7 @@ public partial class CreateNewCompanyPageViewModel : AdaptiveViewModelBase<Creat
 
     [RelayCommand]
     private Task OpenProxyPackCompanyPageAsync() => _companySelection.OpenAsync(CompanyKind.ProxyPack, ArmySourceSelectionMode.VanillaFactions);
+
+    [RelayCommand]
+    private Task OpenTeamOpsCompanyPageAsync() => _companySelection.OpenAsync(CompanyKind.TeamOps, ArmySourceSelectionMode.VanillaFactions);
 }

@@ -8,5 +8,6 @@ public enum CompanyKind
     ProxyPack,
     Cohesive,
     Inspiring,
-    Airborne
+    Airborne,
+    TeamOps
 }

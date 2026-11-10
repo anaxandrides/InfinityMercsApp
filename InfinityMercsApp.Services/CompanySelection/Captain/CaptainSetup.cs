@@ -13,20 +13,21 @@ public sealed class CaptainSetup(ICaptainConfigurationDialog dialog, CaptainOpti
 {
     /// <summary>
     /// The captain popup, with the Spec-Ops options of the source faction's vanilla parent (or the faction itself
-    /// when the parent offers none). A Spec-Ops captain took its upgrades when it joined, so its popup only names it.
+    /// when the parent offers none). A Spec-Ops or Team-Ops captain (<paramref name="tookUpgrades"/>) took its upgrades
+    /// when it joined, so its popup only names it.
     /// A Proxy Pack's Lone Wolf has 10 more Spec-Ops XP to spend, whatever it costs.
     /// </summary>
     /// <returns>The chosen upgrades, or null when the player backed out.</returns>
     public async Task<SavedImprovedCaptainStats?> ConfigureCaptainAsync(
         CaptainUnitPopupInfo unit,
         CaptainFactions factions,
-        bool isSpecOps,
+        bool tookUpgrades,
         bool isLoneWolf,
         bool showUnitsInInches,
         CancellationToken cancellationToken = default)
     {
         var sourceFactionId = SourceFactionId(factions);
-        if (isSpecOps)
+        if (tookUpgrades)
         {
             return await dialog.ShowAsync(new CaptainUpgradePopupContext
             {
@@ -55,7 +56,7 @@ public sealed class CaptainSetup(ICaptainConfigurationDialog dialog, CaptainOpti
             WeaponOptions = choices.Weapons,
             SkillOptions = choices.Skills,
             EquipmentOptions = choices.Equipment,
-            StatChart = isSpecOps ? CaptainStatChart.SpecOps : CaptainStatChart.Mercenaries,
+            StatChart = CaptainStatChart.Mercenaries,
             PopupTitle = isLoneWolf ? "Lone Wolf Configuration" : "Captain Configuration",
             DefaultUnitCustomName = !string.IsNullOrWhiteSpace(unit.CustomName) ? unit.CustomName.Trim() : isLoneWolf ? "Lone Wolf" : "Captain",
             BaseExperienceOverride = isLoneWolf

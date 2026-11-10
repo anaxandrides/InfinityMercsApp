@@ -35,6 +35,7 @@ public sealed class CreateNewCompanyPageViewModelTests
     [InlineData(nameof(CreateNewCompanyPageViewModel.OpenAirborneCompanyPageCommand), CompanyKind.Airborne, ArmySourceSelectionMode.Sectorials)]
     [InlineData(nameof(CreateNewCompanyPageViewModel.OpenTAGCompanyPageCommand), CompanyKind.Tag, ArmySourceSelectionMode.Sectorials)]
     [InlineData(nameof(CreateNewCompanyPageViewModel.OpenProxyPackCompanyPageCommand), CompanyKind.ProxyPack, ArmySourceSelectionMode.VanillaFactions)]
+    [InlineData(nameof(CreateNewCompanyPageViewModel.OpenTeamOpsCompanyPageCommand), CompanyKind.TeamOps, ArmySourceSelectionMode.VanillaFactions)]
     public async Task OpenCompanyCommands_OtherCompanies_OpenTheirSelectionScreens(string command, CompanyKind kind, ArmySourceSelectionMode mode)
     {
         var viewModel = Create();
@@ -48,16 +49,16 @@ public sealed class CreateNewCompanyPageViewModelTests
     }
 
     [Fact]
-    public void Choices_Compact_ListsSixCardsInOneColumn()
+    public void Choices_Compact_ListsSevenCardsInOneColumn()
     {
         var viewModel = Create();
 
         Assert.Equal(
-            ["Standard Company", "Cohesive Company", "Inspiring Leader", "Airborne Company", "TAG Company", "Proxy Pack"],
+            ["Standard Company", "Cohesive Company", "Inspiring Leader", "Airborne Company", "TAG Company", "Proxy Pack", "Team-Ops Company"],
             viewModel.Choices.Select(choice => choice.Title));
-        Assert.Same(viewModel.OpenProxyPackCompanyPageCommand, viewModel.Choices[5].Command);
-        Assert.Equal(new GridCell(5, 0), viewModel.Choices[5].Cell);
-        Assert.Equal("*,*,*,*,*,*", viewModel.ChoiceRows);
+        Assert.Same(viewModel.OpenTeamOpsCompanyPageCommand, viewModel.Choices[6].Command);
+        Assert.Equal(new GridCell(6, 0), viewModel.Choices[6].Cell);
+        Assert.Equal("*,*,*,*,*,*,*", viewModel.ChoiceRows);
     }
 
     [Fact]
@@ -70,7 +71,7 @@ public sealed class CreateNewCompanyPageViewModelTests
         viewModel.ApplyLayoutCommand.Execute(AdaptiveLayoutMode.Wide);
 
         Assert.Equal(new GridCell(1, 1), viewModel.Choices[4].Cell);
-        Assert.Equal("*,*", viewModel.ChoiceRows);
+        Assert.Equal("*,*,*", viewModel.ChoiceRows);
         Assert.False(viewModel.Choices[0].Style.UsesCompactTitle);
         Assert.Contains(nameof(CreateNewCompanyPageViewModel.Choices), changed);
     }

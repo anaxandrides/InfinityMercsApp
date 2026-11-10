@@ -11,5 +11,5 @@ public static class CompanyTypes
     public const string Tag = "TAG Company";
 
     public static IReadOnlyList<string> All { get; } =
-        [StandardVanilla, StandardSectorial, Cohesive, InspiringLeader, Airborne, Tag, ProxyPack.CompanyType];
+        [StandardVanilla, StandardSectorial, Cohesive, InspiringLeader, Airborne, Tag, ProxyPack.CompanyType, TeamOpsCompany.CompanyType];
 }

@@ -65,7 +65,8 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
         where TEntry : class, ICompanyMercsEntry =>
         FactionSlots.SourceFactions(request.ShowRightSelectionBox, request.LeftSlotFaction, request.RightSlotFaction).ToList();
 
-    // A TAG Company's TAG captain gets the TAG Spec-Ops popup (its 20 XP, no more); any other captain gets the captain popup.
+    // A TAG Company's TAG captain gets the TAG Spec-Ops popup (its 20 XP, no more); any other captain gets the captain
+    // popup, which only names a Spec-Ops or Team-Ops captain since it took its upgrades as it joined.
     private Task<SavedImprovedCaptainStats?> ConfigureCaptainAsync<TFaction, TEntry>(
         CompanyFoundingRequest<TFaction, TEntry> request,
         TEntry captain,
@@ -100,7 +101,7 @@ public sealed class CompanyFounder(CaptainSetup captains, SavedEntryWriter entri
             return captains.ConfigureCaptainAsync(
                 unit,
                 new CaptainFactions(captain.SourceFactionId, firstSourceFactionId, known),
-                captain.IsSpecOps,
+                captain.IsSpecOps || TeamOpsCompany.Is(request.CompanyType),
                 ProxyPack.Is(request.CompanyType),
                 request.ShowUnitsInInches);
         }

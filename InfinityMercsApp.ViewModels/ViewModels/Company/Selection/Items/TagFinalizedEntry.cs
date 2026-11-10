@@ -32,6 +32,7 @@ public static class TagFinalizedEntry
             CostDisplay = entry.CostDisplay,
             CostValue = entry.CostValue,
             ProfileKey = entry.ProfileKey,
+            ProfileGroupId = entry.ProfileGroupId,
             IsLieutenant = entry.IsLieutenant,
             SourceUnitId = entry.SourceUnitId,
             SourceFactionId = entry.SourceFactionId,

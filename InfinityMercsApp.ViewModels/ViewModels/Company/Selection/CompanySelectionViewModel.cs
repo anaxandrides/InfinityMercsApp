@@ -698,7 +698,9 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
             servantOwner = owner;
         }
 
-        var entry = NewTrooperEntry.From(unit, profile, detail, commonSkills, Preview.PeripheralStatsOf(profile), form, servantOwner);
+        form ??= Rules.FormFor(detail, profile);
+        var entry = NewTrooperEntry.From(
+            unit, profile, detail, commonSkills, Preview.PeripheralStatsOf(profile), form, servantOwner, Rules.UnitTypeCodeFor(detail, profile));
         Rules.OnEntryBuilt(this, entry);
         Roster.Add(entry, servantOwner);
         OnRosterChanged();
@@ -884,7 +886,12 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
 
     private string StartBlockedReason()
     {
-        if (!Roster.HasLieutenant)
+        if (!IsRecruiting && Rules.StartBlockedReason(this) is { } reason)
+        {
+            return reason;
+        }
+
+        if (!Roster.HasLieutenant && !Rules.ChoosesCaptainAtFounding)
         {
             return IsRecruiting ? "The company needs a Lieutenant." : "Choose a Lieutenant to start the company.";
         }
@@ -919,6 +926,11 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
         Roster.ShowCompanyNameValidationError = false;
         try
         {
+            if (!await Rules.PrepareFoundingAsync(this))
+            {
+                return;
+            }
+
             var founding = await Services.Founder.FoundAsync(new CompanyFoundingRequest<ArmyFactionSelectionItem, MercsCompanyEntry>
             {
                 CompanyName = Roster.CompanyName.Trim(),
