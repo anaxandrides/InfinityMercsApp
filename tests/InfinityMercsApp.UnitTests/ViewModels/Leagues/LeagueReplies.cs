@@ -12,12 +12,29 @@ internal static class LeagueReplies
     public static LeaguesReply<T> Failed<T>(LeaguesStatus status, params IEnumerable<string> problems)
         where T : class => new(status, null, problems.ToList());
 
-    /// <summary>A league in its first season: the user's "Red Company" against Mo's "Blue Company", with one game played.</summary>
-    public static LeagueView Sample(bool organizer = true, int currentSeason = 1, int ownRenown = 300, string? inviteCode = "ABC234") => new()
+    /// <summary>
+    /// A league whose first season has the user's "Red Company" against Mo's "Blue Company", with one game played;
+    /// later seasons are empty. It shows <paramref name="season"/>, or the current season when null, as the API does.
+    /// </summary>
+    public static LeagueView Sample(bool organizer = true, int currentSeason = 1, int ownRenown = 300, string? inviteCode = "ABC234", int? season = null) =>
+        (season ?? currentSeason) == 1 ? FirstSeason(organizer, currentSeason, ownRenown, inviteCode) : LaterSeason(organizer, currentSeason, ownRenown, inviteCode, season ?? currentSeason);
+
+    private static LeagueView LaterSeason(bool organizer, int currentSeason, int ownRenown, string? inviteCode, int season)
+    {
+        var league = FirstSeason(organizer, currentSeason, ownRenown, inviteCode);
+        league.Season = season;
+        league.Entries = [];
+        league.Games = [];
+        return league;
+    }
+
+    private static LeagueView FirstSeason(bool organizer, int currentSeason, int ownRenown, string? inviteCode) => new()
     {
         LeagueId = "l1",
         Name = "Spring League",
         CurrentSeason = currentSeason,
+        Season = 1,
+        EnteredSeasonIds = ["season-red"],
         IsOrganizer = organizer,
         InviteCode = organizer ? inviteCode : null,
         Members =

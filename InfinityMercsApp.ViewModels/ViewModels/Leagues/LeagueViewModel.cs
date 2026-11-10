@@ -15,9 +15,10 @@ using InfinityMercsApp.ViewModels.Base;
 namespace InfinityMercsApp.ViewModels.Leagues;
 
 /// <summary>
-/// One league: its season's standings by renown, the games played, its members, entering one of the user's company
-/// seasons, and recording a game the user's company played. The organizer also sees the invite (code, link and QR
-/// code), and starts the next league season. Opening the league reports the current renown of the user's companies.
+/// One league: a league season's standings by renown, the games played, its members, entering one of the user's
+/// company seasons, and recording a game the user's company played. Earlier league seasons are fetched when chosen.
+/// The organizer also sees the invite (code, link and QR code), and starts the next league season. Opening the league
+/// reports the current renown of the user's companies.
 /// </summary>
 public partial class LeagueViewModel(
     INavigationService navigationService,
@@ -32,6 +33,9 @@ public partial class LeagueViewModel(
 
     private string _leagueId = string.Empty;
     private IReadOnlyList<SeasonRecord> _ownSeasons = [];
+
+    /// <summary>Set while a fetched league picks its own season, so choosing it doesn't fetch it again.</summary>
+    private bool _showingFetched;
 
     public ObservableCollection<LeagueStanding> Standings { get; } = [];
 
@@ -53,13 +57,12 @@ public partial class LeagueViewModel(
     public IReadOnlyList<ResultChoice> Results => ResultChoice.All;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Name), nameof(IsOrganizer), nameof(InviteCode), nameof(InviteLink), nameof(HasInvite), nameof(CurrentSeasonText))]
+    [NotifyPropertyChangedFor(nameof(Name), nameof(IsOrganizer), nameof(InviteCode), nameof(InviteLink), nameof(HasInvite), nameof(CurrentSeasonText), nameof(IsViewingCurrentSeason))]
     [NotifyCanExecuteChangedFor(nameof(NewInviteCommand), nameof(CloseInviteCommand), nameof(StartNextSeasonCommand))]
     public partial LeagueView? League { get; set; }
 
-    /// <summary>The league season whose standings and games are shown.</summary>
+    /// <summary>The league season whose standings and games are shown; choosing another fetches it.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsViewingCurrentSeason))]
     public partial LeagueSeasonChoice? ViewedSeason { get; set; }
 
     [ObservableProperty]
@@ -112,12 +115,13 @@ public partial class LeagueViewModel(
     /// <summary>The page that joins the league, which the QR code also opens.</summary>
     public string InviteLink => HasInvite ? LeagueLinks.Join(InviteCode) : string.Empty;
 
-    public bool IsViewingCurrentSeason => League is null || ViewedSeason?.Number == League.CurrentSeason;
+    public bool IsViewingCurrentSeason => League is null || League.Season == League.CurrentSeason;
 
     /// <summary>Whether the user has a company in the current season to record a game for, and someone to have played.</summary>
-    public bool CanRecordGames => OwnEntries.Count > 0 && Opponents.Count > 0;
+    public bool CanRecordGames => IsViewingCurrentSeason && OwnEntries.Count > 0 && Opponents.Count > 0;
 
-    public bool HasSeasonsToEnter => SeasonsToEnter.Count > 0;
+    /// <summary>Whether the current season is shown and the user has a season to enter in it.</summary>
+    public bool HasSeasonsToEnter => IsViewingCurrentSeason && SeasonsToEnter.Count > 0;
 
     public override void ApplyQueryAttributes(IDictionary<string, object> query) =>
         _leagueId = NavigationParameters.GetString(query, NavigationParameters.LeagueId) ?? string.Empty;
@@ -131,7 +135,7 @@ public partial class LeagueViewModel(
         await ReportRenownAsync();
     }
 
-    /// <summary>Fetches the league again.</summary>
+    /// <summary>Fetches the league again, showing the league season being looked at (the current one, if it moved on).</summary>
     [RelayCommand]
     private async Task RefreshAsync()
     {
@@ -140,10 +144,31 @@ public partial class LeagueViewModel(
             return;
         }
 
-        Show(await leagues.GetAsync(_leagueId, token));
+        Show(await leagues.GetAsync(_leagueId, IsViewingCurrentSeason ? null : League?.Season, token));
     }
 
-    partial void OnViewedSeasonChanged(LeagueSeasonChoice? value) => ShowSeason();
+    partial void OnViewedSeasonChanged(LeagueSeasonChoice? value)
+    {
+        if (!_showingFetched && value is not null && League is { } league && value.Number != league.Season)
+        {
+            ShowSeasonCommand.Execute(value);
+        }
+    }
+
+    /// <summary>Fetches a league season's standings and games; if that fails, the season shown stays chosen.</summary>
+    [RelayCommand]
+    private async Task ShowSeasonAsync(LeagueSeasonChoice season)
+    {
+        if (await TokenAsync() is { } token)
+        {
+            Show(await leagues.GetAsync(_leagueId, season.Number, token));
+        }
+
+        if (League is { } league && league.Season != season.Number)
+        {
+            ChooseShownSeason(league);
+        }
+    }
 
     private bool CanEnterSeason() => SeasonToEnter is not null && !IsWorking;
 
@@ -322,7 +347,7 @@ public partial class LeagueViewModel(
     /// <summary>Reports the current renown of the user's companies in the current league season, where it changed.</summary>
     private async Task ReportRenownAsync()
     {
-        if (League is not { } league)
+        if (League is not { } league || league.Season != league.CurrentSeason)
         {
             return;
         }
@@ -352,6 +377,7 @@ public partial class LeagueViewModel(
         return null;
     }
 
+    /// <summary>Shows the league as fetched, at the league season it came with.</summary>
     private void Show(LeaguesReply<LeagueView> reply)
     {
         if (reply.Value is not { } league)
@@ -360,48 +386,45 @@ public partial class LeagueViewModel(
             return;
         }
 
-        var viewed = ViewedSeason?.Number;
-        var wasCurrent = League is null || viewed == League.CurrentSeason;
         League = league;
         Status = string.Empty;
         InviteQr = HasInvite ? InviteQr.For(InviteLink) : null;
 
         Replace(Members, league.Members.Select(LeagueMemberRow.For));
         Replace(LeagueSeasons, LeagueSeasonChoice.UpTo(league.CurrentSeason));
-        var current = league.Entries.Where(entry => entry.LeagueSeason == league.CurrentSeason).ToList();
+
+        // Games are recorded only in the current season, so its companies are offered only while it is shown.
+        var current = league.Season == league.CurrentSeason
+            ? league.Entries.Where(entry => entry.LeagueSeason == league.CurrentSeason).ToList()
+            : [];
         Replace(OwnEntries, current.Where(entry => entry.IsYours).Select(entry => LeagueEntryChoice.For(entry, league)));
         Replace(Opponents, current.Where(entry => !entry.IsYours).Select(entry => LeagueEntryChoice.For(entry, league)));
         OwnEntry = OwnEntries.FirstOrDefault(choice => choice.SeasonId == OwnEntry?.SeasonId) ?? OwnEntries.FirstOrDefault();
         Opponent = Opponents.FirstOrDefault(choice => choice.SeasonId == Opponent?.SeasonId);
-        var entered = league.Entries.Select(entry => entry.SeasonId).ToHashSet();
+
+        var entered = league.EnteredSeasonIds.Concat(league.Entries.Select(entry => entry.SeasonId)).ToHashSet();
         Replace(SeasonsToEnter, _ownSeasons.Where(season => season.SeasonIdentifier.Length > 0 && !entered.Contains(season.SeasonIdentifier)).Select(SeasonChoice.For));
         SeasonToEnter = SeasonsToEnter.FirstOrDefault(choice => choice.Season == SeasonToEnter?.Season) ?? SeasonsToEnter.FirstOrDefault();
         OnPropertyChanged(nameof(CanRecordGames));
         OnPropertyChanged(nameof(HasSeasonsToEnter));
 
-        // A new season shows itself; a past one being looked at stays.
-        var keep = wasCurrent ? league.CurrentSeason : viewed ?? league.CurrentSeason;
-        var choice = LeagueSeasons.FirstOrDefault(season => season.Number == keep) ?? LeagueSeasons.FirstOrDefault();
-        if (choice == ViewedSeason)
-        {
-            ShowSeason();
-        }
-        else
-        {
-            ViewedSeason = choice;
-        }
+        ChooseShownSeason(league);
+        Replace(Standings, LeagueStandings.For(league, league.Season));
+        Replace(Games, LeagueGameRow.ListFor(league, league.Season));
     }
 
-    private void ShowSeason()
+    /// <summary>Picks the league season shown in the season list, without fetching it again.</summary>
+    private void ChooseShownSeason(LeagueView league)
     {
-        if (League is not { } league || ViewedSeason is not { } season)
+        try
         {
-            return;
+            _showingFetched = true;
+            ViewedSeason = LeagueSeasons.FirstOrDefault(season => season.Number == league.Season) ?? LeagueSeasons.FirstOrDefault();
         }
-
-        Replace(Standings, LeagueStandings.For(league, season.Number));
-        Replace(Games, LeagueGameRow.ListFor(league, season.Number));
-        OnPropertyChanged(nameof(IsViewingCurrentSeason));
+        finally
+        {
+            _showingFetched = false;
+        }
     }
 
     private static void Replace<T>(ObservableCollection<T> collection, IEnumerable<T> items)

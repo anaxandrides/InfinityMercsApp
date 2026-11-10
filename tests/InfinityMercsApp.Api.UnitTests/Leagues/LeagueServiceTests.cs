@@ -12,21 +12,13 @@ namespace InfinityMercsApp.Api.UnitTests.Leagues;
 
 public sealed class LeagueServiceTests
 {
-    private readonly InMemoryLeagueStore _store = new();
+    private readonly InMemoryLeagueStore _store = Store();
     private readonly IUserDocumentStore _files = Substitute.For<IUserDocumentStore>();
     private readonly LeagueService _service;
 
     public LeagueServiceTests()
     {
         _service = new LeagueService(_store, _files, new QueuedInviteCodes("NEW234", "NEW345"), TimeProvider.System);
-    }
-
-    private async Task<LeagueDocument> KeepSampleAsync()
-    {
-        var league = Sample();
-        await _store.TryCreateAsync(league);
-        await _store.TryCreateInviteAsync(LeagueInvite.For("ABC234", league.LeagueId));
-        return league;
     }
 
     private void KeepSeason(string userId, string seasonId, string companyName, bool deleted = false) =>
@@ -42,12 +34,14 @@ public sealed class LeagueServiceTests
     {
         var result = await _service.CreateAsync(Organizer, new NewLeague { Name = " Spring ", DisplayName = "Olive", ArmySnapshotId = "snap-1" });
 
-        var league = Assert.IsType<LeagueDocument>(result.League);
+        var view = Assert.IsType<LeagueView>(result.View);
+        var league = Assert.IsType<LeagueDocument>(_store[view.LeagueId]);
         Assert.Equal("Spring", league.Name);
         Assert.Equal("NEW234", league.InviteCode);
         Assert.Equal(league.LeagueId, _store.Invites["NEW234"]);
         Assert.Equal(Organizer, Assert.Single(league.Members).UserId);
-        Assert.Equal(1, league.CurrentSeason);
+        Assert.Equal(1, view.CurrentSeason);
+        Assert.Equal(1, view.Season);
     }
 
     [Fact]
@@ -57,13 +51,12 @@ public sealed class LeagueServiceTests
 
         var result = await _service.CreateAsync(Organizer, new NewLeague { Name = "Spring", DisplayName = "Olive" });
 
-        Assert.Equal("NEW345", result.League?.InviteCode);
+        Assert.Equal("NEW345", result.View?.InviteCode);
     }
 
     [Fact]
     public async Task ListAsync_SomeLeagues_ListsOnlyTheUsersByName()
     {
-        await KeepSampleAsync();
         await _store.TryCreateAsync(Sample() with { Id = "league-2", LeagueId = "league-2", Name = "Autumn League" });
         await _store.TryCreateAsync((Sample() with { Id = "league-3", LeagueId = "league-3", Name = "Private" }).WithMembers([]));
 
@@ -75,16 +68,113 @@ public sealed class LeagueServiceTests
     [Fact]
     public async Task GetAsync_NotAMember_IsNull()
     {
-        await KeepSampleAsync();
 
         Assert.Null(await _service.GetAsync("league-1", Outsider));
     }
 
     [Fact]
+    public async Task ViewAsync_NoSeasonGiven_ShowsTheCurrentSeasonOnly()
+    {
+        _store.Keep(Sample() with { CurrentSeason = 2 });
+        _store.Keep(LeagueEntry.For(LeagueId, "season-m2", "m-m", "Blue Company II", 2, 10, DateTimeOffset.UnixEpoch));
+        _store.Keep(Recorded("g1", "m-m"));
+
+        var view = await _service.ViewAsync(LeagueId, Member, null);
+
+        Assert.Equal(2, view?.Season);
+        Assert.Equal("season-m2", Assert.Single(view?.Entries ?? []).SeasonId);
+        Assert.Empty(view?.Games ?? []);
+    }
+
+    [Fact]
+    public async Task ViewAsync_EarlierSeason_ShowsItsEntriesAndGames()
+    {
+        _store.Keep(Sample() with { CurrentSeason = 2 });
+        _store.Keep(Recorded("g1", "m-m"));
+
+        var view = await _service.ViewAsync(LeagueId, Member, 1);
+
+        Assert.Equal(1, view?.Season);
+        Assert.Equal(2, view?.Entries.Count);
+        Assert.Equal("g1", Assert.Single(view?.Games ?? []).GameId);
+    }
+
+    [Fact]
+    public async Task ViewAsync_AnySeason_ListsEveryCompanySeasonTheUserEntered()
+    {
+        _store.Keep(Sample() with { CurrentSeason = 2 });
+        _store.Keep(LeagueEntry.For(LeagueId, "season-m2", "m-m", "Blue Company II", 2, 10, DateTimeOffset.UnixEpoch));
+
+        var view = await _service.ViewAsync(LeagueId, Member, 2);
+
+        Assert.Equal([MemberSeason, "season-m2"], view?.EnteredSeasonIds.Order());
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(2)]
+    public async Task ViewAsync_SeasonNotPlayedYet_IsNull(int season) =>
+        Assert.Null(await _service.ViewAsync(LeagueId, Member, season));
+
+    [Fact]
+    public async Task ViewAsync_NotAMember_IsNull() =>
+        Assert.Null(await _service.ViewAsync(LeagueId, Outsider, null));
+
+    [Fact]
+    public async Task ApplyAsync_RecordGame_KeepsTheGameAndCountsItOnBothEntries()
+    {
+        var result = await _service.ApplyAsync(LeagueId, Member, new RecordGameChange(Game(), "g1", DateTimeOffset.UnixEpoch));
+
+        Assert.Equal("g1", Assert.Single(result.View?.Games ?? []).GameId);
+        Assert.Equal("Supplies", _store.Game(LeagueId, "g1")?.Mission);
+        Assert.Equal(1, _store.Entry(LeagueId, OrganizerSeason)?.GamesPlayed);
+        Assert.Equal(1, _store.Entry(LeagueId, MemberSeason)?.GamesPlayed);
+    }
+
+    [Fact]
+    public async Task ApplyAsync_GameRecordedThenRemoved_LetsTheCompanyWithdraw()
+    {
+        await _service.ApplyAsync(LeagueId, Member, new RecordGameChange(Game(), "g1", DateTimeOffset.UnixEpoch));
+        await _service.ApplyAsync(LeagueId, Member, new RemoveGameChange("g1"));
+
+        var result = await _service.ApplyAsync(LeagueId, Member, new WithdrawChange(MemberSeason));
+
+        Assert.Equal(LeagueChangeStatus.Done, result.Status);
+        Assert.Null(_store.Entry(LeagueId, MemberSeason));
+    }
+
+    [Fact]
+    public async Task ApplyAsync_ManyGamesOverManySeasons_KeepsRecordingAndShowsOnlyTheSeasonsGames()
+    {
+        for (var season = 1; season <= 3; season++)
+        {
+            if (season > 1)
+            {
+                await _service.ApplyAsync(LeagueId, Organizer, new NextSeasonChange(season - 1));
+                _store.Keep(LeagueEntry.For(LeagueId, $"o{season}", "m-o", "Red Company", season, 0, DateTimeOffset.UnixEpoch));
+                _store.Keep(LeagueEntry.For(LeagueId, $"m{season}", "m-m", "Blue Company", season, 0, DateTimeOffset.UnixEpoch));
+            }
+
+            var winner = season == 1 ? OrganizerSeason : $"o{season}";
+            var loser = season == 1 ? MemberSeason : $"m{season}";
+            for (var game = 0; game < 1000; game++)
+            {
+                var recorded = await _service.ApplyAsync(LeagueId, Member, new RecordGameChange(Game(winner, loser), $"g{season}-{game}", DateTimeOffset.UnixEpoch));
+                Assert.Equal(LeagueChangeStatus.Done, recorded.Status);
+            }
+        }
+
+        var view = await _service.ViewAsync(LeagueId, Member, null);
+
+        Assert.Equal(3000, _store.GameCount);
+        Assert.Equal(1000, view?.Games.Count);
+        Assert.All(view?.Games ?? [], game => Assert.Equal(3, game.LeagueSeason));
+    }
+
+    [Fact]
     public async Task ApplyAsync_SomeoneWritesFirst_WorksTheChangeOutAgain()
     {
-        await KeepSampleAsync();
-        _store.RefuseReplacements = 1;
+        _store.RefuseCommits = 1;
 
         var result = await _service.ApplyAsync("league-1", Organizer, new ArmyChange("snap-2"));
 
@@ -95,8 +185,7 @@ public sealed class LeagueServiceTests
     [Fact]
     public async Task ApplyAsync_LeagueKeepsChanging_GivesUp()
     {
-        await KeepSampleAsync();
-        _store.RefuseReplacements = LeagueService.Attempts;
+        _store.RefuseCommits = LeagueService.Attempts;
 
         var result = await _service.ApplyAsync("league-1", Organizer, new ArmyChange("snap-2"));
 
@@ -111,7 +200,6 @@ public sealed class LeagueServiceTests
     [Fact]
     public async Task PreviewInviteAsync_CurrentCode_ShowsTheLeague()
     {
-        await KeepSampleAsync();
 
         var preview = await _service.PreviewInviteAsync("ABC234", Outsider);
 
@@ -123,7 +211,6 @@ public sealed class LeagueServiceTests
     [Fact]
     public async Task JoinAsync_CurrentCode_AddsTheMember()
     {
-        await KeepSampleAsync();
 
         var result = await _service.JoinAsync("ABC234", Outsider, new JoinLeague { DisplayName = "Nova" });
 
@@ -134,7 +221,6 @@ public sealed class LeagueServiceTests
     [Fact]
     public async Task JoinAsync_CodeReplaced_IsNotFound()
     {
-        await KeepSampleAsync();
         await _service.NewInviteAsync("league-1", Organizer);
 
         var result = await _service.JoinAsync("ABC234", Outsider, new JoinLeague { DisplayName = "Nova" });
@@ -145,18 +231,16 @@ public sealed class LeagueServiceTests
     [Fact]
     public async Task NewInviteAsync_Organizer_ReplacesTheCode()
     {
-        await KeepSampleAsync();
 
         var result = await _service.NewInviteAsync("league-1", Organizer);
 
-        Assert.Equal("NEW234", result.League?.InviteCode);
+        Assert.Equal("NEW234", result.View?.InviteCode);
         Assert.Equal(["NEW234"], _store.Invites.Keys);
     }
 
     [Fact]
     public async Task NewInviteAsync_Member_IsForbiddenAndIssuesNoCode()
     {
-        await KeepSampleAsync();
 
         var result = await _service.NewInviteAsync("league-1", Member);
 
@@ -167,18 +251,17 @@ public sealed class LeagueServiceTests
     [Fact]
     public async Task CloseInviteAsync_Organizer_ForgetsTheCode()
     {
-        await KeepSampleAsync();
 
         var result = await _service.CloseInviteAsync("league-1", Organizer);
 
-        Assert.Null(result.League?.InviteCode);
+        Assert.Equal(LeagueChangeStatus.Done, result.Status);
+        Assert.Null(result.View?.InviteCode);
         Assert.Empty(_store.Invites);
     }
 
     [Fact]
     public async Task CloseInviteAsync_Member_KeepsTheCode()
     {
-        await KeepSampleAsync();
 
         await _service.CloseInviteAsync("league-1", Member);
 
@@ -188,12 +271,11 @@ public sealed class LeagueServiceTests
     [Fact]
     public async Task EnterAsync_SeasonOnline_EntersItUnderItsCompanyName()
     {
-        await KeepSampleAsync();
         KeepSeason(Member, "season-new", "Green Company");
 
         var result = await _service.EnterAsync("league-1", Member, "season-new", new LeagueEntryUpdate { Renown = 150 });
 
-        var entry = Assert.Single(result.League?.Entries ?? [], e => e.SeasonId == "season-new");
+        var entry = Assert.Single(result.View?.Entries ?? [], e => e.SeasonId == "season-new");
         Assert.Equal("Green Company", entry.CompanyName);
         Assert.Equal(150, entry.Renown);
     }
@@ -201,7 +283,6 @@ public sealed class LeagueServiceTests
     [Fact]
     public async Task EnterAsync_SeasonNotOnline_IsRejected()
     {
-        await KeepSampleAsync();
 
         var result = await _service.EnterAsync("league-1", Member, "season-new", new LeagueEntryUpdate { Renown = 150 });
 
@@ -211,7 +292,6 @@ public sealed class LeagueServiceTests
     [Fact]
     public async Task EnterAsync_SeasonDeleted_IsRejected()
     {
-        await KeepSampleAsync();
         KeepSeason(Member, "season-new", "Green Company", deleted: true);
 
         var result = await _service.EnterAsync("league-1", Member, "season-new", new LeagueEntryUpdate { Renown = 150 });
@@ -222,7 +302,6 @@ public sealed class LeagueServiceTests
     [Fact]
     public async Task EnterAsync_NotAMember_IsNotFound()
     {
-        await KeepSampleAsync();
 
         var result = await _service.EnterAsync("league-1", Outsider, "season-new", new LeagueEntryUpdate { Renown = 150 });
 
@@ -232,7 +311,6 @@ public sealed class LeagueServiceTests
     [Fact]
     public async Task EntryFilesAsync_Member_ReadsTheOwnersSeasonAndCompany()
     {
-        await KeepSampleAsync();
         KeepSeason(Organizer, OrganizerSeason, "Red Company");
         _files.ReadAsync<SavedCompanyFile>(Organizer, UserDocumentKind.Company, "company-1", Arg.Any<CancellationToken>()).Returns(
             new StoredUserDocument<SavedCompanyFile>(
@@ -250,7 +328,6 @@ public sealed class LeagueServiceTests
     [Fact]
     public async Task EntryFilesAsync_SeasonDeleted_HasNeither()
     {
-        await KeepSampleAsync();
         KeepSeason(Organizer, OrganizerSeason, "Red Company", deleted: true);
 
         var entryFiles = await _service.EntryFilesAsync("league-1", Member, OrganizerSeason);
@@ -263,7 +340,6 @@ public sealed class LeagueServiceTests
     [Fact]
     public async Task EntryFilesAsync_NotAMember_IsNull()
     {
-        await KeepSampleAsync();
 
         Assert.Null(await _service.EntryFilesAsync("league-1", Outsider, OrganizerSeason));
     }

@@ -1,52 +1,52 @@
-using InfinityMercsApp.Domain.Leagues;
 using InfinityMercsApp.Domain.Models.Leagues;
 
 namespace InfinityMercsApp.Api.Leagues.Changes;
 
 /// <summary>
 /// A member records a game their company played against other companies in the league's current season. One player
-/// records it for everyone.
+/// records it for everyone. Each company's entry counts the game, so it can't be withdrawn while the game stands.
 /// </summary>
 public sealed class RecordGameChange(NewLeagueGame game, string gameId, DateTimeOffset now) : ILeagueChange
 {
     /// <inheritdoc/>
-    public LeagueChangeResult Apply(LeagueDocument league, string userId)
+    public async Task<LeagueDecision> DecideAsync(LeagueReads reads, string userId, CancellationToken cancellationToken = default)
     {
+        var league = reads.League;
         if (league.MemberFor(userId) is not { } member)
         {
-            return LeagueChangeResult.NotFound;
+            return LeagueDecision.NotFound;
         }
 
-        var entries = new List<LeagueEntry>();
+        var entries = new List<StoredDocument<LeagueEntry>>();
         foreach (var side in game.Sides)
         {
-            if (league.Entries.FirstOrDefault(entry => entry.SeasonId == side.SeasonId) is not { } entry)
+            if (await reads.EntryAsync(side.SeasonId, cancellationToken) is not { } stored)
             {
-                return LeagueChangeResult.Rejected("A company in the game isn't in the league.");
+                return LeagueDecision.Rejected("A company in the game isn't in the league.");
             }
 
-            if (entry.LeagueSeason != league.CurrentSeason)
+            if (stored.Document.LeagueSeason != league.CurrentSeason)
             {
-                return LeagueChangeResult.Rejected($"{entry.CompanyName} was in an earlier league season.");
+                return LeagueDecision.Rejected($"{stored.Document.CompanyName} was in an earlier league season.");
             }
 
-            entries.Add(entry);
+            entries.Add(stored);
         }
 
-        if (entries.All(entry => entry.MemberId != member.MemberId))
+        if (entries.All(stored => stored.Document.MemberId != member.MemberId))
         {
-            return LeagueChangeResult.Rejected("Only a player whose company played can record the game.");
-        }
-
-        if (league.Games.Count >= LeagueLimits.Games)
-        {
-            return LeagueChangeResult.Rejected($"The league can't record more than {LeagueLimits.Games} games.");
+            return LeagueDecision.Rejected("Only a player whose company played can record the game.");
         }
 
         var sides = game.Sides
             .Select(side => new LeagueGameSide { SeasonId = side.SeasonId, Result = side.Result, ObjectivePoints = side.ObjectivePoints })
             .ToList();
-        var recorded = new LeagueGame(gameId, league.CurrentSeason, game.PlayedOn, game.Mission.Trim(), member.MemberId, now, sides);
-        return LeagueChangeResult.Done(league with { Games = [.. league.Games, recorded] });
+        var recorded = new LeagueGame(
+            LeagueGame.IdFor(gameId), league.LeagueId, gameId, league.CurrentSeason, game.PlayedOn, game.Mission.Trim(), member.MemberId, now, sides);
+        var writes = new LeagueWrites(
+            null,
+            entries.Select(stored => DocumentWrites.Replace(stored.Document with { GamesPlayed = stored.Document.GamesPlayed + 1 }, stored.ETag)).ToList(),
+            [DocumentWrites.Create(recorded)]);
+        return LeagueDecision.Done(writes, league.CurrentSeason);
     }
 }

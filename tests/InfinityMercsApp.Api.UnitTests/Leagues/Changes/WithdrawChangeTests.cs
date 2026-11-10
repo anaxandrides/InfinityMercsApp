@@ -1,3 +1,4 @@
+using InfinityMercsApp.Api.Leagues;
 using InfinityMercsApp.Api.Leagues.Changes;
 using static InfinityMercsApp.Api.UnitTests.Leagues.Leagues;
 
@@ -6,30 +7,33 @@ namespace InfinityMercsApp.Api.UnitTests.Leagues.Changes;
 public sealed class WithdrawChangeTests
 {
     [Fact]
-    public void Apply_OwnSeasonNotPlayed_TakesItOut()
+    public async Task DecideAsync_OwnSeasonNotPlayed_DeletesItsEntry()
     {
-        var result = new WithdrawChange(MemberSeason).Apply(Sample(), Member);
+        var decision = await new WithdrawChange(MemberSeason).DecideAsync(await ReadsAsync(Store()), Member);
 
-        Assert.DoesNotContain(result.League?.Entries ?? [], entry => entry.SeasonId == MemberSeason);
+        var write = Assert.Single(decision.Writes.Entries);
+        Assert.Equal(DocumentWriteKind.Delete, write.Kind);
+        Assert.Equal(MemberSeason, write.Document.SeasonId);
     }
 
     [Fact]
-    public void Apply_OrganizerTakingOutAnyone_TakesItOut() =>
-        Assert.Equal(LeagueChangeStatus.Done, new WithdrawChange(MemberSeason).Apply(Sample(), Organizer).Status);
+    public async Task DecideAsync_OrganizerTakingOutAnyone_IsDone() =>
+        Assert.Equal(LeagueChangeStatus.Done, (await new WithdrawChange(MemberSeason).DecideAsync(await ReadsAsync(Store()), Organizer)).Status);
 
     [Fact]
-    public void Apply_SomeoneElsesSeason_IsForbidden() =>
-        Assert.Equal(LeagueChangeStatus.Forbidden, new WithdrawChange(OrganizerSeason).Apply(Sample(), Member).Status);
+    public async Task DecideAsync_SomeoneElsesSeason_IsForbidden() =>
+        Assert.Equal(LeagueChangeStatus.Forbidden, (await new WithdrawChange(OrganizerSeason).DecideAsync(await ReadsAsync(Store()), Member)).Status);
 
     [Fact]
-    public void Apply_SeasonHasPlayed_IsRejected()
+    public async Task DecideAsync_SeasonHasPlayed_IsRejected()
     {
-        var league = Sample() with { Games = [Recorded("g1", "m-o")] };
+        var store = Store();
+        store.Keep(MemberEntry with { GamesPlayed = 1 });
 
-        Assert.Equal(LeagueChangeStatus.Rejected, new WithdrawChange(MemberSeason).Apply(league, Member).Status);
+        Assert.Equal(LeagueChangeStatus.Rejected, (await new WithdrawChange(MemberSeason).DecideAsync(await ReadsAsync(store), Member)).Status);
     }
 
     [Fact]
-    public void Apply_NotEntered_IsNotFound() =>
-        Assert.Equal(LeagueChangeStatus.NotFound, new WithdrawChange("season-x").Apply(Sample(), Member).Status);
+    public async Task DecideAsync_NotEntered_IsNotFound() =>
+        Assert.Equal(LeagueChangeStatus.NotFound, (await new WithdrawChange("season-x").DecideAsync(await ReadsAsync(Store()), Member)).Status);
 }

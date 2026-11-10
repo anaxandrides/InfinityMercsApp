@@ -22,8 +22,8 @@ public sealed class LeaguesClient(HttpClient httpClient, LeaguesEndpoint endpoin
         SendAsync(With(HttpMethod.Post, endpoint.Leagues, league, Json.NewLeague), Json.LeagueView, accessToken, cancellationToken);
 
     /// <inheritdoc/>
-    public Task<LeaguesReply<LeagueView>> GetAsync(string leagueId, string accessToken, CancellationToken cancellationToken = default) =>
-        SendAsync(new HttpRequestMessage(HttpMethod.Get, endpoint.League(leagueId)), Json.LeagueView, accessToken, cancellationToken);
+    public Task<LeaguesReply<LeagueView>> GetAsync(string leagueId, int? season, string accessToken, CancellationToken cancellationToken = default) =>
+        SendAsync(new HttpRequestMessage(HttpMethod.Get, endpoint.League(leagueId, season)), Json.LeagueView, accessToken, cancellationToken);
 
     /// <inheritdoc/>
     public Task<LeaguesReply<LeagueView>> NewInviteAsync(string leagueId, string accessToken, CancellationToken cancellationToken = default) =>

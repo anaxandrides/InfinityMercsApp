@@ -52,11 +52,11 @@ public sealed class LeagueEndpoints(IUserAuthenticator authenticator)
     }
 
     /// <summary>The league as the user sees it on success, or the status code for how the change went.</summary>
-    public static IActionResult Outcome(LeagueChangeResult result, string userId) => result switch
+    public static IActionResult Outcome(LeagueOutcome outcome) => outcome switch
     {
-        { Status: LeagueChangeStatus.Done, League: { } league } => Json(LeagueViews.For(league, userId)),
+        { Status: LeagueChangeStatus.Done, View: { } view } => Json(view),
         { Status: LeagueChangeStatus.Forbidden } => new StatusCodeResult(StatusCodes.Status403Forbidden),
-        { Status: LeagueChangeStatus.Rejected } => new BadRequestObjectResult(result.Problems),
+        { Status: LeagueChangeStatus.Rejected } => new BadRequestObjectResult(outcome.Problems),
         { Status: LeagueChangeStatus.Conflict } => new ConflictResult(),
         _ => new NotFoundResult()
     };

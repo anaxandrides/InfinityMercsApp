@@ -1,5 +1,3 @@
-using InfinityMercsApp.Domain.Leagues;
-
 namespace InfinityMercsApp.Api.Leagues.Changes;
 
 /// <summary>
@@ -9,31 +7,26 @@ namespace InfinityMercsApp.Api.Leagues.Changes;
 public sealed class EnterSeasonChange(string seasonId, string companyName, int renown, DateTimeOffset now) : ILeagueChange
 {
     /// <inheritdoc/>
-    public LeagueChangeResult Apply(LeagueDocument league, string userId)
+    public async Task<LeagueDecision> DecideAsync(LeagueReads reads, string userId, CancellationToken cancellationToken = default)
     {
+        var league = reads.League;
         if (league.MemberFor(userId) is not { } member)
         {
-            return LeagueChangeResult.NotFound;
+            return LeagueDecision.NotFound;
         }
 
-        var entered = league.Entries.FirstOrDefault(entry => entry.SeasonId == seasonId);
-        if (entered is not null)
+        if (await reads.EntryAsync(seasonId, cancellationToken) is { Document: var entered } stored)
         {
             if (entered.MemberId != member.MemberId)
             {
-                return LeagueChangeResult.Forbidden;
+                return LeagueDecision.Forbidden;
             }
 
             var updated = entered with { CompanyName = companyName, Renown = renown, UpdatedAt = now };
-            return LeagueChangeResult.Done(league with { Entries = league.Entries.Select(entry => entry == entered ? updated : entry).ToList() });
+            return LeagueDecision.Done(LeagueWrites.Of(DocumentWrites.Replace(updated, stored.ETag)), entered.LeagueSeason);
         }
 
-        if (league.Entries.Count >= LeagueLimits.Entries)
-        {
-            return LeagueChangeResult.Rejected($"The league can't take more than {LeagueLimits.Entries} companies.");
-        }
-
-        var entry = new LeagueEntry(seasonId, member.MemberId, companyName, league.CurrentSeason, renown, now);
-        return LeagueChangeResult.Done(league with { Entries = [.. league.Entries, entry] });
+        var entry = LeagueEntry.For(league.LeagueId, seasonId, member.MemberId, companyName, league.CurrentSeason, renown, now);
+        return LeagueDecision.Done(LeagueWrites.Of(DocumentWrites.Create(entry)), league.CurrentSeason);
     }
 }

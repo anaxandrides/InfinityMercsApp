@@ -1,3 +1,4 @@
+using InfinityMercsApp.Api.Leagues;
 using InfinityMercsApp.Api.Leagues.Changes;
 using static InfinityMercsApp.Api.UnitTests.Leagues.Leagues;
 
@@ -8,38 +9,49 @@ public sealed class RecordGameChangeTests
     private static readonly DateTimeOffset Now = new(2026, 11, 9, 0, 0, 0, TimeSpan.Zero);
 
     [Fact]
-    public void Apply_PlayerInTheGame_RecordsItForTheCurrentSeason()
+    public async Task DecideAsync_PlayerInTheGame_CreatesTheGameForTheCurrentSeason()
     {
-        var result = new RecordGameChange(Game(), "g1", Now).Apply(Sample(), Member);
+        var decision = await new RecordGameChange(Game(), "g1", Now).DecideAsync(await ReadsAsync(Store()), Member);
 
-        var game = Assert.Single(result.League?.Games ?? []);
-        Assert.Equal("m-m", game.RecordedBy);
-        Assert.Equal(1, game.LeagueSeason);
-        Assert.Equal(7, game.Sides[0].ObjectivePoints);
+        var write = Assert.Single(decision.Writes.Games);
+        Assert.Equal(DocumentWriteKind.Create, write.Kind);
+        Assert.Equal("m-m", write.Document.RecordedBy);
+        Assert.Equal(1, write.Document.LeagueSeason);
+        Assert.Equal(7, write.Document.Sides[0].ObjectivePoints);
     }
 
     [Fact]
-    public void Apply_MemberNotInTheGame_IsRejected()
+    public async Task DecideAsync_PlayerInTheGame_CountsItOnEachCompanysEntry()
     {
-        var league = Sample();
-        league = new JoinChange("Nova", "m-n", Now).Apply(league, Outsider).League ?? league;
+        var store = Store();
+        var etag = (await store.ReadEntryAsync(LeagueId, MemberSeason))?.ETag;
 
-        Assert.Equal(LeagueChangeStatus.Rejected, new RecordGameChange(Game(), "g1", Now).Apply(league, Outsider).Status);
+        var decision = await new RecordGameChange(Game(), "g1", Now).DecideAsync(await ReadsAsync(store), Member);
+
+        Assert.All(decision.Writes.Entries, write => Assert.Equal(1, write.Document.GamesPlayed));
+        Assert.Equal(etag, Assert.Single(decision.Writes.Entries, write => write.Document.SeasonId == MemberSeason).ETag);
+        Assert.Equal(2, decision.Writes.Entries.Count);
     }
 
     [Fact]
-    public void Apply_CompanyNotEntered_IsRejected() =>
-        Assert.Equal(LeagueChangeStatus.Rejected, new RecordGameChange(Game(loser: "season-x"), "g1", Now).Apply(Sample(), Member).Status);
-
-    [Fact]
-    public void Apply_CompanyFromAnEarlierSeason_IsRejected()
+    public async Task DecideAsync_MemberNotInTheGame_IsRejected()
     {
-        var league = Sample() with { CurrentSeason = 2 };
+        var store = Store(Sample().WithMembers([.. Sample().Members, new LeagueMember("m-n", Outsider, "Nova", Now)]));
 
-        Assert.Equal(LeagueChangeStatus.Rejected, new RecordGameChange(Game(), "g1", Now).Apply(league, Member).Status);
+        Assert.Equal(LeagueChangeStatus.Rejected, (await new RecordGameChange(Game(), "g1", Now).DecideAsync(await ReadsAsync(store), Outsider)).Status);
     }
 
     [Fact]
-    public void Apply_NotAMember_IsNotFound() =>
-        Assert.Equal(LeagueChangeStatus.NotFound, new RecordGameChange(Game(), "g1", Now).Apply(Sample(), Outsider).Status);
+    public async Task DecideAsync_CompanyNotEntered_IsRejected() =>
+        Assert.Equal(LeagueChangeStatus.Rejected, (await new RecordGameChange(Game(loser: "season-x"), "g1", Now).DecideAsync(await ReadsAsync(Store()), Member)).Status);
+
+    [Fact]
+    public async Task DecideAsync_CompanyFromAnEarlierSeason_IsRejected() =>
+        Assert.Equal(
+            LeagueChangeStatus.Rejected,
+            (await new RecordGameChange(Game(), "g1", Now).DecideAsync(await ReadsAsync(Store(Sample() with { CurrentSeason = 2 })), Member)).Status);
+
+    [Fact]
+    public async Task DecideAsync_NotAMember_IsNotFound() =>
+        Assert.Equal(LeagueChangeStatus.NotFound, (await new RecordGameChange(Game(), "g1", Now).DecideAsync(await ReadsAsync(Store()), Outsider)).Status);
 }

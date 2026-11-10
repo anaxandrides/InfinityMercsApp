@@ -3,10 +3,10 @@ using InfinityMercsApp.Domain.Leagues;
 namespace InfinityMercsApp.Api.Leagues.Changes;
 
 /// <summary>A user joins the league; joining again changes nothing.</summary>
-public sealed class JoinChange(string displayName, string memberId, DateTimeOffset now) : ILeagueChange
+public sealed class JoinChange(string displayName, string memberId, DateTimeOffset now) : LeagueDocumentChange
 {
     /// <inheritdoc/>
-    public LeagueChangeResult Apply(LeagueDocument league, string userId)
+    public override LeagueChangeResult Apply(LeagueDocument league, string userId)
     {
         if (league.MemberFor(userId) is not null)
         {

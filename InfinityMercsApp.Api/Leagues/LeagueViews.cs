@@ -5,7 +5,8 @@ namespace InfinityMercsApp.Api.Leagues;
 /// <summary>A league as a member sees it: members by their league ids, never their accounts; the invite code only for the organizer.</summary>
 public static class LeagueViews
 {
-    public static LeagueView For(LeagueDocument league, string userId)
+    /// <summary>The league, showing one league season's entries and games.</summary>
+    public static LeagueView For(LeagueDocument league, LeagueSeasonRecords season, string userId)
     {
         var you = league.MemberFor(userId);
         var organizer = league.IsOrganizer(userId);
@@ -15,6 +16,7 @@ public static class LeagueViews
             Name = league.Name,
             ArmySnapshotId = league.ArmySnapshotId,
             CurrentSeason = league.CurrentSeason,
+            Season = season.Season,
             IsOrganizer = organizer,
             InviteCode = organizer ? league.InviteCode : null,
             Members = league.Members.Select(member => new LeagueMemberView
@@ -24,26 +26,31 @@ public static class LeagueViews
                 IsOrganizer = league.IsOrganizer(member.UserId),
                 IsYou = member == you
             }).ToList(),
-            Entries = league.Entries.Select(entry => new LeagueEntryView
-            {
-                SeasonId = entry.SeasonId,
-                MemberId = entry.MemberId,
-                CompanyName = entry.CompanyName,
-                LeagueSeason = entry.LeagueSeason,
-                Renown = entry.Renown,
-                UpdatedAt = entry.UpdatedAt,
-                IsYours = entry.MemberId == you?.MemberId
-            }).ToList(),
-            Games = league.Games.Select(game => new LeagueGameView
-            {
-                GameId = game.GameId,
-                LeagueSeason = game.LeagueSeason,
-                PlayedOn = game.PlayedOn,
-                Mission = game.Mission,
-                RecordedBy = game.RecordedBy,
-                Sides = game.Sides.Select(side => new LeagueGameSide { SeasonId = side.SeasonId, Result = side.Result, ObjectivePoints = side.ObjectivePoints }).ToList(),
-                CanRemove = organizer || game.RecordedBy == you?.MemberId
-            }).ToList()
+            Entries = season.Entries
+                .OrderBy(entry => entry.CompanyName, StringComparer.CurrentCultureIgnoreCase)
+                .Select(entry => new LeagueEntryView
+                {
+                    SeasonId = entry.SeasonId,
+                    MemberId = entry.MemberId,
+                    CompanyName = entry.CompanyName,
+                    LeagueSeason = entry.LeagueSeason,
+                    Renown = entry.Renown,
+                    UpdatedAt = entry.UpdatedAt,
+                    IsYours = entry.MemberId == you?.MemberId
+                }).ToList(),
+            Games = season.Games
+                .OrderBy(game => game.RecordedAt)
+                .Select(game => new LeagueGameView
+                {
+                    GameId = game.GameId,
+                    LeagueSeason = game.LeagueSeason,
+                    PlayedOn = game.PlayedOn,
+                    Mission = game.Mission,
+                    RecordedBy = game.RecordedBy,
+                    Sides = game.Sides.Select(side => new LeagueGameSide { SeasonId = side.SeasonId, Result = side.Result, ObjectivePoints = side.ObjectivePoints }).ToList(),
+                    CanRemove = organizer || game.RecordedBy == you?.MemberId
+                }).ToList(),
+            EnteredSeasonIds = [.. season.EnteredSeasonIds]
         };
     }
 

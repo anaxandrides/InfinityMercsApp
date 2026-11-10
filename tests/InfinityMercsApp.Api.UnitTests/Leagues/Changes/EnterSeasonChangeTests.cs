@@ -1,3 +1,4 @@
+using InfinityMercsApp.Api.Leagues;
 using InfinityMercsApp.Api.Leagues.Changes;
 using static InfinityMercsApp.Api.UnitTests.Leagues.Leagues;
 
@@ -8,35 +9,41 @@ public sealed class EnterSeasonChangeTests
     private static readonly DateTimeOffset Now = new(2026, 11, 9, 0, 0, 0, TimeSpan.Zero);
 
     [Fact]
-    public void Apply_NewSeason_EntersItInTheCurrentLeagueSeason()
+    public async Task DecideAsync_NewSeason_CreatesItsEntryInTheCurrentLeagueSeason()
     {
-        var league = Sample() with { CurrentSeason = 2 };
+        var reads = await ReadsAsync(Store(Sample() with { CurrentSeason = 2 }));
 
-        var result = new EnterSeasonChange("season-new", "Green Company", 210, Now).Apply(league, Member);
+        var decision = await new EnterSeasonChange("season-new", "Green Company", 210, Now).DecideAsync(reads, Member);
 
-        var entry = Assert.Single(result.League?.Entries ?? [], e => e.SeasonId == "season-new");
-        Assert.Equal("m-m", entry.MemberId);
-        Assert.Equal(2, entry.LeagueSeason);
-        Assert.Equal(210, entry.Renown);
+        var write = Assert.Single(decision.Writes.Entries);
+        Assert.Equal(DocumentWriteKind.Create, write.Kind);
+        Assert.Equal("m-m", write.Document.MemberId);
+        Assert.Equal(2, write.Document.LeagueSeason);
+        Assert.Equal(210, write.Document.Renown);
+        Assert.Equal(2, decision.Season);
     }
 
     [Fact]
-    public void Apply_OwnSeasonEntered_UpdatesItsRenownAndName()
+    public async Task DecideAsync_OwnSeasonEntered_ReplacesItsRenownAndNameOnItsETag()
     {
-        var result = new EnterSeasonChange(MemberSeason, "Blue Company II", 280, Now).Apply(Sample(), Member);
+        var store = Store();
+        var etag = (await store.ReadEntryAsync(LeagueId, MemberSeason))?.ETag;
 
-        var entry = Assert.Single(result.League?.Entries ?? [], e => e.SeasonId == MemberSeason);
-        Assert.Equal(280, entry.Renown);
-        Assert.Equal("Blue Company II", entry.CompanyName);
-        Assert.Equal(Now, entry.UpdatedAt);
-        Assert.Equal(2, result.League?.Entries.Count);
+        var decision = await new EnterSeasonChange(MemberSeason, "Blue Company II", 280, Now).DecideAsync(await ReadsAsync(store), Member);
+
+        var write = Assert.Single(decision.Writes.Entries);
+        Assert.Equal(DocumentWriteKind.Replace, write.Kind);
+        Assert.Equal(etag, write.ETag);
+        Assert.Equal(280, write.Document.Renown);
+        Assert.Equal("Blue Company II", write.Document.CompanyName);
+        Assert.Equal(Now, write.Document.UpdatedAt);
     }
 
     [Fact]
-    public void Apply_SomeoneElsesSeason_IsForbidden() =>
-        Assert.Equal(LeagueChangeStatus.Forbidden, new EnterSeasonChange(OrganizerSeason, "Mine now", 1, Now).Apply(Sample(), Member).Status);
+    public async Task DecideAsync_SomeoneElsesSeason_IsForbidden() =>
+        Assert.Equal(LeagueChangeStatus.Forbidden, (await new EnterSeasonChange(OrganizerSeason, "Mine now", 1, Now).DecideAsync(await ReadsAsync(Store()), Member)).Status);
 
     [Fact]
-    public void Apply_NotAMember_IsNotFound() =>
-        Assert.Equal(LeagueChangeStatus.NotFound, new EnterSeasonChange("season-x", "X", 1, Now).Apply(Sample(), Outsider).Status);
+    public async Task DecideAsync_NotAMember_IsNotFound() =>
+        Assert.Equal(LeagueChangeStatus.NotFound, (await new EnterSeasonChange("season-x", "X", 1, Now).DecideAsync(await ReadsAsync(Store()), Outsider)).Status);
 }

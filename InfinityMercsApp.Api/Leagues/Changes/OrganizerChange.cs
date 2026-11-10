@@ -1,10 +1,10 @@
 namespace InfinityMercsApp.Api.Leagues.Changes;
 
 /// <summary>A change only the league's organizer may make; other members are refused.</summary>
-public abstract class OrganizerChange : ILeagueChange
+public abstract class OrganizerChange : LeagueDocumentChange
 {
     /// <inheritdoc/>
-    public LeagueChangeResult Apply(LeagueDocument league, string userId)
+    public override LeagueChangeResult Apply(LeagueDocument league, string userId)
     {
         if (league.MemberFor(userId) is null)
         {

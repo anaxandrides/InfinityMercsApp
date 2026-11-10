@@ -10,7 +10,7 @@ public sealed class LeaguesClientTests
     private static readonly LeaguesEndpoint Endpoint = new(new Uri("https://api.example/api/"));
 
     private const string League =
-        """{"leagueId":"l1","name":"Spring","currentSeason":2,"isOrganizer":true,"inviteCode":"ABC234","members":[{"memberId":"m1","displayName":"Olive","isOrganizer":true,"isYou":true}],"entries":[],"games":[]}""";
+        """{"leagueId":"l1","name":"Spring","currentSeason":2,"season":2,"isOrganizer":true,"inviteCode":"ABC234","members":[{"memberId":"m1","displayName":"Olive","isOrganizer":true,"isYou":true}],"entries":[],"games":[],"enteredSeasonIds":["s1"]}""";
 
     private static LeaguesClient Client(HttpMessageHandler handler) => new(new HttpClient(handler), Endpoint);
 
@@ -23,6 +23,7 @@ public sealed class LeaguesClientTests
 
         Assert.Equal(LeaguesStatus.Ok, reply.Status);
         Assert.Equal("ABC234", reply.Value?.InviteCode);
+        Assert.Equal(["s1"], reply.Value?.EnteredSeasonIds);
         Assert.Equal(HttpMethod.Post, handler.Request?.Method);
         Assert.Equal("https://api.example/api/leagues", handler.Request?.RequestUri?.ToString());
         Assert.Equal("Bearer token-1", handler.Request?.Headers.Authorization?.ToString());
@@ -106,7 +107,19 @@ public sealed class LeaguesClientTests
     [InlineData(HttpStatusCode.Conflict, LeaguesStatus.Conflict)]
     [InlineData(HttpStatusCode.InternalServerError, LeaguesStatus.Unavailable)]
     public async Task GetAsync_Status_IsReadAs(HttpStatusCode code, LeaguesStatus expected) =>
-        Assert.Equal(expected, (await Client(new CapturingHandler(code, string.Empty)).GetAsync("l1", "token-1")).Status);
+        Assert.Equal(expected, (await Client(new CapturingHandler(code, string.Empty)).GetAsync("l1", null, "token-1")).Status);
+
+    [Theory]
+    [InlineData(null, "https://api.example/api/leagues/l1")]
+    [InlineData(3, "https://api.example/api/leagues/l1?season=3")]
+    public async Task GetAsync_Season_AsksForIt(int? season, string expected)
+    {
+        var handler = new CapturingHandler(HttpStatusCode.OK, League);
+
+        await Client(handler).GetAsync("l1", season, "token-1");
+
+        Assert.Equal(expected, handler.Request?.RequestUri?.ToString());
+    }
 
     [Fact]
     public async Task ListAsync_Unreachable_IsUnavailable() =>

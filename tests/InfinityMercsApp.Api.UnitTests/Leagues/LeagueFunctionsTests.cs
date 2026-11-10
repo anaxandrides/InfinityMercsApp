@@ -13,7 +13,7 @@ namespace InfinityMercsApp.Api.UnitTests.Leagues;
 public sealed class LeagueFunctionsTests
 {
     private readonly IUserAuthenticator _authenticator = Substitute.For<IUserAuthenticator>();
-    private readonly InMemoryLeagueStore _store = new();
+    private readonly InMemoryLeagueStore _store = Store();
     private readonly LeagueFunctions _functions;
 
     public LeagueFunctionsTests()
@@ -21,8 +21,6 @@ public sealed class LeagueFunctionsTests
         SignIn(Member);
         var service = new LeagueService(_store, Substitute.For<IUserDocumentStore>(), new QueuedInviteCodes("NEW234"), TimeProvider.System);
         _functions = new LeagueFunctions(new LeagueEndpoints(_authenticator), service, TimeProvider.System);
-        _store.TryCreateAsync(Sample());
-        _store.TryCreateInviteAsync(LeagueInvite.For("ABC234", "league-1"));
     }
 
     private void SignIn(string? userId) =>
@@ -95,6 +93,27 @@ public sealed class LeagueFunctionsTests
 
         Assert.IsType<NotFoundResult>(await _functions.GetAsync(Request(), "league-1", CancellationToken.None));
     }
+
+    [Fact]
+    public async Task GetAsync_NoSeason_ShowsTheCurrentSeason() =>
+        Assert.Equal(1, ValueOf<LeagueView>(await _functions.GetAsync(Request(), "league-1", CancellationToken.None)).Season);
+
+    [Fact]
+    public async Task GetAsync_EarlierSeason_ShowsIt()
+    {
+        _store.Keep(Sample() with { CurrentSeason = 3 });
+
+        var view = ValueOf<LeagueView>(await _functions.GetAsync(Request(query: "?season=1"), "league-1", CancellationToken.None));
+
+        Assert.Equal(1, view.Season);
+        Assert.Equal(2, view.Entries.Count);
+    }
+
+    [Theory]
+    [InlineData("?season=2")]
+    [InlineData("?season=first")]
+    public async Task GetAsync_SeasonNotPlayed_IsNotFound(string query) =>
+        Assert.IsType<NotFoundResult>(await _functions.GetAsync(Request(query: query), "league-1", CancellationToken.None));
 
     [Fact]
     public async Task GetAsync_BadId_IsNotFound() =>

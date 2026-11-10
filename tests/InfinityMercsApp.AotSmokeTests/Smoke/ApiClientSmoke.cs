@@ -22,13 +22,16 @@ public static class ApiClientSmoke
         var reply = await documents.GetAsync<SavedCompanyFile>(UserDocumentKind.Company, "c1", "token");
         checks.Equal("json: company fetched", "Ok 2 Blue Lions", $"{reply.Status} {reply.Value?.Revision} {reply.Value?.Content?.CompanyName}");
 
-        var leagueHandler = new CannedHandler("""{"leagueId":"l1","name":"Spring","currentSeason":1,"games":[{"gameId":"g1","playedOn":"2026-11-01","sides":[{"seasonId":"s1","result":"Win","objectivePoints":7}]}]}""");
+        var leagueHandler = new CannedHandler("""{"leagueId":"l1","name":"Spring","currentSeason":1,"season":1,"enteredSeasonIds":["s1"],"games":[{"gameId":"g1","playedOn":"2026-11-01","sides":[{"seasonId":"s1","result":"Win","objectivePoints":7}]}]}""");
         var league = await new LeaguesClient(new HttpClient(leagueHandler), new LeaguesEndpoint(Api)).RecordGameAsync(
             "l1",
             new NewLeagueGame { PlayedOn = new DateOnly(2026, 11, 1), Sides = [new LeagueGameSide { SeasonId = "s1", Result = GameResult.Win, ObjectivePoints = 7 }] },
             "token");
         var side = league.Value?.Games.FirstOrDefault()?.Sides.FirstOrDefault();
-        checks.Equal("json: league game recorded", "Ok Spring Win 7", $"{league.Status} {league.Value?.Name} {side?.Result} {side?.ObjectivePoints}");
+        checks.Equal(
+            "json: league game recorded",
+            "Ok Spring Win 7 s1",
+            $"{league.Status} {league.Value?.Name} {side?.Result} {side?.ObjectivePoints} {league.Value?.EnteredSeasonIds.FirstOrDefault()}");
         checks.True("json: league game body", leagueHandler.Sent?.Contains("\"result\":\"Win\"", StringComparison.Ordinal) == true &&
                                                 leagueHandler.Sent.Contains("\"playedOn\":\"2026-11-01\"", StringComparison.Ordinal));
 

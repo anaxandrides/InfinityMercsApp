@@ -1,8 +1,9 @@
 namespace InfinityMercsApp.Api.Leagues;
 
 /// <summary>
-/// A league as Cosmos DB keeps it: one document, in its own partition, holding its members, the company seasons
-/// entered and the games recorded, so a league is read and changed in one go.
+/// A league as Cosmos DB keeps it: one small document holding its members and settings. Its entries and games are
+/// documents of their own in the same partition, so a league grows without limit and a change to them is written with
+/// the league's other documents all or none.
 /// </summary>
 /// <param name="Id">The document id, which is the league's id.</param>
 /// <param name="LeagueId">The league's id, which is also the partition key.</param>
@@ -20,10 +21,10 @@ public sealed record LeagueDocument(
     string? InviteCode,
     IReadOnlyList<string> MemberUserIds,
     IReadOnlyList<LeagueMember> Members,
-    IReadOnlyList<LeagueEntry> Entries,
-    IReadOnlyList<LeagueGame> Games,
-    DateTimeOffset CreatedAt)
+    DateTimeOffset CreatedAt) : ILeagueItem
 {
+    public string Kind => LeagueItemKinds.League;
+
     /// <summary>The user's membership, or null when they don't belong to the league.</summary>
     public LeagueMember? MemberFor(string userId) => Members.FirstOrDefault(member => member.UserId == userId);
 

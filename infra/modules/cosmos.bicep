@@ -60,7 +60,7 @@ resource account 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' = {
       }
     }
 
-    // Leagues (InfinityMercsApp.Api CosmosNames): one document per league, each in its own partition.
+    // Leagues (InfinityMercsApp.Api CosmosNames): a partition per league, holding the league and a document per entry and game.
     resource leagues 'containers' = {
       name: 'leagues'
       properties: {

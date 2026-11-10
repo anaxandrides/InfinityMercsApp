@@ -7,24 +7,22 @@ namespace InfinityMercsApp.Api.Leagues.Changes;
 public sealed class WithdrawChange(string seasonId) : ILeagueChange
 {
     /// <inheritdoc/>
-    public LeagueChangeResult Apply(LeagueDocument league, string userId)
+    public async Task<LeagueDecision> DecideAsync(LeagueReads reads, string userId, CancellationToken cancellationToken = default)
     {
-        if (league.MemberFor(userId) is not { } member ||
-            league.Entries.FirstOrDefault(entry => entry.SeasonId == seasonId) is not { } entered)
+        if (reads.League.MemberFor(userId) is not { } member ||
+            await reads.EntryAsync(seasonId, cancellationToken) is not { Document: var entered } stored)
         {
-            return LeagueChangeResult.NotFound;
+            return LeagueDecision.NotFound;
         }
 
-        if (entered.MemberId != member.MemberId && !league.IsOrganizer(userId))
+        if (entered.MemberId != member.MemberId && !reads.League.IsOrganizer(userId))
         {
-            return LeagueChangeResult.Forbidden;
+            return LeagueDecision.Forbidden;
         }
 
-        if (league.Games.Any(game => game.Sides.Any(side => side.SeasonId == seasonId)))
-        {
-            return LeagueChangeResult.Rejected($"{entered.CompanyName} has played in the league, so it stays.");
-        }
-
-        return LeagueChangeResult.Done(league with { Entries = league.Entries.Where(entry => entry != entered).ToList() });
+        // The entry's ETag changes with every game recorded for it, so a game recorded meanwhile stops this.
+        return entered.GamesPlayed > 0
+            ? LeagueDecision.Rejected($"{entered.CompanyName} has played in the league, so it stays.")
+            : LeagueDecision.Done(LeagueWrites.Of(DocumentWrites.Delete(entered, stored.ETag)), entered.LeagueSeason);
     }
 }

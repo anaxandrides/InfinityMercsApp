@@ -16,7 +16,10 @@ public sealed record LeaguesEndpoint(Uri BaseAddress)
     /// <summary>Where new leagues are started.</summary>
     public Uri Leagues => new(BaseAddress, "leagues");
 
-    public Uri League(string leagueId) => new(BaseAddress, $"leagues/{Escape(leagueId)}");
+    /// <summary>The league, showing <paramref name="season"/>; the current league season when null.</summary>
+    public Uri League(string leagueId, int? season) => season is { } number
+        ? new(BaseAddress, $"leagues/{Escape(leagueId)}?season={number.ToString(CultureInfo.InvariantCulture)}")
+        : new(BaseAddress, $"leagues/{Escape(leagueId)}");
 
     public Uri Invite(string leagueId) => new(BaseAddress, $"leagues/{Escape(leagueId)}/invite");
 

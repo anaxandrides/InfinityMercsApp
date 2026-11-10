@@ -8,8 +8,8 @@ using InfinityMercsApp.Domain.Models.Season;
 namespace InfinityMercsApp.Api.Leagues;
 
 /// <summary>
-/// Leagues: who belongs to them, the company seasons entered and the games recorded. A user who doesn't belong to a
-/// league can't tell it exists, except through its invite code.
+/// Leagues: who belongs to them, the company seasons entered and the games recorded, shown a league season at a time.
+/// A user who doesn't belong to a league can't tell it exists, except through its invite code.
 /// </summary>
 public sealed class LeagueService(ILeagueStore store, IUserDocumentStore files, IInviteCodeSource codes, TimeProvider time)
 {
@@ -28,18 +28,33 @@ public sealed class LeagueService(ILeagueStore store, IUserDocumentStore files, 
 
     /// <summary>The league, or null when there is none or the user doesn't belong to it.</summary>
     public async Task<LeagueDocument?> GetAsync(string leagueId, string userId, CancellationToken cancellationToken = default) =>
-        await store.ReadAsync(leagueId, cancellationToken) is { } stored && stored.League.MemberFor(userId) is not null
-            ? stored.League
+        await store.ReadAsync(leagueId, cancellationToken) is { Document: var league } && league.MemberFor(userId) is not null
+            ? league
             : null;
 
+    /// <summary>
+    /// The league as the user sees it, showing <paramref name="season"/> (the current one when null); null when there
+    /// is no such league or league season, or the user doesn't belong to it.
+    /// </summary>
+    public async Task<LeagueView?> ViewAsync(string leagueId, string userId, int? season, CancellationToken cancellationToken = default)
+    {
+        if (await GetAsync(leagueId, userId, cancellationToken) is not { } league)
+        {
+            return null;
+        }
+
+        var shown = season ?? league.CurrentSeason;
+        return shown >= 1 && shown <= league.CurrentSeason ? await ViewOfAsync(league, userId, shown, cancellationToken) : null;
+    }
+
     /// <summary>Starts a league, organized by the user, open to join with a new invite code.</summary>
-    public async Task<LeagueChangeResult> CreateAsync(string userId, NewLeague request, CancellationToken cancellationToken = default)
+    public async Task<LeagueOutcome> CreateAsync(string userId, NewLeague request, CancellationToken cancellationToken = default)
     {
         var now = time.GetUtcNow();
         var leagueId = NewId();
         if (await IssueCodeAsync(leagueId, cancellationToken) is not { } code)
         {
-            return LeagueChangeResult.Conflict;
+            return LeagueOutcome.Conflict;
         }
 
         var league = new LeagueDocument(
@@ -52,43 +67,45 @@ public sealed class LeagueService(ILeagueStore store, IUserDocumentStore files, 
             code,
             [],
             [],
-            [],
-            [],
             now)
             .WithMembers([new LeagueMember(NewId(), userId, request.DisplayName.Trim(), now)]);
 
         if (await store.TryCreateAsync(league, cancellationToken))
         {
-            return LeagueChangeResult.Done(league);
+            return LeagueOutcome.Done(LeagueViews.For(league, LeagueSeasonRecords.Empty(league.CurrentSeason), userId));
         }
 
         await store.DeleteInviteAsync(code, cancellationToken);
-        return LeagueChangeResult.Conflict;
+        return LeagueOutcome.Conflict;
     }
 
-    /// <summary>Makes <paramref name="change"/> as the user, working it out again if someone else changed the league first.</summary>
-    public async Task<LeagueChangeResult> ApplyAsync(string leagueId, string userId, ILeagueChange change, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Makes <paramref name="change"/> as the user, deciding it again if someone else wrote what it read first. The
+    /// outcome shows the league season the change touched.
+    /// </summary>
+    public async Task<LeagueOutcome> ApplyAsync(string leagueId, string userId, ILeagueChange change, CancellationToken cancellationToken = default)
     {
         for (var attempt = 0; attempt < Attempts; attempt++)
         {
             if (await store.ReadAsync(leagueId, cancellationToken) is not { } stored)
             {
-                return LeagueChangeResult.NotFound;
+                return LeagueOutcome.NotFound;
             }
 
-            var result = change.Apply(stored.League, userId);
-            if (result is not { Status: LeagueChangeStatus.Done, League: { } changed } || changed == stored.League)
+            var decision = await change.DecideAsync(new LeagueReads(store, stored), userId, cancellationToken);
+            if (decision.Status != LeagueChangeStatus.Done)
             {
-                return result;
+                return LeagueOutcome.Refused(decision);
             }
 
-            if (await store.TryReplaceAsync(changed, stored.ETag, cancellationToken))
+            if (decision.Writes.IsEmpty || await store.TryCommitAsync(leagueId, decision.Writes, cancellationToken))
             {
-                return result;
+                var league = decision.Writes.League?.Document ?? stored.Document;
+                return LeagueOutcome.Done(await ViewOfAsync(league, userId, decision.Season, cancellationToken));
             }
         }
 
-        return LeagueChangeResult.Conflict;
+        return LeagueOutcome.Conflict;
     }
 
     /// <summary>The league an invite code leads to, or null when no league has the code.</summary>
@@ -96,32 +113,32 @@ public sealed class LeagueService(ILeagueStore store, IUserDocumentStore files, 
         await LeagueForCodeAsync(code, cancellationToken) is { } league ? LeagueViews.PreviewFor(league, userId) : null;
 
     /// <summary>Joins the league the invite code leads to; a code since replaced or closed leads nowhere.</summary>
-    public async Task<LeagueChangeResult> JoinAsync(string code, string userId, JoinLeague request, CancellationToken cancellationToken = default)
+    public async Task<LeagueOutcome> JoinAsync(string code, string userId, JoinLeague request, CancellationToken cancellationToken = default)
     {
         if (await LeagueForCodeAsync(code, cancellationToken) is not { } league)
         {
-            return LeagueChangeResult.NotFound;
+            return LeagueOutcome.NotFound;
         }
 
         return await ApplyAsync(league.LeagueId, userId, new InviteJoinChange(code, new JoinChange(request.DisplayName, NewId(), time.GetUtcNow())), cancellationToken);
     }
 
     /// <summary>Gives the league a new invite code, which the organizer alone may do; the old code stops working.</summary>
-    public async Task<LeagueChangeResult> NewInviteAsync(string leagueId, string userId, CancellationToken cancellationToken = default)
+    public async Task<LeagueOutcome> NewInviteAsync(string leagueId, string userId, CancellationToken cancellationToken = default)
     {
         if (await GetAsync(leagueId, userId, cancellationToken) is not { } league)
         {
-            return LeagueChangeResult.NotFound;
+            return LeagueOutcome.NotFound;
         }
 
         if (!league.IsOrganizer(userId))
         {
-            return LeagueChangeResult.Forbidden;
+            return LeagueOutcome.Forbidden;
         }
 
         if (await IssueCodeAsync(leagueId, cancellationToken) is not { } code)
         {
-            return LeagueChangeResult.Conflict;
+            return LeagueOutcome.Conflict;
         }
 
         var result = await ApplyAsync(leagueId, userId, new InviteCodeChange(code), cancellationToken);
@@ -138,7 +155,7 @@ public sealed class LeagueService(ILeagueStore store, IUserDocumentStore files, 
     }
 
     /// <summary>Closes joining, which the organizer alone may do; the code stops working.</summary>
-    public async Task<LeagueChangeResult> CloseInviteAsync(string leagueId, string userId, CancellationToken cancellationToken = default)
+    public async Task<LeagueOutcome> CloseInviteAsync(string leagueId, string userId, CancellationToken cancellationToken = default)
     {
         var league = await GetAsync(leagueId, userId, cancellationToken);
         var result = await ApplyAsync(leagueId, userId, new InviteCodeChange(null), cancellationToken);
@@ -154,13 +171,13 @@ public sealed class LeagueService(ILeagueStore store, IUserDocumentStore files, 
     /// Enters one of the user's seasons in the league, or brings its renown up to date. The season must be among the
     /// user's files online; its company's name comes from there.
     /// </summary>
-    public async Task<LeagueChangeResult> EnterAsync(string leagueId, string userId, string seasonId, LeagueEntryUpdate update, CancellationToken cancellationToken = default)
+    public async Task<LeagueOutcome> EnterAsync(string leagueId, string userId, string seasonId, LeagueEntryUpdate update, CancellationToken cancellationToken = default)
     {
         if (await files.ReadAsync<SeasonFile>(userId, UserDocumentKind.Season, seasonId, cancellationToken) is not { Document: { Deleted: false, Content: { } season } })
         {
             return await GetAsync(leagueId, userId, cancellationToken) is null
-                ? LeagueChangeResult.NotFound
-                : LeagueChangeResult.Rejected("That season isn't among your files online yet; let it sync first.");
+                ? LeagueOutcome.NotFound
+                : LeagueOutcome.Rejected("That season isn't among your files online yet; let it sync first.");
         }
 
         return await ApplyAsync(leagueId, userId, new EnterSeasonChange(seasonId, season.CompanyName, update.Renown, time.GetUtcNow()), cancellationToken);
@@ -173,7 +190,7 @@ public sealed class LeagueService(ILeagueStore store, IUserDocumentStore files, 
     public async Task<LeagueEntryFiles?> EntryFilesAsync(string leagueId, string userId, string seasonId, CancellationToken cancellationToken = default)
     {
         if (await GetAsync(leagueId, userId, cancellationToken) is not { } league ||
-            league.Entries.FirstOrDefault(entry => entry.SeasonId == seasonId) is not { } entry ||
+            await store.ReadEntryAsync(leagueId, seasonId, cancellationToken) is not { Document: var entry } ||
             league.Members.FirstOrDefault(member => member.MemberId == entry.MemberId) is not { } owner)
         {
             return null;
@@ -189,10 +206,21 @@ public sealed class LeagueService(ILeagueStore store, IUserDocumentStore files, 
 
     private async Task<LeagueDocument?> LeagueForCodeAsync(string code, CancellationToken cancellationToken) =>
         await store.FindInviteAsync(code, cancellationToken) is { } leagueId &&
-        await store.ReadAsync(leagueId, cancellationToken) is { League.InviteCode: { } current } stored &&
+        await store.ReadAsync(leagueId, cancellationToken) is { Document: { InviteCode: { } current } league } &&
         current == code
-            ? stored.League
+            ? league
             : null;
+
+    private async Task<LeagueView> ViewOfAsync(LeagueDocument league, string userId, int season, CancellationToken cancellationToken)
+    {
+        var entries = store.ListEntriesAsync(league.LeagueId, season, cancellationToken);
+        var games = store.ListGamesAsync(league.LeagueId, season, cancellationToken);
+        var entered = league.MemberFor(userId) is { } member
+            ? store.ListEnteredSeasonIdsAsync(league.LeagueId, member.MemberId, cancellationToken)
+            : Task.FromResult<IReadOnlyList<string>>([]);
+        await Task.WhenAll(entries, games, entered);
+        return LeagueViews.For(league, new LeagueSeasonRecords(season, await entries, await games, await entered), userId);
+    }
 
     private async Task<string?> IssueCodeAsync(string leagueId, CancellationToken cancellationToken)
     {

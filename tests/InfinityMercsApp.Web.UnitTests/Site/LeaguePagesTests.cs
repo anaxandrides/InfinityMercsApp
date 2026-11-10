@@ -16,7 +16,7 @@ public sealed class LeaguePagesTests : SiteContext
         Authorization.SetAuthorized("Kestrel");
         Leagues.ListAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Reply(new List<LeagueSummary> { new() { LeagueId = "l1", Name = "Spring League", CurrentSeason = 1, MemberCount = 2, IsOrganizer = true } }));
-        Leagues.GetAsync("l1", Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Reply(League()));
+        Leagues.GetAsync("l1", Arg.Any<int?>(), Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(Reply(League()));
     }
 
     private static LeaguesReply<T> Reply<T>(T value)
@@ -27,6 +27,7 @@ public sealed class LeaguePagesTests : SiteContext
         LeagueId = "l1",
         Name = "Spring League",
         CurrentSeason = 1,
+        Season = 1,
         IsOrganizer = true,
         InviteCode = "ABC234",
         Members =

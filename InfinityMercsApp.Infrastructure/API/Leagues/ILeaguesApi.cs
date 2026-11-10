@@ -4,7 +4,8 @@ namespace InfinityMercsApp.Infrastructure.API.Leagues;
 
 /// <summary>
 /// Leagues online. Every call takes the access token, and never throws for a failed request: the reply says how it
-/// went. Calls that change a league answer with the league as it now is.
+/// went. A league comes with one league season's entries and games; calls that change it answer with the league as it
+/// now is, showing the league season the change touched.
 /// </summary>
 public interface ILeaguesApi
 {
@@ -12,7 +13,8 @@ public interface ILeaguesApi
 
     Task<LeaguesReply<LeagueView>> CreateAsync(NewLeague league, string accessToken, CancellationToken cancellationToken = default);
 
-    Task<LeaguesReply<LeagueView>> GetAsync(string leagueId, string accessToken, CancellationToken cancellationToken = default);
+    /// <summary>The league, showing <paramref name="season"/>; the current league season when null.</summary>
+    Task<LeaguesReply<LeagueView>> GetAsync(string leagueId, int? season, string accessToken, CancellationToken cancellationToken = default);
 
     /// <summary>The organizer gives the league a new invite code; the old one stops working.</summary>
     Task<LeaguesReply<LeagueView>> NewInviteAsync(string leagueId, string accessToken, CancellationToken cancellationToken = default);

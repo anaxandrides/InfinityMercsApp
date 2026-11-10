@@ -145,15 +145,17 @@ the API, the app and the web site always agree on their shape.
 
 ## The leagues API
 
-A league is one document in the Cosmos DB `leagues` container, in its own partition: its members, the company seasons
-entered and the games recorded. Invite codes are kept by code in `league-invites`, so joining reads one document.
+Each league has its own partition in the Cosmos DB `leagues` container (`kind` tells the documents apart): a small
+league document with its members and settings, a document per company season entered, and one per game recorded. A
+change writes its documents in one transactional batch, on the ETags they were read at, so a league grows without a
+size limit. Invite codes are kept by code in `league-invites`, so joining reads one document.
 League types live in `InfinityMercsApp.Domain` (`Models/Leagues`), checked by the validators in `Validation/Leagues`.
 
 | Route | What |
 | --- | --- |
 | `GET /api/me/leagues` | The leagues the user belongs to. |
 | `POST /api/leagues` | Starts a league: `{ "name", "displayName", "armySnapshotId" }`. The user organizes it; it comes with an invite code. |
-| `GET /api/leagues/{id}` | The league, for its members. |
+| `GET /api/leagues/{id}?season=n` | The league, for its members, with one league season's entries and games (the current one without `season`). Changes answer with the league season they touched. |
 | `POST /api/leagues/{id}/invite`, `DELETE ...` | The organizer issues a new invite code (the old one stops working), or closes joining. |
 | `GET /api/invites/{code}`, `POST ...` | What a code leads to; joining with `{ "displayName" }`. |
 | `PUT /api/leagues/{id}/entries/{seasonId}` | Enters one of the user's seasons in the current league season, or updates its renown: `{ "renown" }`. |
@@ -167,6 +169,7 @@ League types live in `InfinityMercsApp.Domain` (`Models/Leagues`), checked by th
   never their account.
 - **Invite codes** are six characters from `23456789ABCDEFGHJKMNPQRSTUVWXYZ` (no 0/O, 1/I/L), picked at random and
   read in any case. The join link is `https://www.infinitythemercs.com/join/{code}`.
+- **Limits:** a league takes 64 members; entries and games are unlimited.
 - **Renown** is worked out by the owner's app, which needs the army data, and reported with the entry.
 - **Concurrency:** changes are made against the league's ETag and worked out again when two land at once.
 

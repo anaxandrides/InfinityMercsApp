@@ -34,10 +34,11 @@ public sealed class LeagueFunctions(LeagueEndpoints endpoints, LeagueService lea
 
         var read = await LeagueEndpoints.ReadAsync(request, NewLeagueValidator.Instance, cancellationToken);
         return read.Body is { } body
-            ? LeagueEndpoints.Outcome(await leagues.CreateAsync(user.UserId, body, cancellationToken), user.UserId)
+            ? LeagueEndpoints.Outcome(await leagues.CreateAsync(user.UserId, body, cancellationToken))
             : Refusal(read.Refusal);
     }
 
+    /// <summary>The league, showing the league season given as ?season= (the current one when there is none).</summary>
     [Function("GetLeague")]
     public async Task<IActionResult> GetAsync(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "leagues/{leagueId}")] HttpRequest request,
@@ -49,8 +50,19 @@ public sealed class LeagueFunctions(LeagueEndpoints endpoints, LeagueService lea
             return new UnauthorizedResult();
         }
 
-        return DocumentIdentifiers.IsValid(leagueId) && await leagues.GetAsync(leagueId, user.UserId, cancellationToken) is { } league
-            ? LeagueEndpoints.Json(LeagueViews.For(league, user.UserId))
+        int? season = null;
+        if (request.Query.ContainsKey("season"))
+        {
+            if (!int.TryParse(request.Query["season"], out var number))
+            {
+                return new NotFoundResult();
+            }
+
+            season = number;
+        }
+
+        return DocumentIdentifiers.IsValid(leagueId) && await leagues.ViewAsync(leagueId, user.UserId, season, cancellationToken) is { } view
+            ? LeagueEndpoints.Json(view)
             : new NotFoundResult();
     }
 
@@ -66,7 +78,7 @@ public sealed class LeagueFunctions(LeagueEndpoints endpoints, LeagueService lea
         }
 
         return DocumentIdentifiers.IsValid(leagueId)
-            ? LeagueEndpoints.Outcome(await leagues.NewInviteAsync(leagueId, user.UserId, cancellationToken), user.UserId)
+            ? LeagueEndpoints.Outcome(await leagues.NewInviteAsync(leagueId, user.UserId, cancellationToken))
             : new NotFoundResult();
     }
 
@@ -82,7 +94,7 @@ public sealed class LeagueFunctions(LeagueEndpoints endpoints, LeagueService lea
         }
 
         return DocumentIdentifiers.IsValid(leagueId)
-            ? LeagueEndpoints.Outcome(await leagues.CloseInviteAsync(leagueId, user.UserId, cancellationToken), user.UserId)
+            ? LeagueEndpoints.Outcome(await leagues.CloseInviteAsync(leagueId, user.UserId, cancellationToken))
             : new NotFoundResult();
     }
 
@@ -120,7 +132,7 @@ public sealed class LeagueFunctions(LeagueEndpoints endpoints, LeagueService lea
 
         var read = await LeagueEndpoints.ReadAsync(request, JoinLeagueValidator.Instance, cancellationToken);
         return read.Body is { } body
-            ? LeagueEndpoints.Outcome(await leagues.JoinAsync(parsed, user.UserId, body, cancellationToken), user.UserId)
+            ? LeagueEndpoints.Outcome(await leagues.JoinAsync(parsed, user.UserId, body, cancellationToken))
             : Refusal(read.Refusal);
     }
 
@@ -143,7 +155,7 @@ public sealed class LeagueFunctions(LeagueEndpoints endpoints, LeagueService lea
 
         var read = await LeagueEndpoints.ReadAsync(request, LeagueEntryUpdateValidator.Instance, cancellationToken);
         return read.Body is { } body
-            ? LeagueEndpoints.Outcome(await leagues.EnterAsync(leagueId, user.UserId, seasonId, body, cancellationToken), user.UserId)
+            ? LeagueEndpoints.Outcome(await leagues.EnterAsync(leagueId, user.UserId, seasonId, body, cancellationToken))
             : Refusal(read.Refusal);
     }
 
@@ -160,7 +172,7 @@ public sealed class LeagueFunctions(LeagueEndpoints endpoints, LeagueService lea
         }
 
         return DocumentIdentifiers.IsValid(leagueId) && DocumentIdentifiers.IsValid(seasonId)
-            ? LeagueEndpoints.Outcome(await leagues.ApplyAsync(leagueId, user.UserId, new WithdrawChange(seasonId), cancellationToken), user.UserId)
+            ? LeagueEndpoints.Outcome(await leagues.ApplyAsync(leagueId, user.UserId, new WithdrawChange(seasonId), cancellationToken))
             : new NotFoundResult();
     }
 
@@ -205,7 +217,7 @@ public sealed class LeagueFunctions(LeagueEndpoints endpoints, LeagueService lea
         }
 
         var change = new RecordGameChange(body, Guid.NewGuid().ToString("N"), time.GetUtcNow());
-        return LeagueEndpoints.Outcome(await leagues.ApplyAsync(leagueId, user.UserId, change, cancellationToken), user.UserId);
+        return LeagueEndpoints.Outcome(await leagues.ApplyAsync(leagueId, user.UserId, change, cancellationToken));
     }
 
     [Function("RemoveLeagueGame")]
@@ -221,7 +233,7 @@ public sealed class LeagueFunctions(LeagueEndpoints endpoints, LeagueService lea
         }
 
         return DocumentIdentifiers.IsValid(leagueId) && DocumentIdentifiers.IsValid(gameId)
-            ? LeagueEndpoints.Outcome(await leagues.ApplyAsync(leagueId, user.UserId, new RemoveGameChange(gameId), cancellationToken), user.UserId)
+            ? LeagueEndpoints.Outcome(await leagues.ApplyAsync(leagueId, user.UserId, new RemoveGameChange(gameId), cancellationToken))
             : new NotFoundResult();
     }
 
@@ -243,7 +255,7 @@ public sealed class LeagueFunctions(LeagueEndpoints endpoints, LeagueService lea
 
         var read = await LeagueEndpoints.ReadAsync(request, LeagueArmyUpdateValidator.Instance, cancellationToken);
         return read.Body is { } body
-            ? LeagueEndpoints.Outcome(await leagues.ApplyAsync(leagueId, user.UserId, new ArmyChange(body.ArmySnapshotId), cancellationToken), user.UserId)
+            ? LeagueEndpoints.Outcome(await leagues.ApplyAsync(leagueId, user.UserId, new ArmyChange(body.ArmySnapshotId), cancellationToken))
             : Refusal(read.Refusal);
     }
 
@@ -269,7 +281,7 @@ public sealed class LeagueFunctions(LeagueEndpoints endpoints, LeagueService lea
             return new BadRequestObjectResult(new List<string> { "Give the season now being played as ?from=." });
         }
 
-        return LeagueEndpoints.Outcome(await leagues.ApplyAsync(leagueId, user.UserId, new NextSeasonChange(fromSeason), cancellationToken), user.UserId);
+        return LeagueEndpoints.Outcome(await leagues.ApplyAsync(leagueId, user.UserId, new NextSeasonChange(fromSeason), cancellationToken));
     }
 
     private static IActionResult Refusal(IActionResult? refusal) => refusal ?? new BadRequestResult();

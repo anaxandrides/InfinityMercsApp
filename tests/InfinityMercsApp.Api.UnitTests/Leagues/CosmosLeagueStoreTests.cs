@@ -8,7 +8,7 @@ using static InfinityMercsApp.Api.UnitTests.Leagues.Leagues;
 
 namespace InfinityMercsApp.Api.UnitTests.Leagues;
 
-/// <summary>Each league is one document in its own partition; invites are read by code.</summary>
+/// <summary>Each league has its own partition, written in transactional batches; invites are read by code.</summary>
 public sealed class CosmosLeagueStoreTests
 {
     private readonly Container _leagues = Substitute.For<Container>();
@@ -71,21 +71,88 @@ public sealed class CosmosLeagueStoreTests
     public async Task TryCreateAsync_New_IsTrue() => Assert.True(await _store.TryCreateAsync(Sample()));
 
     [Fact]
-    public async Task TryReplaceAsync_ChangedSinceRead_IsFalse()
+    public async Task ReadEntryAsync_Kept_ReadsItByItsIdInTheLeaguesPartition()
     {
-        _leagues.ReplaceItemAsync(Arg.Any<LeagueDocument>(), Arg.Any<string>(), Arg.Any<PartitionKey?>(), Arg.Any<ItemRequestOptions>(), Arg.Any<CancellationToken>())
-            .Returns<ItemResponse<LeagueDocument>>(_ => throw CosmosFailures.With(HttpStatusCode.PreconditionFailed));
+        var response = Substitute.For<ItemResponse<LeagueEntry>>();
+        response.Resource.Returns(MemberEntry);
+        response.ETag.Returns("etag-2");
+        _leagues.ReadItemAsync<LeagueEntry>("entry-season-m", new PartitionKey("league-1"), cancellationToken: Arg.Any<CancellationToken>()).Returns(response);
 
-        Assert.False(await _store.TryReplaceAsync(Sample(), "etag-1"));
+        var stored = await _store.ReadEntryAsync("league-1", MemberSeason);
+
+        Assert.Equal("etag-2", stored?.ETag);
+        Assert.Equal("Blue Company", stored?.Document.CompanyName);
     }
 
     [Fact]
-    public async Task TryReplaceAsync_Unchanged_ReplacesOnItsETag()
+    public async Task ReadGameAsync_NotKept_IsNull()
     {
-        Assert.True(await _store.TryReplaceAsync(Sample(), "etag-1"));
+        _leagues.ReadItemAsync<LeagueGame>(Arg.Any<string>(), Arg.Any<PartitionKey>(), cancellationToken: Arg.Any<CancellationToken>())
+            .Returns<ItemResponse<LeagueGame>>(_ => throw CosmosFailures.With(HttpStatusCode.NotFound));
 
-        await _leagues.Received(1).ReplaceItemAsync(
-            Arg.Any<LeagueDocument>(), "league-1", new PartitionKey("league-1"), Arg.Is<ItemRequestOptions>(options => options.IfMatchEtag == "etag-1"), Arg.Any<CancellationToken>());
+        Assert.Null(await _store.ReadGameAsync("league-1", "g1"));
+    }
+
+    [Fact]
+    public async Task ListGamesAsync_AnySeason_SearchesOnlyTheLeaguesPartition()
+    {
+        var pages = Substitute.For<FeedIterator<LeagueGame>>();
+        pages.HasMoreResults.Returns(false);
+        _leagues.GetItemQueryIterator<LeagueGame>(Arg.Any<QueryDefinition>(), Arg.Any<string>(), Arg.Any<QueryRequestOptions>()).Returns(pages);
+
+        await _store.ListGamesAsync("league-1", 2);
+
+        _leagues.Received(1).GetItemQueryIterator<LeagueGame>(
+            Arg.Any<QueryDefinition>(), Arg.Any<string>(), Arg.Is<QueryRequestOptions>(options => options.PartitionKey == new PartitionKey("league-1")));
+    }
+
+    [Fact]
+    public async Task TryCommitAsync_Accepted_WritesEachDocumentInOneBatch()
+    {
+        var batch = Batch(HttpStatusCode.OK);
+        var game = Recorded("g1", "m-m");
+        var writes = new LeagueWrites(
+            DocumentWrites.Replace(Sample(), "etag-1"),
+            [DocumentWrites.Replace(MemberEntry, "etag-2")],
+            [DocumentWrites.Create(game), DocumentWrites.Delete(Recorded("g0", "m-m"), "etag-3")]);
+
+        Assert.True(await _store.TryCommitAsync("league-1", writes));
+
+        batch.Received(1).ReplaceItem("league-1", Arg.Any<LeagueDocument>(), Arg.Is<TransactionalBatchItemRequestOptions>(options => options.IfMatchEtag == "etag-1"));
+        batch.Received(1).ReplaceItem("entry-season-m", Arg.Any<LeagueEntry>(), Arg.Is<TransactionalBatchItemRequestOptions>(options => options.IfMatchEtag == "etag-2"));
+        batch.Received(1).CreateItem(game, Arg.Any<TransactionalBatchItemRequestOptions>());
+        batch.Received(1).DeleteItem("game-g0", Arg.Is<TransactionalBatchItemRequestOptions>(options => options.IfMatchEtag == "etag-3"));
+        await batch.Received(1).ExecuteAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.PreconditionFailed)]
+    [InlineData(HttpStatusCode.Conflict)]
+    [InlineData(HttpStatusCode.NotFound)]
+    public async Task TryCommitAsync_DocumentChangedSinceRead_IsFalse(HttpStatusCode status)
+    {
+        Batch(status);
+
+        Assert.False(await _store.TryCommitAsync("league-1", LeagueWrites.Of(DocumentWrites.Replace(Sample(), "etag-1"))));
+    }
+
+    [Fact]
+    public async Task TryCommitAsync_CosmosFails_Throws()
+    {
+        Batch(HttpStatusCode.ServiceUnavailable);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _store.TryCommitAsync("league-1", LeagueWrites.Of(DocumentWrites.Replace(Sample(), "etag-1"))));
+    }
+
+    private TransactionalBatch Batch(HttpStatusCode status)
+    {
+        var response = Substitute.For<TransactionalBatchResponse>();
+        response.StatusCode.Returns(status);
+        response.IsSuccessStatusCode.Returns((int)status is >= 200 and < 300);
+        var batch = Substitute.For<TransactionalBatch>();
+        batch.ExecuteAsync(Arg.Any<CancellationToken>()).Returns(response);
+        _leagues.CreateTransactionalBatch(new PartitionKey("league-1")).Returns(batch);
+        return batch;
     }
 
     [Fact]

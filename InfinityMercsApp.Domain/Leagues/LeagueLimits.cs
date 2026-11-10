@@ -1,6 +1,6 @@
 namespace InfinityMercsApp.Domain.Leagues;
 
-/// <summary>How large a league and what is said in it may be, so a league stays one document.</summary>
+/// <summary>How many may join a league, and how long what is said in it may be.</summary>
 public static class LeagueLimits
 {
     public const int NameLength = 60;
@@ -10,10 +10,6 @@ public static class LeagueLimits
     public const int MissionLength = 80;
 
     public const int Members = 64;
-
-    public const int Entries = 256;
-
-    public const int Games = 2000;
 
     public const int MinSides = 2;
 

@@ -52,7 +52,7 @@ public sealed class LeagueViewModelTests : IDisposable
 
     private async Task<LeagueViewModel> OpenAsync(LeagueView league)
     {
-        _leagues.GetAsync("l1", "token", Arg.Any<CancellationToken>()).Returns(Ok(league));
+        _leagues.GetAsync("l1", null, "token", Arg.Any<CancellationToken>()).Returns(Ok(league));
         var companies = new CompanyFileStore(Substitute.For<ISyncOutbox>());
         var roster = new DeploymentRoster(Army101Data.Create(), companies, Substitute.For<ISeasonFileService>(), new StoreCatalog(Substitute.For<IStoreProvider>()));
         var viewModel = new LeagueViewModel(
@@ -100,7 +100,7 @@ public sealed class LeagueViewModelTests : IDisposable
         Received.InOrder(() =>
         {
             _sync.SyncNowAsync();
-            _leagues.GetAsync("l1", "token", Arg.Any<CancellationToken>());
+            _leagues.GetAsync("l1", null, "token", Arg.Any<CancellationToken>());
         });
     }
 
@@ -137,7 +137,7 @@ public sealed class LeagueViewModelTests : IDisposable
     public async Task RefreshCommand_NoLongerInTheLeague_SaysSo()
     {
         var viewModel = await OpenAsync(Sample(ownRenown: RedRenown));
-        _leagues.GetAsync("l1", "token", Arg.Any<CancellationToken>()).Returns(Failed<LeagueView>(LeaguesStatus.NotFound));
+        _leagues.GetAsync("l1", null, "token", Arg.Any<CancellationToken>()).Returns(Failed<LeagueView>(LeaguesStatus.NotFound));
 
         await viewModel.RefreshCommand.ExecuteAsync(null);
 
@@ -283,14 +283,62 @@ public sealed class LeagueViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task ViewedSeason_EarlierSeason_ShowsItsStandings()
+    public async Task ViewedSeason_EarlierSeason_FetchesAndShowsItsStandings()
     {
+        _leagues.GetAsync("l1", 1, "token", Arg.Any<CancellationToken>()).Returns(Ok(Sample(ownRenown: RedRenown, currentSeason: 2, season: 1)));
         var viewModel = await OpenAsync(Sample(ownRenown: RedRenown, currentSeason: 2));
 
         viewModel.ViewedSeason = viewModel.LeagueSeasons.Single(season => season.Number == 1);
 
         Assert.Equal(2, viewModel.Standings.Count);
+        Assert.Single(viewModel.Games);
         Assert.False(viewModel.IsViewingCurrentSeason);
+        Assert.False(viewModel.HasSeasonsToEnter);
+        Assert.False(viewModel.CanRecordGames);
+    }
+
+    [Fact]
+    public async Task ViewedSeason_EarlierSeasonUnavailable_KeepsTheShownSeasonChosen()
+    {
+        _leagues.GetAsync("l1", 1, "token", Arg.Any<CancellationToken>()).Returns(Failed<LeagueView>(LeaguesStatus.Unavailable));
+        var viewModel = await OpenAsync(Sample(ownRenown: RedRenown, currentSeason: 2));
+
+        viewModel.ViewedSeason = viewModel.LeagueSeasons.Single(season => season.Number == 1);
+
+        Assert.Equal(2, viewModel.ViewedSeason?.Number);
+        Assert.NotEmpty(viewModel.Status);
+    }
+
+    [Fact]
+    public async Task ViewedSeason_SeasonAlreadyShown_FetchesNothing()
+    {
+        var viewModel = await OpenAsync(Sample(ownRenown: RedRenown));
+
+        viewModel.ViewedSeason = viewModel.LeagueSeasons.Single(season => season.Number == 1);
+
+        await _leagues.Received(1).GetAsync(Arg.Any<string>(), Arg.Any<int?>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RefreshCommand_EarlierSeasonShown_FetchesItAgain()
+    {
+        _leagues.GetAsync("l1", 1, "token", Arg.Any<CancellationToken>()).Returns(Ok(Sample(ownRenown: RedRenown, currentSeason: 2, season: 1)));
+        var viewModel = await OpenAsync(Sample(ownRenown: RedRenown, currentSeason: 2));
+        viewModel.ViewedSeason = viewModel.LeagueSeasons.Single(season => season.Number == 1);
+
+        await viewModel.RefreshCommand.ExecuteAsync(null);
+
+        await _leagues.Received(2).GetAsync("l1", 1, "token", Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SeasonsToEnter_SeasonEnteredInAnEarlierLeagueSeason_IsNotOffered()
+    {
+        WriteSeason("green", "season-green", "Green Company", 20);
+
+        var viewModel = await OpenAsync(Sample(ownRenown: RedRenown, currentSeason: 2));
+
+        Assert.Equal(["season-green"], viewModel.SeasonsToEnter.Select(choice => choice.Season.SeasonIdentifier));
     }
 
     [Fact]
