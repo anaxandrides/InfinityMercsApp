@@ -1,3 +1,4 @@
+using InfinityMercsApp.Services.CompanySelection.SpecOps;
 using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Domain.Models.Army.Fireteams;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
@@ -69,6 +70,19 @@ internal sealed class SelectionTestKit
         Settings.GetShowUnitsInInches().Returns(false);
     }
 
+    /// <summary>Gives <paramref name="factionId"/> a Spec-Ops and a Team-Ops unit, and the names they use.</summary>
+    public void AddSpecialOperatives(int factionId = Army101Data.PanOceania)
+    {
+        var army = Army101Data.Definition;
+        ArmyData.GetFactionSnapshot(factionId, Arg.Any<CancellationToken>()).Returns(new Faction
+        {
+            FactionId = factionId,
+            Filters = SpecialOperativesData.WithNames(army.Filters),
+            FireteamChart = factionId == Sectorial ? CoreChart(army.FireteamChart) : army.FireteamChart
+        });
+        SpecialOperativesData.AddTo(ArmyData, factionId);
+    }
+
     /// <summary>Gives <paramref name="factionId"/> PanOceania's units, e.g. for a generated company faction.</summary>
     public void AddFaction(int factionId, FireteamChart? chart = null)
     {
@@ -104,14 +118,15 @@ internal sealed class SelectionTestKit
                 Navigation, Dialogs, ArmyData, SpecOps, PackageFiles,
                 FactionCatalog: new CompanyFactionCatalog(ArmyData),
                 ThemeFactions: new ThemeFactions(ArmyData),
-                UnitCatalog: new SelectionUnitCatalog(ArmyData, SpecOps),
-                Visibility: new UnitVisibility(ArmyData, SpecOps),
+                UnitCatalog: new SelectionUnitCatalog(ArmyData),
+                Visibility: new UnitVisibility(ArmyData),
                 FilterOptions: new UnitFilterOptionsCatalog(ArmyData),
-                UnitDetails: new UnitDetailsLoader(ArmyData, SpecOps),
+                UnitDetails: new UnitDetailsLoader(ArmyData),
                 CoreFireteams: new CoreFireteamEligibility(ArmyData),
                 Captains: captains,
                 Founder: new CompanyFounder(captains, entries, Paths, new CompanyFileStore(Substitute.For<ISyncOutbox>())),
                 Recruiter: new CompanyRecruiter(entries, CompanyFiles, SeasonFiles),
+                SpecUpgrades: new SpecUpgradeCatalog(ArmyData),
                 Settings: Settings,
                 ArmyLoader: ArmyLoader);
         }

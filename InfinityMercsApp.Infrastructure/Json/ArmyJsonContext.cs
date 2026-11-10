@@ -27,6 +27,10 @@ namespace InfinityMercsApp.Infrastructure.Json;
 [JsonSerializable(typeof(ArmyResumeDto))]
 [JsonSerializable(typeof(ArmyRelationUnitDto))]
 [JsonSerializable(typeof(SpecopsChoiceDto))]
+[JsonSerializable(typeof(SpectablesDto))]
+[JsonSerializable(typeof(SpecTableDto))]
+[JsonSerializable(typeof(SpecTableItemDto))]
+[JsonSerializable(typeof(SpecTableAttrDto))]
 [JsonSerializable(typeof(JsonScalar))]
 internal sealed partial class ArmyJsonContext : JsonSerializerContext
 {

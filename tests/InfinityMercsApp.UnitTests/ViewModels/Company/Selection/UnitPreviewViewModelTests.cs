@@ -1,4 +1,3 @@
-using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Units;
@@ -17,7 +16,7 @@ public sealed class UnitPreviewViewModelTests
     {
         var armyData = Substitute.For<IArmyDataService>();
         _preview = new UnitPreviewViewModel(
-            new UnitDetailsLoader(armyData, Substitute.For<ISpecOpsProvider>()), new ThemeFactions(armyData), ArmySourceSelectionMode.Sectorials);
+            new UnitDetailsLoader(armyData), new ThemeFactions(armyData), ArmySourceSelectionMode.Sectorials);
     }
 
     private static ArmyUnitSelectionItem Unit(int id) => new() { Id = id, Name = $"Unit {id}" };

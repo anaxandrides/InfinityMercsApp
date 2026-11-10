@@ -1,3 +1,4 @@
+using InfinityMercsApp.Services.CompanySelection.SpecOps;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Captain;
@@ -10,6 +11,8 @@ using InfinityMercsApp.Services.Dialogs;
 using InfinityMercsApp.Services.Logos;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.Services.Packaging;
+
+
 
 namespace InfinityMercsApp.ViewModels.Company.Selection;
 
@@ -30,6 +33,7 @@ public sealed record CompanySelectionServices(
     CaptainSetup Captains,
     CompanyFounder Founder,
     CompanyRecruiter Recruiter,
+    SpecUpgradeCatalog SpecUpgrades,
     IAppSettingsProvider? Settings = null,
     FactionLogoCacheService? Logos = null,
     IArmyDataLoader? ArmyLoader = null);

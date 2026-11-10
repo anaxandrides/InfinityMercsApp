@@ -7,6 +7,7 @@ using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
+using InfinityMercsApp.Services.CompanySelection.SpecOps;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.CompanySelection.Units;
@@ -71,6 +72,7 @@ public static class MercsServiceRegistry
                 .AddSingleton<ThemeFactions>()
                 .AddSingleton<UnitDetailsLoader>()
                 .AddSingleton<CaptainOptionCatalog>()
+                .AddSingleton<SpecUpgradeCatalog>()
                 .AddSingleton<CaptainSetup>()
                 .AddSingleton<SavedEntryWriter>()
                 .AddSingleton<CompanyFounder>()

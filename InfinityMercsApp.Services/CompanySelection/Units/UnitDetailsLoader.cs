@@ -1,17 +1,17 @@
 using InfinityMercsApp.Domain.Lieutenants;
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Traits;
-using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanyProfiles;
 
 namespace InfinityMercsApp.Services.CompanySelection.Units;
 
 /// <summary>Reads what a selection screen shows for a picked unit from the army data.</summary>
-public sealed class UnitDetailsLoader(IArmyDataService armyData, ISpecOpsProvider specOps)
+public sealed class UnitDetailsLoader(IArmyDataService armyData)
 {
     /// <summary>
-    /// The unit's details; a Spec-Ops unit (or one the faction's units don't list) uses its Spec-Ops profiles.
+    /// The unit's details. A Spec-Ops unit shows only its own profiles (its SpecBot is bought once it joins), all as
+    /// lieutenants.
     /// With <paramref name="lieutenantOnly"/>, the shared equipment and skills come from lieutenant options alone.
     /// </summary>
     /// <remarks>A unit with no profiles at all comes back with empty <see cref="UnitDetails.ProfileGroups"/>.</remarks>
@@ -24,19 +24,11 @@ public sealed class UnitDetailsLoader(IArmyDataService armyData, ISpecOpsProvide
         CancellationToken cancellationToken = default)
     {
         var unit = armyData.GetUnit(factionId, unitId, cancellationToken);
-        var specopsUnit = isSpecOps || unit is null
-            ? specOps.GetSpecopsUnitsByFaction(factionId, cancellationToken).FirstOrDefault(x => x.UnitId == unitId)
-            : null;
-        var treatAsSpecOps = isSpecOps || (unit is null && specopsUnit is not null);
-
+        var treatAsSpecOps = isSpecOps;
         var profileGroups = unit?.ProfileGroups ?? UnitProfileGroups.Empty;
-        if (treatAsSpecOps && specopsUnit is { ProfileGroups.IsEmpty: false })
+        if (treatAsSpecOps)
         {
-            profileGroups = specopsUnit.ProfileGroups;
-        }
-        else if (profileGroups.IsEmpty)
-        {
-            profileGroups = specopsUnit?.ProfileGroups ?? UnitProfileGroups.Empty;
+            profileGroups = profileGroups.FirstGroupOnly();
         }
 
         var filters = armyData.GetFactionSnapshot(factionId, cancellationToken)?.Filters ?? ArmyFilterCatalog.Empty;

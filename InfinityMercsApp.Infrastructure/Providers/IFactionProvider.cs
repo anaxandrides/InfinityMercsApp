@@ -69,5 +69,8 @@ public interface IFactionProvider
     /// <param name="factionId"></param>
     /// <returns></returns>
     IReadOnlyList<Resume> GetResumeByFactionMercsOnly(int factionId);
+
+    /// <summary>The faction's Spec-Ops and Team-Ops units: those with an upgrade table, which aren't recruited like the rest.</summary>
+    IReadOnlyList<Resume> GetUpgradeUnitResumes(int factionId);
 }
 

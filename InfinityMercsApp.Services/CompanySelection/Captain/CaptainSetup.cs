@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Captain;
 using InfinityMercsApp.Domain.Company;
+using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.CompanySelection.SpecOps;
@@ -12,8 +13,8 @@ public sealed class CaptainSetup(ICaptainConfigurationDialog dialog, CaptainOpti
 {
     /// <summary>
     /// The captain popup, with the Spec-Ops options of the source faction's vanilla parent (or the faction itself
-    /// when the parent offers none). A Spec-Ops captain uses the Spec-Ops stat chart. A Proxy Pack's Lone Wolf has
-    /// 10 more Spec-Ops XP to spend, whatever it costs.
+    /// when the parent offers none). A Spec-Ops captain took its upgrades when it joined, so its popup only names it.
+    /// A Proxy Pack's Lone Wolf has 10 more Spec-Ops XP to spend, whatever it costs.
     /// </summary>
     /// <returns>The chosen upgrades, or null when the player backed out.</returns>
     public async Task<SavedImprovedCaptainStats?> ConfigureCaptainAsync(
@@ -25,6 +26,19 @@ public sealed class CaptainSetup(ICaptainConfigurationDialog dialog, CaptainOpti
         CancellationToken cancellationToken = default)
     {
         var sourceFactionId = SourceFactionId(factions);
+        if (isSpecOps)
+        {
+            return await dialog.ShowAsync(new CaptainUpgradePopupContext
+            {
+                Unit = unit,
+                OptionFactionId = sourceFactionId,
+                OptionFactionName = OptionFactionName(sourceFactionId, sourceFactionId, factions),
+                DefaultUnitCustomName = !string.IsNullOrWhiteSpace(unit.CustomName) ? unit.CustomName.Trim() : "Captain",
+                BaseExperienceOverride = 0,
+                LockedStats = Enum.GetValues<Stat>()
+            });
+        }
+
         var optionFactionId = OptionFactionId(sourceFactionId, ParentOf(sourceFactionId, factions));
         var choices = options.Load(optionFactionId, showUnitsInInches, cancellationToken);
         if (choices.IsEmpty && optionFactionId != sourceFactionId)

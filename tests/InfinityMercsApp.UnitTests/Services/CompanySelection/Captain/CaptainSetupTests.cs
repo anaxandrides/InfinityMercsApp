@@ -1,4 +1,5 @@
 using InfinityMercsApp.Domain.Captain;
+using InfinityMercsApp.Domain.Models.Army.Stats;
 using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Domain.Models.Company;
@@ -31,14 +32,26 @@ public sealed class CaptainSetupTests
         Skills = "Lieutenant"
     };
 
-    [Theory]
-    [InlineData(false, CaptainStatChart.Mercenaries)]
-    [InlineData(true, CaptainStatChart.SpecOps)]
-    public async Task ConfigureCaptainAsync_SpecOpsOrNot_UsesThatStatChart(bool isSpecOps, CaptainStatChart chart)
+    [Fact]
+    public async Task ConfigureCaptainAsync_NotSpecOps_UsesTheMercenariesChart()
     {
-        await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), PanOceania, isSpecOps, isLoneWolf: false, showUnitsInInches: true);
+        await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), PanOceania, isSpecOps: false, isLoneWolf: false, showUnitsInInches: true);
 
-        await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context => context.StatChart == chart));
+        await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context => context.StatChart == CaptainStatChart.Mercenaries));
+    }
+
+    [Fact]
+    public async Task ConfigureCaptainAsync_SpecOps_OffersNoUpgradesOrExperience()
+    {
+        await _setup.ConfigureCaptainAsync(Unit("Indigo", 20), PanOceania, isSpecOps: true, isLoneWolf: false, showUnitsInInches: true);
+
+        await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context =>
+            context.BaseExperienceOverride == 0 &&
+            context.WeaponOptions.Count == 0 &&
+            context.SkillOptions.Count == 0 &&
+            context.EquipmentOptions.Count == 0 &&
+            context.LockedStats.Contains(Stat.Cc) &&
+            context.LockedStats.Contains(Stat.Vita)));
     }
 
     [Fact]

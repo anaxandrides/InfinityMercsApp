@@ -83,6 +83,20 @@ internal sealed class ArmyDataService(
             .ToList();
     }
 
+    public IReadOnlyList<ArmyResumeRecord> GetUpgradeUnitResumes(int factionId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (factionProvider is null || factionId <= 0)
+        {
+            return [];
+        }
+
+        return factionProvider
+            .GetUpgradeUnitResumes(factionId)
+            .Select(CloneArmyResume)
+            .ToList();
+    }
+
     public ArmyUnitRecord? GetUnit(int factionId, int unitId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -174,7 +188,8 @@ internal sealed class ArmyDataService(
             Slug = resume.Slug,
             Logo = resume.Logo,
             Type = resume.Type,
-            Category = resume.Category
+            Category = resume.Category,
+            HasUpgrades = resume.HasUpgrades
         };
     }
 
@@ -199,7 +214,8 @@ internal sealed class ArmyDataService(
             ProfileGroups = unit.ProfileGroups,
             Options = unit.Options,
             Filters = unit.Filters,
-            FactionIds = unit.FactionIds
+            FactionIds = unit.FactionIds,
+            Upgrades = unit.Upgrades
         };
     }
 

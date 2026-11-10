@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Army.SpecOps;
 
 namespace InfinityMercsApp.Domain.Models.Army;
 
@@ -32,4 +33,7 @@ public sealed class ArmyUnitDefinition
 
     /// <summary>The armies the unit belongs to.</summary>
     public IReadOnlyList<int> FactionIds { get; set; } = [];
+
+    /// <summary>The upgrades a Spec-Ops or Team-Ops unit picks from; empty for any other unit.</summary>
+    public SpecUpgradeTable Upgrades { get; set; } = SpecUpgradeTable.Empty;
 }

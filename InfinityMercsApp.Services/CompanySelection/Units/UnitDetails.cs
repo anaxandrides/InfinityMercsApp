@@ -8,8 +8,8 @@ namespace InfinityMercsApp.Services.CompanySelection.Units;
 /// What a selection screen shows for the unit picked: its profiles and the filters naming their entries, its
 /// trait icons, and the equipment and skills every listed profile shares.
 /// </summary>
-/// <param name="Unit">The unit's army record; null for a Spec-Ops unit the faction's units don't list.</param>
-/// <param name="TreatAsSpecOps">Whether the unit is shown as Spec-Ops: lieutenant skill kept, every option listed.</param>
+/// <param name="Unit">The unit's army record; null when the army data lacks it.</param>
+/// <param name="TreatAsSpecOps">Whether the unit is shown as a Spec-Ops: its own profiles only, every one a lieutenant.</param>
 public sealed record UnitDetails(
     ArmyUnitRecord? Unit,
     UnitProfileGroups ProfileGroups,

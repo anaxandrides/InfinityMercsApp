@@ -394,8 +394,9 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
             foreach (var faction in factions)
             {
                 var resumes = Rules.ResumesFor(Services.ArmyData, faction.Id, cancellationToken);
-                read.Add(Services.UnitCatalog.Read(faction.Id, resumes, cancellationToken));
-                await Rules.CacheUnitLogosAsync(Services.Logos, faction.Id, resumes, cancellationToken);
+                var specOps = Rules.SpecOpsFor(Services, faction.Id, cancellationToken);
+                read.Add(Services.UnitCatalog.Read(faction.Id, resumes, specOps, cancellationToken));
+                await Rules.CacheUnitLogosAsync(Services.Logos, faction.Id, [.. resumes, .. specOps], cancellationToken);
             }
 
             var merged = SelectionUnitCatalog.Merge(read);
@@ -702,7 +703,49 @@ public sealed partial class CompanySelectionViewModel : AdaptiveViewModelBase<Co
         Roster.Add(entry, servantOwner);
         OnRosterChanged();
         ActivePane = CompanySelectionPane.Company;
-        await Rules.AfterEntryAddedAsync(this, unit, profile, entry);
+        if (await UpgradeAsync(entry) is { } upgraded)
+        {
+            await Rules.AfterEntryAddedAsync(this, unit, profile, upgraded);
+        }
+    }
+
+    /// <summary>
+    /// Asks a Spec-Ops or Team-Ops trooper for its upgrades (and a Spec-Ops whether it brings a SpecBot), then swaps
+    /// in the upgraded trooper. Backing out of an upgrade takes the trooper out again.
+    /// </summary>
+    /// <returns>The trooper as it is now in the company; null when it was taken out.</returns>
+    private async Task<MercsCompanyEntry?> UpgradeAsync(MercsCompanyEntry entry)
+    {
+        var count = Rules.UpgradesFor(entry);
+        var offersSpecBot = Rules.OffersSpecBotWith(entry);
+        if (count == 0 && !offersSpecBot)
+        {
+            return entry;
+        }
+
+        var inches = Preview.Detail.ShowUnitsInInches;
+        var choices = new SpecialOperativeChoices(Services.Dialogs);
+        var table = Services.SpecUpgrades.For(entry.SourceFactionId, entry.SourceUnitId, inches);
+        if (await choices.ChooseUpgradesAsync(entry.Name, table, count) is not { } upgrades)
+        {
+            RemoveMercsCompanyEntryCommand.Execute(entry);
+            return null;
+        }
+
+        var specBots = offersSpecBot
+            ? Services.SpecUpgrades.SpecBotsFor(entry.SourceFactionId, entry.SourceUnitId, inches)
+                .Where(option => option.Cost <= PointsRemaining)
+                .ToList()
+            : [];
+        var specBot = await choices.ChooseSpecBotAsync(entry.Name, specBots);
+        if (upgrades.Count == 0 && specBot is null)
+        {
+            return entry;
+        }
+
+        var upgraded = UpgradedEntry.From(entry, upgrades, specBot, inches);
+        ReplaceEntry(entry, upgraded);
+        return upgraded;
     }
 
     /// <summary>Gives a trooper on the roster a name of its own; clearing the name goes back to the unit's.</summary>

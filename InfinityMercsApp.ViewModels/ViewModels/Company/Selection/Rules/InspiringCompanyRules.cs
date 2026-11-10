@@ -13,6 +13,8 @@ public sealed class InspiringCompanyRules() : GeneratedFactionCompanyRules(Inspi
 
     public override string CompanyTypeLabel => CompanyTypes.InspiringLeader;
 
+    public override bool OffersSpecOps => true;
+
     public override IReadOnlyCollection<string> CommonSkillsFor(
         ArmyUnitSelectionItem unit, ViewerProfileItem profile, IReadOnlyList<string> commonSkills)
     {

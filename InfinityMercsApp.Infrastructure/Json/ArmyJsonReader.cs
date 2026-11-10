@@ -420,8 +420,40 @@ public sealed class ArmyJsonReader : IArmyJsonReader
         ProfileGroups = MapProfileGroups(dto.ProfileGroups),
         Options = MapOptions(dto.Options),
         Filters = MapUnitFilters(dto.Filters),
-        FactionIds = MapFactionIds(dto.Factions)
+        FactionIds = MapFactionIds(dto.Factions),
+        Upgrades = MapUpgrades(dto.Spectables?.Table)
     };
+
+    // The upgrade table; parts of a kind it doesn't know, or without an id or stat, are left out.
+    internal static SpecUpgradeTable MapUpgrades(SpecTableDto? dto)
+    {
+        var upgrades = dto?.Items?
+            .Select(item => new SpecUpgrade(item.Attrs?.Select(MapUpgradePart).OfType<SpecUpgradePart>().ToList() ?? []))
+            .Where(upgrade => upgrade.Parts.Count > 0)
+            .ToList();
+        return upgrades is { Count: > 0 } ? new SpecUpgradeTable(upgrades) : SpecUpgradeTable.Empty;
+    }
+
+    private static SpecUpgradePart? MapUpgradePart(SpecTableAttrDto attr)
+    {
+        var kind = attr.Type?.Trim().ToLowerInvariant() switch
+        {
+            "stat" => SpecUpgradePartKind.Stat,
+            "skill" => SpecUpgradePartKind.Skill,
+            "equip" => SpecUpgradePartKind.Equipment,
+            "weapon" => SpecUpgradePartKind.Weapon,
+            _ => (SpecUpgradePartKind?)null
+        };
+
+        return kind switch
+        {
+            SpecUpgradePartKind.Stat when !string.IsNullOrWhiteSpace(attr.Stat) && attr.Q.AsInvariantInt32() is int quantity =>
+                SpecUpgradePart.ForStat(attr.Stat.Trim().ToLowerInvariant(), quantity),
+            SpecUpgradePartKind.Stat or null => null,
+            { } item when attr.Id is int id => SpecUpgradePart.ForItem(item, id, attr.Extra ?? []),
+            _ => null
+        };
+    }
 
     private static ArmyImportResume MapResume(ArmyResumeDto dto) => new()
     {

@@ -1,14 +1,13 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
-using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Teams;
 
 namespace InfinityMercsApp.Services.CompanySelection.Units;
 
 /// <summary>Whether a selection screen's units show under its filter and the points left.</summary>
-public sealed class UnitVisibility(IArmyDataService armyData, ISpecOpsProvider specOps)
+public sealed class UnitVisibility(IArmyDataService armyData)
 {
-    /// <summary>The filter lookups, type names and Spec-Ops units of the source factions.</summary>
+    /// <summary>The filter lookups and type names of the source factions.</summary>
     public CompanyUnitVisibilityLookupContext Lookups(IEnumerable<int> factionIds, CancellationToken cancellationToken = default)
     {
         var context = new CompanyUnitVisibilityLookupContext();
@@ -17,24 +16,17 @@ public sealed class UnitVisibility(IArmyDataService armyData, ISpecOpsProvider s
             var filters = armyData.GetFactionSnapshot(factionId, cancellationToken)?.Filters;
             context.LookupsByFactionId[factionId] = UnitFilterLookups.From(filters);
             context.TypeByFactionId[factionId] = (filters ?? ArmyFilterCatalog.Empty).Names(ArmyFilterSection.Type);
-            context.SpecopsByFactionId[factionId] = specOps.GetSpecopsUnitsByFaction(factionId, cancellationToken)
-                .GroupBy(x => x.UnitId)
-                .ToDictionary(x => x.Key, x => x.First());
         }
 
         return context;
     }
 
-    /// <summary>The unit's profiles; a Spec-Ops unit (or one with none of its own) uses its Spec-Ops profiles.</summary>
+    /// <summary>The unit's profiles; a Spec-Ops unit's are only its own, not its SpecBot's.</summary>
     public UnitProfileGroups ProfileGroupsOf(
         CompanyUnitVisibilityLookupContext context, ISelectionUnit unit, CancellationToken cancellationToken = default)
     {
         var profileGroups = armyData.GetUnit(unit.SourceFactionId, unit.Id, cancellationToken)?.ProfileGroups ?? UnitProfileGroups.Empty;
-        return context.SpecopsByFactionId.TryGetValue(unit.SourceFactionId, out var specOpsById) &&
-               specOpsById.TryGetValue(unit.Id, out var specOpsUnit) &&
-               (unit.IsSpecOps || profileGroups.IsEmpty)
-            ? specOpsUnit.ProfileGroups
-            : profileGroups;
+        return unit.IsSpecOps ? profileGroups.FirstGroupOnly() : profileGroups;
     }
 
     /// <summary>

@@ -18,6 +18,8 @@ public class StandardCompanyRules(ArmySourceSelectionMode mode) : CompanyRules(m
 
     public override bool HasRightSlot => Mode == ArmySourceSelectionMode.Sectorials;
 
+    public override bool OffersSpecOps => true;
+
     public override async Task<IReadOnlyList<FactionRecord>> LoadFactionsAsync(CompanySelectionViewModel screen, CancellationToken cancellationToken) =>
         WithoutGeneratedFactions(await screen.Services.FactionCatalog.LoadAsync(Mode, cancellationToken));
 

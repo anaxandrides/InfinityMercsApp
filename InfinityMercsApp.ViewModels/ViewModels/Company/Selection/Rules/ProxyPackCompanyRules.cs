@@ -22,6 +22,8 @@ public sealed class ProxyPackCompanyRules(ArmySourceSelectionMode mode) : Standa
 
     public override bool AllowsTeamsFilter => false;
 
+    public override bool OffersSpecOps => false;
+
     /// <summary>Every faction but the Non-Aligned Armies, in the Infinity Army's order, with their logos cached.</summary>
     public override async Task<IReadOnlyList<FactionRecord>> LoadFactionsAsync(CompanySelectionViewModel screen, CancellationToken cancellationToken)
     {
