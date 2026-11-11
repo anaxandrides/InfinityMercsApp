@@ -12,7 +12,7 @@ public sealed class SpecialOperativeChoices(IDialogService dialogs)
     /// from those not yet taken.
     /// </summary>
     /// <returns>The upgrades in the order picked; null when the player backed out.</returns>
-    public async Task<IReadOnlyList<SpecUpgradeEffect>?> ChooseUpgradesAsync(string trooperName, IReadOnlyList<SpecUpgradeEffect> table, int count)
+    public async Task<IReadOnlyList<TrooperUpgrade>?> ChooseUpgradesAsync(string trooperName, IReadOnlyList<TrooperUpgrade> table, int count)
     {
         var total = Math.Min(count, table.Count);
         var taken = new List<int>();

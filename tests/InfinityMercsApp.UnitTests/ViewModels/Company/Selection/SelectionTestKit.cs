@@ -1,3 +1,4 @@
+using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Services.CompanySelection.SpecOps;
 using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Domain.Models.Army.Fireteams;
@@ -42,6 +43,7 @@ internal sealed class SelectionTestKit
     public ISeasonFileService SeasonFiles { get; } = Substitute.For<ISeasonFileService>();
     public RecordPaths Paths { get; } = new(Path.Combine(Path.GetTempPath(), "mercs-selection-tests"));
     public IArmyDataService ArmyData { get; } = Army101Data.Create();
+    public IStoreProvider Stores { get; } = Substitute.For<IStoreProvider>();
 
     public SelectionTestKit()
     {
@@ -68,6 +70,7 @@ internal sealed class SelectionTestKit
         SpecOps.GetSpecopsUnitsByFaction(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns([]);
         SpecOps.GetCCFactionFireteamValidity(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<int>>(), Arg.Any<CancellationToken>()).Returns([]);
         Settings.GetShowUnitsInInches().Returns(false);
+        Stores.GetAvailableStoresAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>()).Returns([]);
     }
 
     /// <summary>Gives <paramref name="factionId"/> a Spec-Ops and a Team-Ops unit, and the names they use.</summary>
@@ -127,6 +130,7 @@ internal sealed class SelectionTestKit
                 Founder: new CompanyFounder(captains, entries, Paths, new CompanyFileStore(Substitute.For<ISyncOutbox>())),
                 Recruiter: new CompanyRecruiter(entries, CompanyFiles, SeasonFiles),
                 SpecUpgrades: new SpecUpgradeCatalog(ArmyData),
+                StartingGear: new StartingGearCatalog(Stores, ArmyData),
                 Settings: Settings,
                 ArmyLoader: ArmyLoader);
         }

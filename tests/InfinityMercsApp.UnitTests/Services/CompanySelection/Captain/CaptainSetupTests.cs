@@ -67,15 +67,13 @@ public sealed class CaptainSetupTests
             context.Unit.Name == "Fusilier" && context.Unit.Cost == 10));
     }
 
-    [Theory]
-    [InlineData(10, 28)]
-    [InlineData(35, 10)]
-    public async Task ConfigureCaptainAsync_LoneWolf_GetsTenMoreSpecOpsXpWhateverItCosts(int cost, int experience)
+    [Fact]
+    public async Task ConfigureCaptainAsync_LoneWolf_GetsNoMoreExperienceThanAnyCaptain()
     {
-        await _setup.ConfigureCaptainAsync(Unit("Fusilier", cost), PanOceania, tookUpgrades: false, isLoneWolf: true, showUnitsInInches: true);
+        await _setup.ConfigureCaptainAsync(Unit("Fusilier", 10), PanOceania, tookUpgrades: false, isLoneWolf: true, showUnitsInInches: true);
 
         await _dialog.Received(1).ShowAsync(Arg.Is<CaptainUpgradePopupContext>(context =>
-            context.BaseExperienceOverride == experience &&
+            context.BaseExperienceOverride == null &&
             context.PopupTitle == "Lone Wolf Configuration" &&
             context.DefaultUnitCustomName == "Lone Wolf"));
     }

@@ -21,12 +21,13 @@ public static class SpecUpgradeRules
     /// <summary>The skill every Team-Ops profile carries in the army data.</summary>
     public const string TeamOpsSkill = "Infinity Team-Ops";
 
-    public const string PurchasePrefix = "Spec-Ops: ";
+    /// <summary>Where a Spec-Ops or Team-Ops upgrade comes from, as its purchase line reads.</summary>
+    public const string Source = "Spec-Ops";
 
     /// <summary>
     /// The upgrades together: bonuses added up, the last MOV set, and every weapon, skill and piece of equipment once.
     /// </summary>
-    public static SpecUpgradeEffect Combine(IReadOnlyList<SpecUpgradeEffect> upgrades)
+    public static TrooperUpgrade Combine(IReadOnlyList<TrooperUpgrade> upgrades)
     {
         var bonuses = upgrades.Aggregate(CaptainStatBonuses.None, (total, upgrade) => new CaptainStatBonuses(
             total.Cc + upgrade.Bonuses.Cc,
@@ -40,7 +41,7 @@ public static class SpecUpgradeRules
 
         static List<string> Distinct(IEnumerable<string> names) => names.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
-        return new SpecUpgradeEffect(
+        return new TrooperUpgrade(
             string.Join("; ", upgrades.Select(upgrade => upgrade.Label)),
             bonuses,
             move?.MoveFirstCm,

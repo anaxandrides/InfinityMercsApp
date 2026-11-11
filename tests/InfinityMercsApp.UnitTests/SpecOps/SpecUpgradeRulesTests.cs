@@ -7,7 +7,7 @@ namespace InfinityMercsApp.UnitTests.SpecOps;
 
 public sealed class SpecUpgradeRulesTests
 {
-    private static SpecUpgradeEffect Upgrade(string label, CaptainStatBonuses bonuses, int? moveFirst = null, params IEnumerable<string> skills) =>
+    private static TrooperUpgrade Upgrade(string label, CaptainStatBonuses bonuses, int? moveFirst = null, params IEnumerable<string> skills) =>
         new(label, bonuses, moveFirst, moveFirst is null ? null : 10, [], skills.ToList(), []);
 
     [Fact]

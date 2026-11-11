@@ -15,9 +15,9 @@ public sealed class SpecialOperativeChoicesTests
 
     public SpecialOperativeChoicesTests() => _choices = new SpecialOperativeChoices(_dialogs);
 
-    private static SpecUpgradeEffect Upgrade(string label) => new(label, CaptainStatBonuses.None, null, null, [], [], []);
+    private static TrooperUpgrade Upgrade(string label) => new(label, CaptainStatBonuses.None, null, null, [], [], []);
 
-    private static IReadOnlyList<SpecUpgradeEffect> Table { get; } = [Upgrade("+3 BTS"), Upgrade("+1 WIP"), Upgrade("Spitfire")];
+    private static IReadOnlyList<TrooperUpgrade> Table { get; } = [Upgrade("+3 BTS"), Upgrade("+1 WIP"), Upgrade("Spitfire")];
 
     [Fact]
     public async Task ChooseUpgradesAsync_Two_NeverOffersTheFirstAgain()

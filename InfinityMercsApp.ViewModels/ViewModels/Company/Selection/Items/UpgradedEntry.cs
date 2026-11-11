@@ -17,7 +17,7 @@ public static class UpgradedEntry
     /// </summary>
     public static MercsCompanyEntry From(
         MercsCompanyEntry entry,
-        IReadOnlyList<SpecUpgradeEffect> upgrades,
+        IReadOnlyList<TrooperUpgrade> upgrades,
         SpecBotOption? peripheral,
         bool showUnitsInInches)
     {

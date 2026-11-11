@@ -15,7 +15,7 @@ namespace InfinityMercsApp.Services.CompanySelection.SpecOps;
 public sealed class SpecUpgradeCatalog(IArmyDataService armyData)
 {
     /// <summary>The unit's upgrades in table order; none for a unit without a table.</summary>
-    public IReadOnlyList<SpecUpgradeEffect> For(int factionId, int unitId, bool showUnitsInInches, CancellationToken cancellationToken = default)
+    public IReadOnlyList<TrooperUpgrade> For(int factionId, int unitId, bool showUnitsInInches, CancellationToken cancellationToken = default)
     {
         var unit = armyData.GetUnit(factionId, unitId, cancellationToken);
         if (unit is null || unit.Upgrades.IsEmpty)
@@ -91,7 +91,7 @@ public sealed class SpecUpgradeCatalog(IArmyDataService armyData)
     }
 
     /// <summary>Each upgrade of <paramref name="table"/> with its parts named from <paramref name="filters"/>.</summary>
-    public static IReadOnlyList<SpecUpgradeEffect> Describe(SpecUpgradeTable table, ArmyFilterCatalog filters, bool showUnitsInInches)
+    public static IReadOnlyList<TrooperUpgrade> Describe(SpecUpgradeTable table, ArmyFilterCatalog filters, bool showUnitsInInches)
     {
         var names = new ProfileEntryNames(filters.Extras, showUnitsInInches);
         var weapons = filters.Names(ArmyFilterSection.Weapons);
@@ -100,7 +100,7 @@ public sealed class SpecUpgradeCatalog(IArmyDataService armyData)
         return table.Upgrades.Select(upgrade => Describe(upgrade, names, weapons, skills, equipment, showUnitsInInches)).ToList();
     }
 
-    private static SpecUpgradeEffect Describe(
+    private static TrooperUpgrade Describe(
         SpecUpgrade upgrade,
         ProfileEntryNames names,
         IReadOnlyDictionary<int, string> weaponNames,
@@ -158,7 +158,7 @@ public sealed class SpecUpgradeCatalog(IArmyDataService armyData)
             labels.Insert(0, $"MOV {Movement.Format(Movement.From(moveFirst, moveSecond), showUnitsInInches)}");
         }
 
-        return new SpecUpgradeEffect(string.Join(", ", labels), bonuses, moveFirst, moveSecond, weapons, skills, equipment);
+        return new TrooperUpgrade(string.Join(", ", labels), bonuses, moveFirst, moveSecond, weapons, skills, equipment);
     }
 
     // "move0" and "move1" set the first and second MOV values.

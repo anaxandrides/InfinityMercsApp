@@ -34,6 +34,7 @@ public sealed record CompanySelectionServices(
     CompanyFounder Founder,
     CompanyRecruiter Recruiter,
     SpecUpgradeCatalog SpecUpgrades,
+    StartingGearCatalog StartingGear,
     IAppSettingsProvider? Settings = null,
     FactionLogoCacheService? Logos = null,
     IArmyDataLoader? ArmyLoader = null);

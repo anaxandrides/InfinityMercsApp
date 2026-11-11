@@ -73,6 +73,7 @@ public static class MercsServiceRegistry
                 .AddSingleton<UnitDetailsLoader>()
                 .AddSingleton<CaptainOptionCatalog>()
                 .AddSingleton<SpecUpgradeCatalog>()
+                .AddSingleton<StartingGearCatalog>()
                 .AddSingleton<CaptainSetup>()
                 .AddSingleton<SavedEntryWriter>()
                 .AddSingleton<CompanyFounder>()

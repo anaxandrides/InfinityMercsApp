@@ -14,8 +14,7 @@ public sealed class CaptainSetup(ICaptainConfigurationDialog dialog, CaptainOpti
     /// <summary>
     /// The captain popup, with the Spec-Ops options of the source faction's vanilla parent (or the faction itself
     /// when the parent offers none). A Spec-Ops or Team-Ops captain (<paramref name="tookUpgrades"/>) took its upgrades
-    /// when it joined, so its popup only names it.
-    /// A Proxy Pack's Lone Wolf has 10 more Spec-Ops XP to spend, whatever it costs.
+    /// when it joined, so its popup only names it. A Proxy Pack's Lone Wolf has its own title and name.
     /// </summary>
     /// <returns>The chosen upgrades, or null when the player backed out.</returns>
     public async Task<SavedImprovedCaptainStats?> ConfigureCaptainAsync(
@@ -58,10 +57,7 @@ public sealed class CaptainSetup(ICaptainConfigurationDialog dialog, CaptainOpti
             EquipmentOptions = choices.Equipment,
             StatChart = CaptainStatChart.Mercenaries,
             PopupTitle = isLoneWolf ? "Lone Wolf Configuration" : "Captain Configuration",
-            DefaultUnitCustomName = !string.IsNullOrWhiteSpace(unit.CustomName) ? unit.CustomName.Trim() : isLoneWolf ? "Lone Wolf" : "Captain",
-            BaseExperienceOverride = isLoneWolf
-                ? CaptainUpgradeRules.StartingExperience(unit.Cost) + ProxyPack.ExtraSpecOpsXp
-                : null
+            DefaultUnitCustomName = !string.IsNullOrWhiteSpace(unit.CustomName) ? unit.CustomName.Trim() : isLoneWolf ? "Lone Wolf" : "Captain"
         });
     }
 
