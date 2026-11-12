@@ -1,0 +1,58 @@
+@inherits ObservingComponent
+@using System.Globalization
+@using InfinityMercsApp.ViewModels.Season
+
+@* The contract's result: won or lost, the objective points scored, and the credits and SWC they bring. *@
+<h1>MISSION OUTCOME</h1>
+
+<h3 class="section-heading">Mission Result</h3>
+<div class="mode-buttons">
+    <button class="secondary @(ViewModel.IsVictory ? "active" : null)" aria-pressed="@ViewModel.IsVictory" @onclick="() => ViewModel.SelectVictoryCommand.Execute(null)">VICTORY</button>
+    <button class="secondary @(ViewModel.IsDefeat ? "active danger-fill" : null)" aria-pressed="@ViewModel.IsDefeat" @onclick="() => ViewModel.SelectDefeatCommand.Execute(null)">DEFEAT</button>
+</div>
+
+<h3 class="section-heading">Points Scored</h3>
+<select aria-label="Points scored" value="@(ViewModel.PointsScored?.ToString(CultureInfo.InvariantCulture) ?? string.Empty)" @onchange="Score">
+    @if (ViewModel.PointsScored is null)
+    {
+        <option value="" disabled>Select points…</option>
+    }
+    @foreach (var points in ViewModel.PointOptions)
+    {
+        <option value="@points">@points</option>
+    }
+</select>
+
+<dl class="kit outcome">
+    <dt>Round Number</dt><dd>@ViewModel.RoundNumber</dd>
+    <dt>Mission Credits</dt><dd>@ViewModel.MissionCredits</dd>
+    <dt>Objectives Secured</dt><dd>@ViewModel.ObjectiveCredits</dd>
+    @if (ViewModel.IsVictory)
+    {
+        <dt>Victory</dt><dd>@ViewModel.VictoryCredits</dd>
+    }
+    <dt>SUM</dt><dd class="bold">@ViewModel.CreditsTotal</dd>
+    <dt>SWC</dt><dd class="bold caution">@ViewModel.SwcText</dd>
+</dl>
+
+<div class="step-bar">
+    <button class="primary" disabled="@(!ViewModel.GoToExperienceCommand.CanExecute(null))" @onclick="() => ViewModel.GoToExperienceCommand.ExecuteAsync(null)">GO TO EXPERIENCE</button>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required MissionOutcomeViewModel ViewModel { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(ViewModel);
+    }
+
+    private void Score(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value as string, NumberStyles.Integer, CultureInfo.InvariantCulture, out var points))
+        {
+            ViewModel.PointsScored = points;
+        }
+    }
+}

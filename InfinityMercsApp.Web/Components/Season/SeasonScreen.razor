@@ -1,12 +1,9 @@
 @inherits ObservingComponent
-@using InfinityMercsApp.Services.Navigation
 @using InfinityMercsApp.Services.Season
-@using InfinityMercsApp.Services.Sync
 @using InfinityMercsApp.ViewModels.Season.Overview
 @inject SeasonViewModel ViewModel
 @inject NavigationQuery Query
-@inject SeasonRecordCatalog Seasons
-@inject ISyncCoordinator Sync
+@inject SeasonLookup Seasons
 @inject ISeasonFileService SeasonFiles
 @inject NavigationManager Navigation
 
@@ -28,9 +25,27 @@
             </div>
             <span class="renown">RENOWN @ViewModel.Renown</span>
             <span class="resources">@ViewModel.Marketplace.ResourcesText</span>
-            <button class="primary" @onclick="() => ViewModel.RecruitCommand.ExecuteAsync(null)">RECRUIT TROOPERS</button>
+            <div class="season-actions">
+                <button class="secondary" @onclick="() => ViewModel.RecruitCommand.ExecuteAsync(null)">RECRUIT</button>
+                <button class="secondary signal" @onclick="() => ViewModel.TakeByeCommand.ExecuteAsync(null)">TAKE A BYE</button>
+                <button class="primary" @onclick="() => ViewModel.PlayRoundCommand.ExecuteAsync(null)">PLAY ROUND</button>
+            </div>
         </div>
-        <TeamTab Season="ViewModel" />
+        <SeasonTabs Season="ViewModel" />
+        @if (ViewModel.IsInventoryTab)
+        {
+            <InventoryTab Season="ViewModel" />
+        }
+        else if (ViewModel.IsMarketplaceTab)
+        {
+            <MarketTab Season="ViewModel" />
+        }
+        else
+        {
+            <TeamTab Season="ViewModel" />
+        }
+        <DetailPopup ViewModel="ViewModel.DetailPopup" />
+        <WarMarketDialog Choice="ViewModel.WarMarketChoice" />
         break;
 }
 
@@ -66,16 +81,13 @@
         }
         else
         {
-            // The season's files come from the account; a sync brings them in (and any change since).
-            await Sync.SyncNowAsync();
-            var record = (await Seasons.ListAsync()).FirstOrDefault(season => season.SeasonIdentifier == SeasonId);
-            if (record is null || record.CompanyFilePath.Length == 0)
+            if (await Seasons.ParametersForAsync(SeasonId) is not { } parameters)
             {
                 _state = SeasonLoadState.Missing;
                 return;
             }
 
-            ViewModel.ApplyQueryAttributes(NavigationParameters.ForCompany(record.CompanyFilePath, record.SeasonFilePath));
+            ViewModel.ApplyQueryAttributes(parameters);
         }
 
         await ViewModel.InitializeAsyncCommand.ExecuteAsync(null);

@@ -47,4 +47,8 @@ internal sealed class ArmyUnitDto
     [JsonPropertyName("factions")]
     [JsonConverter(typeof(JsonScalarListConverter))]
     public List<JsonScalar>? Factions { get; set; }
+
+    [JsonPropertyName("spectables")]
+    [JsonConverter(typeof(LenientObjectConverter<SpectablesDto>))]
+    public SpectablesDto? Spectables { get; set; }
 }

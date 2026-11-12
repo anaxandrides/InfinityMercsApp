@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using InfinityMercsApp.Infrastructure.Json;
 using Markdig;
 
 namespace InfinityMercsApp.Services.Glossary;
@@ -9,7 +10,7 @@ public static class MercsGlossary
 {
     public const string IndexFile = "mercs_glossary.json";
 
-    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true, TypeInfoResolver = GlossaryJsonContext.Default };
     private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 
     /// <summary>The markdown file's path inside the app package.</summary>
@@ -21,7 +22,7 @@ public static class MercsGlossary
     /// </summary>
     public static IReadOnlyList<GlossaryEntry> ParseIndex(string json)
     {
-        var payload = JsonSerializer.Deserialize<Payload>(json, JsonOptions);
+        var payload = JsonSerializer.Deserialize(json, JsonContracts.For<GlossaryPayload>(JsonOptions));
         var items = new List<GlossaryEntry>();
 
         if (payload?.Sections.Count > 0)
@@ -58,7 +59,7 @@ public static class MercsGlossary
             }
         }
 
-        void AddEntry(PayloadEntry entry)
+        void AddEntry(GlossaryPayloadEntry entry)
         {
             if (!string.IsNullOrWhiteSpace(entry.Title))
             {
@@ -125,30 +126,4 @@ public static class MercsGlossary
 </body>
 </html>
 """;
-
-    private sealed class Payload
-    {
-        public List<PayloadEntry> Entries { get; init; } = [];
-        public List<PayloadSection> Sections { get; init; } = [];
-    }
-
-    private sealed class PayloadSection
-    {
-        public string Header { get; init; } = string.Empty;
-        public string Title { get; init; } = string.Empty;
-        public List<PayloadEntry> Entries { get; init; } = [];
-
-        public string HeaderOrTitle => string.IsNullOrWhiteSpace(Header) ? Title : Header;
-    }
-
-    private sealed class PayloadEntry
-    {
-        public string Title { get; init; } = string.Empty;
-        public string MarkdownFile { get; init; } = string.Empty;
-        public bool HasDelta { get; init; }
-        public string SectionHeader { get; init; } = string.Empty;
-        public string Header { get; init; } = string.Empty;
-
-        public string SectionHeaderOrHeader => string.IsNullOrWhiteSpace(SectionHeader) ? Header : SectionHeader;
-    }
 }

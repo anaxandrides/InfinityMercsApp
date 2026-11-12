@@ -1,0 +1,57 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.Domain.Season.Injuries
+@using InfinityMercsApp.Presentation.Season.RankUp
+@using InfinityMercsApp.ViewModels.Company.Viewer.Items
+@using InfinityMercsApp.ViewModels.Season.Overview
+
+@* Medical Services, for one trooper at a time; Advanced Therapy and Forced Retraining ask what they change. *@
+<section class="store-panel">
+    <h3>SERVICES</h3>
+    <PickList TItem="CompanyViewerUnitListItem" Items="Services.Troopers" Value="Services.SelectedTrooper"
+              ValueChanged="trooper => Services.SelectedTrooper = trooper" Text="trooper => trooper.Name" Prompt="Pick a trooper…" />
+    <ul class="rows">
+        @foreach (var option in Services.Options)
+        {
+            <li @key="option" class="service">
+                <div class="service-heading">
+                    <div class="text">
+                        <span class="name">@option.Name</span>
+                        <span class="cost">@option.CostText</span>
+                    </div>
+                    <button class="primary small" disabled="@(!option.IsAvailable)" @onclick="() => Services.BuyCommand.ExecuteAsync(option)">BUY</button>
+                </div>
+                <span class="subtitle">@option.Description</span>
+                @if (!option.IsAvailable)
+                {
+                    <span class="danger subtitle">@option.UnavailableReason</span>
+                }
+                @if (option.ChoosesInjury)
+                {
+                    <PickList TItem="InjuryTableEntry" Items="Services.Injuries" Value="Services.SelectedInjury"
+                              ValueChanged="injury => Services.SelectedInjury = injury" Prompt="Injury to write off…" />
+                }
+                @if (option.ChoosesPerks)
+                {
+                    <PickList TItem="PerkOption" Items="Services.RetrainablePerks" Value="Services.SelectedRetrainPerk"
+                              ValueChanged="perk => Services.SelectedRetrainPerk = perk" Text="perk => perk.Name" Prompt="Perk to retrain…" />
+                    <PickList TItem="PerkOption" Items="Services.Replacements" Value="Services.SelectedReplacement"
+                              ValueChanged="perk => Services.SelectedReplacement = perk" Text="perk => perk.Name" Prompt="New perk…" />
+                }
+            </li>
+        }
+    </ul>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public required SeasonServicesViewModel Services { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Services);
+        foreach (var option in Services.Options)
+        {
+            Watch(option);
+        }
+    }
+}

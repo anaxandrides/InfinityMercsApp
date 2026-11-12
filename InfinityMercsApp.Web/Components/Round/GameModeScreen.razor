@@ -1,0 +1,53 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season.Game
+
+@* The game: the round, the orders left and spent, command tokens, and each deployed trooper's wounds, weapons and XP. *@
+<div class="game-header">
+    @if (ViewModel.CanEndGame)
+    {
+        <button class="secondary danger" @onclick="() => ViewModel.EndGameCommand.ExecuteAsync(null)">END</button>
+    }
+    <h1>@ViewModel.RoundText</h1>
+    @if (ViewModel.HasNextRound)
+    {
+        <button class="secondary" aria-label="Next round" @onclick="() => ViewModel.NextRoundCommand.Execute(null)">❯</button>
+    }
+</div>
+
+<div class="orders" aria-label="Orders left">
+    @foreach (var pool in ViewModel.Orders) { <OrderPool Pool="pool" /> }
+</div>
+<div class="orders spent-orders" aria-label="Orders spent">
+    @foreach (var pool in ViewModel.Orders) { <OrderPool Pool="pool" Spent="true" /> }
+</div>
+
+@if (ViewModel.CommandTokens.HasTokens)
+{
+    <div class="command-tokens">
+        <span class="muted bold">COMMAND TOKENS</span>
+        <button class="secondary small caution" disabled="@(ViewModel.CommandTokens.Available == 0)" @onclick="() => ViewModel.CommandTokens.UseCommand.Execute(null)">@ViewModel.CommandTokens.Available left</button>
+        <button class="secondary small" disabled="@(ViewModel.CommandTokens.Used == 0)" @onclick="() => ViewModel.CommandTokens.RestoreCommand.Execute(null)">@ViewModel.CommandTokens.Used used</button>
+    </div>
+}
+
+<ul class="game-units">
+    @foreach (var unit in ViewModel.Units)
+    {
+        <GameUnitRow @key="unit" Unit="unit" Game="ViewModel" />
+    }
+</ul>
+
+<GameWeaponDialog Game="ViewModel" />
+<XpSheetDialog Game="ViewModel" />
+
+@code {
+    [Parameter, EditorRequired] public required GameModeViewModel ViewModel { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(ViewModel);
+        Watch(ViewModel.CommandTokens);
+        WatchItems(ViewModel.Units);
+    }
+}

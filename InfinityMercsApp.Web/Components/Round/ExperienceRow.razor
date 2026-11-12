@@ -1,0 +1,35 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season.Items
+
+@* A trooper's XP for the contract, line by line, and whether it is the MVP. *@
+<li class="row-card experience">
+    <label class="mvp">
+        <span class="caution bold">MVP</span>
+        <input type="checkbox" checked="@Unit.IsMvp" @onchange="e => Unit.IsMvp = e.Value is true" />
+    </label>
+    <Logo Source="@Unit.LogoSource" Size="36" />
+    <div class="text">
+        <span class="name">@Unit.Name</span>
+        <dl class="xp-lines">
+            @foreach (var line in Unit.XpLines)
+            {
+                <dt>@line.Label</dt><dd>+@line.Xp XP</dd>
+            }
+            @if (Unit.IsMvp)
+            {
+                <dt class="caution">MVP</dt><dd>+@Unit.MvpXp XP</dd>
+            }
+        </dl>
+        <span class="signal bold">@Unit.TotalText</span>
+    </div>
+</li>
+
+@code {
+    [Parameter, EditorRequired] public required ExperienceUnitItem Unit { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Unit);
+    }
+}

@@ -1,6 +1,7 @@
 using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Infrastructure.API.ArmyMirror;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
+using InfinityMercsApp.Infrastructure.API.Leagues;
 using InfinityMercsApp.Infrastructure.Data;
 using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Infrastructure.Providers;
@@ -30,7 +31,11 @@ public static class ServiceRegistryExtensions
                     TimeProvider.System))
                 // The signed-in user's companies and seasons, kept by the same API.
                 .AddSingleton(UserDocumentsEndpoint.Production)
+                .AddSingleton(new UserDocumentTypes(UserDocumentJsonContext.Default))
                 .AddSingleton<IUserDocumentsApi, UserDocumentsClient>()
+                // Leagues the user belongs to, kept by the same API.
+                .AddSingleton(LeaguesEndpoint.Production)
+                .AddSingleton<ILeaguesApi, LeaguesClient>()
                 .AddSingleton<IAppSettingsProvider, AppSettingsProvider>()
                 .AddSingleton<IArmyImportProvider, ArmyImportProvider>()
                 .AddSingleton<IFactionProvider, FactionProvider>()

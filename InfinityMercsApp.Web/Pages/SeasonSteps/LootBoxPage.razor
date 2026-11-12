@@ -1,0 +1,15 @@
+@page "/season/{SeasonId}/loot"
+@using InfinityMercsApp.ViewModels.Season.Loot
+@inject LootBoxViewModel ViewModel
+
+<PageTitle>Loot Boxes · Infinity Mercs</PageTitle>
+
+<ArmyDataGate>
+    <SeasonStepHost SeasonId="@SeasonId" Step="SeasonStep.Loot" ViewModel="ViewModel">
+        <LootBoxScreen ViewModel="ViewModel" />
+    </SeasonStepHost>
+</ArmyDataGate>
+
+@code {
+    [Parameter] public string SeasonId { get; set; } = string.Empty;
+}

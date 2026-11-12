@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The client libraries compiled with .NET Native AOT, as iOS can compile the app, and run: a smoke test that the
+       compiler finds nothing reflection-based in them (any trim or AOT warning fails the publish) and that the code
+       still works without a JIT. CI (.github/workflows/aot.yml) publishes it with clang and compares its output with
+       a normal run. Not a substitute for an iOS build. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <PublishAot>true</PublishAot>
+    <!-- Each warning inside a library on its own, rather than one line per library. -->
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IlcTreatWarningsAsErrors>true</IlcTreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\InfinityMercsApp.ApiClient\InfinityMercsApp.ApiClient.csproj" />
+    <ProjectReference Include="..\..\InfinityMercsApp.Domain\InfinityMercsApp.Domain.csproj" />
+    <ProjectReference Include="..\..\InfinityMercsApp.Infrastructure\InfinityMercsApp.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\InfinityMercsApp.Services\InfinityMercsApp.Services.csproj" />
+  </ItemGroup>
+
+</Project>

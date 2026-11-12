@@ -106,6 +106,7 @@ public sealed class FactionProvider(ISQLiteRepository sqliteRepository, IArmyCon
             .GetAll<DbResume>(
                 x => x.FactionId == factionId
                      && (x.Slug == null || !x.Slug.StartsWith(MercSlugPrefix))
+                     && !x.HasUpgrades
                      && (x.Category == null || x.Category != CharacterCategory)
                      && (x.Type == null || x.Type != TagType)
                      && (x.Type == null || x.Type != VehicleType),
@@ -113,6 +114,13 @@ public sealed class FactionProvider(ISQLiteRepository sqliteRepository, IArmyCon
             .Select(MapResume)
             .ToList();
     }
+
+    /// <inheritdoc/>
+    public IReadOnlyList<Resume> GetUpgradeUnitResumes(int factionId) =>
+        sqliteRepository
+            .GetAll<DbResume>(x => x.FactionId == factionId && x.HasUpgrades, orderBy: x => x.Name)
+            .Select(MapResume)
+            .ToList();
 
     private Faction MapFaction(DbFaction source)
     {
@@ -146,7 +154,8 @@ public sealed class FactionProvider(ISQLiteRepository sqliteRepository, IArmyCon
             ProfileGroups = content.ProfileGroups,
             Options = content.Options,
             Filters = content.Filters,
-            FactionIds = content.FactionIds
+            FactionIds = content.FactionIds,
+            Upgrades = content.Upgrades
         };
     }
 
@@ -163,7 +172,8 @@ public sealed class FactionProvider(ISQLiteRepository sqliteRepository, IArmyCon
             Slug = source.Slug,
             Logo = source.Logo,
             Type = source.Type,
-            Category = source.Category
+            Category = source.Category,
+            HasUpgrades = source.HasUpgrades
         };
     }
 }

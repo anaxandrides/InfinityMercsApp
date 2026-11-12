@@ -77,6 +77,21 @@ public sealed class RankUpViewModelTests
         Assert.Equal("Traktor Mul", viewModel.Trooper?.Name);
     }
 
+    [Fact]
+    public async Task TakePerkCommand_PointsLeft_OffersTheFirstListsPerksAgain()
+    {
+        GiveXp(1, "Bolt", 16);
+        var viewModel = await OpenAsync();
+        var first = viewModel.Options[0];
+
+        await viewModel.TakePerkCommand.ExecuteAsync(first);
+
+        Assert.Equal("Bolt", viewModel.Trooper?.Name);
+        Assert.Equal(viewModel.Lists[0], viewModel.SelectedList);
+        Assert.NotEmpty(viewModel.Options);
+        Assert.DoesNotContain(viewModel.Options, option => option.Pick.NodeId == first.Pick.NodeId);
+    }
+
     private async Task<RankUpViewModel> OfferHackerWithDoctorEquippedAsync()
     {
         GiveXp(1, "Bolt", 5);

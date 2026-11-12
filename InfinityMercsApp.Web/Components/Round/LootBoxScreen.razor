@@ -1,0 +1,71 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season.Loot
+
+@* Loot boxes an organiser handed out: add one, roll its weapon, then buffs while dice are left, and take the loot. *@
+<h1>LOOT BOXES</h1>
+<button class="secondary" @onclick="() => ViewModel.AddBoxCommand.ExecuteAsync(null)">ADD A LOOT BOX</button>
+
+@if (!ViewModel.HasBox)
+{
+    <p class="muted">An organiser hands out loot boxes. Add one here, then open it: roll the weapon, then buffs while dice are left.</p>
+}
+else
+{
+    <section class="loot-box">
+        <div class="loot-heading">
+            <h2>@ViewModel.BoxTitle</h2>
+            @if (ViewModel.QueuedBoxes > 0) { <span class="muted">@ViewModel.QueuedBoxes more waiting</span> }
+        </div>
+        <div class="signal bold">@ViewModel.DiceText</div>
+        <div>@ViewModel.LootText</div>
+        <div class="muted">@ViewModel.StepText</div>
+
+        <div class="dice-choices">
+            @foreach (var choice in ViewModel.DiceChoices)
+            {
+                <button class="dice-choice" disabled="@(!choice.IsEnabled)" @onclick="() => ViewModel.RollCommand.ExecuteAsync(choice)">
+                    <span class="bold">@choice.Label</span>
+                    <span class="subtitle">@choice.Range</span>
+                </button>
+            }
+        </div>
+
+        <div class="mode-buttons">
+            <button class="secondary" disabled="@(!ViewModel.CanRerollLastBuff)" @onclick="() => ViewModel.RerollLastBuffCommand.ExecuteAsync(null)">REROLL LAST BUFF</button>
+            <button class="primary" disabled="@(!ViewModel.CanTakeLoot)" @onclick="() => ViewModel.TakeLootCommand.ExecuteAsync(null)">TAKE THE LOOT</button>
+        </div>
+        <p class="muted subtitle">Reroll the last buff when it can't go with the others. Duplicates, and Continuous with a non-lethal buff, are rerolled for you.</p>
+        <ul class="log">
+            @foreach (var line in ViewModel.Log) { <li>@line</li> }
+        </ul>
+    </section>
+}
+
+@if (ViewModel.HasRewards)
+{
+    <h3 class="section-heading">LOOT TAKEN</h3>
+    <ul class="rows">
+        @foreach (var reward in ViewModel.Rewards)
+        {
+            <li class="row-card">
+                <div class="text">
+                    <span class="name">@reward.Name</span>
+                    <span class="subtitle">@reward.Details</span>
+                </div>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter, EditorRequired] public required LootBoxViewModel ViewModel { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(ViewModel);
+        WatchItems(ViewModel.DiceChoices);
+        WatchItems(ViewModel.Log);
+        WatchItems(ViewModel.Rewards);
+    }
+}

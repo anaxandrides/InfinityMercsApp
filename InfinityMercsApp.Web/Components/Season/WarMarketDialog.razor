@@ -1,0 +1,74 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.Presentation.Season.Overview
+@using InfinityMercsApp.ViewModels.Season.Overview
+
+@* Choosing the round's War Market: one of the company's faction markets, or a d20 roll once the first contract is played. *@
+@if (Choice.IsOpen)
+{
+    <div class="backdrop"></div>
+    <div class="dialog war-market" role="dialog" aria-modal="true" aria-labelledby="war-market-title">
+        <h2 id="war-market-title">Choose this round's War Market</h2>
+
+        @if (Choice.HasFactionMarkets)
+        {
+            <section class="dialog-panel">
+                <span class="slot-heading">FACTION MARKET</span>
+                <PickList TItem="string" Items="Choice.FactionMarketChoices" Value="Choice.SelectedFactionMarket"
+                          ValueChanged="market => Choice.SelectedFactionMarket = market" Prompt="Select a market..." />
+            </section>
+        }
+
+        @if (Choice.CanRoll)
+        {
+            <section class="dialog-panel">
+                <span class="slot-heading">ROLL</span>
+                <div class="roll-row">
+                    <span class="result @ToneClass">@Choice.ResultText</span>
+                    <button class="secondary" @onclick="() => Choice.RollCommand.Execute(null)">ROLL</button>
+                </div>
+            </section>
+            <section class="dialog-panel">
+                <span class="slot-heading">OR PICK THE NUMBER ROLLED</span>
+                <PickList TItem="StoreRollOption" Items="Choice.RollOptions" Value="Choice.SelectedRoll"
+                          ValueChanged="roll => Choice.SelectedRoll = roll" Text="roll => roll.Label" Prompt="Select 1-20..." />
+            </section>
+        }
+        else
+        {
+            <p class="muted center">Rolling for a War Market opens after the first contract.</p>
+        }
+
+        @if (Choice.IsChoosingAny)
+        {
+            <section class="dialog-panel caution-border">
+                <span class="slot-heading">CHOOSE ANY</span>
+                <PickList TItem="string" Items="Choice.Choices" Value="Choice.SelectedChoice"
+                          ValueChanged="store => Choice.SelectedChoice = store" Prompt="Select a store..." />
+            </section>
+        }
+
+        <div class="buttons">
+            <button class="secondary" @onclick="() => Choice.CloseCommand.Execute(null)">LATER</button>
+            <button class="primary" disabled="@(!Choice.ConfirmCommand.CanExecute(null))" @onclick="() => Choice.ConfirmCommand.ExecuteAsync(null)">CONFIRM</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required WarMarketChoiceViewModel Choice { get; set; }
+
+    private string? ToneClass => Choice.ResultTone switch
+    {
+        StoreSearchTone.Found => "signal",
+        StoreSearchTone.Choose => "caution",
+        StoreSearchTone.Problem => "danger",
+        _ => null
+    };
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Choice);
+        Watch(Choice.ConfirmCommand);
+    }
+}

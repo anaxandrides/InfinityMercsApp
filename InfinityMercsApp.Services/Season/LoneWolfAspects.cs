@@ -1,6 +1,9 @@
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Models.Company;
+using InfinityMercsApp.Infrastructure.Json;
+using InfinityMercsApp.Services.Records;
 
 namespace InfinityMercsApp.Services.Season;
 
@@ -13,6 +16,9 @@ namespace InfinityMercsApp.Services.Season;
 /// </summary>
 public static class LoneWolfAspects
 {
+    // An entry's contract as company files are written; copies and comparisons go through it, so they need no reflection.
+    private static JsonTypeInfo<SavedCompanyEntry> Entry => JsonContracts.For<SavedCompanyEntry>(RecordJson.CompanyWriteOptions);
+
     /// <summary>The Lone Wolf of a Proxy Pack; null for any other company.</summary>
     public static SavedCompanyEntry? LoneWolfOf(SavedCompanyFile company) =>
         company.Entries.FirstOrDefault(entry => entry.IsLoneWolf);
@@ -54,7 +60,7 @@ public static class LoneWolfAspects
         for (var i = 0; i < aspects.Count; i++)
         {
             var fresh = AspectOf(wolf, number: i + 2, aspects[i].EntryIndex);
-            if (JsonSerializer.Serialize(fresh) != JsonSerializer.Serialize(aspects[i]))
+            if (JsonSerializer.Serialize(fresh, Entry) != JsonSerializer.Serialize(aspects[i], Entry))
             {
                 company.Entries[company.Entries.IndexOf(aspects[i])] = fresh;
                 changed = true;
@@ -74,13 +80,13 @@ public static class LoneWolfAspects
     // A copy of the Lone Wolf's saved line as Aspect number, costing nothing: its CR counts once, for the Lone Wolf.
     private static SavedCompanyEntry AspectOf(SavedCompanyEntry wolf, int number, int entryIndex)
     {
-        var copy = JsonSerializer.SerializeToNode(wolf)?.AsObject() ?? [];
+        var copy = JsonSerializer.SerializeToNode(wolf, Entry)?.AsObject() ?? [];
         copy[nameof(SavedCompanyEntry.EntryIndex)] = entryIndex;
         copy[nameof(SavedCompanyEntry.CustomName)] = AspectName(SeasonTroopers.NameOf(wolf), number);
         copy[nameof(SavedCompanyEntry.Cost)] = 0;
         copy[nameof(SavedCompanyEntry.IsLieutenant)] = false;
         copy[nameof(SavedCompanyEntry.IsLoneWolf)] = false;
         copy[nameof(SavedCompanyEntry.AspectOf)] = wolf.EntryIndex;
-        return copy.Deserialize<SavedCompanyEntry>() ?? new SavedCompanyEntry { EntryIndex = entryIndex, AspectOf = wolf.EntryIndex };
+        return copy.Deserialize(Entry) ?? new SavedCompanyEntry { EntryIndex = entryIndex, AspectOf = wolf.EntryIndex };
     }
 }

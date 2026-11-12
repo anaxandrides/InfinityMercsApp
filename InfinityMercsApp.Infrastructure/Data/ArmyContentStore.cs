@@ -32,6 +32,8 @@ public sealed class ArmyContentStore(ISQLiteRepository repository) : IArmyConten
         repository.Delete<UnitEntryExtraRow>(x => x.FactionId == factionId);
         repository.Delete<UnitFilterIdRow>(x => x.FactionId == factionId);
         repository.Delete<UnitFactionRow>(x => x.FactionId == factionId);
+        repository.Delete<UnitUpgradePartRow>(x => x.FactionId == factionId);
+        repository.Delete<UnitUpgradeExtraRow>(x => x.FactionId == factionId);
         repository.Delete<ArmyFilterItemRow>(x => x.FactionId == factionId);
         repository.Delete<ArmyRelationRow>(x => x.FactionId == factionId);
         repository.Delete<ArmyRelationUnitRow>(x => x.FactionId == factionId);
@@ -52,6 +54,8 @@ public sealed class ArmyContentStore(ISQLiteRepository repository) : IArmyConten
         repository.Insert(units.Extras);
         repository.Insert(units.FilterIds);
         repository.Insert(units.Factions);
+        repository.Insert(units.UpgradeParts);
+        repository.Insert(units.UpgradeExtras);
         repository.Insert(army.FilterItems);
         repository.Insert(army.Relations);
         repository.Insert(army.RelationUnits);
@@ -81,6 +85,8 @@ public sealed class ArmyContentStore(ISQLiteRepository repository) : IArmyConten
         units.Extras.AddRange(repository.GetAll<UnitEntryExtraRow>(x => x.FactionId == factionId));
         units.FilterIds.AddRange(repository.GetAll<UnitFilterIdRow>(x => x.FactionId == factionId));
         units.Factions.AddRange(repository.GetAll<UnitFactionRow>(x => x.FactionId == factionId));
+        units.UpgradeParts.AddRange(repository.GetAll<UnitUpgradePartRow>(x => x.FactionId == factionId));
+        units.UpgradeExtras.AddRange(repository.GetAll<UnitUpgradeExtraRow>(x => x.FactionId == factionId));
 
         var army = new ArmyContentRows();
         army.FilterItems.AddRange(repository.GetAll<ArmyFilterItemRow>(x => x.FactionId == factionId));

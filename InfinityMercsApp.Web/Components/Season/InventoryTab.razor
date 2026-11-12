@@ -1,0 +1,44 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season.Overview
+
+@* What the company owns, by category: where and when each came from, and what it sells for. *@
+<div class="inventory-tab">
+    <button class="secondary" @onclick="() => Season.OpenLootBoxesCommand.ExecuteAsync(null)">LOOT BOXES</button>
+    @if (Inventory.HasMessage)
+    {
+        <p class="muted center">@Inventory.Message</p>
+    }
+    @foreach (var section in Inventory.Sections)
+    {
+        <h3 class="section-heading">@section.Title</h3>
+        <ul class="rows">
+            @foreach (var item in section.Items)
+            {
+                <li class="row-card">
+                    <div class="text">
+                        <span class="name">@item.Name</span>
+                        @if (item.HasSources) { <span class="subtitle">@item.SourcesText</span> }
+                        @if (item.HasRounds) { <span class="subtitle">@item.RoundsText</span> }
+                    </div>
+                    <span class="count">@item.CountText</span>
+                    @if (item.CanSell)
+                    {
+                        <button class="secondary small caution" @onclick="() => Inventory.SellCommand.ExecuteAsync(item)">@item.SellText</button>
+                    }
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required SeasonViewModel Season { get; set; }
+
+    private SeasonInventoryViewModel Inventory => Season.Inventory;
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Inventory);
+    }
+}

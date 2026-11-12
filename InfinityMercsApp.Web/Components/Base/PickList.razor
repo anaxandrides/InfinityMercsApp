@@ -1,0 +1,38 @@
+@typeparam TItem where TItem : class
+
+@* A drop-down over a view model's list, as the app's Picker: nothing chosen shows the prompt. *@
+<select aria-label="@Prompt" class="@Class" value="@SelectedIndex" @onchange="PickAsync">
+    @if (Value is null)
+    {
+        <option value="-1" disabled>@Prompt</option>
+    }
+    @for (var index = 0; index < Items.Count; index++)
+    {
+        <option value="@index">@Text(Items[index])</option>
+    }
+</select>
+
+@code {
+    [Parameter, EditorRequired] public required IReadOnlyList<TItem> Items { get; set; }
+
+    [Parameter] public TItem? Value { get; set; }
+
+    [Parameter] public EventCallback<TItem?> ValueChanged { get; set; }
+
+    /// <summary>What a choice reads as, as a Picker's ItemDisplayBinding.</summary>
+    [Parameter] public Func<TItem, string> Text { get; set; } = item => item.ToString() ?? string.Empty;
+
+    [Parameter, EditorRequired] public required string Prompt { get; set; }
+
+    [Parameter] public string Class { get; set; } = string.Empty;
+
+    private int SelectedIndex => Value is null ? -1 : Items.ToList().IndexOf(Value);
+
+    private async Task PickAsync(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value as string, out var index) && index >= 0 && index < Items.Count)
+        {
+            await ValueChanged.InvokeAsync(Items[index]);
+        }
+    }
+}

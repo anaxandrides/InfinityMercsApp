@@ -30,7 +30,7 @@ public sealed class FeedbackService : IFeedbackService
             Template = "table"
         };
 
-        using var response = await _httpClient.PostAsJsonAsync(FeedbackEndpoint, payload, cancellationToken);
+        using var response = await _httpClient.PostAsJsonAsync(FeedbackEndpoint, payload, FeedbackJsonContext.Default.FeedbackApiRequest, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
             var contentType = response.Content.Headers.ContentType?.MediaType ?? string.Empty;
@@ -53,7 +53,7 @@ public sealed class FeedbackService : IFeedbackService
         FeedbackApiResponse? body = null;
         try
         {
-            body = await response.Content.ReadFromJsonAsync<FeedbackApiResponse>(cancellationToken: cancellationToken);
+            body = await response.Content.ReadFromJsonAsync(FeedbackJsonContext.Default.FeedbackApiResponse, cancellationToken);
         }
         catch (JsonException)
         {

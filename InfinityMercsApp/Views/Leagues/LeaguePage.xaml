@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<baseViews:ContentPageBase xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:baseViews="clr-namespace:InfinityMercsApp.Views.Base"
+             xmlns:controls="clr-namespace:InfinityMercsApp.Views.Controls"
+             xmlns:view="clr-namespace:InfinityMercsApp.Views.Leagues"
+             xmlns:viewModels="clr-namespace:InfinityMercsApp.ViewModels.Leagues;assembly=InfinityMercsApp.ViewModels"
+             xmlns:leagues="clr-namespace:InfinityMercsApp.Presentation.Leagues;assembly=InfinityMercsApp.ViewModels"
+             x:Class="InfinityMercsApp.Views.Leagues.LeaguePage"
+             x:Name="Root"
+             x:DataType="viewModels:LeagueViewModel"
+             Title="{Binding Name}"
+             BackgroundColor="{StaticResource Void}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="10" MaximumWidthRequest="{DynamicResource MaxContentWidth}">
+            <Label Text="{Binding Name}"
+                   FontSize="{DynamicResource FontSizeDisplay}"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource TextPrimary}" />
+            <Label Text="{Binding CurrentSeasonText}"
+                   FontSize="{DynamicResource FontSizeBody}"
+                   TextColor="{StaticResource TextMuted}" />
+            <Picker Title="League season"
+                    ItemsSource="{Binding LeagueSeasons}"
+                    SelectedItem="{Binding ViewedSeason}"
+                    ItemDisplayBinding="{Binding Text, x:DataType=leagues:LeagueSeasonChoice}"
+                    FontSize="{DynamicResource FontSizeBody}" />
+            <Label Text="{Binding Status}"
+                   FontSize="{DynamicResource FontSizeBody}"
+                   TextColor="{StaticResource TextMuted}"
+                   LineBreakMode="WordWrap" />
+
+            <!-- Standings: a company's name opens it; a company that hasn't played can be withdrawn. -->
+            <Label Text="STANDINGS"
+                   FontSize="{DynamicResource FontSizeSectionHeader}"
+                   TextColor="{StaticResource TextMuted}" />
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Standings}" Spacing="6">
+                <BindableLayout.EmptyView>
+                    <Label Text="No companies are entered in this season yet."
+                           FontSize="{DynamicResource FontSizeBody}"
+                           TextColor="{StaticResource TextMuted}" />
+                </BindableLayout.EmptyView>
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="leagues:LeagueStanding">
+                        <Border StrokeThickness="1"
+                                Stroke="{StaticResource Hairline}"
+                                BackgroundColor="{StaticResource Plate}"
+                                Padding="12,8">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="{DynamicResource CornerRadiusDefault}" />
+                            </Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ViewModel.ViewCompanyCommand, Source={x:Reference Root}, x:DataType=view:LeaguePage}"
+                                                      CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                <Label Text="{Binding Place}"
+                                       FontSize="{DynamicResource FontSizeSubHeadline}"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource Signal}"
+                                       VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1" Spacing="0">
+                                    <Label Text="{Binding CompanyName}"
+                                           FontSize="{DynamicResource FontSizeBody}"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label FontSize="{DynamicResource FontSizeCaption}" TextColor="{StaticResource TextMuted}">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="{Binding PlayerName}" />
+                                                <Span Text=" · W-D-L " />
+                                                <Span Text="{Binding Record}" />
+                                                <Span Text=" · OP " />
+                                                <Span Text="{Binding ObjectivePoints}" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="2" Spacing="0" VerticalOptions="Center">
+                                    <Label Text="{Binding Renown}"
+                                           FontSize="{DynamicResource FontSizeSubHeadline}"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource TextPrimary}"
+                                           HorizontalTextAlignment="End" />
+                                    <Label Text="RENOWN"
+                                           FontSize="{DynamicResource FontSizeMicro}"
+                                           TextColor="{StaticResource TextMuted}"
+                                           HorizontalTextAlignment="End" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="8" IsVisible="{Binding HasSeasonsToEnter}">
+                <Label Text="ENTER A COMPANY"
+                       FontSize="{DynamicResource FontSizeSectionHeader}"
+                       TextColor="{StaticResource TextMuted}" />
+                <Picker Title="One of your seasons"
+                        ItemsSource="{Binding SeasonsToEnter}"
+                        SelectedItem="{Binding SeasonToEnter}"
+                        ItemDisplayBinding="{Binding Text, x:DataType=leagues:SeasonChoice}"
+                        FontSize="{DynamicResource FontSizeBody}" />
+                <Button Text="Enter" Command="{Binding EnterSeasonCommand}" HorizontalOptions="Fill" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="8" IsVisible="{Binding CanRecordGames}">
+                <Label Text="RECORD A GAME"
+                       FontSize="{DynamicResource FontSizeSectionHeader}"
+                       TextColor="{StaticResource TextMuted}" />
+                <Picker Title="Your company"
+                        ItemsSource="{Binding OwnEntries}"
+                        SelectedItem="{Binding OwnEntry}"
+                        ItemDisplayBinding="{Binding Text, x:DataType=leagues:LeagueEntryChoice}"
+                        FontSize="{DynamicResource FontSizeBody}" />
+                <Picker Title="Who you played"
+                        ItemsSource="{Binding Opponents}"
+                        SelectedItem="{Binding Opponent}"
+                        ItemDisplayBinding="{Binding Text, x:DataType=leagues:LeagueEntryChoice}"
+                        FontSize="{DynamicResource FontSizeBody}" />
+                <Picker Title="Result"
+                        ItemsSource="{Binding Results}"
+                        SelectedItem="{Binding Result}"
+                        ItemDisplayBinding="{Binding Text, x:DataType=leagues:ResultChoice}"
+                        FontSize="{DynamicResource FontSizeBody}" />
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                    <VerticalStackLayout>
+                        <Label Text="Your OP" FontSize="{DynamicResource FontSizeCaption}" TextColor="{StaticResource TextMuted}" />
+                        <Entry Text="{Binding OwnObjectivePoints}" Keyboard="Numeric" FontSize="{DynamicResource FontSizeBody}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1">
+                        <Label Text="Their OP" FontSize="{DynamicResource FontSizeCaption}" TextColor="{StaticResource TextMuted}" />
+                        <Entry Text="{Binding OpponentObjectivePoints}" Keyboard="Numeric" FontSize="{DynamicResource FontSizeBody}" />
+                    </VerticalStackLayout>
+                </Grid>
+                <Entry Text="{Binding Mission}" Placeholder="Mission" MaxLength="80" FontSize="{DynamicResource FontSizeBody}" />
+                <DatePicker Date="{Binding PlayedOn}" FontSize="{DynamicResource FontSizeBody}" />
+                <Button Text="Record game" Command="{Binding RecordGameCommand}" HorizontalOptions="Fill" />
+            </VerticalStackLayout>
+
+            <Label Text="GAMES"
+                   FontSize="{DynamicResource FontSizeSectionHeader}"
+                   TextColor="{StaticResource TextMuted}" />
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Games}" Spacing="6">
+                <BindableLayout.EmptyView>
+                    <Label Text="No games recorded in this season yet."
+                           FontSize="{DynamicResource FontSizeBody}"
+                           TextColor="{StaticResource TextMuted}" />
+                </BindableLayout.EmptyView>
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="leagues:LeagueGameRow">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <VerticalStackLayout Spacing="0">
+                                <Label Text="{Binding Score}"
+                                       FontSize="{DynamicResource FontSizeBody}"
+                                       TextColor="{StaticResource TextPrimary}"
+                                       LineBreakMode="WordWrap" />
+                                <Label FontSize="{DynamicResource FontSizeCaption}" TextColor="{StaticResource TextMuted}">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding PlayedOn}" />
+                                            <Span Text=" · " />
+                                            <Span Text="{Binding Mission}" />
+                                            <Span Text=" · recorded by " />
+                                            <Span Text="{Binding RecordedBy}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                            </VerticalStackLayout>
+                            <Button Grid.Column="1"
+                                    Text="Remove"
+                                    IsVisible="{Binding CanRemove}"
+                                    Command="{Binding ViewModel.RemoveGameCommand, Source={x:Reference Root}, x:DataType=view:LeaguePage}"
+                                    CommandParameter="{Binding .}"
+                                    VerticalOptions="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <Label Text="MEMBERS"
+                   FontSize="{DynamicResource FontSizeSectionHeader}"
+                   TextColor="{StaticResource TextMuted}" />
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Members}" Spacing="2">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="leagues:LeagueMemberRow">
+                        <Label FontSize="{DynamicResource FontSizeBody}" TextColor="{StaticResource TextPrimary}">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding Name}" />
+                                    <Span Text="  " />
+                                    <Span Text="{Binding Note}" TextColor="{StaticResource TextMuted}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <!-- The organizer's invite: the code to read out, and a QR code a phone's camera opens as the link. -->
+            <VerticalStackLayout Spacing="8" IsVisible="{Binding IsOrganizer}">
+                <Label Text="INVITE PLAYERS"
+                       FontSize="{DynamicResource FontSizeSectionHeader}"
+                       TextColor="{StaticResource TextMuted}" />
+                <VerticalStackLayout Spacing="8" IsVisible="{Binding HasInvite}">
+                    <controls:InviteQrView Qr="{Binding InviteQr}"
+                                           WidthRequest="220"
+                                           HeightRequest="220"
+                                           HorizontalOptions="Start" />
+                    <Label FontSize="{DynamicResource FontSizeHeadline}" TextColor="{StaticResource Signal}" FontAttributes="Bold">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="Code " TextColor="{StaticResource TextMuted}" />
+                                <Span Text="{Binding InviteCode}" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                    <Label Text="{Binding InviteLink}"
+                           FontSize="{DynamicResource FontSizeCaption}"
+                           TextColor="{StaticResource TextSecondary}"
+                           LineBreakMode="CharacterWrap" />
+                    <Button Text="Close joining" Command="{Binding CloseInviteCommand}" HorizontalOptions="Fill" />
+                </VerticalStackLayout>
+                <Button Text="New invite code" Command="{Binding NewInviteCommand}" HorizontalOptions="Fill" />
+
+                <Label Text="LEAGUE SEASON"
+                       FontSize="{DynamicResource FontSizeSectionHeader}"
+                       TextColor="{StaticResource TextMuted}" />
+                <Button Text="Start the next season" Command="{Binding StartNextSeasonCommand}" HorizontalOptions="Fill" />
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</baseViews:ContentPageBase>

@@ -60,6 +60,38 @@ resource account 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' = {
       }
     }
 
+    // Leagues (InfinityMercsApp.Api CosmosNames): a partition per league, holding the league and a document per entry and game.
+    resource leagues 'containers' = {
+      name: 'leagues'
+      properties: {
+        resource: {
+          id: 'leagues'
+          partitionKey: {
+            paths: [
+              '/leagueId'
+            ]
+            kind: 'Hash'
+          }
+        }
+      }
+    }
+
+    // League invite codes (InfinityMercsApp.Api CosmosNames), read by code when someone joins.
+    resource leagueInvites 'containers' = {
+      name: 'league-invites'
+      properties: {
+        resource: {
+          id: 'league-invites'
+          partitionKey: {
+            paths: [
+              '/code'
+            ]
+            kind: 'Hash'
+          }
+        }
+      }
+    }
+
     // Army data snapshots (InfinityMercsApp.Api CosmosNames): a few small documents in one partition.
     resource army 'containers' = {
       name: 'army'

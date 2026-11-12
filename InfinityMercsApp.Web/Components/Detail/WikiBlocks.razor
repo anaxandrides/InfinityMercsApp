@@ -1,0 +1,24 @@
+@using InfinityMercsApp.Services.Wiki
+
+@* A wiki description: section headers, paragraphs and bullet points, as the app lays them out. *@
+<div class="wiki-blocks">
+    @foreach (var block in Blocks)
+    {
+        @switch (block.Type)
+        {
+            case WikiBlockType.SectionHeader:
+                <h4 class="wiki-header">@block.Text</h4>
+                break;
+            case WikiBlockType.Paragraph:
+                <p class="@(block.Bold ? "bold" : null)">@block.Text</p>
+                break;
+            default:
+                <p class="wiki-bullet @(block.IndentLevel > 0 ? "indented" : null)">@block.Text</p>
+                break;
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required IReadOnlyList<WikiContentBlock> Blocks { get; set; }
+}

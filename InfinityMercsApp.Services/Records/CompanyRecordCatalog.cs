@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Models.Company;
+using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Services.Sync;
 
 namespace InfinityMercsApp.Services.Records;
@@ -9,7 +10,7 @@ namespace InfinityMercsApp.Services.Records;
 /// <summary>Lists and deletes saved company files; deletions are noted in the sync outbox.</summary>
 public sealed class CompanyRecordCatalog(RecordPaths paths, ISyncOutbox outbox)
 {
-    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true, TypeInfoResolver = RecordJsonContext.Default };
 
     /// <summary>Every readable company file, newest first; malformed files are skipped.</summary>
     public async Task<IReadOnlyList<CompanyRecord>> ListAsync()
@@ -24,7 +25,7 @@ public sealed class CompanyRecordCatalog(RecordPaths paths, ISyncOutbox outbox)
         {
             try
             {
-                var payload = JsonSerializer.Deserialize<SavedCompanyFile>(await File.ReadAllTextAsync(filePath), JsonOptions);
+                var payload = JsonSerializer.Deserialize(await File.ReadAllTextAsync(filePath), JsonContracts.For<SavedCompanyFile>(JsonOptions));
                 if (payload is null)
                 {
                     continue;
@@ -69,7 +70,7 @@ public sealed class CompanyRecordCatalog(RecordPaths paths, ISyncOutbox outbox)
     {
         try
         {
-            return JsonSerializer.Deserialize<SavedCompanyFile>(File.ReadAllText(filePath), JsonOptions)?.CompanyIdentifier;
+            return JsonSerializer.Deserialize(File.ReadAllText(filePath), JsonContracts.For<SavedCompanyFile>(JsonOptions))?.CompanyIdentifier;
         }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {

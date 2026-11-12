@@ -33,7 +33,8 @@ public sealed class InfinityArmyAPI(IArmyPayloadSource payloads, ILogger<Infinit
     {
         PropertyNameCaseInsensitive = true,
         NumberHandling = JsonNumberHandling.AllowReadingFromString,
-        Converters = { new RelaxedInt32Converter(), new RelaxedNullableInt32Converter() }
+        Converters = { new RelaxedInt32Converter(), new RelaxedNullableInt32Converter() },
+        TypeInfoResolver = MetadataJsonContext.Default
     };
 
     /// <inheritdoc/>
@@ -50,7 +51,7 @@ public sealed class InfinityArmyAPI(IArmyPayloadSource payloads, ILogger<Infinit
 
         try
         {
-            var apiDocument = JsonSerializer.Deserialize<ApiMetadataDocument>(payload, jsonOptions);
+            var apiDocument = JsonSerializer.Deserialize(payload, JsonContracts.For<ApiMetadataDocument>(jsonOptions));
             if (apiDocument is null)
             {
                 var dumpPath = await SaveFailedPayloadAsync("metadata-deserialize-null", MetadataUrl, payload);

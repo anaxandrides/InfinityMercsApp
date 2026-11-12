@@ -1,0 +1,15 @@
+@page "/season/{SeasonId}/injuries"
+@using InfinityMercsApp.ViewModels.Season
+@inject InjuriesViewModel ViewModel
+
+<PageTitle>Injuries · Infinity Mercs</PageTitle>
+
+<ArmyDataGate>
+    <SeasonStepHost SeasonId="@SeasonId" Step="SeasonStep.Injuries" ViewModel="ViewModel">
+        <InjuriesScreen ViewModel="ViewModel" />
+    </SeasonStepHost>
+</ArmyDataGate>
+
+@code {
+    [Parameter] public string SeasonId { get; set; } = string.Empty;
+}

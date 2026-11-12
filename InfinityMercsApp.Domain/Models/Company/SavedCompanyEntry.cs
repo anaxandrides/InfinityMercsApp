@@ -9,11 +9,11 @@ namespace InfinityMercsApp.Domain.Models.Company;
 public sealed class SavedCompanyEntry
 {
     public int EntryIndex { get; init; }
-    public string Name { get; init; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
     public string BaseUnitName { get; set; } = string.Empty;
     public string CustomName { get; set; } = string.Empty;
     public string UnitTypeCode { get; set; } = string.Empty;
-    public string ProfileKey { get; init; } = string.Empty;
+    public string ProfileKey { get; set; } = string.Empty;
     public int SourceFactionId { get; init; }
     public int SourceUnitId { get; init; }
     public int LogoSourceFactionId { get; init; }
@@ -47,21 +47,21 @@ public sealed class SavedCompanyEntry
     public int? AspectOf { get; init; }
 
     [JsonPropertyName("CurrentSkillCodes")]
-    public List<CompanySavedCodeRef> CurrentSkillCodes { get; init; } = [];
+    public List<CompanySavedCodeRef> CurrentSkillCodes { get; set; } = [];
     [JsonPropertyName("CurrentCharacteristicCodes")]
-    public List<CompanySavedCodeRef> CurrentCharacteristicCodes { get; init; } = [];
+    public List<CompanySavedCodeRef> CurrentCharacteristicCodes { get; set; } = [];
     [JsonPropertyName("CurrentEquipmentCodes")]
-    public List<CompanySavedCodeRef> CurrentEquipmentCodes { get; init; } = [];
+    public List<CompanySavedCodeRef> CurrentEquipmentCodes { get; set; } = [];
     [JsonPropertyName("CurrentWeaponCodes")]
-    public List<CompanySavedCodeRef> CurrentWeaponCodes { get; init; } = [];
+    public List<CompanySavedCodeRef> CurrentWeaponCodes { get; set; } = [];
     [JsonPropertyName("Custom Skills")]
-    public List<string> CustomSkills { get; init; } = [];
+    public List<string> CustomSkills { get; set; } = [];
     [JsonPropertyName("Custom Characteristics")]
-    public List<string> CustomCharacteristics { get; init; } = [];
+    public List<string> CustomCharacteristics { get; set; } = [];
     [JsonPropertyName("Custom Equipment")]
-    public List<string> CustomEquipment { get; init; } = [];
+    public List<string> CustomEquipment { get; set; } = [];
     [JsonPropertyName("Custom Weapons")]
-    public List<string> CustomWeapons { get; init; } = [];
+    public List<string> CustomWeapons { get; set; } = [];
 
     /// <summary>The saved codes for one kind of entry (characteristics, skills, equipment or weapons).</summary>
     public IReadOnlyList<CompanySavedCodeRef> CurrentCodes(ProfileEntryKind kind) => kind switch
@@ -86,7 +86,7 @@ public sealed class SavedCompanyEntry
     public int ExperiencePoints { get; init; }
     public string ExperienceRankName => CompanyUnitExperienceRanks.GetRankName(ExperiencePoints);
     [JsonPropertyName("Perks")]
-    public List<CompanyTrooperPerkState> Perks { get; init; } = [];
+    public List<CompanyTrooperPerkState> Perks { get; set; } = [];
 
     /// <summary>What a TAG company TAG bought in its Spec Ops popup, e.g. "Spec-Ops: +1 ARM".</summary>
     [JsonPropertyName("SpecOpsPurchases")]
@@ -97,7 +97,7 @@ public sealed class SavedCompanyEntry
     public List<RecruitRoll> RecruitRolls { get; set; } = [];
 
     [JsonPropertyName("Current MOV")]
-    public string CurrentMov { get; init; } = "-";
+    public string CurrentMov { get; set; } = "-";
 
     [JsonPropertyName("CurrentMoveFirstCm")]
     public int? CurrentMoveFirstCm { get; init; }
@@ -106,26 +106,26 @@ public sealed class SavedCompanyEntry
     public int? CurrentMoveSecondCm { get; init; }
 
     [JsonPropertyName("Current CC")]
-    public string CurrentCc { get; init; } = "-";
+    public string CurrentCc { get; set; } = "-";
 
     [JsonPropertyName("Current BS")]
-    public string CurrentBs { get; init; } = "-";
+    public string CurrentBs { get; set; } = "-";
 
     [JsonPropertyName("Current PH")]
-    public string CurrentPh { get; init; } = "-";
+    public string CurrentPh { get; set; } = "-";
 
     [JsonPropertyName("Current WIP")]
-    public string CurrentWip { get; init; } = "-";
+    public string CurrentWip { get; set; } = "-";
 
     [JsonPropertyName("Current ARM")]
-    public string CurrentArm { get; init; } = "-";
+    public string CurrentArm { get; set; } = "-";
 
     [JsonPropertyName("Current BTS")]
-    public string CurrentBts { get; init; } = "-";
+    public string CurrentBts { get; set; } = "-";
 
     [JsonPropertyName("Current VITA/STR")]
-    public string CurrentVitaOrStr { get; init; } = "-";
+    public string CurrentVitaOrStr { get; set; } = "-";
 
     [JsonPropertyName("Current S")]
-    public string CurrentS { get; init; } = "-";
+    public string CurrentS { get; set; } = "-";
 }

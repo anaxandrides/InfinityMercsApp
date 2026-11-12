@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using SQLite;
 
@@ -8,7 +9,7 @@ namespace InfinityMercsApp.Infrastructure.Repositories.InMemory;
 /// back in the order SQLite scans them: by key when the key is an integer (it is the rowid), otherwise in the order
 /// they were added.
 /// </summary>
-internal sealed class InMemoryTable<T>
+internal sealed class InMemoryTable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>
     where T : new()
 {
     private static readonly MethodInfo MemberwiseCloneMethod =

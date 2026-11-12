@@ -62,4 +62,11 @@
         Watch(Screen);
         await Screen.InitializeAsyncCommand.ExecuteAsync(null);
     }
+
+    // Leaving the screen closes the unit filter, as the app does when its page disappears.
+    public override void Dispose()
+    {
+        Screen.CloseUnitFilterCommand.Execute(null);
+        base.Dispose();
+    }
 }

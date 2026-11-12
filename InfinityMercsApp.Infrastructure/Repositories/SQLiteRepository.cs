@@ -3,6 +3,7 @@ namespace InfinityMercsApp.Infrastructure.Repositories;
 
 using InfinityMercsApp.Infrastructure.Options;
 using SQLite;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 /// <inheritdoc/>
@@ -32,27 +33,27 @@ public sealed class SQLiteRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public void Insert<T>(IEnumerable<T> recordsToInsert) where T : new()
+    public void Insert<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(IEnumerable<T> recordsToInsert) where T : new()
     {
         EnsureCreated<T>();
         lock (_sync)
         {
-            _connection.InsertAll(recordsToInsert);
+            _connection.InsertAll(recordsToInsert, typeof(T));
         }
     }
 
     /// <inheritdoc/>
-    public void Update<T>(T item) where T : new()
+    public void Update<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(T item) where T : new()
     {
         EnsureCreated<T>();
         lock (_sync)
         {
-            _connection.Update(item);
+            _connection.Update(item, typeof(T));
         }
     }
 
     /// <inheritdoc/>
-    public T? GetById<T>(int id) where T : new()
+    public T? GetById<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(int id) where T : new()
     {
         EnsureCreated<T>();
         lock (_sync)
@@ -62,7 +63,7 @@ public sealed class SQLiteRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public IReadOnlyList<T> GetAll<T>(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? orderBy = null) where T : new()
+    public IReadOnlyList<T> GetAll<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? orderBy = null) where T : new()
     {
         EnsureCreated<T>();
         lock (_sync)
@@ -79,7 +80,7 @@ public sealed class SQLiteRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public IReadOnlyList<T> GetAll<T>(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? orderBy, int limit) where T : new()
+    public IReadOnlyList<T> GetAll<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? orderBy, int limit) where T : new()
     {
         EnsureCreated<T>();
         lock (_sync)
@@ -96,7 +97,7 @@ public sealed class SQLiteRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public T? FirstOrDefault<T>(Expression<Func<T, bool>> filter) where T : new()
+    public T? FirstOrDefault<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter) where T : new()
     {
         EnsureCreated<T>();
         lock (_sync)
@@ -106,7 +107,7 @@ public sealed class SQLiteRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public int Count<T>(Expression<Func<T, bool>> filter) where T : new()
+    public int Count<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter) where T : new()
     {
         EnsureCreated<T>();
         lock (_sync)
@@ -116,7 +117,7 @@ public sealed class SQLiteRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public bool Exists<T>(Expression<Func<T, bool>> filter) where T : new()
+    public bool Exists<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter) where T : new()
     {
         EnsureCreated<T>();
         lock (_sync)
@@ -126,7 +127,7 @@ public sealed class SQLiteRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public bool Any<T>() where T : new()
+    public bool Any<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>() where T : new()
     {
         EnsureCreated<T>();
         lock (_sync)
@@ -137,7 +138,7 @@ public sealed class SQLiteRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public IReadOnlyList<TResult> QueryColumn<T, TResult>(string columnName) where T : new()
+    public IReadOnlyList<TResult> QueryColumn<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T, TResult>(string columnName) where T : new()
     {
         EnsureCreated<T>();
         lock (_sync)
@@ -148,7 +149,7 @@ public sealed class SQLiteRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public void Delete<T>(Expression<Func<T, bool>> filter) where T : new()
+    public void Delete<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter) where T : new()
     {
         EnsureCreated<T>();
         lock (_sync)
@@ -158,7 +159,7 @@ public sealed class SQLiteRepository : ISQLiteRepository
     }
 
     /// <inheritdoc/>
-    public void DeleteAll<T>() where T : new()
+    public void DeleteAll<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>() where T : new()
     {
         EnsureCreated<T>();
         lock (_sync)
@@ -178,7 +179,7 @@ public sealed class SQLiteRepository : ISQLiteRepository
         }
     }
 
-    private void EnsureCreated<T>() where T : new()
+    private void EnsureCreated<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>() where T : new()
     {
         lock (_sync)
         {

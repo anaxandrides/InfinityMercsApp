@@ -1,0 +1,83 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season
+@using InfinityMercsApp.ViewModels.Season.Items
+
+@* Deployment: the troopers going into the contract, the inducements for the underdog, and the Lone Wolf's loadout. *@
+<h1>DEPLOYMENT</h1>
+<div class="unit-strip">
+    @foreach (var trooper in ViewModel.DeploymentUnits)
+    {
+        <DeploymentTile @key="trooper" Unit="trooper" Play="ViewModel" />
+    }
+</div>
+
+<section class="deploy-detail">
+    @if (ViewModel.SelectedUnit is { } unit)
+    {
+        <h2>@unit.Name</h2>
+        <StatValues Stats="unit.Statline" />
+        <dl class="kit">
+            <dt>Equipment</dt><dd>@unit.Equipment</dd>
+            <dt>Skills</dt><dd>@unit.Skills</dd>
+            <dt>Weapons</dt><dd class="ranged">@unit.RangedWeapons</dd>
+            <dt></dt><dd class="melee">@unit.MeleeWeapons</dd>
+        </dl>
+    }
+    else
+    {
+        <p class="muted center">Select a unit above to view details</p>
+    }
+</section>
+
+<section class="deploy-area">
+    <div class="renown-row">
+        <span>Company renown: @ViewModel.CompanyRenown</span>
+        <label>
+            Opponent renown
+            <input class="field narrow" inputmode="numeric" value="@ViewModel.OpponentRenownText"
+                   @oninput="e => ViewModel.OpponentRenownText = e.Value as string ?? string.Empty" />
+        </label>
+        <label class="check-label">
+            <input type="checkbox" checked="@ViewModel.IsCooperative" @onchange="e => ViewModel.IsCooperative = e.Value is true" />
+            Co-op
+        </label>
+    </div>
+    <p class="muted">@ViewModel.InducementText</p>
+    @if (ViewModel.CanSpendInducements)
+    {
+        <button class="secondary signal" @onclick="() => ViewModel.Shop.OpenCommand.Execute(null)">INDUCEMENTS · @ViewModel.Shop.LeftText</button>
+    }
+    @if (ViewModel.Shop.HasPurchases)
+    {
+        <p class="subtitle">@ViewModel.Shop.Summary</p>
+    }
+
+    @if (ViewModel.IsProxyPack)
+    {
+        <label class="lone-wolf">
+            Deploy as the Lone Wolf:
+            <PickList TItem="DeploymentUnitItem" Items="ViewModel.LoneWolfLoadouts" Value="ViewModel.StartingLoneWolf"
+                      ValueChanged="loadout => ViewModel.StartingLoneWolf = loadout" Text="loadout => loadout.Name" Prompt="Pick a loadout…" />
+        </label>
+    }
+</section>
+
+<div class="step-bar">
+    <span class="@(ViewModel.IsEliteDeployment ? "signal bold" : "muted")">@ViewModel.DeploymentStatusText</span>
+    <button class="primary" @onclick="() => ViewModel.DeployCommand.ExecuteAsync(null)">DEPLOY</button>
+</div>
+
+<InducementShop Shop="ViewModel.Shop" />
+
+@code {
+    [Parameter, EditorRequired] public required PlayModeViewModel ViewModel { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(ViewModel);
+        Watch(ViewModel.Shop);
+        WatchItems(ViewModel.DeploymentUnits);
+        WatchItems(ViewModel.LoneWolfLoadouts);
+    }
+}

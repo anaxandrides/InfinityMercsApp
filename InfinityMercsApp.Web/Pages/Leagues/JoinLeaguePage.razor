@@ -1,0 +1,11 @@
+@page "/join/{Code}"
+@using InfinityMercsApp.ViewModels.Leagues
+@inject JoinLeagueViewModel ViewModel
+
+<PageTitle>Join a League · Infinity Mercs</PageTitle>
+
+<JoinLeagueScreen ViewModel="ViewModel" Code="@Code" />
+
+@code {
+    [Parameter] public string Code { get; set; } = string.Empty;
+}

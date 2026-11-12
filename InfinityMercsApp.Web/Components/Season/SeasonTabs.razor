@@ -1,0 +1,22 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season.Overview
+
+@* The season's tabs, as the app's bottom bar: the team, what the company owns, and the markets. *@
+<div class="tabs" role="tablist">
+    <button role="tab" aria-selected="@Season.IsTeamTab" class="@(Season.IsTeamTab ? "active" : null)"
+            @onclick="() => Season.ShowTabCommand.ExecuteAsync(SeasonTab.Team)">TEAM</button>
+    <button role="tab" aria-selected="@Season.IsInventoryTab" class="@(Season.IsInventoryTab ? "active" : null)"
+            @onclick="() => Season.ShowTabCommand.ExecuteAsync(SeasonTab.Inventory)">INVENTORY</button>
+    <button role="tab" aria-selected="@Season.IsMarketplaceTab" class="@(Season.IsMarketplaceTab ? "active" : null)"
+            @onclick="() => Season.ShowTabCommand.ExecuteAsync(SeasonTab.Marketplace)">MARKETS</button>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required SeasonViewModel Season { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Season);
+    }
+}

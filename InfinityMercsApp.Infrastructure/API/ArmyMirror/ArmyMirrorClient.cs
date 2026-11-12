@@ -8,14 +8,12 @@ namespace InfinityMercsApp.Infrastructure.API.ArmyMirror;
 /// <summary>Reads the app's own copy of the army data: its manifest and the payloads, as Corvus Belli served them.</summary>
 public sealed class ArmyMirrorClient(HttpClient httpClient, ArmyMirrorEndpoint endpoint) : IArmyMirror, IArmyPayloadSource
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-
     /// <inheritdoc/>
     public async Task<ArmyMirrorManifest?> GetManifestAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            return JsonSerializer.Deserialize<ArmyMirrorManifest>(await GetAsync(endpoint.Manifest, cancellationToken), JsonOptions);
+            return JsonSerializer.Deserialize(await GetAsync(endpoint.Manifest, cancellationToken), ArmyMirrorJsonContext.Default.ArmyMirrorManifest);
         }
         catch (Exception ex) when ((ex is HttpRequestException or JsonException or TaskCanceledException) && !cancellationToken.IsCancellationRequested)
         {

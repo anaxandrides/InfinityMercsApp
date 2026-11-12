@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using InfinityMercsApp.Domain.Models.Stores;
+using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Services.Packaging;
 
 namespace InfinityMercsApp.Services.Stores;
@@ -27,7 +28,8 @@ public sealed class StoreProvider(IAppPackageFiles packageFiles) : IStoreProvide
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        TypeInfoResolver = StoreJsonContext.Default
     };
 
     private readonly Dictionary<string, Store> _cache = new(StringComparer.OrdinalIgnoreCase);
@@ -80,7 +82,7 @@ public sealed class StoreProvider(IAppPackageFiles packageFiles) : IStoreProvide
             await using var stream = await packageFiles.OpenAsync(assetPath).ConfigureAwait(false);
 
             var store = await JsonSerializer
-                .DeserializeAsync<Store>(stream, JsonOptions, cancellationToken)
+                .DeserializeAsync(stream, JsonContracts.For<Store>(JsonOptions), cancellationToken)
                 .ConfigureAwait(false);
 
             if (store is not null)

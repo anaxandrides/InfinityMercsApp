@@ -25,4 +25,7 @@ public class Resume
     public int? Type { get; set; }
 
     public int? Category { get; set; }
+
+    /// <summary>A Spec-Ops or Team-Ops unit, which has an upgrade table and isn't recruited like the rest.</summary>
+    public bool HasUpgrades { get; set; }
 }

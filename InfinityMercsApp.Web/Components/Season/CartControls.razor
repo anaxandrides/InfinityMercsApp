@@ -1,0 +1,23 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Marketplaces.Items
+@using InfinityMercsApp.ViewModels.Season.Overview
+
+@* A market row's + count − buttons; + is off once another would not fit the balance. *@
+<div class="cart-controls">
+    <button class="quantity add" aria-label="Add one @Row.CartName" disabled="@(!Row.IsAffordable)"
+            @onclick="() => Market.IncrementCommand.Execute(Row)">+</button>
+    <span class="quantity-count" aria-label="In the cart">@Row.Quantity</span>
+    <button class="quantity remove" aria-label="Take one @Row.CartName out" @onclick="() => Market.DecrementCommand.Execute(Row)">−</button>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required MarketplaceRow Row { get; set; }
+
+    [Parameter, EditorRequired] public required SeasonMarketplaceViewModel Market { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Row);
+    }
+}

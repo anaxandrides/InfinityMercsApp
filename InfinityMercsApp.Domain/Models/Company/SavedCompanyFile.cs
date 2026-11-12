@@ -17,7 +17,7 @@ public sealed class SavedCompanyFile
     [JsonRequired]
     public string CompanyIdentifier { get; init; } = string.Empty;
     public int CompanyIndex { get; init; }
-    public string CreatedUtc { get; init; } = string.Empty;
+    public string CreatedUtc { get; set; } = string.Empty;
     public int StartSeasonPoints { get; init; }
     public int PointsLimit { get; init; }
     /// <summary>
@@ -26,12 +26,12 @@ public sealed class SavedCompanyFile
     /// </summary>
     public int CurrentPoints { get; init; }
     /// <summary>A Cohesive company's core fireteam, chosen when it was founded; empty for any other company.</summary>
-    public string CoreFireteam { get; init; } = string.Empty;
+    public string CoreFireteam { get; set; } = string.Empty;
     /// <summary>
     /// The places in a Cohesive company's core fireteam, wildcards included, as they stood when it was founded; empty
     /// for any other company. Who is Regular is worked out from them (see <c>CoreFireteamOrders</c>).
     /// </summary>
-    public List<FireteamSlot> CoreFireteamSlots { get; init; } = [];
+    public List<FireteamSlot> CoreFireteamSlots { get; set; } = [];
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SavedImprovedCaptainStats? ImprovedCaptainStats { get; init; }

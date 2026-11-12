@@ -1,0 +1,74 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season.Inducements
+
+@* The inducements pop-up: hire troops, buy command tokens and rent gear, for this contract only. *@
+@if (Shop.IsOpen)
+{
+    <div class="backdrop" @onclick="() => Shop.CloseCommand.Execute(null)"></div>
+    <div class="dialog shop" role="dialog" aria-modal="true" aria-labelledby="shop-title">
+        <h2 id="shop-title">INDUCEMENTS</h2>
+        <div class="signal bold">@Shop.LeftText</div>
+        <p class="muted">Everything bought lasts for this contract only.</p>
+
+        <h3 class="section-heading">TROOPS FOR HIRE · up to 7 troopers; those past 6 give only impetuous orders</h3>
+        <ul class="rows">
+            @foreach (var hired in Shop.Hired)
+            {
+                <li class="row-card bought">
+                    <span class="name">@hired.Name</span>
+                    <span class="cost">@hired.Cost</span>
+                    <button class="secondary small danger" @onclick="() => Shop.DismissCommand.Execute(hired)">DISMISS</button>
+                </li>
+            }
+            @foreach (var offer in Shop.HireOffers)
+            {
+                <ShopOffer @key="offer" Source="offer" Name="@offer.Name" CostText="@offer.CostText" IsEnabled="offer.IsEnabled"
+                           Command="Shop.HireCommand" />
+            }
+        </ul>
+
+        <h3 class="section-heading">COMMAND TOKENS · 10 each, up to 2</h3>
+        <div class="cart-controls">
+            <button class="quantity remove" aria-label="Return a command token" disabled="@(!Shop.ReturnCommandTokenCommand.CanExecute(null))"
+                    @onclick="() => Shop.ReturnCommandTokenCommand.Execute(null)">−</button>
+            <span class="quantity-count">@Shop.CommandTokens</span>
+            <button class="quantity add" aria-label="Buy a command token" disabled="@(!Shop.BuyCommandTokenCommand.CanExecute(null))"
+                    @onclick="() => Shop.BuyCommandTokenCommand.Execute(null)">+</button>
+        </div>
+
+        <h3 class="section-heading">RENTED EQUIPMENT · replaces what the slot holds, for this contract</h3>
+        <ul class="rows">
+            @foreach (var rental in Shop.Rentals)
+            {
+                <li class="row-card bought">
+                    <span class="name">@rental.Text</span>
+                    <span class="cost">@rental.Rental.Cost</span>
+                    <button class="secondary small danger" @onclick="() => Shop.ReturnRentalCommand.Execute(rental)">RETURN</button>
+                </li>
+            }
+            @foreach (var offer in Shop.RentalOffers)
+            {
+                <ShopOffer @key="offer" Source="offer" Name="@offer.Name" Detail="@offer.Detail" CostText="@offer.CostText" IsEnabled="offer.IsEnabled"
+                           Command="Shop.RentCommand" />
+            }
+        </ul>
+
+        <div class="buttons">
+            <button class="primary" @onclick="() => Shop.CloseCommand.Execute(null)">DONE</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required InducementShopViewModel Shop { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Shop);
+        WatchItems(Shop.Hired);
+        WatchItems(Shop.Rentals);
+        foreach (var offer in Shop.HireOffers) { Watch(offer); }
+        foreach (var offer in Shop.RentalOffers) { Watch(offer); }
+    }
+}

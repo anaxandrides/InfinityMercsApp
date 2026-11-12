@@ -5,7 +5,7 @@ public sealed record UserDocumentView<TContent>
     where TContent : class
 {
     /// <summary>The file's id, chosen by the app that created it.</summary>
-    public string DocumentId { get; init; } = string.Empty;
+    public string DocumentId { get; set; } = string.Empty;
 
     /// <summary>How many times the file was saved; each save adds one.</summary>
     public int Revision { get; init; }

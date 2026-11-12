@@ -1,0 +1,27 @@
+@using System.Windows.Input
+
+@* A row of an inducement table: choosing it buys it; one the inducements left can't cover is greyed out. *@
+<li>
+    <button class="row-card choice" disabled="@(!IsEnabled)" @onclick="() => Command.Execute(Source)">
+        <span class="text">
+            <span class="name">@Name</span>
+            @if (Detail.Length > 0) { <span class="subtitle">@Detail</span> }
+        </span>
+        <span class="cost">@CostText</span>
+    </button>
+</li>
+
+@code {
+    /// <summary>The offer, handed to <see cref="Command"/>.</summary>
+    [Parameter, EditorRequired] public required object Source { get; set; }
+
+    [Parameter, EditorRequired] public required string Name { get; set; }
+
+    [Parameter] public string Detail { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired] public required string CostText { get; set; }
+
+    [Parameter] public bool IsEnabled { get; set; } = true;
+
+    [Parameter, EditorRequired] public required ICommand Command { get; set; }
+}

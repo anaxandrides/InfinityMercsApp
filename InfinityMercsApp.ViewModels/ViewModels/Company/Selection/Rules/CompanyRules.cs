@@ -1,6 +1,8 @@
+using InfinityMercsApp.Domain.SpecOps;
 using InfinityMercsApp.Presentation.Company.Selection;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Factions;
+using InfinityMercsApp.Services.CompanySelection.Profiles;
 using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.Logos;
@@ -62,6 +64,15 @@ public abstract class CompanyRules(ArmySourceSelectionMode mode)
     /// <summary>Points off a profile with Tactical Awareness.</summary>
     public virtual int TacticalAwarenessDiscount => 0;
 
+    /// <summary>Whether a Spec-Ops can be the company's captain (Standard, Inspiring Leader and TAG companies).</summary>
+    public virtual bool OffersSpecOps => false;
+
+    /// <summary>
+    /// Whether the captain is picked as the company is founded (a Team-Ops Company's), rather than being the
+    /// lieutenant the player recruits.
+    /// </summary>
+    public virtual bool ChoosesCaptainAtFounding => false;
+
     // ── Setting up ─────────────────────────────────────────────────────────
 
     /// <summary>Sets the screen up as the company starts: fixed slots, the starting filter.</summary>
@@ -115,6 +126,10 @@ public abstract class CompanyRules(ArmySourceSelectionMode mode)
     public virtual IReadOnlyList<ArmyResumeRecord> ResumesFor(IArmyDataService armyData, int factionId, CancellationToken cancellationToken) =>
         armyData.GetResumeByFactionMercsOnly(factionId, cancellationToken);
 
+    /// <summary>The Spec-Ops a faction offers as captain; none for a company that can't have one.</summary>
+    public virtual IReadOnlyList<ArmyResumeRecord> SpecOpsFor(CompanySelectionServices services, int factionId, CancellationToken cancellationToken) =>
+        OffersSpecOps ? services.SpecUpgrades.ResumesOf(factionId, SpecialOperativeKind.SpecOps, cancellationToken) : [];
+
     public virtual Task CacheUnitLogosAsync(
         FactionLogoCacheService? logos, int factionId, IReadOnlyList<ArmyResumeRecord> units, CancellationToken cancellationToken) =>
         logos?.CacheUnitLogosFromRecordsAsync(factionId, units, cancellationToken) ?? Task.CompletedTask;
@@ -167,10 +182,31 @@ public abstract class CompanyRules(ArmySourceSelectionMode mode)
     public virtual IReadOnlyCollection<string> CommonSkillsFor(
         ArmyUnitSelectionItem unit, ViewerProfileItem profile, IReadOnlyList<string> commonSkills) => commonSkills.ToList();
 
+    /// <summary>
+    /// The one profile a new trooper is recruited as, when its configuration's group isn't the unit's first (a Team-Ops
+    /// trooper's); null to use the unit's first profile.
+    /// </summary>
+    public virtual TrooperForm? FormFor(CompanyUnitDetail detail, ViewerProfileItem profile) => null;
+
+    /// <summary>The new trooper's troop type, when it isn't the unit's (a Team-Ops HI or SpecBot); null to use the unit's.</summary>
+    public virtual string? UnitTypeCodeFor(CompanyUnitDetail detail, ViewerProfileItem profile) => null;
+
+    /// <summary>How many upgrades a new trooper picks from its unit's table: two for a Spec-Ops, none for anyone else.</summary>
+    public virtual int UpgradesFor(MercsCompanyEntry entry) => entry.IsSpecOps ? SpecUpgradeRules.SpecOpsUpgrades : 0;
+
+    /// <summary>Whether a new trooper may bring a SpecBot as its peripheral: a Spec-Ops may.</summary>
+    public virtual bool OffersSpecBotWith(MercsCompanyEntry entry) => entry.IsSpecOps;
+
     /// <summary>Finishes a new trooper's entry before it joins the company.</summary>
     public virtual void OnEntryBuilt(CompanySelectionViewModel screen, MercsCompanyEntry entry)
     {
     }
+
+    /// <summary>What stops the company starting beyond the lieutenant and points, said beside the button; null for nothing.</summary>
+    public virtual string? StartBlockedReason(CompanySelectionViewModel screen) => null;
+
+    /// <summary>Settles anything left before the company is founded (a Team-Ops captain); false to stop founding.</summary>
+    public virtual Task<bool> PrepareFoundingAsync(CompanySelectionViewModel screen) => Task.FromResult(true);
 
     /// <summary>Called once a trooper has joined the company.</summary>
     public virtual Task AfterEntryAddedAsync(

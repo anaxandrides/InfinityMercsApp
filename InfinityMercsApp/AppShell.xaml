@@ -13,6 +13,7 @@
     xmlns:unitBrowserViews="clr-namespace:InfinityMercsApp.Views.UnitBrowser"
     xmlns:seasonViews="clr-namespace:InfinityMercsApp.Views.Season"
     xmlns:seasonOverviewViews="clr-namespace:InfinityMercsApp.Views.Season.Overview"
+    xmlns:leagueViews="clr-namespace:InfinityMercsApp.Views.Leagues"
     Shell.FlyoutBehavior="Flyout"
     Title="InfinityMercsApp">
 
@@ -32,6 +33,11 @@
         FlyoutItemIsVisible="False"
         ContentTemplate="{DataTemplate companyViews:StandardCompanySourcePopupPage}"
         Route="StandardCompanySourcePopupPage" />
+
+    <ShellContent
+        Title="Leagues"
+        ContentTemplate="{DataTemplate leagueViews:LeaguesPage}"
+        Route="LeaguesPage" />
 
     <ShellContent
         Title="Settings"

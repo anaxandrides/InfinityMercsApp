@@ -11,9 +11,9 @@ public sealed class ProfileGroup
 
     public int? Category { get; init; }
 
-    public IReadOnlyList<UnitProfile> Profiles { get; init; } = [];
+    public IReadOnlyList<UnitProfile> Profiles { get; set; } = [];
 
-    public IReadOnlyList<ProfileOption> Options { get; init; } = [];
+    public IReadOnlyList<ProfileOption> Options { get; set; } = [];
 
     /// <summary>
     /// Peripheral entries declared on the group's own profiles (a controller's peripherals).

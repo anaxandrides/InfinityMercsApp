@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using InfinityMercsApp.ApiClient.UserDocuments;
 using InfinityMercsApp.Domain.Models.Season;
+using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Services.Records;
 using InfinityMercsApp.Services.Sync;
 
@@ -34,7 +35,7 @@ internal sealed class SeasonFileStore(RecordPaths paths, ISyncOutbox outbox) : I
             Rounds = []
         };
 
-        await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(seasonFile, RecordJson.SeasonWriteOptions));
+        await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(seasonFile, JsonContracts.For<SeasonFile>(RecordJson.SeasonWriteOptions)));
         outbox.RecordSave(UserDocumentKind.Season, seasonFile.SeasonIdentifier, filePath);
         return filePath;
     }
@@ -49,7 +50,7 @@ internal sealed class SeasonFileStore(RecordPaths paths, ISyncOutbox outbox) : I
         try
         {
             var json = await File.ReadAllTextAsync(filePath);
-            return JsonSerializer.Deserialize<SeasonFile>(json, RecordJson.ReadOptions);
+            return JsonSerializer.Deserialize(json, JsonContracts.For<SeasonFile>(RecordJson.ReadOptions));
         }
         catch (Exception ex)
         {
@@ -73,7 +74,7 @@ internal sealed class SeasonFileStore(RecordPaths paths, ISyncOutbox outbox) : I
                 seasonFile.SeasonIdentifier = NewSeasonIdentifier();
             }
 
-            await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(seasonFile, RecordJson.SeasonWriteOptions));
+            await File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(seasonFile, JsonContracts.For<SeasonFile>(RecordJson.SeasonWriteOptions)));
             outbox.RecordSave(UserDocumentKind.Season, seasonFile.SeasonIdentifier, filePath);
             return true;
         }

@@ -1,11 +1,13 @@
 using InfinityMercsApp.Domain.Models.Stores;
 using InfinityMercsApp.Domain.Season.Rolls;
 using InfinityMercsApp.Presentation.Company.Viewer;
+using InfinityMercsApp.Presentation.Leagues;
 using InfinityMercsApp.Presentation.Season;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Captain;
 using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Recruitment;
+using InfinityMercsApp.Services.CompanySelection.SpecOps;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.CompanySelection.Units;
@@ -25,6 +27,7 @@ using InfinityMercsApp.ViewModels.Company;
 using InfinityMercsApp.ViewModels.Company.Selection;
 using InfinityMercsApp.ViewModels.Components;
 using InfinityMercsApp.ViewModels.Feedback;
+using InfinityMercsApp.ViewModels.Leagues;
 using InfinityMercsApp.ViewModels.Marketplaces;
 using InfinityMercsApp.ViewModels.Reference;
 using InfinityMercsApp.ViewModels.Season;
@@ -69,6 +72,8 @@ public static class MercsServiceRegistry
                 .AddSingleton<ThemeFactions>()
                 .AddSingleton<UnitDetailsLoader>()
                 .AddSingleton<CaptainOptionCatalog>()
+                .AddSingleton<SpecUpgradeCatalog>()
+                .AddSingleton<StartingGearCatalog>()
                 .AddSingleton<CaptainSetup>()
                 .AddSingleton<SavedEntryWriter>()
                 .AddSingleton<CompanyFounder>()
@@ -82,6 +87,7 @@ public static class MercsServiceRegistry
                 .AddSingleton<DeploymentRoster>()
                 .AddSingleton<HiredTroops>()
                 .AddSingleton<MissionDebrief>()
+                .AddSingleton<LeagueRenown>()
                 .AddSingleton<CaptainChange>()
                 .AddSingleton<IDice, Dice>()
                 .AddSingleton<IWikiDescriptionService, WikiDescriptionService>()
@@ -121,7 +127,11 @@ public static class MercsServiceRegistry
                 .AddTransient<GameModeViewModel>()
                 .AddTransient<ByeRoundViewModel>()
                 .AddTransient<LootBoxViewModel>()
-                .AddTransient<SeasonViewModel>();
+                .AddTransient<SeasonViewModel>()
+                .AddTransient<LeaguesViewModel>()
+                .AddTransient<LeagueViewModel>()
+                .AddTransient<JoinLeagueViewModel>()
+                .AddTransient<LeagueCompanyViewModel>();
 
         return services;
     }

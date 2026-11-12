@@ -1,0 +1,38 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Marketplaces.Items
+@using InfinityMercsApp.ViewModels.Season.Overview
+
+@* One thing a market sells: tapping its name shows it in full; what no longer fits the balance turns red. *@
+<li class="row-card">
+    <button class="text detail-link @(Row.IsAffordable ? null : "unaffordable")" @onclick="() => Market.ShowDetailCommand.ExecuteAsync(Row)">
+        <span class="name">@Name</span>
+        @if (Subtitle.Length > 0) { <span class="subtitle">@Subtitle</span> }
+        @if (Note.Length > 0) { <span class="subtitle">@Note</span> }
+        <span class="cost">@Row.CostDisplay</span>
+    </button>
+    <CartControls Row="Row" Market="Market" />
+</li>
+
+@code {
+    [Parameter, EditorRequired] public required MarketplaceRow Row { get; set; }
+
+    [Parameter, EditorRequired] public required SeasonMarketplaceViewModel Market { get; set; }
+
+    private string Name => Row switch
+    {
+        StoreItemRow item => item.Name,
+        TroopTypeRow troopType => troopType.DisplayName,
+        AugmentRow augment => augment.Name,
+        _ => Row.CartName
+    };
+
+    private string Subtitle => Row is TroopTypeRow troopType ? troopType.StatDisplay : string.Empty;
+
+    private string Note => Row is TroopTypeRow { HasAbilities: true } troopType ? troopType.Abilities : string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Row);
+    }
+}

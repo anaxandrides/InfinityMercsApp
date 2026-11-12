@@ -17,7 +17,8 @@ public static class NewTrooperEntry
     /// the profile's own, its statline, and its peripheral's. A controlled peripheral makes its controller an
     /// FT Master and is Irregular. A Transmutation (Auto) trooper recruited in one <paramref name="form"/> takes that
     /// form's statline, skills, equipment and characteristics, and loses Transmutation (Auto). A Servant recruited on
-    /// its own goes to its <paramref name="servantOwner"/>, a Doctor or Engineer in the company.
+    /// its own goes to its <paramref name="servantOwner"/>, a Doctor or Engineer in the company. A
+    /// <paramref name="unitTypeCode"/> replaces the unit's troop type.
     /// </summary>
     public static MercsCompanyEntry From(
         ArmyUnitSelectionItem selectedUnit,
@@ -26,7 +27,8 @@ public static class NewTrooperEntry
         IReadOnlyCollection<string> commonSkills,
         PeripheralMercsCompanyStats? peripheralStats,
         TrooperForm? form = null,
-        MercsCompanyEntry? servantOwner = null)
+        MercsCompanyEntry? servantOwner = null,
+        string? unitTypeCode = null)
     {
         string Move(int? firstCm, int? secondCm) => Movement.Format(Movement.From(firstCm, secondCm), detail.ShowUnitsInInches);
 
@@ -107,12 +109,13 @@ public static class NewTrooperEntry
             BaseUnitName = selectedUnit.Name,
             NameFormatted = profile.NameFormatted ?? CompanyProfileFormatting.BuildNameFormatted(profile.Name),
             Subtitle = statline,
-            UnitTypeCode = UnitTypeCodes.FromSubtitle(selectedUnit.Subtitle),
+            UnitTypeCode = unitTypeCode ?? UnitTypeCodes.FromSubtitle(selectedUnit.Subtitle),
             CostDisplay = $"C {profile.Cost}",
             CostValue = ProfileValues.ParseCost(profile.Cost),
             IsLieutenant = profile.IsLieutenant,
             IsSpecOps = selectedUnit.IsSpecOps,
             ProfileKey = profile.ProfileKey,
+            ProfileGroupId = profile.GroupId,
             SourceUnitId = selectedUnit.Id,
             SourceFactionId = selectedUnit.SourceFactionId,
             LogoSourceFactionId = selectedUnit.LogoSourceFactionId > 0 ? selectedUnit.LogoSourceFactionId : selectedUnit.SourceFactionId,

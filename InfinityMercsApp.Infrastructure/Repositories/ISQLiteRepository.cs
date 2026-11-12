@@ -1,5 +1,6 @@
 ﻿namespace InfinityMercsApp.Infrastructure.Repositories;
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 /// <summary>
@@ -13,14 +14,14 @@ public interface ISQLiteRepository
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="recordsToInsert"></param>
-    public void Insert<T>(IEnumerable<T> recordsToInsert) where T : new();
+    public void Insert<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(IEnumerable<T> recordsToInsert) where T : new();
 
     /// <summary>
     /// Updates a record in a SQLite table.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="item"></param>
-    public void Update<T>(T item) where T : new();
+    public void Update<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(T item) where T : new();
 
     /// <summary>
     /// Gets a single record from a SQLite table.
@@ -29,58 +30,58 @@ public interface ISQLiteRepository
     /// <param name="id"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public T? GetById<T>(int id) where T: new();
+    public T? GetById<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(int id) where T: new();
 
     /// <summary>
     /// Gets all records from a SQLite table, optionally applying a filter and orderBy.
     /// </summary>
-    public IReadOnlyList<T> GetAll<T>(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? orderBy = null) where T: new();
+    public IReadOnlyList<T> GetAll<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? orderBy = null) where T: new();
 
     /// <summary>
     /// Gets up to <paramref name="limit"/> records from a SQLite table, applying a filter and optional orderBy.
     /// The LIMIT is applied at the SQL level.
     /// </summary>
-    public IReadOnlyList<T> GetAll<T>(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? orderBy, int limit) where T : new();
+    public IReadOnlyList<T> GetAll<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? orderBy, int limit) where T : new();
 
     /// <summary>
     /// Gets the first record matching the filter, or null. Uses SQL LIMIT 1.
     /// </summary>
-    public T? FirstOrDefault<T>(Expression<Func<T, bool>> filter) where T : new();
+    public T? FirstOrDefault<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter) where T : new();
 
     /// <summary>
     /// Returns the count of records matching the filter. Uses SQL COUNT.
     /// </summary>
-    public int Count<T>(Expression<Func<T, bool>> filter) where T : new();
+    public int Count<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter) where T : new();
 
     /// <summary>
     /// Returns true if any record matches the filter. Uses SQL COUNT with LIMIT.
     /// </summary>
-    public bool Exists<T>(Expression<Func<T, bool>> filter) where T : new();
+    public bool Exists<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter) where T : new();
 
     /// <summary>
     /// Returns true if the table contains any rows, without materializing them.
     /// Uses SQL EXISTS so no row data (and no large blob columns) is read.
     /// </summary>
-    public bool Any<T>() where T : new();
+    public bool Any<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>() where T : new();
 
     /// <summary>
     /// Projects a single column for every row, without materializing whole entities.
     /// Use this instead of <see cref="GetAll{T}(Expression{Func{T, bool}}, Expression{Func{T, object}})"/>
     /// when only one column is needed, to avoid loading large blob columns.
     /// </summary>
-    public IReadOnlyList<TResult> QueryColumn<T, TResult>(string columnName) where T : new();
+    public IReadOnlyList<TResult> QueryColumn<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T, TResult>(string columnName) where T : new();
 
     /// <summary>
     /// Deletes all records from a SQLite table by filter.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public void Delete<T>(Expression<Func<T, bool>> filter) where T : new();
+    public void Delete<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(Expression<Func<T, bool>> filter) where T : new();
 
     /// <summary>
     /// Deletes all records from a SQLite table.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public void DeleteAll<T>() where T : new();
+    public void DeleteAll<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>() where T : new();
 
     /// <summary>
     /// Runs <paramref name="action"/> inside a single database transaction. Batches many

@@ -1,6 +1,5 @@
 using InfinityMercsApp.Domain.Company;
 using InfinityMercsApp.Domain.Models.Army.Traits;
-using InfinityMercsApp.Services.CompanySelection.Factions;
 using InfinityMercsApp.Services.CompanySelection.Teams;
 using InfinityMercsApp.Services.Navigation;
 using InfinityMercsApp.ViewModels.Company.Selection.Items;
@@ -11,8 +10,8 @@ namespace InfinityMercsApp.ViewModels.Company.Selection.Rules;
 
 /// <summary>
 /// A Proxy Pack: one Regular trooper from any single sectorial or vanilla army, the Lone Wolf. It is the company's
-/// captain without needing the Lieutenant skill, gains Transfer Consciousness and Tactical Awareness, and is the
-/// only trooper the company ever has.
+/// captain without needing the Lieutenant skill, gains Transfer Consciousness and Tactical Awareness, spends 10
+/// one-off credits on gear for its profile, and is the only trooper the company ever has.
 /// </summary>
 public sealed class ProxyPackCompanyRules(ArmySourceSelectionMode mode) : StandardCompanyRules(mode)
 {
@@ -22,20 +21,11 @@ public sealed class ProxyPackCompanyRules(ArmySourceSelectionMode mode) : Standa
 
     public override bool AllowsTeamsFilter => false;
 
-    /// <summary>Every faction but the Non-Aligned Armies, in the Infinity Army's order, with their logos cached.</summary>
-    public override async Task<IReadOnlyList<FactionRecord>> LoadFactionsAsync(CompanySelectionViewModel screen, CancellationToken cancellationToken)
-    {
-        var factions = screen.Services.ArmyData
-            .GetMetadataFactions(includeDiscontinued: true, cancellationToken)
-            .Where(faction => !CompanyFactionCatalog.IsNonAlignedArmyName(faction.Name))
-            .ToList();
-        if (screen.Services.Logos is { } logos)
-        {
-            await logos.CacheFactionLogosFromRecordsAsync(factions, cancellationToken);
-        }
+    public override bool OffersSpecOps => false;
 
-        return WithoutGeneratedFactions(CompanyFactionCatalog.CollapseContractedBackUpVariants(factions).OrderBy(faction => faction.Id));
-    }
+    /// <summary>Every faction but the Non-Aligned Armies, in the Infinity Army's order, with their logos cached.</summary>
+    public override Task<IReadOnlyList<FactionRecord>> LoadFactionsAsync(CompanySelectionViewModel screen, CancellationToken cancellationToken) =>
+        EveryArmyAsync(screen, cancellationToken);
 
     /// <summary>Only regular troopers show, and an empty list stays empty.</summary>
     public override void AdjustUnitVisibility(
@@ -71,6 +61,21 @@ public sealed class ProxyPackCompanyRules(ArmySourceSelectionMode mode) : Standa
     {
         entry.IsLieutenant = true;
         entry.IsLoneWolf = true;
+    }
+
+    /// <summary>
+    /// The Lone Wolf spends its 10 one-off credits on the Base Market and its army's War Market; what it buys becomes
+    /// part of its profile.
+    /// </summary>
+    public override async Task AfterEntryAddedAsync(
+        CompanySelectionViewModel screen, ArmyUnitSelectionItem unit, ViewerProfileItem profile, MercsCompanyEntry entry)
+    {
+        var options = await screen.Services.StartingGear.ForAsync(entry.SourceFactionId);
+        var bought = await new StartingGearShop(screen.Services.Dialogs).BuyAsync(entry.Name, StartingGear.ProxyPackCredits, options);
+        if (bought.Count > 0)
+        {
+            screen.ReplaceEntry(entry, UpgradedEntry.From(entry, bought, null, screen.Preview.Detail.ShowUnitsInInches));
+        }
     }
 
     private static bool IsRegular(

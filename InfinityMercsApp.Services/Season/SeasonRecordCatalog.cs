@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Services.Records;
 
 namespace InfinityMercsApp.Services.Season;
@@ -7,7 +8,7 @@ namespace InfinityMercsApp.Services.Season;
 /// <summary>Lists the saved seasons and finds the company file each belongs to.</summary>
 public sealed class SeasonRecordCatalog(RecordPaths paths)
 {
-    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true, TypeInfoResolver = RecordJsonContext.Default };
 
     /// <summary>
     /// Every readable season file, newest first. A season whose company path is missing or names no file here, as
@@ -25,7 +26,7 @@ public sealed class SeasonRecordCatalog(RecordPaths paths)
         {
             try
             {
-                var header = JsonSerializer.Deserialize<SeasonFileHeader>(await File.ReadAllTextAsync(filePath), JsonOptions);
+                var header = JsonSerializer.Deserialize(await File.ReadAllTextAsync(filePath), JsonContracts.For<SeasonFileHeader>(JsonOptions));
                 if (header is null)
                 {
                     continue;
@@ -67,7 +68,7 @@ public sealed class SeasonRecordCatalog(RecordPaths paths)
         {
             try
             {
-                var header = JsonSerializer.Deserialize<CompanyFileHeader>(await File.ReadAllTextAsync(filePath), JsonOptions);
+                var header = JsonSerializer.Deserialize(await File.ReadAllTextAsync(filePath), JsonContracts.For<CompanyFileHeader>(JsonOptions));
                 if (string.Equals(header?.CompanyIdentifier, companyIdentifier, StringComparison.OrdinalIgnoreCase))
                 {
                     return filePath;
@@ -80,19 +81,5 @@ public sealed class SeasonRecordCatalog(RecordPaths paths)
         }
 
         return null;
-    }
-
-    private sealed class SeasonFileHeader
-    {
-        public string SeasonIdentifier { get; init; } = string.Empty;
-        public string CompanyName { get; init; } = string.Empty;
-        public string CompanyIdentifier { get; init; } = string.Empty;
-        public string CompanyFilePath { get; init; } = string.Empty;
-        public string CreatedDate { get; init; } = string.Empty;
-    }
-
-    private sealed class CompanyFileHeader
-    {
-        public string CompanyIdentifier { get; init; } = string.Empty;
     }
 }

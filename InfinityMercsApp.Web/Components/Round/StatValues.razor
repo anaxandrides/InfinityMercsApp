@@ -1,0 +1,15 @@
+@using InfinityMercsApp.Domain.Models.Army.Stats
+
+@* A trooper's statline as the round's pages give it: headings over values, in display order. *@
+<table class="statline">
+    <tr>
+        @foreach (var stat in Stats) { <th>@stat.Stat.Key()</th> }
+    </tr>
+    <tr>
+        @foreach (var stat in Stats) { <td>@stat.Value</td> }
+    </tr>
+</table>
+
+@code {
+    [Parameter, EditorRequired] public required IReadOnlyList<StatValue> Stats { get; set; }
+}

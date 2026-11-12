@@ -2,13 +2,19 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace InfinityMercsApp.ApiClient.UserDocuments;
 
 /// <inheritdoc/>
-public sealed class UserDocumentsClient(HttpClient httpClient, UserDocumentsEndpoint endpoint) : IUserDocumentsApi
+/// <param name="types">The files' JSON contracts; the client uses no reflection.</param>
+public sealed class UserDocumentsClient(HttpClient httpClient, UserDocumentsEndpoint endpoint, UserDocumentTypes types) : IUserDocumentsApi
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { RespectNullableAnnotations = true };
+    private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        RespectNullableAnnotations = true,
+        TypeInfoResolver = types.Resolver
+    };
 
     /// <inheritdoc/>
     public Task<UserDocumentsReply<IReadOnlyList<UserDocumentView<TContent>>>> ListAsync<TContent>(
@@ -27,7 +33,7 @@ public sealed class UserDocumentsClient(HttpClient httpClient, UserDocumentsEndp
         UserDocumentKind kind, string documentId, UserDocumentWrite<TContent> write, string accessToken, CancellationToken cancellationToken = default)
         where TContent : class =>
         SendAsync<UserDocumentView<TContent>>(
-            new HttpRequestMessage(HttpMethod.Put, endpoint.Document(kind, documentId)) { Content = JsonContent.Create(write, options: JsonOptions) },
+            new HttpRequestMessage(HttpMethod.Put, endpoint.Document(kind, documentId)) { Content = JsonContent.Create(write, TypeInfo<UserDocumentWrite<TContent>>()) },
             accessToken,
             cancellationToken);
 
@@ -61,11 +67,14 @@ public sealed class UserDocumentsClient(HttpClient httpClient, UserDocumentsEndp
         }
     }
 
-    private static async Task<TValue?> ReadAsync<TValue>(HttpResponseMessage response, CancellationToken cancellationToken)
+    private async Task<TValue?> ReadAsync<TValue>(HttpResponseMessage response, CancellationToken cancellationToken)
         where TValue : class =>
         response.Content.Headers.ContentLength == 0
             ? null
-            : JsonSerializer.Deserialize<TValue>(await HttpBodies.ReadAsync(response, cancellationToken), JsonOptions);
+            : JsonSerializer.Deserialize(await HttpBodies.ReadAsync(response, cancellationToken), TypeInfo<TValue>());
+
+    // Throws NotSupportedException for a file type the contracts don't cover.
+    private JsonTypeInfo<T> TypeInfo<T>() => (JsonTypeInfo<T>)_jsonOptions.GetTypeInfo(typeof(T));
 
     private static UserDocumentsStatus StatusOf(HttpStatusCode code) => code switch
     {

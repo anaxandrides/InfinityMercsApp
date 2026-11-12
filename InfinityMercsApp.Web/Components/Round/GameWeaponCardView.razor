@@ -1,0 +1,27 @@
+@using InfinityMercsApp.Presentation.Season.Game
+@using InfinityMercsApp.Presentation.Weapons
+@using InfinityMercsApp.ViewModels.Season.Game
+
+@* A weapon the trooper carries, in short: each mode's Burst, Damage and ammunition, and its range; choosing it shows every mode in full. *@
+<button class="game-weapon @(Card.IsMatched ? null : "unmatched")" @onclick="() => Game.ShowWeaponCommand.Execute(Card)">
+    <span class="name">@Card.Title</span>
+    @foreach (var mode in Card.Modes)
+    {
+        <span class="weapon-mode">
+            <span class="mode-label">@mode.Label</span>
+            @if (mode.HasBurst) { <span class="chip"><span class="muted">B</span> @mode.Burst</span> }
+            @if (mode.HasDamage) { <span class="chip"><span class="muted">DAM</span> @mode.Damage</span> }
+            @if (mode.HasAmmo) { <span class="chip ammo">@mode.Ammo</span> }
+        </span>
+    }
+    @if (Card.HasRange)
+    {
+        <RangeBarView Bar="RangeBar.From(Card.Range, Card.HasXVisor, Game.ShowUnitsInInches)" />
+    }
+</button>
+
+@code {
+    [Parameter, EditorRequired] public required GameWeaponCard Card { get; set; }
+
+    [Parameter, EditorRequired] public required GameModeViewModel Game { get; set; }
+}

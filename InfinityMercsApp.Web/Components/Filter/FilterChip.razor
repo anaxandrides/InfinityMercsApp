@@ -1,0 +1,19 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Components.UnitFilter
+
+@* A value of the criterion being edited: choosing it toggles it. *@
+<button class="chip-button @(Option.IsSelected ? "active" : null)" aria-pressed="@Option.IsSelected" @onclick="() => Filter.ToggleOptionCommand.Execute(Option)">
+    @Option.Value
+</button>
+
+@code {
+    [Parameter, EditorRequired] public required SelectableFilterOption Option { get; set; }
+
+    [Parameter, EditorRequired] public required UnitFilterViewModel Filter { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Option);
+    }
+}

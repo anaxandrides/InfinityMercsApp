@@ -12,4 +12,10 @@ public static class CosmosNames
 
     /// <summary>Users' companies and seasons, partitioned by user (/userId).</summary>
     public const string UserDataContainer = "user-data";
+
+    /// <summary>Leagues, one document each, partitioned by league (/leagueId).</summary>
+    public const string LeaguesContainer = "leagues";
+
+    /// <summary>League invite codes, partitioned by code (/code).</summary>
+    public const string LeagueInvitesContainer = "league-invites";
 }

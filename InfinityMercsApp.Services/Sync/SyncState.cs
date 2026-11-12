@@ -4,9 +4,9 @@ namespace InfinityMercsApp.Services.Sync;
 public sealed record SyncState
 {
     /// <summary>The account the revisions belong to; another account starts again from nothing.</summary>
-    public string Account { get; init; } = string.Empty;
+    public string Account { get; set; } = string.Empty;
 
-    public List<SyncedDocument> Documents { get; init; } = [];
+    public List<SyncedDocument> Documents { get; set; } = [];
 
-    public List<SyncConflict> Conflicts { get; init; } = [];
+    public List<SyncConflict> Conflicts { get; set; } = [];
 }

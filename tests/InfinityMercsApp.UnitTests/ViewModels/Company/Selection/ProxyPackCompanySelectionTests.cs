@@ -1,3 +1,5 @@
+using InfinityMercsApp.Domain.Models.Stores;
+using NSubstitute;
 using InfinityMercsApp.Domain.Models.Army.Traits;
 using InfinityMercsApp.Domain.Models.Filtering;
 using InfinityMercsApp.Services.Navigation;
@@ -74,6 +76,24 @@ public sealed class ProxyPackCompanySelectionTests
         Assert.Contains("Transfer Consciousness", wolf.SavedSkills);
         Assert.Contains("Tactical Awareness", wolf.SavedSkills);
         Assert.True(viewModel.IsCompanyValid);
+    }
+
+    [Fact]
+    public async Task AddProfileToMercsCompanyCommand_LoneWolfBuysGear_TakesItIntoItsProfile()
+    {
+        _kit.Stores.GetAvailableStoresAsync(Arg.Any<IReadOnlyList<string>>(), Arg.Any<CancellationToken>()).Returns(
+            [new Store { Name = "Base Market", Items = [new StoreItem { Name = "Grenades", Category = "Sidearm", CostCr = 4 }] }]);
+        _kit.Dialogs.ChooseAsync(Arg.Any<string>(), StartingGearShop.Done, Arg.Any<IReadOnlyList<string>>())
+            .Returns(call => call.Arg<IReadOnlyList<string>>()[0]);
+        var viewModel = await OpenWithFactionAsync();
+
+        await viewModel.AddProfileToMercsCompanyCommand.ExecuteAsync(
+            viewModel.Preview.Profiles.First(profile => profile is { IsVisible: true, IsLieutenant: false }));
+
+        var wolf = Assert.Single(viewModel.Roster.Entries);
+        Assert.True(wolf.IsLoneWolf);
+        Assert.Contains("Grenades", wolf.SavedRangedWeapons);
+        Assert.Equal(["Starting gear: Grenades"], wolf.SpecOpsPurchases);
     }
 
     [Fact]

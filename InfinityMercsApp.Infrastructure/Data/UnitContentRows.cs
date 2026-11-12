@@ -1,5 +1,6 @@
 using InfinityMercsApp.Domain.Models.Army.Filters;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
+using InfinityMercsApp.Domain.Models.Army.SpecOps;
 using InfinityMercsApp.Infrastructure.Models.Database.Army.Units;
 
 namespace InfinityMercsApp.Infrastructure.Data;
@@ -34,6 +35,10 @@ public sealed class UnitContentRows
     public List<UnitFilterIdRow> FilterIds { get; } = [];
 
     public List<UnitFactionRow> Factions { get; } = [];
+
+    public List<UnitUpgradePartRow> UpgradeParts { get; } = [];
+
+    public List<UnitUpgradeExtraRow> UpgradeExtras { get; } = [];
 
     /// <summary>Adds the rows describing <paramref name="content"/> for the unit <paramref name="ownerKey"/>.</summary>
     public void Add(int factionId, string ownerKey, UnitContent content)
@@ -93,6 +98,8 @@ public sealed class UnitContentRows
                 MemberFactionId = content.FactionIds[position]
             });
         }
+
+        AddUpgrades(factionId, ownerKey, content.Upgrades);
     }
 
     /// <summary>
@@ -165,6 +172,16 @@ public sealed class UnitContentRows
         foreach (var row in Factions)
         {
             Builder(row.OwnerKey).FactionIds.Add(row.Position, row.MemberFactionId);
+        }
+
+        foreach (var row in UpgradeParts)
+        {
+            Builder(row.OwnerKey).Upgrade(row.UpgradeIndex).Part(row.Position).Row = row;
+        }
+
+        foreach (var row in UpgradeExtras)
+        {
+            Builder(row.OwnerKey).Upgrade(row.UpgradeIndex).Part(row.PartPosition).Extras.Add(row.Position, row.ExtraId);
         }
 
         var result = new Dictionary<string, UnitContent>(builders.Count, StringComparer.Ordinal);
@@ -328,6 +345,42 @@ public sealed class UnitContentRows
         }
     }
 
+    private void AddUpgrades(int factionId, string ownerKey, SpecUpgradeTable upgrades)
+    {
+        for (var upgradeIndex = 0; upgradeIndex < upgrades.Upgrades.Count; upgradeIndex++)
+        {
+            var parts = upgrades.Upgrades[upgradeIndex].Parts;
+            for (var position = 0; position < parts.Count; position++)
+            {
+                var part = parts[position];
+                UpgradeParts.Add(new UnitUpgradePartRow
+                {
+                    FactionId = factionId,
+                    OwnerKey = ownerKey,
+                    UpgradeIndex = upgradeIndex,
+                    Position = position,
+                    Kind = (int)part.Kind,
+                    EntryId = part.Id,
+                    StatKey = part.StatKey,
+                    Quantity = part.Quantity
+                });
+
+                for (var extraPosition = 0; extraPosition < part.Extras.Count; extraPosition++)
+                {
+                    UpgradeExtras.Add(new UnitUpgradeExtraRow
+                    {
+                        FactionId = factionId,
+                        OwnerKey = ownerKey,
+                        UpgradeIndex = upgradeIndex,
+                        PartPosition = position,
+                        Position = extraPosition,
+                        ExtraId = part.Extras[extraPosition]
+                    });
+                }
+            }
+        }
+    }
+
     private static IEnumerable<FilterSection> FilterSections(UnitFilterIds filters)
     {
         yield return new(UnitFilterSection.Categories, filters.Categories);
@@ -369,8 +422,11 @@ public sealed class UnitContentRows
         private readonly SortedDictionary<int, GroupBuilder> _groups = new();
         private readonly SortedDictionary<int, OptionBuilder> _unitOptions = new();
         private readonly Dictionary<string, PositionedList<int>> _filters = new(StringComparer.Ordinal);
+        private readonly SortedDictionary<int, UpgradeBuilder> _upgrades = new();
 
         public PositionedList<int> FactionIds { get; } = new();
+
+        public UpgradeBuilder Upgrade(int upgradeIndex) => GetOrAdd(_upgrades, upgradeIndex);
 
         public GroupBuilder Group(int groupIndex)
         {
@@ -420,7 +476,12 @@ public sealed class UnitContentRows
                 groups.Count == 0 ? UnitProfileGroups.Empty : new UnitProfileGroups(groups),
                 _unitOptions.Values.Select(option => option.Build()).ToList(),
                 filters,
-                FactionIds.InOrder());
+                FactionIds.InOrder())
+            {
+                Upgrades = _upgrades.Count == 0
+                    ? SpecUpgradeTable.Empty
+                    : new SpecUpgradeTable(_upgrades.Values.Select(upgrade => upgrade.Build()).ToList())
+            };
         }
 
         private IReadOnlyList<int> FilterIds(string section) =>
@@ -533,6 +594,28 @@ public sealed class UnitContentRows
 
         private IReadOnlyList<ProfileEntry> Entries(ProfileEntryKind kind) =>
             _entries.TryGetValue(kind, out var list) ? list.Build() : [];
+    }
+
+    private sealed class UpgradeBuilder
+    {
+        private readonly SortedDictionary<int, UpgradePartBuilder> _parts = new();
+
+        public UpgradePartBuilder Part(int position) => GetOrAdd(_parts, position);
+
+        public SpecUpgrade Build() => new(_parts.Values.Select(part => part.Build()).ToList());
+    }
+
+    private sealed class UpgradePartBuilder
+    {
+        public UnitUpgradePartRow? Row { get; set; }
+
+        public PositionedList<int> Extras { get; } = new();
+
+        public SpecUpgradePart Build()
+        {
+            var row = Row ?? new UnitUpgradePartRow();
+            return new SpecUpgradePart((SpecUpgradePartKind)row.Kind, row.EntryId, row.StatKey, row.Quantity, Extras.InOrder());
+        }
     }
 
     private sealed class EntryListBuilder

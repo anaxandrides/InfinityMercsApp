@@ -1,6 +1,5 @@
 using InfinityMercsApp.Domain.Models.Army;
 using InfinityMercsApp.Domain.Models.Army.Profiles;
-using InfinityMercsApp.Infrastructure.Providers;
 using InfinityMercsApp.Services.ArmyData;
 using InfinityMercsApp.Services.CompanySelection.Units;
 using NSubstitute;
@@ -13,7 +12,7 @@ public sealed class UnitDetailsLoaderTests
 
     private readonly IArmyDataService _armyData = Substitute.For<IArmyDataService>();
 
-    private UnitDetailsLoader Loader() => new(_armyData, Substitute.For<ISpecOpsProvider>());
+    private UnitDetailsLoader Loader() => new(_armyData);
 
     private void Lists(int factionId, int? ava) =>
         _armyData.GetUnit(factionId, UnitId, Arg.Any<CancellationToken>()).Returns(new Unit
@@ -54,46 +53,23 @@ public sealed class UnitDetailsLoaderTests
         Assert.Null(Loader().HighestAva(UnitId, [101]));
 
     [Fact]
-    public void Load_SpecOpsUnit_UsesItsSpecOpsProfilesAndIsLieutenant()
+    public void Load_SpecOpsUnit_ShowsOnlyItsOwnGroupAsLieutenant()
     {
-        var specOps = Substitute.For<ISpecOpsProvider>();
         Snapshot(101);
-        _armyData.GetUnit(101, UnitId, Arg.Any<CancellationToken>()).Returns(new Unit { UnitId = UnitId, ProfileGroups = Groups(Option(1, "0", Camo)) });
-        specOps.GetSpecopsUnitsByFaction(101, Arg.Any<CancellationToken>()).Returns(
-            [new Domain.Models.Army.SpecOps.SpecopsUnit { UnitId = UnitId, ProfileGroups = Groups(Option(2, "0", Doctor)) }]);
+        var groups = Groups(Option(1, "0", Doctor));
+        var specBot = new ProfileGroup { Id = 2, Profiles = [new UnitProfile { Id = 1, Name = "SpecBot" }], Options = [Option(1, "0", Camo)] };
+        _armyData.GetUnit(101, UnitId, Arg.Any<CancellationToken>()).Returns(new Unit
+        {
+            UnitId = UnitId,
+            ProfileGroups = new UnitProfileGroups([groups.Groups[0], specBot])
+        });
 
-        var details = new UnitDetailsLoader(_armyData, specOps).Load(101, UnitId, isSpecOps: true, lieutenantOnly: false, showUnitsInInches: false);
+        var details = Loader().Load(101, UnitId, isSpecOps: true, lieutenantOnly: false, showUnitsInInches: false);
 
         Assert.True(details.TreatAsSpecOps);
-        Assert.Equal(2, details.ProfileGroups.Groups.Single().Options.Single().Id);
+        Assert.Equal(1, Assert.Single(details.ProfileGroups.Groups).Id);
         Assert.Contains("Lieutenant", details.CommonSkills);
         Assert.Contains("Doctor", details.CommonSkills);
-    }
-
-    [Fact]
-    public void Load_UnitOnlyInSpecOps_IsTreatedAsSpecOps()
-    {
-        var specOps = Substitute.For<ISpecOpsProvider>();
-        specOps.GetSpecopsUnitsByFaction(101, Arg.Any<CancellationToken>()).Returns(
-            [new Domain.Models.Army.SpecOps.SpecopsUnit { UnitId = UnitId, ProfileGroups = Groups(Option(2, "0")) }]);
-
-        var details = new UnitDetailsLoader(_armyData, specOps).Load(101, UnitId, isSpecOps: false, lieutenantOnly: true, showUnitsInInches: false);
-
-        Assert.True(details.TreatAsSpecOps);
-        Assert.Null(details.Unit);
-        Assert.False(details.ProfileGroups.IsEmpty);
-    }
-
-    [Fact]
-    public void Load_SpecOpsWithoutProfiles_KeepsTheUnitsOwn()
-    {
-        var specOps = Substitute.For<ISpecOpsProvider>();
-        _armyData.GetUnit(101, UnitId, Arg.Any<CancellationToken>()).Returns(new Unit { UnitId = UnitId, ProfileGroups = Groups(Option(1, "0")) });
-        specOps.GetSpecopsUnitsByFaction(101, Arg.Any<CancellationToken>()).Returns([new Domain.Models.Army.SpecOps.SpecopsUnit { UnitId = UnitId }]);
-
-        var details = new UnitDetailsLoader(_armyData, specOps).Load(101, UnitId, isSpecOps: true, lieutenantOnly: false, showUnitsInInches: false);
-
-        Assert.Equal(1, details.ProfileGroups.Groups.Single().Options.Single().Id);
     }
 
     [Fact]

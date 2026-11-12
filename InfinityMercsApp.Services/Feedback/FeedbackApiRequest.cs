@@ -2,17 +2,17 @@ namespace InfinityMercsApp.Services.Feedback;
 
 public sealed class FeedbackApiRequest
 {
-    public string Name { get; init; } = string.Empty;
-    public string Email { get; init; } = string.Empty;
-    public string Subject { get; init; } = string.Empty;
-    public string Message { get; init; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Subject { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
 
     [System.Text.Json.Serialization.JsonPropertyName("_replyto")]
-    public string ReplyTo { get; init; } = string.Empty;
+    public string ReplyTo { get; set; } = string.Empty;
 
     [System.Text.Json.Serialization.JsonPropertyName("_captcha")]
-    public string Captcha { get; init; } = "false";
+    public string Captcha { get; set; } = "false";
 
     [System.Text.Json.Serialization.JsonPropertyName("_template")]
-    public string Template { get; init; } = "table";
+    public string Template { get; set; } = "table";
 }

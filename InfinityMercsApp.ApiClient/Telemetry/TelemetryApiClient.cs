@@ -1,21 +1,18 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json;
 
 namespace InfinityMercsApp.ApiClient.Telemetry;
 
 /// <inheritdoc/>
 public sealed class TelemetryApiClient(HttpClient httpClient, TelemetryEndpoint endpoint) : ITelemetryApi
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-
     /// <inheritdoc/>
     public async Task<TelemetrySendResult> SendAsync(TelemetryBatch batch, string? accessToken, CancellationToken cancellationToken = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, endpoint.Batches)
         {
-            Content = JsonContent.Create(batch, options: JsonOptions)
+            Content = JsonContent.Create(batch, ApiClientJsonContext.Default.TelemetryBatch)
         };
         if (!string.IsNullOrEmpty(accessToken))
         {

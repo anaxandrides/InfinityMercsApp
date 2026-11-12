@@ -20,6 +20,9 @@ public sealed class UnitProfileGroups
 
     public bool IsEmpty => Groups.Count == 0;
 
+    /// <summary>Only the first group: a Spec-Ops trooper without the SpecBot that follows it.</summary>
+    public UnitProfileGroups FirstGroupOnly() => Groups.Count <= 1 ? this : new UnitProfileGroups([Groups[0]]);
+
     /// <summary>Every option of every group, with its group, in payload order.</summary>
     public IEnumerable<GroupedOption> AllOptions() =>
         Groups.SelectMany(group => group.Options.Select(option => new GroupedOption(group, option)));

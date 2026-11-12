@@ -17,6 +17,9 @@ public partial class MercsCompanyEntry : ObservableObject, IViewerListItem, ICom
     public string CostDisplay { get; init; } = string.Empty;
     public int CostValue { get; init; }
     public string ProfileKey { get; init; } = string.Empty;
+
+    /// <summary>The profile group the trooper was recruited from; a Team-Ops entry's MI, HI and SpecBot are one each.</summary>
+    public int? ProfileGroupId { get; init; }
     /// <summary>The captain; a Proxy Pack's Lone Wolf is one without the Lieutenant skill.</summary>
     public bool IsLieutenant { get; set; }
 

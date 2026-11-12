@@ -53,6 +53,7 @@ public class ArmyImportProvider(ISQLiteRepository sqliteRepository, IArmyContent
             unitContent.Add(factionId, unitKey, ContentOf(unit));
         }
 
+        var operativeIds = army.Units.Where(unit => !unit.Upgrades.IsEmpty).Select(unit => unit.Id).ToHashSet();
         var resume = army.Resume.Select(x => new DbResume
         {
             ResumeKey = BuildResumeKey(factionId, x),
@@ -64,7 +65,8 @@ public class ArmyImportProvider(ISQLiteRepository sqliteRepository, IArmyContent
             Slug = x.Slug,
             Logo = x.Logo,
             Type = x.Type,
-            Category = x.Category
+            Category = x.Category,
+            HasUpgrades = operativeIds.Contains(x.Id)
         }).ToList();
 
         // Since October 2026 the army data sends no spec-ops at all (Corvus Belli's Team-Ops replaced them), so an
@@ -164,7 +166,7 @@ public class ArmyImportProvider(ISQLiteRepository sqliteRepository, IArmyContent
         specops.Skills is { Count: > 0 } || specops.Equip is { Count: > 0 } || specops.Weapons is { Count: > 0 } || specops.Units.Count > 0;
 
     private static UnitContent ContentOf(ArmyUnitDefinition unit) =>
-        new(unit.ProfileGroups, unit.Options, unit.Filters, unit.FactionIds);
+        new(unit.ProfileGroups, unit.Options, unit.Filters, unit.FactionIds) { Upgrades = unit.Upgrades };
 
     private static List<TRow> BuildChoices<TRow>(
         int factionId,

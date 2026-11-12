@@ -1,0 +1,15 @@
+@page "/season/{SeasonId}/bye"
+@using InfinityMercsApp.ViewModels.Season.Bye
+@inject ByeRoundViewModel ViewModel
+
+<PageTitle>Bye Round · Infinity Mercs</PageTitle>
+
+<ArmyDataGate>
+    <SeasonStepHost SeasonId="@SeasonId" Step="SeasonStep.Bye" ViewModel="ViewModel">
+        <ByeRoundScreen ViewModel="ViewModel" />
+    </SeasonStepHost>
+</ArmyDataGate>
+
+@code {
+    [Parameter] public string SeasonId { get; set; } = string.Empty;
+}

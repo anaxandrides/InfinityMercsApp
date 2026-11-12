@@ -1,3 +1,4 @@
+using InfinityMercsApp.Presentation.Records;
 using InfinityMercsApp.Web.Presentation;
 
 namespace InfinityMercsApp.Web.UnitTests.Presentation;

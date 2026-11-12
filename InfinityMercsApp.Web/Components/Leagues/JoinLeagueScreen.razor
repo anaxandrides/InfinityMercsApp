@@ -1,0 +1,42 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Leagues
+
+@* An invite link's page: the league it leads to, and joining it. *@
+<h1>Join a league</h1>
+
+@if (ViewModel.Preview is { } preview)
+{
+    <section class="card">
+        <h2>@preview.Name</h2>
+        <p class="muted">@ViewModel.Details</p>
+        <button class="primary" disabled="@(!ViewModel.JoinCommand.CanExecute(null))" @onclick="() => ViewModel.JoinCommand.ExecuteAsync(null)">
+            @(preview.IsMember ? "OPEN THE LEAGUE" : "JOIN")
+        </button>
+    </section>
+}
+
+@if (ViewModel.ShowLogIn)
+{
+    <p><button class="primary" disabled="@(!ViewModel.LogInCommand.CanExecute(null))" @onclick="() => ViewModel.LogInCommand.ExecuteAsync(null)">LOG IN</button></p>
+}
+
+@if (ViewModel.Status.Length > 0)
+{
+    <p class="muted" role="status">@ViewModel.Status</p>
+}
+
+<p><a href="@WebRoutes.Leagues">← Your leagues</a></p>
+
+@code {
+    [Parameter, EditorRequired] public required JoinLeagueViewModel ViewModel { get; set; }
+
+    [Parameter, EditorRequired] public required string Code { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        StopWatching();
+        Watch(ViewModel);
+        ViewModel.ApplyQueryAttributes(new Dictionary<string, object> { [NavigationParameters.InviteCode] = Code });
+        await ViewModel.InitializeAsyncCommand.ExecuteAsync(null);
+    }
+}

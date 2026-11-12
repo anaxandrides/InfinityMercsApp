@@ -4,6 +4,11 @@
 
 @* The units the company can hire, or its fireteams with the troopers each allows. *@
 <section class="pane units-pane" aria-label="Units">
+    <div class="pane-tools">
+        <button class="secondary small @(Screen.UnitList.IsFilterActive ? "active" : null)" @onclick="() => Screen.OpenUnitFilterCommand.Execute(null)">
+            FILTER@(Screen.UnitList.IsFilterActive ? " · ON" : string.Empty)
+        </button>
+    </div>
     @if (Screen.UnitList.IsLoading)
     {
         <p class="muted">Loading the units…</p>
@@ -26,6 +31,11 @@
         }
     }
 </section>
+
+@if (Screen.UnitList.Filter is { } filter)
+{
+    <UnitFilterDialog Filter="filter" />
+}
 
 @code {
     [Parameter, EditorRequired] public required CompanySelectionViewModel Screen { get; set; }

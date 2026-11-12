@@ -4,5 +4,5 @@ namespace InfinityMercsApp.Domain.Models.Company;
 public sealed class SavedCompanyFaction
 {
     public int FactionId { get; init; }
-    public string FactionName { get; init; } = string.Empty;
+    public string FactionName { get; set; } = string.Empty;
 }

@@ -1,0 +1,33 @@
+@inherits ObservingComponent
+@using System.Windows.Input
+@using InfinityMercsApp.ViewModels.Components
+
+@* A trooper as a tile in a strip: its logo, name, unit, captain and rank badges; the chosen one is outlined. *@
+<button class="unit-tile @(Tile.IsLieutenant ? "captain" : null) @(Tile.IsSelected ? "selected" : null)"
+        style="@AccentStyle" aria-pressed="@Tile.IsSelected" @onclick="() => Command.Execute(Tile)">
+    <span class="tile-logos">
+        <Logo Candidates="Tile.LogoCandidates" Size="44" />
+        @if (Tile.CaptainIconPackagedPath.Length > 0) { <Logo Source="@Tile.CaptainIconPackagedPath" Size="18" /> }
+        @if (Tile.ExperienceIconPackagedPath.Length > 0) { <Logo Source="@Tile.ExperienceIconPackagedPath" Size="18" /> }
+    </span>
+    <span class="name">@Tile.Name</span>
+    <span class="subtitle">@Tile.BaseUnitDisplayName</span>
+</button>
+
+@code {
+    [Parameter, EditorRequired] public required IUnitTile Tile { get; set; }
+
+    /// <summary>What choosing the tile does; it is given the tile.</summary>
+    [Parameter, EditorRequired] public required ICommand Command { get; set; }
+
+    private string? AccentStyle => Tile.IsSelected ? $"--accent:{Tile.SelectionAccentColor.ToRgbaHex(includeAlpha: false)}" : null;
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        if (Tile is System.ComponentModel.INotifyPropertyChanged source)
+        {
+            Watch(source);
+        }
+    }
+}

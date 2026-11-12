@@ -1,0 +1,179 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.Presentation.Leagues
+@using InfinityMercsApp.ViewModels.Leagues
+
+@* One league: standings by renown, games, members, entering a season, recording a game, and the organizer's invite. *@
+<p><a href="@WebRoutes.Leagues">← Your leagues</a></p>
+<div class="league-header">
+    <div>
+        <h1>@ViewModel.Name</h1>
+        <span class="muted">@ViewModel.CurrentSeasonText</span>
+    </div>
+    @if (ViewModel.LeagueSeasons.Count > 1)
+    {
+        <PickList TItem="LeagueSeasonChoice" Items="ViewModel.LeagueSeasons" Value="ViewModel.ViewedSeason"
+                  ValueChanged="season => ViewModel.ViewedSeason = season" Prompt="League season…" />
+    }
+</div>
+
+@if (ViewModel.Status.Length > 0)
+{
+    <p class="muted" role="status">@ViewModel.Status</p>
+}
+
+<h3 class="section-heading">STANDINGS</h3>
+@if (ViewModel.Standings.Count == 0)
+{
+    <p class="muted">No companies are entered in this season yet.</p>
+}
+else
+{
+    <table class="standings">
+        <thead>
+            <tr><th class="number">#</th><th>Company</th><th class="number">Renown</th><th class="number">W-D-L</th><th class="number">OP</th><th></th></tr>
+        </thead>
+        <tbody>
+            @foreach (var line in ViewModel.Standings)
+            {
+                <tr @key="line.SeasonId" class="@(line.IsYours ? "yours" : null)">
+                    <td class="number">@line.Place</td>
+                    <td>
+                        <button class="link" @onclick="() => ViewModel.ViewCompanyCommand.ExecuteAsync(line)">@line.CompanyName</button>
+                        <span class="muted">@line.PlayerName</span>
+                    </td>
+                    <td class="number">@line.Renown</td>
+                    <td class="number">@line.Record</td>
+                    <td class="number">@line.ObjectivePoints</td>
+                    <td>
+                        @if ((line.IsYours || ViewModel.IsOrganizer) && line.Played == 0 && ViewModel.IsViewingCurrentSeason)
+                        {
+                            <button class="link danger" @onclick="() => ViewModel.WithdrawCommand.ExecuteAsync(line)">withdraw</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (ViewModel.IsViewingCurrentSeason && ViewModel.HasSeasonsToEnter)
+{
+    <h3 class="section-heading">ENTER A COMPANY</h3>
+    <div class="inline-form">
+        <PickList TItem="SeasonChoice" Items="ViewModel.SeasonsToEnter" Value="ViewModel.SeasonToEnter"
+                  ValueChanged="season => ViewModel.SeasonToEnter = season" Prompt="One of your seasons…" />
+        <button class="primary" disabled="@(!ViewModel.EnterSeasonCommand.CanExecute(null))" @onclick="() => ViewModel.EnterSeasonCommand.ExecuteAsync(null)">ENTER</button>
+    </div>
+}
+
+@if (ViewModel.IsViewingCurrentSeason && ViewModel.CanRecordGames)
+{
+    <h3 class="section-heading">RECORD A GAME</h3>
+    <div class="record-game">
+        <label>Your company
+            <PickList TItem="LeagueEntryChoice" Items="ViewModel.OwnEntries" Value="ViewModel.OwnEntry"
+                      ValueChanged="entry => ViewModel.OwnEntry = entry" Prompt="Your company…" />
+        </label>
+        <label>Opponent
+            <PickList TItem="LeagueEntryChoice" Items="ViewModel.Opponents" Value="ViewModel.Opponent"
+                      ValueChanged="entry => ViewModel.Opponent = entry" Prompt="Who you played…" />
+        </label>
+        <label>Result
+            <PickList TItem="ResultChoice" Items="ViewModel.Results" Value="ViewModel.Result"
+                      ValueChanged="result => ViewModel.Result = result ?? ResultChoice.All[0]" Prompt="Result…" />
+        </label>
+        <label>Your OP
+            <input type="number" min="0" max="10" value="@ViewModel.OwnObjectivePoints"
+                   @onchange="e => ViewModel.OwnObjectivePoints = int.TryParse(e.Value as string, out var op) ? op : 0" />
+        </label>
+        <label>Their OP
+            <input type="number" min="0" max="10" value="@ViewModel.OpponentObjectivePoints"
+                   @onchange="e => ViewModel.OpponentObjectivePoints = int.TryParse(e.Value as string, out var op) ? op : 0" />
+        </label>
+        <label>Mission
+            <input maxlength="80" value="@ViewModel.Mission" @oninput="e => ViewModel.Mission = e.Value as string ?? string.Empty" />
+        </label>
+        <label>Played on
+            <input type="date" value="@ViewModel.PlayedOn.ToString("yyyy-MM-dd")"
+                   @onchange="e => ViewModel.PlayedOn = DateTime.TryParse(e.Value as string, out var day) ? day : ViewModel.PlayedOn" />
+        </label>
+    </div>
+    <p><button class="primary" disabled="@(!ViewModel.RecordGameCommand.CanExecute(null))" @onclick="() => ViewModel.RecordGameCommand.ExecuteAsync(null)">RECORD GAME</button></p>
+}
+
+<h3 class="section-heading">GAMES</h3>
+@if (ViewModel.Games.Count == 0)
+{
+    <p class="muted">No games recorded in this season yet.</p>
+}
+else
+{
+    <ul class="rows games">
+        @foreach (var game in ViewModel.Games)
+        {
+            <li @key="game.GameId">
+                <div class="title">@game.Score</div>
+                <div class="muted">@game.PlayedOn@(game.Mission.Length > 0 ? $" · {game.Mission}" : null) · recorded by @game.RecordedBy</div>
+                @if (game.CanRemove)
+                {
+                    <button class="link danger" @onclick="() => ViewModel.RemoveGameCommand.ExecuteAsync(game)">remove</button>
+                }
+            </li>
+        }
+    </ul>
+}
+
+<h3 class="section-heading">MEMBERS</h3>
+<ul class="members">
+    @foreach (var member in ViewModel.Members)
+    {
+        <li>@member.Name @if (member.Note.Length > 0) { <span class="muted">(@member.Note)</span> }</li>
+    }
+</ul>
+
+@if (ViewModel.IsOrganizer)
+{
+    <h3 class="section-heading">INVITE PLAYERS</h3>
+    @if (ViewModel.HasInvite && ViewModel.InviteQr is { } qr)
+    {
+        <div class="invite">
+            <InviteQrView Qr="qr" />
+            <div>
+                <p>Code <strong class="invite-code">@ViewModel.InviteCode</strong></p>
+                <p><a href="@ViewModel.InviteLink">@ViewModel.InviteLink</a></p>
+                <p class="muted">Anyone with the code or link can join. Scan the QR code with a phone's camera to open the link.</p>
+                <button class="secondary" disabled="@(!ViewModel.NewInviteCommand.CanExecute(null))" @onclick="() => ViewModel.NewInviteCommand.ExecuteAsync(null)">NEW CODE</button>
+                <button class="secondary" disabled="@(!ViewModel.CloseInviteCommand.CanExecute(null))" @onclick="() => ViewModel.CloseInviteCommand.ExecuteAsync(null)">CLOSE JOINING</button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p class="muted">Joining is closed.</p>
+        <button class="secondary" disabled="@(!ViewModel.NewInviteCommand.CanExecute(null))" @onclick="() => ViewModel.NewInviteCommand.ExecuteAsync(null)">OPEN WITH A NEW CODE</button>
+    }
+
+    <h3 class="section-heading">LEAGUE SEASON</h3>
+    <button class="secondary" disabled="@(!ViewModel.StartNextSeasonCommand.CanExecute(null))" @onclick="() => ViewModel.StartNextSeasonCommand.ExecuteAsync(null)">START THE NEXT SEASON</button>
+}
+
+@code {
+    [Parameter, EditorRequired] public required LeagueViewModel ViewModel { get; set; }
+
+    [Parameter, EditorRequired] public required string LeagueId { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        StopWatching();
+        Watch(ViewModel);
+        WatchItems(ViewModel.Standings);
+        WatchItems(ViewModel.Games);
+        WatchItems(ViewModel.Members);
+        WatchItems(ViewModel.SeasonsToEnter);
+        WatchItems(ViewModel.OwnEntries);
+        WatchItems(ViewModel.Opponents);
+        WatchItems(ViewModel.LeagueSeasons);
+        ViewModel.ApplyQueryAttributes(NavigationParameters.ForLeague(LeagueId));
+        await ViewModel.InitializeAsyncCommand.ExecuteAsync(null);
+    }
+}

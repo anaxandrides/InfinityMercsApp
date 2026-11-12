@@ -4,6 +4,7 @@ using InfinityMercsApp.Api.ArmyData.Logos;
 using InfinityMercsApp.Api.ArmyData.Prebuilt;
 using InfinityMercsApp.Api.Auth;
 using InfinityMercsApp.Api.Cosmos;
+using InfinityMercsApp.Api.Leagues;
 using InfinityMercsApp.Api.Telemetry;
 using InfinityMercsApp.Api.UserDocuments;
 using InfinityMercsApp.Infrastructure.API.InfinityArmy;
@@ -45,6 +46,10 @@ builder.Services
     .AddSingleton<UserDocumentEndpoints>()
     .AddSingleton<CompanyFileChecks>()
     .AddSingleton<SeasonFileChecks>()
+    .AddSingleton<ILeagueStore, CosmosLeagueStore>()
+    .AddSingleton<IInviteCodeSource, RandomInviteCodes>()
+    .AddSingleton<LeagueService>()
+    .AddSingleton<LeagueEndpoints>()
     .AddSingleton<TelemetryBatchValidator>()
     .AddSingleton<ITelemetrySink, ApplicationInsightsTelemetrySink>();
 

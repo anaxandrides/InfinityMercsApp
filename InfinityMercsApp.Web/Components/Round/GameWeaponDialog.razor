@@ -1,0 +1,29 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season.Game
+
+@* Every mode of the weapon chosen, in full, with the trooper's modifiers. *@
+@if (Game.OpenWeaponCard is { } card)
+{
+    <div class="backdrop" @onclick="() => Game.CloseWeaponCommand.Execute(null)"></div>
+    <div class="dialog detail" role="dialog" aria-modal="true" aria-labelledby="weapon-title">
+        <h2 id="weapon-title">@card.Title</h2>
+        @foreach (var mode in card.Modes)
+        {
+            <WeaponCardView Weapon="mode.Weapon" Ammo="@mode.Ammo" DamageReduction="mode.Modifiers.DamageReduction"
+                            BurstBonus="mode.Modifiers.BurstBonus" InInches="Game.ShowUnitsInInches" XVisor="card.HasXVisor" />
+        }
+        <div class="buttons">
+            <button class="primary" @onclick="() => Game.CloseWeaponCommand.Execute(null)">Done</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public required GameModeViewModel Game { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Game);
+    }
+}

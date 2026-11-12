@@ -8,7 +8,7 @@ public sealed record TelemetryEvent
     public DateTimeOffset At { get; init; }
 
     /// <summary>The page, or the exception's type.</summary>
-    public string Name { get; init; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>The Java object count, or the milliseconds; null when the event has no number.</summary>
     public double? Value { get; init; }

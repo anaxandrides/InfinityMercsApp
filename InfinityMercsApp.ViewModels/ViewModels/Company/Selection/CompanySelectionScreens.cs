@@ -32,6 +32,7 @@ public sealed class CompanySelectionScreens(CompanySelectionServices services)
         CompanyKind.Cohesive => new CohesiveCompanyRules(mode),
         CompanyKind.Inspiring => new InspiringCompanyRules(),
         CompanyKind.Airborne => new AirborneCompanyRules(),
+        CompanyKind.TeamOps => new TeamOpsCompanyRules(mode),
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
     };
 }

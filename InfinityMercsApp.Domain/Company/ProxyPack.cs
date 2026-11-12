@@ -2,15 +2,14 @@ namespace InfinityMercsApp.Domain.Company;
 
 /// <summary>
 /// A Proxy Pack: one captain from a single sectorial or vanilla army, the Lone Wolf, and never another trooper. The
-/// Lone Wolf needs Regular training rather than the Lieutenant skill, gains 10 more Spec-Ops XP whatever it costs,
-/// Transfer Consciousness and Tactical Awareness, and is always Elite Deployed.
+/// Lone Wolf needs Regular training rather than the Lieutenant skill, spends 10 one-off credits on gear for its
+/// profile (<see cref="StartingGear.ProxyPackCredits"/>), gains Transfer Consciousness and Tactical Awareness, and is
+/// always Elite Deployed.
 /// </summary>
 public static class ProxyPack
 {
     /// <summary>The company type a Proxy Pack is saved with.</summary>
     public const string CompanyType = "Proxy Pack";
-
-    public const int ExtraSpecOpsXp = 10;
 
     /// <summary>The Lone Wolf earns two perks a rank, where other troopers earn one.</summary>
     public const int PerksPerRank = 2;

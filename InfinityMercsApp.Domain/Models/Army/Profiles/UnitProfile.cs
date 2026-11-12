@@ -19,13 +19,13 @@ public sealed class UnitProfile
     public bool Str { get; init; }
 
     /// <summary>Movement as display text, e.g. <c>"10-5"</c>, or <c>"-"</c>.</summary>
-    public string Move { get; init; } = "-";
+    public string Move { get; set; } = "-";
 
     /// <summary>
     /// Movement values in centimetres as sent (<c>[10, 5]</c>), read from a <c>move</c>/<c>mov</c> array or
     /// a <c>"10-5"</c> string. Empty when absent.
     /// </summary>
-    public IReadOnlyList<int> MoveCm { get; init; } = [];
+    public IReadOnlyList<int> MoveCm { get; set; } = [];
 
     /// <summary>The first movement value in centimetres, when the profile has both.</summary>
     public int? FirstMoveCm => MoveCm.Count >= 2 ? MoveCm[0] : null;
@@ -62,19 +62,19 @@ public sealed class UnitProfile
     /// <summary>True when the payload carries any statline field (cc, bs, ph, wip, arm, bts, w or str).</summary>
     public bool HasStatFields { get; init; }
 
-    public IReadOnlyList<ProfileEntry> Chars { get; init; } = [];
+    public IReadOnlyList<ProfileEntry> Chars { get; set; } = [];
 
-    public IReadOnlyList<ProfileEntry> Skills { get; init; } = [];
+    public IReadOnlyList<ProfileEntry> Skills { get; set; } = [];
 
-    public IReadOnlyList<ProfileEntry> Equip { get; init; } = [];
+    public IReadOnlyList<ProfileEntry> Equip { get; set; } = [];
 
-    public IReadOnlyList<ProfileEntry> Weapons { get; init; } = [];
+    public IReadOnlyList<ProfileEntry> Weapons { get; set; } = [];
 
-    public IReadOnlyList<ProfileEntry> Peripheral { get; init; } = [];
+    public IReadOnlyList<ProfileEntry> Peripheral { get; set; } = [];
 
-    public IReadOnlyList<ProfileEntry> Ammunition { get; init; } = [];
+    public IReadOnlyList<ProfileEntry> Ammunition { get; set; } = [];
 
-    public IReadOnlyList<ProfileEntry> Ammo { get; init; } = [];
+    public IReadOnlyList<ProfileEntry> Ammo { get; set; } = [];
 
     public IReadOnlyList<ProfileEntry> Entries(ProfileEntryKind kind) => kind switch
     {

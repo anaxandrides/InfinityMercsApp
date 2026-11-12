@@ -4,6 +4,7 @@ using InfinityMercsApp.Domain.Models.Company;
 using InfinityMercsApp.Domain.Models.Season;
 using InfinityMercsApp.Domain.Validation.Company;
 using InfinityMercsApp.Domain.Validation.Season;
+using InfinityMercsApp.Infrastructure.Json;
 using InfinityMercsApp.Services.CompanySelection.StartCompany;
 using InfinityMercsApp.Services.Records;
 
@@ -18,7 +19,7 @@ internal sealed class LocalRecordFiles(RecordPaths paths)
     {
         try
         {
-            return File.Exists(filePath) ? JsonSerializer.Deserialize<TContent>(File.ReadAllText(filePath), RecordJson.ReadOptions) : null;
+            return File.Exists(filePath) ? JsonSerializer.Deserialize(File.ReadAllText(filePath), JsonContracts.For<TContent>(RecordJson.ReadOptions)) : null;
         }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {
@@ -31,7 +32,7 @@ internal sealed class LocalRecordFiles(RecordPaths paths)
         where TContent : class
     {
         Directory.CreateDirectory(Path.GetDirectoryName(filePath) ?? ".");
-        File.WriteAllText(filePath, JsonSerializer.Serialize(content, OptionsFor(content)));
+        File.WriteAllText(filePath, JsonSerializer.Serialize(content, JsonContracts.For<TContent>(OptionsFor(content))));
     }
 
     public static void Delete(string filePath)
@@ -45,7 +46,7 @@ internal sealed class LocalRecordFiles(RecordPaths paths)
     /// <summary>Whether two versions of a file hold the same thing.</summary>
     public static bool Same<TContent>(TContent here, TContent other)
         where TContent : class =>
-        JsonSerializer.Serialize(here, RecordJson.CompanyWriteOptions) == JsonSerializer.Serialize(other, RecordJson.CompanyWriteOptions);
+        JsonSerializer.Serialize(here, JsonContracts.For<TContent>(RecordJson.CompanyWriteOptions)) == JsonSerializer.Serialize(other, JsonContracts.For<TContent>(RecordJson.CompanyWriteOptions));
 
     /// <summary>Each way the file breaks the rules the API checks; empty when it can be sent.</summary>
     public static IReadOnlyList<string> ProblemsWith(object content) => (content switch

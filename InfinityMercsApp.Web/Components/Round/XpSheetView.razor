@@ -1,0 +1,40 @@
+@inherits ObservingComponent
+@using InfinityMercsApp.ViewModels.Season.Game.Items
+
+@* A trooper's XP sheet: its boxes, and the total they come to. *@
+<h2 id="xp-title" class="center">@Sheet.UnitName</h2>
+<div class="signal bold center">@Sheet.TotalText</div>
+
+<h3 class="section-heading">Assisting an allied unit (engineering / doctoring / medikit / gizmokit / casevac)</h3>
+<div class="xp-checks">
+    @foreach (var check in Sheet.Assist) { <XpCheckBox Check="check" /> }
+</div>
+<h3 class="section-heading">Inflicting 1+ state(s) (stunned / spotlit / immobilized / isolated) in one order</h3>
+<div class="xp-checks">
+    @foreach (var check in Sheet.InflictState) { <XpCheckBox Check="check" /> }
+</div>
+<h3 class="section-heading">Making a roll to accomplish an objective that is NOT attacking the opponent</h3>
+<div class="xp-checks">
+    <XpCheckBox Check="Sheet.Attempted" />
+    <XpCheckBox Check="Sheet.Succeeded" />
+</div>
+<h3 class="section-heading">Scanning an enemy (the Scan skill): with LoF, marking an unconscious, immobilized or Shasvastii-state enemy, which becomes Targeted. A Forward Observer earns 1 more XP.</h3>
+<div class="xp-checks">
+    <XpCheckBox Check="Sheet.Scanned" />
+    <XpCheckBox Check="Sheet.ScannedWithFo" />
+</div>
+<h3 class="section-heading">Tag and Bag [Mercs Skill]</h3>
+<div class="xp-checks">
+    <XpCheckBox Check="Sheet.TagAndBag" />
+</div>
+
+
+@code {
+    [Parameter, EditorRequired] public required XpSheet Sheet { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        StopWatching();
+        Watch(Sheet);
+    }
+}

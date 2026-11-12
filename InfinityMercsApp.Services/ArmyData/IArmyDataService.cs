@@ -19,6 +19,9 @@ public interface IArmyDataService
     ArmyFactionRecord? GetFactionSnapshot(int factionId, CancellationToken cancellationToken = default);
     IReadOnlyList<ArmyResumeRecord> GetResumeByFaction(int factionId, CancellationToken cancellationToken = default);
     IReadOnlyList<ArmyResumeRecord> GetResumeByFactionMercsOnly(int factionId, CancellationToken cancellationToken = default);
+
+    /// <summary>The faction's Spec-Ops and Team-Ops units, which have an upgrade table and aren't recruited like the rest.</summary>
+    IReadOnlyList<ArmyResumeRecord> GetUpgradeUnitResumes(int factionId, CancellationToken cancellationToken = default);
     ArmyUnitRecord? GetUnit(int factionId, int unitId, CancellationToken cancellationToken = default);
     IReadOnlyList<MercsArmyListEntry> GetMergedMercsArmyList(IReadOnlyCollection<int> factionIds, CancellationToken cancellationToken = default);
     /// <summary>A recruit table's results by d20 range, lowest first; empty when the metadata has none.</summary>
